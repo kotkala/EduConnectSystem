@@ -1,10 +1,11 @@
--- Initial schema for EduConnect System
+-- Initial schema for EduConnect System (SQL Editor Compatible)
 -- This migration creates tables, RLS policies, and functions
+-- Fixed for Supabase SQL Editor compatibility
 
--- Enable necessary extensions
+-- Enable necessary extensions first
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create custom types
+-- Create custom types (SQL Editor compatible)
 CREATE TYPE public.user_role AS ENUM ('student', 'teacher', 'admin');
 
 -- Create profiles table
@@ -13,7 +14,7 @@ CREATE TABLE public.profiles (
     email TEXT NOT NULL UNIQUE,
     full_name TEXT,
     avatar_url TEXT,
-    role user_role NOT NULL DEFAULT 'student',
+    role public.user_role NOT NULL DEFAULT 'student',
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     
@@ -58,12 +59,12 @@ CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path = public
 AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM public.profiles 
-        WHERE (SELECT auth.uid()) = id AND role = 'admin'
+        WHERE auth.uid() = id AND role = 'admin'
     );
 END;
 $$;
@@ -72,12 +73,12 @@ CREATE OR REPLACE FUNCTION public.is_teacher()
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path = public
 AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM public.profiles 
-        WHERE (SELECT auth.uid()) = id AND role IN ('teacher', 'admin')
+        WHERE auth.uid() = id AND role IN ('teacher', 'admin')
     );
 END;
 $$;
@@ -86,7 +87,7 @@ CREATE OR REPLACE FUNCTION public.get_user_role(user_id UUID)
 RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = ''
+SET search_path = public
 AS $$
 DECLARE
     user_role TEXT;
@@ -108,18 +109,18 @@ USING (true);
 CREATE POLICY "Users can insert their own profile"
 ON public.profiles FOR INSERT
 TO authenticated
-WITH CHECK ((SELECT auth.uid()) = id);
+WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile"
 ON public.profiles FOR UPDATE
 TO authenticated
-USING ((SELECT auth.uid()) = id)
-WITH CHECK ((SELECT auth.uid()) = id);
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Admins can update any profile"
 ON public.profiles FOR UPDATE
 TO authenticated
-USING ((SELECT public.is_admin()));
+USING (public.is_admin());
 
 -- RLS Policies for courses
 CREATE POLICY "Courses are viewable by authenticated users"
@@ -130,52 +131,52 @@ USING (true);
 CREATE POLICY "Teachers can create courses"
 ON public.courses FOR INSERT
 TO authenticated
-WITH CHECK ((SELECT public.is_teacher()));
+WITH CHECK (public.is_teacher());
 
 CREATE POLICY "Instructors can update their own courses"
 ON public.courses FOR UPDATE
 TO authenticated
-USING (instructor_id = (SELECT auth.uid()))
-WITH CHECK (instructor_id = (SELECT auth.uid()));
+USING (instructor_id = auth.uid())
+WITH CHECK (instructor_id = auth.uid());
 
 CREATE POLICY "Admins can update any course"
 ON public.courses FOR UPDATE
 TO authenticated
-USING ((SELECT public.is_admin()));
+USING (public.is_admin());
 
 CREATE POLICY "Instructors can delete their own courses"
 ON public.courses FOR DELETE
 TO authenticated
-USING (instructor_id = (SELECT auth.uid()));
+USING (instructor_id = auth.uid());
 
 CREATE POLICY "Admins can delete any course"
 ON public.courses FOR DELETE
 TO authenticated
-USING ((SELECT public.is_admin()));
+USING (public.is_admin());
 
 -- RLS Policies for enrollments
 CREATE POLICY "Users can view their own enrollments"
 ON public.enrollments FOR SELECT
 TO authenticated
 USING (
-    student_id = (SELECT auth.uid()) OR
+    student_id = auth.uid() OR
     course_id IN (
         SELECT id FROM public.courses 
-        WHERE instructor_id = (SELECT auth.uid())
+        WHERE instructor_id = auth.uid()
     ) OR
-    (SELECT public.is_admin())
+    public.is_admin()
 );
 
 CREATE POLICY "Students can enroll themselves"
 ON public.enrollments FOR INSERT
 TO authenticated
-WITH CHECK (student_id = (SELECT auth.uid()));
+WITH CHECK (student_id = auth.uid());
 
 CREATE POLICY "Students can update their own enrollments"
 ON public.enrollments FOR UPDATE
 TO authenticated
-USING (student_id = (SELECT auth.uid()))
-WITH CHECK (student_id = (SELECT auth.uid()));
+USING (student_id = auth.uid())
+WITH CHECK (student_id = auth.uid());
 
 CREATE POLICY "Instructors can update enrollments for their courses"
 ON public.enrollments FOR UPDATE
@@ -183,7 +184,7 @@ TO authenticated
 USING (
     course_id IN (
         SELECT id FROM public.courses 
-        WHERE instructor_id = (SELECT auth.uid())
+        WHERE instructor_id = auth.uid()
     )
 );
 
@@ -208,68 +209,12 @@ CREATE TRIGGER courses_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
 
--- Set up Realtime
-BEGIN;
-    DROP PUBLICATION IF EXISTS supabase_realtime;
-    CREATE PUBLICATION supabase_realtime;
-COMMIT;
+-- Note: Storage setup should be done via Dashboard
+-- Note: Realtime setup should be done via Dashboard or separate script
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.courses;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.enrollments;
-
--- Set up Storage
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('avatars', 'avatars', true);
-
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('course-materials', 'course-materials', false);
-
--- Storage policies
-CREATE POLICY "Avatar images are publicly accessible"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'avatars');
-
-CREATE POLICY "Users can upload their own avatar"
-ON storage.objects FOR INSERT
-WITH CHECK (
-    bucket_id = 'avatars' AND
-    (storage.foldername(name))[1] = (SELECT auth.uid()::text)
-);
-
-CREATE POLICY "Users can update their own avatar"
-ON storage.objects FOR UPDATE
-USING (
-    bucket_id = 'avatars' AND
-    (storage.foldername(name))[1] = (SELECT auth.uid()::text)
-);
-
-CREATE POLICY "Course materials are accessible to enrolled users"
-ON storage.objects FOR SELECT
-USING (
-    bucket_id = 'course-materials' AND
-    (
-        (storage.foldername(name))[1] IN (
-            SELECT course_id::text FROM public.enrollments 
-            WHERE student_id = (SELECT auth.uid())
-        ) OR
-        (storage.foldername(name))[1] IN (
-            SELECT id::text FROM public.courses 
-            WHERE instructor_id = (SELECT auth.uid())
-        ) OR
-        (SELECT public.is_admin())
-    )
-);
-
-CREATE POLICY "Teachers can upload course materials"
-ON storage.objects FOR INSERT
-WITH CHECK (
-    bucket_id = 'course-materials' AND
-    (
-        (storage.foldername(name))[1] IN (
-            SELECT id::text FROM public.courses 
-            WHERE instructor_id = (SELECT auth.uid())
-        ) OR
-        (SELECT public.is_admin())
-    )
-); 
+-- Uncomment the following lines if you want to include Realtime setup:
+-- DROP PUBLICATION IF EXISTS supabase_realtime;
+-- CREATE PUBLICATION supabase_realtime;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.courses;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.enrollments; 

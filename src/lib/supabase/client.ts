@@ -217,6 +217,7 @@ export class SupabaseError extends Error {
  * Wrapper for Supabase operations with proper error handling
  */
 export async function handleSupabaseOperation<T>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   operation: () => Promise<{ data: T | null; error: any }>
 ): Promise<T> {
   try {

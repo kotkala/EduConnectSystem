@@ -3,12 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable experimental features for better performance
   experimental: {
-    // Enable server-side compilation for better performance
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
-    
     // Enable optimized package imports
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+
+  // Server external packages (moved from experimental)
+  serverExternalPackages: ['@supabase/supabase-js'],
 
   // Image optimization
   images: {

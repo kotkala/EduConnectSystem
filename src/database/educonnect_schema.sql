@@ -648,9 +648,8 @@ CREATE TABLE public.notifications (
     is_sent BOOLEAN DEFAULT FALSE,
     sent_at TIMESTAMPTZ,
     delivery_channels TEXT[] DEFAULT '{in_app}',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    template_id UUID REFERENCES notification_templates(id),
-    variables JSONB
+    created_at TIMESTAMPTZ DEFAULT NOW()
+    -- template_id and variables will be added after notification_templates is created
 );
 
 -- Create indexes for notifications
@@ -870,4 +869,3 @@ DROP TRIGGER IF EXISTS trg_check_student_role ON public.student_enrollments;
 DROP FUNCTION IF EXISTS check_student_role();
 DROP TRIGGER IF EXISTS trg_check_teaching_schedule_teacher_role ON public.teaching_schedules;
 DROP FUNCTION IF EXISTS check_teaching_schedule_teacher_role();
-

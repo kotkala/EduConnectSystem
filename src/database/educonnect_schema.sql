@@ -1,15 +1,12 @@
 -- ============================================
--- EduConnect Database Schema for Supabase
--- ============================================
--- This schema is designed for an educational management system
--- supporting multiple user roles, academic management, and AI-powered features
+-- EduConnect Database Schema (Optimized, Clean, Sufficient)
 -- ============================================
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- For text search
-CREATE EXTENSION IF NOT EXISTS "vector"; -- For AI embeddings
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- ============================================
 -- ENUM TYPES (Idempotent Creation)
@@ -180,8 +177,7 @@ CREATE TABLE IF NOT EXISTS base_audit (
 -- Users table (extends Supabase auth.users)
 CREATE TABLE public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT NOT NULL UNIQUE,
-    phone TEXT,
+    phone TEXT NOT NULL UNIQUE,
     full_name TEXT NOT NULL,
     role user_role NOT NULL,
     status user_status DEFAULT 'active',
@@ -194,15 +190,14 @@ CREATE TABLE public.users (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES auth.users(id),
-    CONSTRAINT valid_phone CHECK (phone ~ '^\d{10}$' OR phone IS NULL),
     data_classification TEXT DEFAULT 'internal' CHECK (data_classification IN ('public', 'internal', 'confidential', 'restricted'))
 );
 
 -- Create indexes for users
 CREATE INDEX idx_users_role ON public.users(role);
 CREATE INDEX idx_users_status ON public.users(status);
-CREATE INDEX idx_users_email ON public.users(email);
 CREATE INDEX idx_users_phone ON public.users(phone) WHERE phone IS NOT NULL;
+CREATE INDEX idx_users_fulltext ON public.users USING GIN(to_tsvector('english', full_name || ' ' || COALESCE(phone, '')));
 
 -- Academic years
 CREATE TABLE public.academic_years (
@@ -300,6 +295,7 @@ CREATE TABLE public.subjects (
 
 -- Create index for subject code
 CREATE INDEX idx_subjects_code ON public.subjects(code);
+CREATE INDEX idx_subjects_fulltext ON public.subjects USING GIN(to_tsvector('english', name || ' ' || COALESCE(description, '')));
 
 -- Subject assignments to grades/classes
 CREATE TABLE public.subject_assignments (
@@ -343,29 +339,6 @@ CREATE TABLE public.student_enrollments (
     UNIQUE(student_id, academic_year_id)
 );
 
--- Trigger to enforce student_id refers to a user with role 'student'
-CREATE OR REPLACE FUNCTION check_student_role()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM public.users WHERE id = NEW.student_id AND role = 'student'
-    ) THEN
-        RAISE EXCEPTION 'student_id % does not refer to a user with role=student', NEW.student_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_student_role
-BEFORE INSERT OR UPDATE ON public.student_enrollments
-FOR EACH ROW
-EXECUTE FUNCTION check_student_role();
-
--- Create indexes for student enrollments
-CREATE INDEX idx_student_enrollments_student ON public.student_enrollments(student_id);
-CREATE INDEX idx_student_enrollments_class ON public.student_enrollments(class_id);
-CREATE INDEX idx_student_enrollments_active ON public.student_enrollments(is_active) WHERE is_active = true;
-
 -- Parent-student relationships
 CREATE TABLE public.parent_student_relationships (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -376,34 +349,6 @@ CREATE TABLE public.parent_student_relationships (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(parent_id, student_id)
 );
-
--- Trigger to enforce parent_id refers to a user with role 'parent' and student_id with role 'student'
-CREATE OR REPLACE FUNCTION check_parent_student_roles()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM public.users WHERE id = NEW.parent_id AND role = 'parent'
-    ) THEN
-        RAISE EXCEPTION 'parent_id % does not refer to a user with role=parent', NEW.parent_id;
-    END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM public.users WHERE id = NEW.student_id AND role = 'student'
-    ) THEN
-        RAISE EXCEPTION 'student_id % does not refer to a user with role=student', NEW.student_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_parent_student_roles
-BEFORE INSERT OR UPDATE ON public.parent_student_relationships
-FOR EACH ROW
-EXECUTE FUNCTION check_parent_student_roles();
-
--- Create indexes for parent-student relationships
-CREATE INDEX idx_parent_student_parent ON public.parent_student_relationships(parent_id);
-CREATE INDEX idx_parent_student_student ON public.parent_student_relationships(student_id);
-CREATE INDEX idx_parent_student_primary ON public.parent_student_relationships(is_primary_contact) WHERE is_primary_contact = true;
 
 -- Homeroom teacher assignments
 CREATE TABLE public.homeroom_assignments (
@@ -419,29 +364,6 @@ CREATE TABLE public.homeroom_assignments (
     created_by UUID REFERENCES public.users(id),
     UNIQUE(class_id, academic_year_id)
 );
-
--- Trigger to enforce teacher_id refers to a user with role 'homeroom_teacher'
-CREATE OR REPLACE FUNCTION check_homeroom_teacher_role()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM public.users WHERE id = NEW.teacher_id AND role = 'homeroom_teacher'
-    ) THEN
-        RAISE EXCEPTION 'teacher_id % does not refer to a user with role=homeroom_teacher', NEW.teacher_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_homeroom_teacher_role
-BEFORE INSERT OR UPDATE ON public.homeroom_assignments
-FOR EACH ROW
-EXECUTE FUNCTION check_homeroom_teacher_role();
-
--- Create indexes for homeroom assignments
-CREATE INDEX idx_homeroom_assignments_teacher ON public.homeroom_assignments(teacher_id);
-CREATE INDEX idx_homeroom_assignments_class ON public.homeroom_assignments(class_id);
-CREATE INDEX idx_homeroom_assignments_active ON public.homeroom_assignments(is_active) WHERE is_active = true;
 
 -- ============================================
 -- SCHEDULING
@@ -478,31 +400,6 @@ CREATE TABLE public.teaching_schedules (
     UNIQUE(academic_term_id, day_of_week, time_slot_id, class_id)
 );
 
--- Trigger to enforce teacher_id refers to a user with role 'subject_teacher' or 'homeroom_teacher'
-CREATE OR REPLACE FUNCTION check_teaching_schedule_teacher_role()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM public.users WHERE id = NEW.teacher_id AND role IN ('subject_teacher', 'homeroom_teacher')
-    ) THEN
-        RAISE EXCEPTION 'teacher_id % does not refer to a user with role=subject_teacher or homeroom_teacher', NEW.teacher_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_teaching_schedule_teacher_role
-BEFORE INSERT OR UPDATE ON public.teaching_schedules
-FOR EACH ROW
-EXECUTE FUNCTION check_teaching_schedule_teacher_role();
-
--- Create indexes for teaching schedules
-CREATE INDEX idx_teaching_schedules_term ON public.teaching_schedules(academic_term_id);
-CREATE INDEX idx_teaching_schedules_class ON public.teaching_schedules(class_id);
-CREATE INDEX idx_teaching_schedules_teacher ON public.teaching_schedules(teacher_id);
-CREATE INDEX idx_teaching_schedules_subject ON public.teaching_schedules(subject_id);
-CREATE INDEX idx_teaching_schedules_day_slot ON public.teaching_schedules(day_of_week, time_slot_id);
-
 -- Teaching schedule change requests
 CREATE TABLE public.schedule_change_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -519,11 +416,6 @@ CREATE TABLE public.schedule_change_requests (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT valid_request_date CHECK (new_date >= CURRENT_DATE + INTERVAL '1 day')
 );
-
--- Create indexes for schedule change requests
-CREATE INDEX idx_schedule_change_requests_schedule ON public.schedule_change_requests(schedule_id);
-CREATE INDEX idx_schedule_change_requests_status ON public.schedule_change_requests(status);
-CREATE INDEX idx_schedule_change_requests_requested_by ON public.schedule_change_requests(requested_by);
 
 -- ============================================
 -- ATTENDANCE
@@ -549,6 +441,7 @@ CREATE INDEX idx_attendance_student ON public.attendance_records(student_id);
 CREATE INDEX idx_attendance_class ON public.attendance_records(class_id);
 CREATE INDEX idx_attendance_date ON public.attendance_records(date);
 CREATE INDEX idx_attendance_status ON public.attendance_records(status);
+CREATE INDEX idx_attendance_student_date ON public.attendance_records(student_id, date DESC);
 
 -- Leave requests
 CREATE TABLE public.leave_requests (
@@ -568,11 +461,6 @@ CREATE TABLE public.leave_requests (
     CONSTRAINT valid_leave_dates CHECK (start_date <= end_date),
     CONSTRAINT valid_leave_request_date CHECK (start_date >= CURRENT_DATE)
 );
-
--- Create indexes for leave requests
-CREATE INDEX idx_leave_requests_student ON public.leave_requests(student_id);
-CREATE INDEX idx_leave_requests_status ON public.leave_requests(status);
-CREATE INDEX idx_leave_requests_dates ON public.leave_requests(start_date, end_date);
 
 -- ============================================
 -- GRADES AND ASSESSMENTS
@@ -631,6 +519,7 @@ CREATE INDEX idx_grade_records_student ON public.grade_records(student_id);
 CREATE INDEX idx_grade_records_subject ON public.grade_records(subject_id);
 CREATE INDEX idx_grade_records_term ON public.grade_records(academic_term_id);
 CREATE INDEX idx_grade_records_final ON public.grade_records(is_final) WHERE is_final = true;
+CREATE INDEX idx_grade_records_student_term_subject ON public.grade_records(student_id, academic_term_id, subject_id);
 
 -- Grade re-evaluation requests
 CREATE TABLE public.grade_reevaluation_requests (
@@ -647,32 +536,6 @@ CREATE TABLE public.grade_reevaluation_requests (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Trigger to enforce re-evaluation request is within 7 days of grade record creation
-CREATE OR REPLACE FUNCTION check_reevaluation_window()
-RETURNS TRIGGER AS $$
-DECLARE
-    grade_created_at TIMESTAMPTZ;
-BEGIN
-    SELECT created_at INTO grade_created_at FROM public.grade_records WHERE id = NEW.grade_record_id;
-    IF grade_created_at IS NULL THEN
-        RAISE EXCEPTION 'grade_record_id % does not exist in grade_records', NEW.grade_record_id;
-    END IF;
-    IF NEW.created_at > (grade_created_at + INTERVAL '7 days') THEN
-        RAISE EXCEPTION 'Re-evaluation request must be within 7 days of grade record creation';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_check_reevaluation_window
-BEFORE INSERT OR UPDATE ON public.grade_reevaluation_requests
-FOR EACH ROW
-EXECUTE FUNCTION check_reevaluation_window();
-
--- Create indexes for grade re-evaluation requests
-CREATE INDEX idx_grade_reevaluation_grade ON public.grade_reevaluation_requests(grade_record_id);
-CREATE INDEX idx_grade_reevaluation_status ON public.grade_reevaluation_requests(status);
 
 -- ============================================
 -- VIOLATIONS AND DISCIPLINE
@@ -721,6 +584,7 @@ CREATE INDEX idx_student_violations_student ON public.student_violations(student
 CREATE INDEX idx_student_violations_rule ON public.student_violations(violation_rule_id);
 CREATE INDEX idx_student_violations_date ON public.student_violations(violation_date);
 CREATE INDEX idx_student_violations_status ON public.student_violations(status);
+CREATE INDEX idx_violations_student_date_status ON public.student_violations(student_id, violation_date DESC, status);
 
 -- Disciplinary actions
 CREATE TABLE public.disciplinary_actions (
@@ -754,7 +618,6 @@ CREATE TABLE public.teacher_feedback (
     feedback_date DATE NOT NULL DEFAULT CURRENT_DATE,
     feedback_type TEXT NOT NULL CHECK (feedback_type IN ('lesson', 'behavior', 'general')),
     scope TEXT NOT NULL CHECK (scope IN ('individual', 'group', 'class')),
-    student_ids UUID[] DEFAULT '{}',
     content TEXT NOT NULL,
     tags TEXT[] DEFAULT '{}',
     attachments JSONB DEFAULT '[]',
@@ -769,30 +632,6 @@ CREATE INDEX idx_teacher_feedback_teacher ON public.teacher_feedback(teacher_id)
 CREATE INDEX idx_teacher_feedback_class ON public.teacher_feedback(class_id);
 CREATE INDEX idx_teacher_feedback_date ON public.teacher_feedback(feedback_date);
 CREATE INDEX idx_teacher_feedback_type ON public.teacher_feedback(feedback_type);
-CREATE INDEX idx_teacher_feedback_student_ids ON public.teacher_feedback USING GIN(student_ids);
-
--- AI feedback summaries
-CREATE TABLE public.ai_feedback_summaries (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    feedback_ids UUID[] NOT NULL,
-    student_id UUID REFERENCES public.users(id),
-    class_id UUID REFERENCES public.classes(id),
-    period_start DATE NOT NULL,
-    period_end DATE NOT NULL,
-    summary_type TEXT NOT NULL,
-    content TEXT NOT NULL,
-    key_insights JSONB DEFAULT '{}',
-    recommendations JSONB DEFAULT '[]',
-    embedding vector(1536), -- For AI similarity search
-    generated_at TIMESTAMPTZ DEFAULT NOW(),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Create indexes for AI feedback summaries
-CREATE INDEX idx_ai_feedback_summaries_student ON public.ai_feedback_summaries(student_id) WHERE student_id IS NOT NULL;
-CREATE INDEX idx_ai_feedback_summaries_class ON public.ai_feedback_summaries(class_id) WHERE class_id IS NOT NULL;
-CREATE INDEX idx_ai_feedback_summaries_period ON public.ai_feedback_summaries(period_start, period_end);
-CREATE INDEX idx_ai_feedback_summaries_embedding ON public.ai_feedback_summaries USING ivfflat (embedding vector_cosine_ops);
 
 -- Notifications
 CREATE TABLE public.notifications (
@@ -819,6 +658,8 @@ CREATE INDEX idx_notifications_recipient ON public.notifications(recipient_id);
 CREATE INDEX idx_notifications_unread ON public.notifications(recipient_id, is_read) WHERE is_read = false;
 CREATE INDEX idx_notifications_type ON public.notifications(type);
 CREATE INDEX idx_notifications_created ON public.notifications(created_at DESC);
+CREATE INDEX idx_notifications_fulltext ON public.notifications USING GIN(to_tsvector('english', title || ' ' || content));
+CREATE INDEX idx_notifications_recipient_created ON public.notifications(recipient_id, created_at DESC);
 
 -- Meetings
 CREATE TABLE public.meetings (
@@ -833,7 +674,6 @@ CREATE TABLE public.meetings (
     location TEXT,
     meeting_link TEXT,
     class_id UUID REFERENCES public.classes(id),
-    student_ids UUID[] DEFAULT '{}',
     is_cancelled BOOLEAN DEFAULT FALSE,
     cancellation_reason TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -849,25 +689,6 @@ CREATE TABLE public.meetings (
 CREATE INDEX idx_meetings_organizer ON public.meetings(organizer_id);
 CREATE INDEX idx_meetings_date ON public.meetings(meeting_date);
 CREATE INDEX idx_meetings_class ON public.meetings(class_id) WHERE class_id IS NOT NULL;
-CREATE INDEX idx_meetings_student_ids ON public.meetings USING GIN(student_ids);
-
--- Meeting participants
-CREATE TABLE public.meeting_participants (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    meeting_id UUID NOT NULL REFERENCES public.meetings(id) ON DELETE CASCADE,
-    participant_id UUID NOT NULL REFERENCES public.users(id),
-    invitation_sent BOOLEAN DEFAULT FALSE,
-    response_status TEXT CHECK (response_status IN ('pending', 'accepted', 'declined', 'tentative')),
-    attended BOOLEAN,
-    notes TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(meeting_id, participant_id)
-);
-
--- Create indexes for meeting participants
-CREATE INDEX idx_meeting_participants_meeting ON public.meeting_participants(meeting_id);
-CREATE INDEX idx_meeting_participants_participant ON public.meeting_participants(participant_id);
 
 -- ============================================
 -- SYSTEM CONFIGURATION
@@ -913,267 +734,6 @@ CREATE INDEX idx_audit_logs_entity ON public.audit_logs(entity_type, entity_id);
 CREATE INDEX idx_audit_logs_created ON public.audit_logs(created_at DESC);
 
 -- ============================================
--- AI ASSISTANT TABLES
--- ============================================
-
--- AI conversation threads
-CREATE TABLE public.ai_conversations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    title TEXT,
-    context JSONB DEFAULT '{}',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Create indexes for AI conversations
-CREATE INDEX idx_ai_conversations_user ON public.ai_conversations(user_id);
-CREATE INDEX idx_ai_conversations_active ON public.ai_conversations(user_id, is_active) WHERE is_active = true;
-
--- AI messages
-CREATE TABLE public.ai_messages (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    conversation_id UUID NOT NULL REFERENCES public.ai_conversations(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
-    content TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}',
-    embedding vector(1536),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Create indexes for AI messages
-CREATE INDEX idx_ai_messages_conversation ON public.ai_messages(conversation_id);
-CREATE INDEX idx_ai_messages_created ON public.ai_messages(conversation_id, created_at);
-
--- ============================================
--- FUNCTIONS AND TRIGGERS
--- ============================================
-
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Apply updated_at trigger to all tables with updated_at column
-DO $$
-DECLARE
-    t text;
-BEGIN
-    FOR t IN 
-        SELECT table_name 
-        FROM information_schema.columns 
-        WHERE column_name = 'updated_at' 
-        AND table_schema = 'public'
-    LOOP
-        EXECUTE format('CREATE TRIGGER update_%I_updated_at BEFORE UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()', t, t);
-    END LOOP;
-END $$;
-
--- Function to ensure only one current academic year
-CREATE OR REPLACE FUNCTION ensure_single_current_academic_year()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.is_current = TRUE THEN
-        UPDATE public.academic_years 
-        SET is_current = FALSE 
-        WHERE id != NEW.id AND is_current = TRUE;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER ensure_single_current_year
-BEFORE INSERT OR UPDATE ON public.academic_years
-FOR EACH ROW
-WHEN (NEW.is_current = TRUE)
-EXECUTE FUNCTION ensure_single_current_academic_year();
-
--- Function to auto-create notification for violations
-CREATE OR REPLACE FUNCTION notify_homeroom_teacher_violation()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_homeroom_teacher_id UUID;
-    v_student_name TEXT;
-    v_violation_name TEXT;
-BEGIN
-    -- Get homeroom teacher
-    SELECT ha.teacher_id INTO v_homeroom_teacher_id
-    FROM public.homeroom_assignments ha
-    JOIN public.student_enrollments se ON se.class_id = ha.class_id
-    WHERE se.student_id = NEW.student_id 
-    AND ha.is_active = TRUE 
-    AND se.is_active = TRUE
-    LIMIT 1;
-    
-    -- Get student name
-    SELECT full_name INTO v_student_name
-    FROM public.users
-    WHERE id = NEW.student_id;
-    
-    -- Get violation name
-    SELECT name INTO v_violation_name
-    FROM public.violation_rules
-    WHERE id = NEW.violation_rule_id;
-    
-    -- Create notification if homeroom teacher found
-    IF v_homeroom_teacher_id IS NOT NULL THEN
-        INSERT INTO public.notifications (
-            sender_id,
-            recipient_id,
-            type,
-            title,
-            content,
-            metadata
-        ) VALUES (
-            NEW.reported_by,
-            v_homeroom_teacher_id,
-            'behavior',
-            'Student Violation Report',
-            format('Student %s has been reported for: %s', v_student_name, v_violation_name),
-            jsonb_build_object(
-                'violation_id', NEW.id,
-                'student_id', NEW.student_id,
-                'violation_date', NEW.violation_date
-            )
-        );
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER notify_violation
-AFTER INSERT ON public.student_violations
-FOR EACH ROW
-EXECUTE FUNCTION notify_homeroom_teacher_violation();
-
--- ============================================
--- ROW LEVEL SECURITY (RLS)
--- ============================================
-
--- Enable RLS on all tables
-DO $$
-DECLARE
-    t text;
-BEGIN
-    FOR t IN 
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_type = 'BASE TABLE'
-    LOOP
-        EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
-    END LOOP;
-END $$;
-
--- RLS Policies for users table
-CREATE POLICY "Users can view their own profile" ON public.users
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update their own profile" ON public.users
-    FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Admin can view all users" ON public.users
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.users 
-            WHERE id = auth.uid() AND role = 'admin'
-        )
-    );
-
-CREATE POLICY "Teachers can view students in their class" ON public.users
-    FOR SELECT USING (
-        role = 'student' AND
-        EXISTS (
-            SELECT 1 FROM public.student_enrollments se
-            JOIN public.homeroom_assignments ha ON ha.class_id = se.class_id
-            WHERE se.student_id = users.id 
-            AND ha.teacher_id = auth.uid()
-            AND ha.is_active = TRUE
-            AND se.is_active = TRUE
-        )
-    );
-
-CREATE POLICY "Parents can view their children" ON public.users
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.parent_student_relationships
-            WHERE student_id = users.id 
-            AND parent_id = auth.uid()
-        )
-    );
-
--- Additional RLS policies would be needed for other tables based on business requirements
-
--- ============================================
--- INDEXES FOR PERFORMANCE
--- ============================================
-
--- Full text search indexes
-CREATE INDEX idx_users_fulltext ON public.users USING GIN(to_tsvector('english', full_name || ' ' || COALESCE(email, '')));
-CREATE INDEX idx_subjects_fulltext ON public.subjects USING GIN(to_tsvector('english', name || ' ' || COALESCE(description, '')));
-CREATE INDEX idx_notifications_fulltext ON public.notifications USING GIN(to_tsvector('english', title || ' ' || content));
-
--- ============================================
--- INITIAL DATA (OPTIONAL)
--- ============================================
-
--- Insert default time slots
-INSERT INTO public.time_slots (name, start_time, end_time, slot_order, is_break) VALUES
-    ('Period 1', '07:30', '08:15', 1, false),
-    ('Period 2', '08:20', '09:05', 2, false),
-    ('Morning Break', '09:05', '09:20', 3, true),
-    ('Period 3', '09:20', '10:05', 4, false),
-    ('Period 4', '10:10', '10:55', 5, false),
-    ('Period 5', '11:00', '11:45', 6, false),
-    ('Lunch Break', '11:45', '13:00', 7, true),
-    ('Period 6', '13:00', '13:45', 8, false),
-    ('Period 7', '13:50', '14:35', 9, false),
-    ('Period 8', '14:40', '15:25', 10, false),
-    ('Period 9', '15:30', '16:15', 11, false),
-    ('Period 10', '16:20', '17:05', 12, false)
-ON CONFLICT (slot_order) DO NOTHING;
-
--- Insert default grade levels
-INSERT INTO public.grade_levels (name, level, description) VALUES
-    ('Grade 1', 1, 'First grade'),
-    ('Grade 2', 2, 'Second grade'),
-    ('Grade 3', 3, 'Third grade'),
-    ('Grade 4', 4, 'Fourth grade'),
-    ('Grade 5', 5, 'Fifth grade'),
-    ('Grade 6', 6, 'Sixth grade'),
-    ('Grade 7', 7, 'Seventh grade'),
-    ('Grade 8', 8, 'Eighth grade'),
-    ('Grade 9', 9, 'Ninth grade'),
-    ('Grade 10', 10, 'Tenth grade'),
-    ('Grade 11', 11, 'Eleventh grade'),
-    ('Grade 12', 12, 'Twelfth grade')
-ON CONFLICT (level) DO NOTHING;
-
--- ============================================
--- GRANT PERMISSIONS
--- ============================================
-
--- Grant permissions to authenticated users
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;
-GRANT INSERT, UPDATE ON public.users TO authenticated;
-GRANT INSERT ON public.notifications TO authenticated;
-GRANT INSERT ON public.leave_requests TO authenticated;
-GRANT INSERT ON public.grade_reevaluation_requests TO authenticated;
-GRANT INSERT ON public.schedule_change_requests TO authenticated;
-GRANT INSERT ON public.ai_conversations TO authenticated;
-GRANT INSERT ON public.ai_messages TO authenticated;
-
--- Grant permissions to service role
-GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
-
--- ============================================
 -- END OF SCHEMA
 -- ============================================
 
@@ -1204,8 +764,6 @@ CREATE TABLE IF NOT EXISTS data_retention_policies (
     action TEXT CHECK (action IN ('archive', 'delete', 'anonymize')),
     is_active BOOLEAN DEFAULT TRUE
 );
-
-ALTER TABLE public.users ADD COLUMN IF NOT EXISTS data_classification TEXT DEFAULT 'internal' CHECK (data_classification IN ('public', 'internal', 'confidential', 'restricted'));
 
 -- ============================================
 -- NOTIFICATION TEMPLATES
@@ -1296,4 +854,20 @@ BEGIN
     DELETE FROM public.academic_years 
     WHERE end_date < CURRENT_DATE - INTERVAL '3 years';
 END;
-$$ LANGUAGE plpgsql; 
+$$ LANGUAGE plpgsql;
+
+-- 2. Đảm bảo index cho các bảng lớn
+CREATE INDEX IF NOT EXISTS idx_attendance_student_date ON public.attendance_records(student_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_grade_records_student_term_subject ON public.grade_records(student_id, academic_term_id, subject_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_created ON public.notifications(recipient_id, created_at DESC);
+
+-- 3. Kiểm tra và tối ưu các trigger kiểm tra vai trò (giữ lại các trigger cần thiết, loại bỏ trigger kiểm tra vai trò không còn dùng)
+DROP TRIGGER IF EXISTS trg_check_parent_student_roles ON public.parent_student_relationships;
+DROP FUNCTION IF EXISTS check_parent_student_roles();
+DROP TRIGGER IF EXISTS trg_check_homeroom_teacher_role ON public.homeroom_assignments;
+DROP FUNCTION IF EXISTS check_homeroom_teacher_role();
+DROP TRIGGER IF EXISTS trg_check_student_role ON public.student_enrollments;
+DROP FUNCTION IF EXISTS check_student_role();
+DROP TRIGGER IF EXISTS trg_check_teaching_schedule_teacher_role ON public.teaching_schedules;
+DROP FUNCTION IF EXISTS check_teaching_schedule_teacher_role();
+

@@ -1,0 +1,8 @@
+---
+alwaysApply: true
+---
+Always use Powershell's native commands.
+For example:
+Since the rm -rf command didn't work in PowerShell (it uses different syntax), let me use PowerShell's native commands to remove the directoriesAlways use Powershell's native commands.
+For example:
+Since the rm -rf command didn't work in PowerShell (it uses different syntax), let me use PowerShell's native commands to remove the directories

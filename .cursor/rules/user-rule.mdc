@@ -1,0 +1,45 @@
+---
+alwaysApply: true
+---
+
+## 🚀 PACKAGE MANAGER PRIORITY
+*ALWAYS use Bun instead of npm/yarn for ALL operations:*
+
+### Package Management
+- ✅ Use: bun install (NOT npm install)
+- ✅ Use: bun add <package> (NOT npm install <package>)
+- ✅ Use: bun add -d <package> (NOT npm install --save-dev)
+- ✅ Use: bun remove <package> (NOT npm uninstall)
+- ✅ Use: bun update (NOT npm update)
+- ✅ Use: bun install --frozen-lockfile for CI/CD
+
+### Script Execution
+- ✅ Use: bun run <script> (NOT npm run)
+- ✅ Use: bun dev (NOT npm run dev)
+- ✅ Use: bun build (NOT npm run build)
+- ✅ Use: bun test (NOT npm test)
+- ✅ Use: bun lint (NOT npm run lint)
+
+### Direct Execution
+- ✅ Use: bun <file.ts> for direct TypeScript execution
+- ✅ Use: bunx <package> (NOT npx)## 🚀 PACKAGE MANAGER PRIORITY
+*ALWAYS use Bun instead of npm/yarn for ALL operations:*
+
+### Package Management
+- ✅ Use: bun install (NOT npm install)
+- ✅ Use: bun add <package> (NOT npm install <package>)
+- ✅ Use: bun add -d <package> (NOT npm install --save-dev)
+- ✅ Use: bun remove <package> (NOT npm uninstall)
+- ✅ Use: bun update (NOT npm update)
+- ✅ Use: bun install --frozen-lockfile for CI/CD
+
+### Script Execution
+- ✅ Use: bun run <script> (NOT npm run)
+- ✅ Use: bun dev (NOT npm run dev)
+- ✅ Use: bun build (NOT npm run build)
+- ✅ Use: bun test (NOT npm test)
+- ✅ Use: bun lint (NOT npm run lint)
+
+### Direct Execution
+- ✅ Use: bun <file.ts> for direct TypeScript execution
+- ✅ Use: bunx <package> (NOT npx)

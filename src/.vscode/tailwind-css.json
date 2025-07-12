@@ -1,0 +1,75 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@source",
+      "description": "Specifies source files that Tailwind CSS should scan for class names",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#source"
+        }
+      ]
+    },
+    {
+      "name": "@theme",
+      "description": "Defines custom design tokens like colors, fonts, and spacing for your Tailwind CSS theme",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Documentation", 
+          "url": "https://tailwindcss.com/docs/functions-and-directives#theme"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Applies Tailwind utility classes within your CSS",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply"
+        }
+      ]
+    },
+    {
+      "name": "@variant",
+      "description": "Applies variants like hover, focus, or dark mode to CSS rules",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#variant"
+        }
+      ]
+    },
+    {
+      "name": "@config",
+      "description": "Loads a legacy JavaScript-based Tailwind CSS configuration file",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#config"
+        }
+      ]
+    },
+    {
+      "name": "@reference",
+      "description": "Imports theme variables and utilities without duplicating CSS for use in Vue/Svelte components",
+      "references": [
+        {
+          "name": "Tailwind CSS v4 Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#reference"
+        }
+      ]
+    },
+    {
+      "name": "@layer",
+      "description": "Defines CSS layers for organizing styles",
+      "references": [
+        {
+          "name": "CSS Cascade Layers",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@layer"
+        }
+      ]
+    }
+  ]
+} 

@@ -1,0 +1,34 @@
+{
+  "css.customData": [".vscode/tailwind-css.json"],
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+  "tailwindCSS.experimental.configFile": "tailwind.config.ts",
+  "tailwindCSS.includeLanguages": {
+    "css": "css",
+    "scss": "scss",
+    "less": "less"
+  },
+  "tailwindCSS.emmetCompletions": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "css.completion.completePropertyWithSemicolon": false,
+  "emmet.includeLanguages": {
+    "css": "css"
+  },
+  "files.associations": {
+    "*.css": "css"
+  },
+  "editor.defaultFormatter": "vscode.typescript-language-features",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "css.lint.validProperties": [
+    "composes",
+    "compose-with"
+  ]
+} 

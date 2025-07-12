@@ -470,7 +470,7 @@ export const EduConnectAnimatedInput: React.FC<EduConnectAnimatedInputProps> = (
         {borderAnimation && (
           <motion.div
             ref={borderRef}
-            className="absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl opacity-0 blur-sm"
+            className="absolute inset-0 bg-gradient-to-r from-teal-500 to-blue-500 rounded-xl opacity-0 blur-xs"
             animate={{
               opacity: isFocused ? 1 : 0,
               scale: isFocused ? 1.02 : 1

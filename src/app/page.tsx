@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <CozyLayout showFloatingElements={true}>
       {/* Navigation Header */}
-      <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+              <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 bg-background/80 backdrop-blur-xs sticky top-0 z-50">
         <div className="w-full max-w-7xl flex justify-between items-center p-3 px-5 text-sm">
           <div className="flex gap-5 items-center font-semibold">
             <Link href="/" className="text-2xl font-bold educonnect-gradient-text">
@@ -25,11 +25,11 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-4">
             <ThemeSwitcher />
-            <Button asChild size="sm" variant="outline">
-              <Link href="/auth/login">Đăng nhập</Link>
+            <Button asChild size="sm" variant="outline" aria-label="Sign in to your account">
+              <Link href="/auth/login">Sign In</Link>
             </Button>
-            <Button asChild size="sm" variant="default">
-              <Link href="/auth/sign-up">Đăng ký</Link>
+            <Button asChild size="sm" variant="default" aria-label="Create a new account">
+              <Link href="/auth/sign-up">Sign Up</Link>
             </Button>
           </div>
         </div>
@@ -38,16 +38,16 @@ export default function HomePage() {
       {/* Enhanced Hero Section with Better Balance */}
       <CozyHero
         variant="centered"
-        subtitle="🌟 Chào mừng đến với"
+        subtitle="🌟 Welcome to"
         title="EduConnect"
         description={
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-lg md:text-xl lg:text-2xl leading-relaxed text-muted-foreground mb-6">
-              Hệ thống giáo dục thế hệ mới với thiết kế cao cấp, trải nghiệm học tập đỉnh cao 
-              và công nghệ tiên tiến nhất.
+              Next-generation education platform with premium design, exceptional learning experience 
+              and cutting-edge technology.
             </p>
-            <p className="text-base md:text-lg leading-relaxed text-muted-foreground/80">
-              Được thiết kế với tình yêu và sự tỉ mỉ bởi đội ngũ chuyên gia có hơn 15 năm kinh nghiệm.
+            <p className="text-base md:text-lg leading-relaxed text-muted-foreground">
+              Crafted with love and precision by our expert team with over 15 years of experience.
             </p>
           </div>
         }
@@ -62,9 +62,10 @@ export default function HomePage() {
                 liquidFill={true}
                 icon={<ChevronRight className="h-5 w-5" />}
                 className="w-full sm:w-auto"
+                aria-label="Start your learning journey with EduConnect"
               >
                 <Link href="/auth/sign-up" className="flex items-center gap-2 justify-center">
-                  Bắt đầu hành trình
+                  Start Your Journey
                 </Link>
               </EduConnectAnimatedButton>
               
@@ -73,9 +74,10 @@ export default function HomePage() {
                 size="lg"
                 icon={<ArrowRight className="h-5 w-5" />}
                 className="w-full sm:w-auto"
+                aria-label="Sign in to your existing account"
               >
                 <Link href="/auth/login" className="flex items-center gap-2 justify-center">
-                  Đăng nhập ngay
+                  Sign In Now
                 </Link>
               </EduConnectAnimatedButton>
             </div>
@@ -85,8 +87,8 @@ export default function HomePage() {
 
       {/* Enhanced Features Section with Better Visual Balance and Spacing */}
       <CozySection 
-        title="Tính năng đẳng cấp thế giới"
-        subtitle="Khám phá những tính năng cao cấp được thiết kế đặc biệt cho thế hệ học viên hiện đại"
+        title="World-Class Features"
+        subtitle="Discover premium features designed specifically for modern learners"
         centered
         className="py-24"
       >
@@ -108,20 +110,20 @@ export default function HomePage() {
                 </div>
               </EduConnectAnimatedContainer>
               
-              <EduConnectAnimatedText variant="gradient" className="text-2xl md:text-3xl font-bold mb-6 leading-tight">
-                Học tập thông minh AI
+              <EduConnectAnimatedText variant="gradient" className="text-2xl md:text-3xl font-bold mb-6 leading-tight text-foreground">
+                AI-Powered Learning
               </EduConnectAnimatedText>
               
-              <CardDescription className="text-base md:text-lg leading-relaxed text-center mb-6 text-muted-foreground/90">
-                Hệ thống học tập thích ứng với AI tiên tiến, cá nhân hóa hoàn toàn trải nghiệm học tập cho từng học viên với độ chính xác tuyệt đối
+              <CardDescription className="text-base md:text-lg text-center mb-6 text-muted-foreground text-readable force-readable">
+                Advanced adaptive learning system with AI technology, completely personalizing the learning experience for each student with absolute precision
               </CardDescription>
               
               <div className="flex flex-wrap gap-3 justify-center">
                 <EduConnectAnimatedBadge variant="primary" size="md" bounce={true} icon={<Lightbulb className="h-4 w-4" />}>
-                  AI Thông minh
+                  Smart AI
                 </EduConnectAnimatedBadge>
                 <EduConnectAnimatedBadge variant="success" size="md" bounce={true} icon={<Target className="h-4 w-4" />}>
-                  Cá nhân hóa
+                  Personalized
                 </EduConnectAnimatedBadge>
               </div>
             </CardHeader>
@@ -144,20 +146,20 @@ export default function HomePage() {
                 </div>
               </EduConnectAnimatedContainer>
               
-              <EduConnectAnimatedText variant="glow" className="text-2xl md:text-3xl font-bold mb-6 leading-tight">
-                Cộng đồng toàn cầu
+              <EduConnectAnimatedText variant="fadeIn" className="text-2xl md:text-3xl font-bold mb-6 leading-tight text-foreground">
+                Global Community
               </EduConnectAnimatedText>
               
-              <CardDescription className="text-base md:text-lg leading-relaxed text-center mb-6 text-muted-foreground/90">
-                Kết nối với hàng triệu học viên trên toàn thế giới, chia sẻ kiến thức và cùng nhau phát triển trong môi trường học tập đẳng cấp quốc tế
+              <CardDescription className="text-base md:text-lg text-center mb-6 text-muted-foreground text-readable force-readable">
+                Connect with millions of learners worldwide, share knowledge and grow together in an international-class learning environment
               </CardDescription>
               
               <div className="flex flex-wrap gap-3 justify-center">
                 <EduConnectAnimatedBadge variant="info" size="md" pulse={true} icon={<Users className="h-4 w-4" />}>
-                  1M+ Học viên
+                  1M+ Students
                 </EduConnectAnimatedBadge>
                 <EduConnectAnimatedBadge variant="primary" size="md" pulse={true} icon={<Award className="h-4 w-4" />}>
-                  Chứng nhận
+                  Certified
                 </EduConnectAnimatedBadge>
               </div>
             </CardHeader>
@@ -179,12 +181,12 @@ export default function HomePage() {
                 </div>
               </EduConnectAnimatedContainer>
               
-              <EduConnectAnimatedText variant="wave" className="text-2xl md:text-3xl font-bold mb-6 leading-tight">
-                Bảo mật tuyệt đối
+              <EduConnectAnimatedText variant="fadeIn" className="text-2xl md:text-3xl font-bold mb-6 leading-tight text-foreground">
+                Absolute Security
               </EduConnectAnimatedText>
               
-              <CardDescription className="text-base md:text-lg leading-relaxed text-center mb-6 text-muted-foreground/90">
-                Công nghệ bảo mật quân sự với Supabase Enterprise, đảm bảo dữ liệu của bạn được bảo vệ bằng mã hóa AES-256 và các tiêu chuẩn bảo mật cao nhất
+              <CardDescription className="text-base md:text-lg text-center mb-6 text-muted-foreground text-readable force-readable">
+                Military-grade security technology with Supabase Enterprise, ensuring your data is protected with AES-256 encryption and the highest security standards
               </CardDescription>
               
               <div className="flex flex-wrap gap-3 justify-center">
@@ -216,10 +218,10 @@ export default function HomePage() {
                   </div>
                 </EduConnectAnimatedContainer>
                 
-                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text leading-none">
+                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text text-stats">
                   1,000,000+
                 </EduConnectAnimatedText>
-                <div className="text-teal-700 font-semibold text-lg md:text-xl leading-relaxed">Học viên toàn cầu</div>
+                <div className="text-foreground font-semibold text-lg md:text-xl text-readable">Global Students</div>
                 
                 {/* Visual separator line */}
                 <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-24 bg-gradient-to-b from-transparent via-teal-300/40 to-transparent hidden lg:block"></div>
@@ -235,10 +237,10 @@ export default function HomePage() {
                   </div>
                 </EduConnectAnimatedContainer>
                 
-                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text leading-none">
+                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text text-stats">
                   50,000+
                 </EduConnectAnimatedText>
-                <div className="text-teal-700 font-semibold text-lg md:text-xl leading-relaxed">Khóa học chất lượng</div>
+                <div className="text-foreground font-semibold text-lg md:text-xl text-readable">Quality Courses</div>
                 
                 {/* Visual separator line */}
                 <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-24 bg-gradient-to-b from-transparent via-teal-300/40 to-transparent hidden lg:block"></div>
@@ -254,10 +256,10 @@ export default function HomePage() {
                   </div>
                 </EduConnectAnimatedContainer>
                 
-                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text leading-none">
+                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text text-stats">
                   10,000+
                 </EduConnectAnimatedText>
-                <div className="text-teal-700 font-semibold text-lg md:text-xl leading-relaxed">Giảng viên chuyên gia</div>
+                <div className="text-foreground font-semibold text-lg md:text-xl text-readable">Expert Instructors</div>
                 
                 {/* Visual separator line */}
                 <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-24 bg-gradient-to-b from-transparent via-teal-300/40 to-transparent hidden lg:block"></div>
@@ -273,10 +275,10 @@ export default function HomePage() {
                   </div>
                 </EduConnectAnimatedContainer>
                 
-                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text leading-none">
+                <EduConnectAnimatedText variant="typewriter" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 educonnect-gradient-text text-stats">
                   99.8%
                 </EduConnectAnimatedText>
-                <div className="text-teal-700 font-semibold text-lg md:text-xl leading-relaxed">Tỷ lệ hài lòng</div>
+                <div className="text-foreground font-semibold text-lg md:text-xl text-readable">Satisfaction Rate</div>
               </div>
             </EduConnectAnimatedContainer>
           </CozyGrid>
@@ -290,8 +292,8 @@ export default function HomePage() {
 
       {/* Enhanced Technology Section */}
       <CozySection 
-        title="Công nghệ đẳng cấp Enterprise"
-        subtitle="Được xây dựng với những công nghệ tiên tiến và đáng tin cậy nhất thế giới"
+        title="Enterprise-Grade Technology"
+        subtitle="Built with the world's most advanced and reliable technologies"
         centered
       >
         <CozyGrid columns={2} gap="lg">
@@ -303,10 +305,10 @@ export default function HomePage() {
                 </div>
               </EduConnectAnimatedContainer>
               <div>
-                <EduConnectAnimatedText variant="gradient" className="text-2xl font-bold">
+                <EduConnectAnimatedText variant="gradient" className="text-2xl font-bold text-foreground">
                   Next.js 15 Enterprise
                 </EduConnectAnimatedText>
-                <p className="text-muted-foreground text-lg">Framework React thế hệ mới</p>
+                <p className="text-muted-foreground text-lg">Next-generation React framework</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -329,10 +331,10 @@ export default function HomePage() {
                 </div>
               </EduConnectAnimatedContainer>
               <div>
-                <EduConnectAnimatedText variant="glow" className="text-2xl font-bold">
+                <EduConnectAnimatedText variant="fadeIn" className="text-2xl font-bold text-foreground">
                   Supabase Enterprise
                 </EduConnectAnimatedText>
-                <p className="text-muted-foreground text-lg">Backend-as-a-Service hàng đầu</p>
+                <p className="text-muted-foreground text-lg">Leading Backend-as-a-Service</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -358,21 +360,21 @@ export default function HomePage() {
           <EduConnectAnimatedContainer variant="slideUp" delay={0.2}>
             <div className="text-center relative z-10">
               <EduConnectAnimatedContainer variant="bounce" delay={0.3}>
-                <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-8 shadow-glass">
+                <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-xs rounded-full px-6 py-3 mb-8 shadow-glass">
                   <Sparkles className="h-5 w-5 animate-pulse-glow" />
-                  <span className="text-lg font-semibold">Thiết kế với tình yêu và đam mê</span>
+                  <span className="text-lg font-semibold">Designed with love and passion</span>
                   <Heart className="h-5 w-5 animate-pulse text-pink-300" />
                 </div>
               </EduConnectAnimatedContainer>
               
               <EduConnectAnimatedText variant="fadeIn" className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
-                Sẵn sàng thay đổi cuộc đời với giáo dục?
+                Ready to transform your life through education?
               </EduConnectAnimatedText>
               
               <EduConnectAnimatedContainer variant="slideUp" delay={0.5}>
                 <p className="text-xl md:text-2xl mb-10 opacity-95 max-w-3xl mx-auto leading-relaxed">
-                  Tham gia cùng hàng triệu học viên đã tin tưởng và lựa chọn EduConnect 
-                  để khám phá tiềm năng vô hạn và thành công trong sự nghiệp.
+                  Join millions of students who have trusted and chosen EduConnect 
+                  to discover unlimited potential and career success.
                 </p>
               </EduConnectAnimatedContainer>
               
@@ -387,18 +389,19 @@ export default function HomePage() {
                     icon={<GraduationCap className="h-6 w-6" />}
                   >
                     <Link href="/auth/sign-up" className="flex items-center gap-3">
-                      Đăng ký miễn phí ngay
+                      Sign Up Free Now
                     </Link>
                   </EduConnectAnimatedButton>
                   
                   <EduConnectAnimatedButton 
                     variant="ghost" 
                     size="xl"
-                    className="border-white/40 text-white hover:bg-white/20 backdrop-blur-sm"
+                    className="border-white/40 text-white hover:bg-white/20 backdrop-blur-xs"
                     icon={<ArrowRight className="h-6 w-6" />}
+                    aria-label="Explore EduConnect features"
                   >
                     <Link href="/protected" className="flex items-center gap-3">
-                      Khám phá tính năng
+                      Explore Features
                     </Link>
                   </EduConnectAnimatedButton>
                 </div>
@@ -417,7 +420,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-3">
                   <Heart className="h-6 w-6 text-pink-500 animate-pulse" />
                   <span className="text-muted-foreground">
-                    Được xây dựng với tình yêu và công nghệ tiên tiến bởi 
+                    Built with love and advanced technology by 
                     <span className="font-semibold text-teal-600 ml-1">EduConnect Team</span>
                   </span>
                 </div>
@@ -431,9 +434,9 @@ export default function HomePage() {
                     <Mail className="h-5 w-5 mr-2" />
                     Email
                   </EduConnectAnimatedButton>
-                  <EduConnectAnimatedButton variant="ghost" size="sm">
+                  <EduConnectAnimatedButton variant="ghost" size="sm" aria-label="Get 24/7 support">
                     <MessageCircle className="h-5 w-5 mr-2" />
-                    Hỗ trợ 24/7
+                    24/7 Support
                   </EduConnectAnimatedButton>
                 </div>
               </div>

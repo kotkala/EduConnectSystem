@@ -24,9 +24,9 @@ export default async function ProtectedPage() {
               <div className="flex gap-3 items-center text-teal-700 dark:text-teal-300">
                 <Shield size="20" strokeWidth={2} />
                 <div>
-                  <h3 className="font-semibold text-lg">Khu vực được bảo vệ</h3>
+                  <h3 className="font-semibold text-lg">Protected Area</h3>
                   <p className="text-sm text-muted-foreground">
-                    Chỉ những người dùng đã xác thực mới có thể truy cập vào trang này
+                    Only authenticated users can access this page
                   </p>
                 </div>
               </div>
@@ -47,7 +47,7 @@ export default async function ProtectedPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
                 </div>
-                <h2 className="font-bold text-xl">Thông tin người dùng</h2>
+                <h2 className="font-bold text-xl">User Information</h2>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -63,9 +63,9 @@ export default async function ProtectedPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">Tạo lúc:</span>
+                  <span className="text-sm font-medium text-muted-foreground">Created:</span>
                   <span className="text-sm">
-                    {new Date(data.user.created_at).toLocaleDateString('vi-VN')}
+                    {new Date(data.user.created_at).toLocaleDateString('en-US')}
                   </span>
                 </div>
               </div>
@@ -82,7 +82,7 @@ export default async function ProtectedPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                   <Database className="h-5 w-5 text-white" />
                 </div>
-                <h2 className="font-bold text-xl">Dữ liệu thô</h2>
+                <h2 className="font-bold text-xl">Raw Data</h2>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 max-h-64 overflow-auto">
                 <pre className="text-xs font-mono text-muted-foreground">
@@ -104,9 +104,9 @@ export default async function ProtectedPage() {
             <div className="flex gap-3 items-center text-amber-700 dark:text-amber-300">
               <InfoIcon size="20" strokeWidth={2} />
               <div>
-                <h3 className="font-semibold text-lg">Chúc mừng!</h3>
+                <h3 className="font-semibold text-lg">Congratulations!</h3>
                 <p className="text-sm text-muted-foreground">
-                  Bạn đã đăng nhập thành công và có thể truy cập vào tất cả các tính năng của EduConnect
+                  You have successfully logged in and can access all EduConnect features
                 </p>
               </div>
             </div>

@@ -404,6 +404,6 @@ const CozyLayoutComponents = {
   CozySection,
   CozyGrid,
   CozyHero
-}
+} 
 
 export default CozyLayoutComponents

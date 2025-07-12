@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { InfoIcon, User, Shield, Database } from "lucide-react";
 import { EduConnectAnimatedContainer, EduConnectAnimatedCard } from "@/components/ui/animated-components";
+import { AcademicTermsTable } from '@/components/admin/academic-terms-table'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -13,6 +16,21 @@ export default async function ProtectedPage() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
+      {/* Navigation Buttons */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <Link href="/dashboard/admin/academic-years">
+          <Button variant="outline">Academic Years</Button>
+        </Link>
+        <Link href="/dashboard/admin/academic-terms">
+          <Button variant="outline">Academic Terms</Button>
+        </Link>
+        <Link href="/dashboard/admin/classes">
+          <Button variant="outline">Classes</Button>
+        </Link>
+        <Link href="/dashboard/admin/users">
+          <Button variant="outline">Users</Button>
+        </Link>
+      </div>
       <EduConnectAnimatedContainer variant="slideUp" delay={0.1}>
         <div className="w-full">
           <EduConnectAnimatedCard 

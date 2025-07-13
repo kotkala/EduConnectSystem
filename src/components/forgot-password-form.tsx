@@ -15,10 +15,17 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
 
-export function ForgotPasswordForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+/**
+ * ForgotPasswordForm component props
+ */
+type ForgotPasswordFormProps = React.ComponentPropsWithoutRef<"div">;
+
+/**
+ * ForgotPasswordForm component that handles password reset requests
+ * @param props - Component props including className and other div props
+ * @returns JSX element with a forgot password form
+ */
+export function ForgotPasswordForm({ className, ...props }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -82,7 +89,11 @@ export function ForgotPasswordForm({
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
+                {error && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {error}
+                  </p>
+                )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Sending..." : "Send reset email"}
                 </Button>

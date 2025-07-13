@@ -1,3 +1,7 @@
+/**
+ * NextLogo component that renders the Next.js logo
+ * @returns JSX element with the Next.js logo SVG
+ */
 export function NextLogo() {
   return (
     <svg
@@ -6,6 +10,7 @@ export function NextLogo() {
       role="img"
       viewBox="0 0 394 79"
       width="100"
+      className="text-current"
     >
       <path
         d="M261.919 0.0330722H330.547V12.7H303.323V79.339H289.71V12.7H261.919V0.0330722Z"

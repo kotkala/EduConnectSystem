@@ -1,3 +1,7 @@
+/**
+ * SupabaseLogo component that renders the Supabase logo
+ * @returns JSX element with the Supabase logo SVG
+ */
 export function SupabaseLogo() {
   return (
     <svg
@@ -7,6 +11,7 @@ export function SupabaseLogo() {
       viewBox="0 0 115 23"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="text-current"
     >
       <g clipPath="url(#clip0_4671_51136)">
         <g clipPath="url(#clip1_4671_51136)">

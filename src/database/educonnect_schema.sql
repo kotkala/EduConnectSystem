@@ -311,7 +311,8 @@ CREATE TABLE public.subject_assignments (
     CONSTRAINT valid_weekly_periods CHECK (weekly_periods > 0),
     CONSTRAINT grade_or_class CHECK (
         (grade_level_id IS NOT NULL AND class_id IS NULL) OR 
-        (grade_level_id IS NULL AND class_id IS NOT NULL)
+        (grade_level_id IS NULL AND class_id IS NOT NULL) OR
+        (grade_level_id IS NULL AND class_id IS NULL)
     )
 );
 
@@ -336,8 +337,13 @@ CREATE TABLE public.student_enrollments (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(student_id, academic_year_id)
+    UNIQUE(student_id, class_id, academic_year_id)
 );
+
+-- Create indexes for student enrollments
+CREATE INDEX idx_student_enrollments_student_year ON public.student_enrollments(student_id, academic_year_id) WHERE is_active = true;
+CREATE INDEX idx_student_enrollments_class_year ON public.student_enrollments(class_id, academic_year_id) WHERE is_active = true;
+CREATE INDEX idx_student_enrollments_active ON public.student_enrollments(is_active) WHERE is_active = true;
 
 -- Parent-student relationships
 CREATE TABLE public.parent_student_relationships (
@@ -376,11 +382,82 @@ CREATE TABLE public.time_slots (
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     slot_order INTEGER NOT NULL,
+    order_index INTEGER NOT NULL DEFAULT 0,
     is_break BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT valid_time_range CHECK (start_time < end_time),
-    UNIQUE(slot_order)
+    UNIQUE(slot_order),
+    UNIQUE(order_index)
 );
+
+-- Schedule constraints for intelligent scheduling
+CREATE TABLE public.schedule_constraints (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    constraint_type TEXT NOT NULL CHECK (constraint_type IN (
+        'teacher_unavailable',
+        'class_unavailable', 
+        'subject_consecutive',
+        'subject_not_consecutive',
+        'preferred_time',
+        'avoid_time',
+        'max_daily_lessons',
+        'break_between_lessons'
+    )),
+    teacher_id UUID REFERENCES public.users(id),
+    class_id UUID REFERENCES public.classes(id),
+    subject_id UUID REFERENCES public.subjects(id),
+    time_slot_id UUID REFERENCES public.time_slots(id),
+    day_of_week day_of_week,
+    description TEXT,
+    priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES public.users(id)
+);
+
+-- Create indexes for schedule constraints
+CREATE INDEX idx_schedule_constraints_teacher ON public.schedule_constraints(teacher_id) WHERE teacher_id IS NOT NULL;
+CREATE INDEX idx_schedule_constraints_class ON public.schedule_constraints(class_id) WHERE class_id IS NOT NULL;
+CREATE INDEX idx_schedule_constraints_subject ON public.schedule_constraints(subject_id) WHERE subject_id IS NOT NULL;
+CREATE INDEX idx_schedule_constraints_active ON public.schedule_constraints(is_active) WHERE is_active = true;
+
+-- Teacher assignments (which teacher teaches which subject to which class)
+CREATE TABLE public.teacher_assignments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    academic_term_id UUID NOT NULL REFERENCES public.academic_terms(id) ON DELETE CASCADE,
+    teacher_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    class_id UUID NOT NULL REFERENCES public.classes(id) ON DELETE CASCADE,
+    subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
+    assigned_date DATE DEFAULT CURRENT_DATE,
+    end_date DATE,
+    is_active BOOLEAN DEFAULT TRUE,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID REFERENCES public.users(id),
+    UNIQUE(academic_term_id, teacher_id, class_id, subject_id)
+);
+
+-- Create indexes for teacher assignments
+CREATE INDEX idx_teacher_assignments_term ON public.teacher_assignments(academic_term_id);
+CREATE INDEX idx_teacher_assignments_teacher ON public.teacher_assignments(teacher_id);
+CREATE INDEX idx_teacher_assignments_class ON public.teacher_assignments(class_id);
+CREATE INDEX idx_teacher_assignments_subject ON public.teacher_assignments(subject_id);
+CREATE INDEX idx_teacher_assignments_active ON public.teacher_assignments(is_active) WHERE is_active = true;
+
+-- Curriculum distribution (alias view for subject_assignments for API compatibility)
+CREATE VIEW public.curriculum_distribution AS 
+SELECT 
+    sa.*,
+    s.name as subject_name,
+    s.code as subject_code,
+    gl.name as grade_level_name,
+    c.name as class_name
+FROM public.subject_assignments sa
+LEFT JOIN public.subjects s ON sa.subject_id = s.id
+LEFT JOIN public.grade_levels gl ON sa.grade_level_id = gl.id
+LEFT JOIN public.classes c ON sa.class_id = c.id;
 
 -- Teaching schedules
 CREATE TABLE public.teaching_schedules (
@@ -391,13 +468,15 @@ CREATE TABLE public.teaching_schedules (
     teacher_id UUID NOT NULL REFERENCES public.users(id),
     day_of_week day_of_week NOT NULL,
     time_slot_id UUID NOT NULL REFERENCES public.time_slots(id),
+    week_number INTEGER NOT NULL DEFAULT 1 CHECK (week_number >= 1 AND week_number <= 35),
     room_number TEXT,
+    notes TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     created_by UUID REFERENCES public.users(id),
-    UNIQUE(academic_term_id, day_of_week, time_slot_id, teacher_id),
-    UNIQUE(academic_term_id, day_of_week, time_slot_id, class_id)
+    UNIQUE(academic_term_id, day_of_week, time_slot_id, teacher_id, week_number),
+    UNIQUE(academic_term_id, day_of_week, time_slot_id, class_id, week_number)
 );
 
 -- Teaching schedule change requests

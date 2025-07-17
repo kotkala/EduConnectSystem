@@ -240,6 +240,7 @@ export interface TimeSlot {
   start_time: string
   end_time: string
   slot_order: number
+  order_index: number
   is_break: boolean
   created_at: string
 }
@@ -252,7 +253,9 @@ export interface TeachingSchedule {
   teacher_id: string
   day_of_week: DayOfWeek
   time_slot_id: string
+  week_number: number
   room_number?: string
+  notes?: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -403,6 +406,57 @@ export interface TeacherFeedback {
   metadata: Json
   created_at: string
   updated_at: string
+}
+
+export interface ScheduleConstraint {
+  id: string
+  constraint_type: 'teacher_unavailable' | 'class_unavailable' | 'subject_consecutive' | 'subject_not_consecutive' | 'preferred_time' | 'avoid_time' | 'max_daily_lessons' | 'break_between_lessons'
+  teacher_id?: string
+  class_id?: string
+  subject_id?: string
+  time_slot_id?: string
+  day_of_week?: DayOfWeek
+  description?: string
+  priority: 'low' | 'medium' | 'high'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  created_by?: string
+}
+
+export interface TeacherAssignment {
+  id: string
+  academic_term_id: string
+  teacher_id: string
+  class_id: string
+  subject_id: string
+  assigned_date: string
+  end_date?: string
+  is_active: boolean
+  notes?: string
+  created_at: string
+  updated_at: string
+  created_by?: string
+}
+
+export interface CurriculumDistribution {
+  id: string
+  academic_term_id: string
+  subject_id: string
+  grade_level_id?: string
+  class_id?: string
+  type: SubjectType
+  weekly_periods: number
+  created_at: string
+  updated_at: string
+  subject_name?: string
+  subject_code?: string
+  subject_credits?: number
+  grade_level_name?: string
+  grade_level?: number
+  class_name?: string
+  class_code?: string
+  academic_term_name?: string
 }
 
 export interface Notification {
@@ -637,7 +691,9 @@ export interface CreateScheduleInput {
   teacher_id: string
   day_of_week: DayOfWeek
   time_slot_id: string
+  week_number: number
   room_number?: string
+  notes?: string
 }
 
 export interface RecordAttendanceInput {
@@ -723,6 +779,8 @@ export type TableName =
   | 'parent_student_relationships'
   | 'homeroom_assignments'
   | 'time_slots'
+  | 'schedule_constraints'
+  | 'teacher_assignments'
   | 'teaching_schedules'
   | 'schedule_change_requests'
   | 'attendance_records'
@@ -752,6 +810,8 @@ export type DatabaseTables = {
   parent_student_relationships: ParentStudentRelationship
   homeroom_assignments: HomeroomAssignment
   time_slots: TimeSlot
+  schedule_constraints: ScheduleConstraint
+  teacher_assignments: TeacherAssignment
   teaching_schedules: TeachingSchedule
   schedule_change_requests: ScheduleChangeRequest
   attendance_records: AttendanceRecord
@@ -776,6 +836,9 @@ export type Database = {
     Views: {
       student_performance_summary: {
         Row: StudentPerformanceSummary
+      }
+      curriculum_distribution: {
+        Row: CurriculumDistribution
       }
     }
   }

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Migration - Student Enrollments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .debug-btn {
+            background-color: #007bff;
+        }
+        .debug-btn:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .steps {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .steps h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .steps ol {
+            margin-bottom: 0;
+        }
+        .steps li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Migration: Student Enrollments</h1>
+        
+        <div class="warning">
+            <strong>⚠️ WARNING:</strong> This will modify the database structure. Make sure you have a backup before proceeding.
+        </div>
+        
+        <div class="info">
+            <strong>📋 Purpose:</strong> This migration allows students to be enrolled in multiple classes (base class + combined classes) simultaneously, instead of being limited to one class per academic year.
+        </div>
+        
+        <div class="steps">
+            <h3>Migration Steps:</h3>
+            <ol>
+                <li>Drop the old constraint: <code>UNIQUE(student_id, academic_year_id)</code></li>
+                <li>Clean up any duplicate records</li>
+                <li>Add new constraint: <code>UNIQUE(student_id, class_id, academic_year_id)</code></li>
+                <li>Create performance indexes</li>
+                <li>Verify changes</li>
+            </ol>
+        </div>
+        
+        <div>
+            <button onclick="runMigration()">🔧 Run Migration</button>
+            <button onclick="debugStudentData()" class="debug-btn">🔍 Debug Current Data</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function runMigration() {
+            if (!confirm('Are you sure you want to run this database migration? This will modify the database structure.')) {
+                return;
+            }
+            
+            try {
+                showResult('Running migration...', 'info');
+                
+                const response = await fetch('/api/migrate-enrollments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`✅ MIGRATION SUCCESSFUL!\n\n${result.message}\n\nChanges made:\n${result.data.changes.map(c => `• ${c}`).join('\n')}\n\nConstraints:\nOld: ${JSON.stringify(result.data.old_constraints, null, 2)}\nNew: ${JSON.stringify(result.data.new_constraints, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ MIGRATION FAILED!\n\nError: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ NETWORK ERROR!\n\nError: ${error.message}`, 'error');
+            }
+        }
+        
+        async function debugStudentData() {
+            try {
+                showResult('Fetching current student enrollment data...', 'info');
+                
+                const response = await fetch('/api/debug-subject-groups?action=debug');
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`📊 CURRENT STUDENT DATA:\n\n${JSON.stringify(result.data, null, 2)}`, 'info');
+                } else {
+                    showResult(`❌ DEBUG ERROR!\n\nError: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ DEBUG NETWORK ERROR!\n\nError: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+        }
+    </script>
+</body>
+</html> 

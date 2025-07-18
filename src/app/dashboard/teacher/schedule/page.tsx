@@ -22,6 +22,11 @@ import {
   Filter,
   MapPin
 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format, getDay } from 'date-fns';
+import { useRef } from 'react';
+import { Input } from '@/components/ui/input';
+import { createClient } from '@/lib/supabase/client';
 
 interface AcademicYear {
   id: string;
@@ -105,6 +110,26 @@ export default function TeacherSchedulePage() {
   
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'column'>('table');
+
+  // Add modal state
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLesson, setFeedbackLesson] = useState<any>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [studentFeedbacks, setStudentFeedbacks] = useState<{ [studentId: string]: string }>({});
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+  // Add new state for feedback modal fields
+  const [feedbackType, setFeedbackType] = useState<'lesson' | 'behavior' | 'general'>('lesson');
+  const [feedbackScope, setFeedbackScope] = useState<'individual' | 'group' | 'class'>('individual');
+  const [mainContent, setMainContent] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
+  // Add state for per-student attachments and group/class selection
+  const [studentAttachments, setStudentAttachments] = useState<{ [studentId: string]: File[] }>({});
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  // Remove isAIProcessed and aiSummary state
 
   // Get filtered data based on selections
   const filteredTerms = academicTerms.filter(term => 
@@ -197,7 +222,143 @@ export default function TeacherSchedulePage() {
     }
   };
 
-  const renderScheduleGrid = () => {
+  // Fetch students in class for feedback modal
+  const openFeedbackModal = async (lesson: any) => {
+    setFeedbackLesson(lesson);
+    setFeedbackOpen(true);
+    setStudentFeedbacks({});
+    setStudents([]);
+    setFeedbackType('lesson');
+    setFeedbackScope('individual');
+    setMainContent('');
+    setTags([]);
+    setTagInput('');
+    setAttachments([]);
+    setStudentAttachments({});
+    setSelectedStudents([]);
+    // Restore fetching students logic
+    const classId = lesson.class?.id || lesson.class_id;
+    if (!classId) {
+      toast.error('Không tìm thấy lớp cho tiết học này.');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/classes/${classId}/students`);
+      const data = await res.json();
+      if (data.success) {
+        setStudents(data.data.map((enr: any) => enr.student));
+      }
+    } catch {
+      toast.error('Lỗi khi tải danh sách học sinh');
+    }
+  };
+  const closeFeedbackModal = () => {
+    setFeedbackOpen(false);
+    setFeedbackLesson(null);
+    setStudents([]);
+    setStudentFeedbacks({});
+  };
+  const handleFeedbackChange = (studentId: string, value: string) => {
+    setStudentFeedbacks(prev => ({ ...prev, [studentId]: value }));
+  };
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
+  };
+  const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachments(Array.from(e.target.files));
+    }
+  };
+  const handleStudentAttachmentChange = (studentId: string, files: FileList | null) => {
+    if (files) {
+      setStudentAttachments(prev => ({ ...prev, [studentId]: Array.from(files) }));
+    }
+  };
+  const handleSelectStudent = (studentId: string) => {
+    setSelectedStudents(prev => prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]);
+  };
+  const handleSubmitFeedback = async () => {
+    if (!feedbackLesson) return;
+    setSubmittingFeedback(true);
+    const classId = feedbackLesson.class?.id || feedbackLesson.class_id;
+    if (!classId) {
+      toast.error('Không tìm thấy lớp cho tiết học này.');
+      setSubmittingFeedback(false);
+      return;
+    }
+    try {
+      const supabase = createClient();
+      let body: any = {
+        schedule_id: feedbackLesson.id,
+        class_id: classId,
+        feedback_date: new Date().toISOString().slice(0, 10),
+        feedback_type: feedbackType,
+        scope: feedbackScope,
+        content: feedbackScope === 'individual' ? 'Feedback for lesson' : mainContent,
+        tags,
+        attachments: [],
+      };
+      if (feedbackScope === 'individual') {
+        // Upload photos for each student and collect URLs
+        const student_feedbacks = await Promise.all(students.map(async stu => {
+          let urls: string[] = [];
+          if (studentAttachments[stu.id]) {
+            urls = await Promise.all(studentAttachments[stu.id].map(async (file) => {
+              const { data, error } = await supabase.storage.from('feedback-photos').upload(`${stu.id}/${Date.now()}_${file.name}`, file);
+              if (error) return '';
+              return data?.path ? supabase.storage.from('feedback-photos').getPublicUrl(data.path).data.publicUrl : '';
+            }));
+          }
+          return {
+            student_id: stu.id,
+            content: studentFeedbacks[stu.id] || '',
+            attachments: urls.filter(Boolean),
+          };
+        }));
+        body.student_feedbacks = student_feedbacks;
+      } else {
+        // Group/class: selected students, same content/attachments
+        let urls: string[] = [];
+        if (attachments.length > 0) {
+          urls = await Promise.all(attachments.map(async (file) => {
+            const { data, error } = await supabase.storage.from('feedback-photos').upload(`group/${Date.now()}_${file.name}`, file);
+            if (error) return '';
+            return data?.path ? supabase.storage.from('feedback-photos').getPublicUrl(data.path).data.publicUrl : '';
+          }));
+        }
+        body.student_feedbacks = selectedStudents.map(studentId => ({
+          student_id: studentId,
+          content: mainContent,
+          attachments: urls.filter(Boolean),
+        }));
+      }
+      const res = await fetch('/api/lesson-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Đã lưu nhận xét thành công!');
+        closeFeedbackModal();
+      } else {
+        toast.error(data.error || 'Lỗi khi lưu nhận xét');
+      }
+    } catch {
+      toast.error('Lỗi khi lưu nhận xét');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  // Simple classic table: each row is a lesson
+  const renderSimpleLessonTable = () => {
     if (!schedules.length) {
       return (
         <div className="text-center py-12">
@@ -207,124 +368,106 @@ export default function TeacherSchedulePage() {
         </div>
       );
     }
-
-    // Group schedules by day and time slot
-    const scheduleGrid: { [key: string]: TeachingSchedule[] } = {};
-    schedules.forEach(schedule => {
-      const key = `${schedule.day_of_week}-${schedule.time_slot.id}`;
-      if (!scheduleGrid[key]) {
-        scheduleGrid[key] = [];
-      }
-      scheduleGrid[key].push(schedule);
-    });
-
+    // Sort by day_of_week, then by time_slot.order_index
+    const sortedLessons = [...schedules]
+      .sort((a, b) => {
+        if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+        return (a.time_slot?.order_index || 0) - (b.time_slot?.order_index || 0);
+      });
     return (
-      <div className="space-y-6">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border border-gray-300 px-4 py-2 text-left">Tiết học</th>
-                {dayNames.slice(1).map((day, index) => (
-                  <th key={index + 1} className="border border-gray-300 px-4 py-2 text-center min-w-[250px]">
-                    {day}
-                  </th>
-                ))}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="border border-gray-300 px-4 py-2">Thứ</th>
+              <th className="border border-gray-300 px-4 py-2">Tiết học</th>
+              <th className="border border-gray-300 px-4 py-2">Môn học</th>
+              <th className="border border-gray-300 px-4 py-2">Lớp</th>
+              <th className="border border-gray-300 px-4 py-2">Phòng</th>
+              <th className="border border-gray-300 px-4 py-2">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedLessons.map((lesson, idx) => (
+              <tr key={lesson.id || idx}>
+                <td className="border border-gray-300 px-4 py-2">{dayNames[lesson.day_of_week] || '---'}</td>
+                <td className="border border-gray-300 px-4 py-2">{lesson.time_slot?.name || '---'}<br/>{lesson.time_slot?.start_time} - {lesson.time_slot?.end_time}</td>
+                <td className="border border-gray-300 px-4 py-2">{lesson.subject?.name || '---'}</td>
+                <td className="border border-gray-300 px-4 py-2">{lesson.class?.name || '---'}</td>
+                <td className="border border-gray-300 px-4 py-2">{lesson.room_number || '---'}</td>
+                <td className="border border-gray-300 px-4 py-2">{lesson.notes || ''}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  <Button size="sm" variant="outline" onClick={() => openFeedbackModal(lesson)}>
+                    Nhận xét học sinh
+                  </Button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {timeSlots.map(timeSlot => (
-                <tr key={timeSlot.id}>
-                  <td className="border border-gray-300 px-4 py-2 bg-gray-50 font-medium">
-                    <div className="text-sm">
-                      <div>{timeSlot.name}</div>
-                      <div className="text-gray-500">
-                        {timeSlot.start_time} - {timeSlot.end_time}
-                      </div>
-                      {timeSlot.is_break && (
-                        <div className="text-xs text-orange-600 font-medium">
-                          (Nghỉ giải lao)
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  {[1, 2, 3, 4, 5, 6].map(dayOfWeek => {
-                    const schedulesInSlot = scheduleGrid[`${dayOfWeek}-${timeSlot.id}`] || [];
-                    
-                    return (
-                      <td key={dayOfWeek} className="border border-gray-300 px-2 py-2 min-h-[120px] align-top">
-                        {schedulesInSlot.length > 0 ? (
-                          <div className="space-y-1">
-                            {schedulesInSlot.map((schedule, index) => {
-                              // Check if this is a special activity
-                              if (schedule.notes && !schedule.subject) {
-                                return (
-                                  <div key={index} className="bg-purple-50 border border-purple-200 rounded p-2">
-                                    <div className="text-sm font-medium text-purple-900">
-                                      {schedule.notes}
-                                    </div>
-                                    {schedule.room_number && (
-                                      <div className="text-xs text-purple-600 flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" />
-                                        {schedule.room_number}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              }
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
 
-                              // Regular subject schedule
-                              const isCombinedClass = schedule.class.is_combined;
-                              
-                              return (
-                                <div 
-                                  key={index} 
-                                  className={`border rounded p-2 ${
-                                    isCombinedClass 
-                                      ? 'bg-orange-50 border-orange-200' 
-                                      : 'bg-blue-50 border-blue-200'
-                                  }`}
-                                >
-                                  <div className={`text-sm font-medium ${
-                                    isCombinedClass ? 'text-orange-900' : 'text-blue-900'
-                                  }`}>
-                                    {schedule.subject.name}
-                                  </div>
-                                  <div className={`text-xs ${
-                                    isCombinedClass ? 'text-orange-700' : 'text-blue-700'
-                                  } flex items-center gap-1`}>
-                                    <Users className="h-3 w-3" />
-                                    {schedule.class.name}
-                                    {isCombinedClass && (
-                                      <span className="ml-1 text-xs bg-orange-200 px-1 rounded">
-                                        Lớp ghép
-                                      </span>
-                                    )}
-                                  </div>
-                                  {schedule.room_number && (
-                                    <div className={`text-xs ${
-                                      isCombinedClass ? 'text-orange-600' : 'text-blue-600'
-                                    } flex items-center gap-1`}>
-                                      <MapPin className="h-3 w-3" />
-                                      {schedule.room_number}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="h-full min-h-[100px] bg-gray-50 rounded border-2 border-dashed border-gray-200 flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">Rảnh</span>
-                          </div>
-                        )}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  // Single straight column view for all lessons
+  const renderSingleColumnSchedule = () => {
+    if (!schedules.length) {
+      return (
+        <div className="text-center py-12">
+          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Chưa có lịch dạy nào cho tuần này</p>
+          <p className="text-sm text-gray-400 mt-2">Vui lòng liên hệ ban giám hiệu để được phân công lịch dạy</p>
+        </div>
+      );
+    }
+    // Sort all lessons by day_of_week, then by time_slot.order_index
+    const sortedLessons = [...schedules]
+      .filter(s => s && s.subject && s.class && s.time_slot)
+      .sort((a, b) => {
+        if (a.day_of_week !== b.day_of_week) return a.day_of_week - b.day_of_week;
+        return a.time_slot.order_index - b.time_slot.order_index;
+      });
+    return (
+      <div className="space-y-4">
+        <div className="mb-2">
+          <span className="font-semibold text-lg text-blue-700">Lịch dạy tuần này (dạng cột thẳng)</span>
+        </div>
+        <div className="flex flex-col gap-4">
+          {sortedLessons.map((lesson, idx) => {
+            const isCombinedClass = lesson.class.is_combined;
+            return (
+              <Card key={lesson.id || idx} className="w-full">
+                <CardContent className="py-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs px-2 py-1">
+                      {dayNames[lesson.day_of_week]}
+                    </Badge>
+                    <span className="text-sm text-gray-600">
+                      {lesson.time_slot.name} ({lesson.time_slot.start_time} - {lesson.time_slot.end_time})
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className={`font-semibold ${isCombinedClass ? 'text-orange-700' : 'text-blue-700'}`}>{lesson.subject.name}</span>
+                    <span className="text-xs text-gray-500">|</span>
+                    <span className={`text-xs ${isCombinedClass ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'} px-2 py-1 rounded`}>
+                      {lesson.class.name}{isCombinedClass && ' (Lớp ghép)'}
+                    </span>
+                    {lesson.room_number && (
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {lesson.room_number}
+                      </span>
+                    )}
+                  </div>
+                  {lesson.notes && (
+                    <div className="text-xs text-purple-700 bg-purple-50 rounded px-2 py-1">
+                      {lesson.notes}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
@@ -351,7 +494,15 @@ export default function TeacherSchedulePage() {
           </Button>
         </div>
       </div>
-
+      {/* View mode toggle */}
+      <div className="flex justify-end mb-2">
+        <Tabs value={viewMode} onValueChange={v => v && setViewMode(v as 'table' | 'column')}>
+          <TabsList>
+            <TabsTrigger value="table">Bảng</TabsTrigger>
+            <TabsTrigger value="column">Cột</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -436,10 +587,123 @@ export default function TeacherSchedulePage() {
                 <p>Đang tải...</p>
               </div>
             ) : (
-              renderScheduleGrid()
+              viewMode === 'table' ? renderSimpleLessonTable() : renderSingleColumnSchedule()
             )}
           </CardContent>
         </Card>
+      )}
+      {feedbackOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+            <h2 className="text-lg font-bold mb-4">Nhận xét tiết học ({feedbackLesson?.class?.name})</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <Label>Loại nhận xét</Label>
+                <Select value={feedbackType} onValueChange={v => setFeedbackType(v as any)}>
+                  <SelectTrigger><SelectValue placeholder="Chọn loại" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lesson">Nhận xét tiết học</SelectItem>
+                    <SelectItem value="behavior">Nhận xét hành vi</SelectItem>
+                    <SelectItem value="general">Nhận xét chung</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Phạm vi</Label>
+                <Select value={feedbackScope} onValueChange={v => setFeedbackScope(v as any)}>
+                  <SelectTrigger><SelectValue placeholder="Chọn phạm vi" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="individual">Từng học sinh</SelectItem>
+                    <SelectItem value="group">Nhóm</SelectItem>
+                    <SelectItem value="class">Cả lớp</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {/* Tags */}
+            <div className="mb-4">
+              <Label>Tags</Label>
+              <div className="flex gap-2 flex-wrap">
+                {tags.map(tag => (
+                  <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center gap-1">
+                    {tag}
+                    <button type="button" className="ml-1 text-xs" onClick={() => handleRemoveTag(tag)}>&times;</button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); }}}
+                  placeholder="Thêm tag..."
+                  className="border border-gray-300 rounded px-2 py-1 text-sm bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button size="sm" variant="outline" type="button" onClick={handleAddTag}>Thêm</Button>
+              </div>
+            </div>
+            {/* Attachments (group/class) */}
+            {feedbackScope !== 'individual' && (
+              <div className="mb-4">
+                <Label>Đính kèm ảnh cho nhóm/lớp</Label>
+                <input type="file" multiple onChange={e => setAttachments(e.target.files ? Array.from(e.target.files) : [])} className="border border-gray-300 rounded px-2 py-1 text-sm bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+            )}
+            {/* Main content or per-student feedback */}
+            {feedbackScope === 'individual' ? (
+              <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
+                {students.length === 0 && <div>Đang tải danh sách học sinh...</div>}
+                {students.map(stu => (
+                  <div key={stu.id} className="flex flex-col gap-1 border-b pb-2">
+                    <Label>{stu.full_name}</Label>
+                    <textarea
+                      rows={2}
+                      value={studentFeedbacks[stu.id] || ''}
+                      onChange={e => handleFeedbackChange(stu.id, e.target.value)}
+                      placeholder="Nhận xét..."
+                      className="resize-none border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary w-full bg-white text-black placeholder-gray-500"
+                    />
+                    <input
+                      type="file"
+                      multiple
+                      onChange={e => handleStudentAttachmentChange(stu.id, e.target.files)}
+                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mb-4">
+                <Label>Chọn học sinh nhận nhận xét này</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {students.map(stu => (
+                    <label key={stu.id} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudents.includes(stu.id)}
+                        onChange={() => handleSelectStudent(stu.id)}
+                      />
+                      <span>{stu.full_name}</span>
+                    </label>
+                  ))}
+                </div>
+                <Label>Nội dung nhận xét</Label>
+                <textarea
+                  rows={4}
+                  value={mainContent}
+                  onChange={e => setMainContent(e.target.value)}
+                  placeholder="Nhập nội dung nhận xét..."
+                  className="resize-none border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary w-full bg-white text-black placeholder-gray-500"
+                />
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="ghost" onClick={closeFeedbackModal} disabled={submittingFeedback}>Đóng</Button>
+              <Button onClick={handleSubmitFeedback} disabled={submittingFeedback}>
+                {submittingFeedback ? 'Đang lưu...' : 'Lưu nhận xét'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

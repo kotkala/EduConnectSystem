@@ -292,13 +292,7 @@ export async function POST(request: NextRequest) {
             content: studentFeedback.content,
             tags: studentFeedback.tags || [],
             attachments: studentFeedback.attachments || [],
-            is_ai_processed: false,
-            metadata: {
-              student_id: studentFeedback.student_id,
-              parent_feedback_id: feedback.id,
-              rating: studentFeedback.rating,
-              specific_notes: studentFeedback.specific_notes
-            }
+            is_ai_processed: false
           })
 
         if (individualError) {

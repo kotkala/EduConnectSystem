@@ -324,14 +324,14 @@ export async function POST(request: NextRequest) {
             }
           } else {
             errors.push(`Không tìm thấy lớp ${className} và không thể xác định năm học hoặc khối lớp để tạo lớp mới.`)
-            results.push({
-              success: false,
-              class_name: className,
-              schedules_created: 0,
-              errors,
-              warnings
-            })
-            continue
+          results.push({
+            success: false,
+            class_name: className,
+            schedules_created: 0,
+            errors,
+            warnings
+          })
+          continue
           }
         }
 
@@ -503,8 +503,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Helper: Map day number (1-7) to ENUM string
-    const dayOfWeekEnum = ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    // Map day_of_week number to enum string for Postgres
+    const dayOfWeekEnum = [null, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     // Create all schedules
     // Only insert entries that have both teacher_id and subject_id (required by schema)
     const schedulesToInsert = allSchedulesToCreate.filter(schedule => {
@@ -517,7 +517,7 @@ export async function POST(request: NextRequest) {
       class_id: schedule.class_id,
       teacher_id: schedule.teacher_id || null,
       subject_id: schedule.subject_id || null,
-      day_of_week: typeof schedule.day_of_week === 'number' ? dayOfWeekEnum[schedule.day_of_week] : schedule.day_of_week,
+      day_of_week: dayOfWeekEnum[schedule.day_of_week] || 'monday',
       time_slot_id: schedule.time_slot_id,
       week_number: schedule.week_number,
       room_number: schedule.room_number || null,
@@ -530,18 +530,18 @@ export async function POST(request: NextRequest) {
     let insertError = null;
     if (schedulesToInsert.length > 0) {
       const insertResult = await supabase
-        .from('teaching_schedules')
-        .insert(schedulesToInsert)
+      .from('teaching_schedules')
+      .insert(schedulesToInsert)
         .select();
       createdSchedules = insertResult.data || [];
       insertError = insertResult.error;
-      if (insertError) {
+    if (insertError) {
         console.error('Failed to create schedules:', insertError, schedulesToInsert);
-        return NextResponse.json({
-          success: false,
-          error: 'Failed to create schedules: ' + insertError.message,
-          results
-        }, { status: 500 })
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to create schedules: ' + insertError.message,
+        results
+      }, { status: 500 })
       }
     }
 

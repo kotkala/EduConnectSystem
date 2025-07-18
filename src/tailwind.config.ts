@@ -7,9 +7,6 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  // Theme configuration is now handled in CSS using @theme directive
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+  // Theme configuration is now handled in CSS with @theme directive
+  // Plugins are loaded via @plugin directive in CSS
 } satisfies Config;

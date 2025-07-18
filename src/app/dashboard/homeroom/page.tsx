@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -185,7 +184,7 @@ export default function HomeroomDashboardPage() {
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
-              <Label>Năm học</Label>
+              <label className="font-medium">Năm học</label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn năm học" />
@@ -200,7 +199,7 @@ export default function HomeroomDashboardPage() {
               </Select>
             </div>
             <div>
-              <Label>Học kỳ</Label>
+              <label className="font-medium">Học kỳ</label>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn học kỳ" />
@@ -215,7 +214,7 @@ export default function HomeroomDashboardPage() {
               </Select>
             </div>
             <div>
-              <Label>Tuần</Label>
+              <label className="font-medium">Tuần</label>
               <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn tuần" />
@@ -239,13 +238,13 @@ export default function HomeroomDashboardPage() {
           ) : !homeroomClass ? (
             <div className="text-center py-8">Không tìm thấy lớp chủ nhiệm của bạn trong năm học này.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border text-sm">
+            <div style={{ width: '100vw', overflowX: 'auto' }}>
+              <table border={1} cellPadding={4} cellSpacing={0} style={{ minWidth: '1200px', width: '100%' }}>
                 <thead>
                   <tr>
-                    <th className="border px-2 py-1 bg-gray-50">Học sinh</th>
+                    <th>Học sinh</th>
                     {schedule.map((period: any) => (
-                      <th key={period.id} className="border px-2 py-1 bg-gray-50">
+                      <th key={period.id}>
                         {period.subject?.name || "Tiết"} <br />
                         {period.time_slot?.name || ""}
                       </th>
@@ -255,18 +254,21 @@ export default function HomeroomDashboardPage() {
                 <tbody>
                   {students.map((student) => (
                     <tr key={student.id}>
-                      <td className="border px-2 py-1 font-medium">{student.full_name}</td>
+                      <td>{student.full_name}</td>
                       {schedule.map((period: any) => {
-                        const fb = feedbacks[`${student.id}_${period.id}`] || null;
+                        // Try to get feedback for this student and period
+                        const fb = feedbacks[`${student.id}_${period.id}`] || feedbacks[`class_${period.id}`] || null;
                         return (
-                          <td key={period.id} className="border px-2 py-1 text-center">
+                          <td key={period.id}>
                             {fb ? (
-                              <Badge variant={fb.feedback_type === "lesson" ? "default" : "secondary"}>
-                                {fb.content?.slice(0, 20) || "Có phản hồi"}
-                              </Badge>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
+                              <>
+                                {fb.content?.slice(0, 40) || "Có phản hồi"}
+                                <div style={{ fontSize: 10, color: '#888' }}>
+                                  {/* Debug: show raw feedback object */}
+                                  <pre style={{ maxWidth: 200, overflow: 'auto' }}>{JSON.stringify(fb, null, 1)}</pre>
+                                </div>
+                              </>
+                            ) : "-"}
                           </td>
                         );
                       })}

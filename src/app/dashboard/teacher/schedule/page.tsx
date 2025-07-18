@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -514,7 +513,7 @@ export default function TeacherSchedulePage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="academic-year">Năm học</Label>
+              <label className="font-medium">Năm học</label>
               <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn năm học" />
@@ -530,7 +529,7 @@ export default function TeacherSchedulePage() {
             </div>
 
             <div>
-              <Label htmlFor="term">Học kỳ</Label>
+              <label className="font-medium">Học kỳ</label>
               <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn học kỳ" />
@@ -546,7 +545,7 @@ export default function TeacherSchedulePage() {
             </div>
 
             <div>
-              <Label htmlFor="week">Tuần học</Label>
+              <label className="font-medium">Tuần học</label>
               <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn tuần" />
@@ -598,7 +597,7 @@ export default function TeacherSchedulePage() {
             <h2 className="text-lg font-bold mb-4">Nhận xét tiết học ({feedbackLesson?.class?.name})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <Label>Loại nhận xét</Label>
+                <label className="font-medium">Loại nhận xét</label>
                 <Select value={feedbackType} onValueChange={v => setFeedbackType(v as any)}>
                   <SelectTrigger><SelectValue placeholder="Chọn loại" /></SelectTrigger>
                   <SelectContent>
@@ -609,7 +608,7 @@ export default function TeacherSchedulePage() {
                 </Select>
               </div>
               <div>
-                <Label>Phạm vi</Label>
+                <label className="font-medium">Phạm vi</label>
                 <Select value={feedbackScope} onValueChange={v => setFeedbackScope(v as any)}>
                   <SelectTrigger><SelectValue placeholder="Chọn phạm vi" /></SelectTrigger>
                   <SelectContent>
@@ -622,7 +621,7 @@ export default function TeacherSchedulePage() {
             </div>
             {/* Tags */}
             <div className="mb-4">
-              <Label>Tags</Label>
+              <label className="font-medium">Tags</label>
               <div className="flex gap-2 flex-wrap">
                 {tags.map(tag => (
                   <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center gap-1">
@@ -644,7 +643,7 @@ export default function TeacherSchedulePage() {
             {/* Attachments (group/class) */}
             {feedbackScope !== 'individual' && (
               <div className="mb-4">
-                <Label>Đính kèm ảnh cho nhóm/lớp</Label>
+                <label className="font-medium">Đính kèm ảnh cho nhóm/lớp</label>
                 <input type="file" multiple onChange={e => setAttachments(e.target.files ? Array.from(e.target.files) : [])} className="border border-gray-300 rounded px-2 py-1 text-sm bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
             )}
@@ -654,7 +653,7 @@ export default function TeacherSchedulePage() {
                 {students.length === 0 && <div>Đang tải danh sách học sinh...</div>}
                 {students.map(stu => (
                   <div key={stu.id} className="flex flex-col gap-1 border-b pb-2">
-                    <Label>{stu.full_name}</Label>
+                    <label className="font-medium">{stu.full_name}</label>
                     <textarea
                       rows={2}
                       value={studentFeedbacks[stu.id] || ''}
@@ -673,7 +672,7 @@ export default function TeacherSchedulePage() {
               </div>
             ) : (
               <div className="mb-4">
-                <Label>Chọn học sinh nhận nhận xét này</Label>
+                <label className="font-medium">Chọn học sinh nhận nhận xét này</label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {students.map(stu => (
                     <label key={stu.id} className="flex items-center gap-1">
@@ -686,7 +685,7 @@ export default function TeacherSchedulePage() {
                     </label>
                   ))}
                 </div>
-                <Label>Nội dung nhận xét</Label>
+                <label className="font-medium">Nội dung nhận xét</label>
                 <textarea
                   rows={4}
                   value={mainContent}

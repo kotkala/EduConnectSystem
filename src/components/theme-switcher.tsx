@@ -12,7 +12,13 @@ import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-const ThemeSwitcher = () => {
+const ICON_SIZE = 16;
+
+/**
+ * ThemeSwitcher component that allows users to switch between light, dark, and system theme
+ * @returns JSX element with a dropdown menu for theme selection
+ */
+export function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -22,59 +28,48 @@ const ThemeSwitcher = () => {
   }, []);
 
   if (!mounted) {
-    return (
-      <Button variant="ghost" size="sm" className="w-9 h-9">
-        <div className="h-4 w-4 animate-pulse bg-muted rounded" />
-      </Button>
-    );
+    return null;
   }
-
-  const ICON_SIZE = 16;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="w-9 h-9 hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
+        <Button variant="ghost" size="sm">
           {theme === "light" ? (
             <Sun
               key="light"
               size={ICON_SIZE}
-              className="text-foreground"
+              className="text-muted-foreground"
             />
           ) : theme === "dark" ? (
             <Moon
               key="dark"
               size={ICON_SIZE}
-              className="text-foreground"
+              className="text-muted-foreground"
             />
           ) : (
             <Laptop
               key="system"
               size={ICON_SIZE}
-              className="text-foreground"
+              className="text-muted-foreground"
             />
           )}
-          <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-36" align="end">
+      <DropdownMenuContent className="w-content" align="start">
         <DropdownMenuRadioGroup
           value={theme}
-          onValueChange={(value) => setTheme(value)}
+          onValueChange={(e) => setTheme(e)}
         >
-          <DropdownMenuRadioItem className="flex gap-2 cursor-pointer" value="light">
+          <DropdownMenuRadioItem className="flex gap-2" value="light">
             <Sun size={ICON_SIZE} className="text-muted-foreground" />
             <span>Light</span>
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem className="flex gap-2 cursor-pointer" value="dark">
+          <DropdownMenuRadioItem className="flex gap-2" value="dark">
             <Moon size={ICON_SIZE} className="text-muted-foreground" />
             <span>Dark</span>
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem className="flex gap-2 cursor-pointer" value="system">
+          <DropdownMenuRadioItem className="flex gap-2" value="system">
             <Laptop size={ICON_SIZE} className="text-muted-foreground" />
             <span>System</span>
           </DropdownMenuRadioItem>
@@ -82,6 +77,4 @@ const ThemeSwitcher = () => {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
-
-export { ThemeSwitcher };
+}

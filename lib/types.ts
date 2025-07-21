@@ -1,98 +1,41 @@
-/**
- * Global type definitions for the EduConnect application
- */
-
 import { User } from '@supabase/supabase-js'
 
-// Auth Types
-export type AuthUser = User
+export type UserRole = 'admin' | 'teacher' | 'student' | 'parent'
 
-export interface AuthState {
-  user: AuthUser | null
-  loading: boolean
-  error: string | null
-}
-
-// Form Types
-export interface EmailOnlyFormData {
-  email: string
-}
-
-export interface OtpVerificationFormData {
-  email: string
-  token: string
-}
-
-export interface ResendOtpFormData {
-  email: string
-}
-
-export interface OtpResponse {
-  user: AuthUser | null
-  session: any | null
-  error: string | null
-}
-
-// Component Props
-export interface AuthFormProps {
-  className?: string
-  onSuccess?: () => void
-  onError?: (error: string) => void
-}
-
-// API Response Types
-export interface ApiResponse<T = unknown> {
-  data?: T
-  error?: string
-  message?: string
-}
-
-// Database Types (extend as needed)
-export interface Profile {
+export interface UserProfile {
   id: string
   email: string
-  full_name?: string
-  avatar_url?: string
+  full_name: string | null
+  avatar_url: string | null
+  role: UserRole
   created_at: string
   updated_at: string
 }
 
-// UI Types
-export interface NavItem {
-  title: string
-  href: string
-  icon?: React.ComponentType<{ className?: string }>
-  disabled?: boolean
+export interface AuthUser extends User {
+  profile?: UserProfile
 }
 
-export interface SidebarNavItem extends NavItem {
-  items?: SidebarNavItem[]
+export interface AuthState {
+  user: AuthUser | null
+  profile: UserProfile | null
+  loading: boolean
+  error: string | null
 }
 
-// Environment Types
-export interface EnvConfig {
-  NEXT_PUBLIC_SUPABASE_URL: string
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: string
-  SUPABASE_SERVICE_ROLE_KEY?: string
+export interface OTPFormData {
+  email: string
+  token: string
 }
 
-// Error Types
-export interface AppError {
-  message: string
-  code?: string
-  details?: unknown
-}
-
-// Utility Types
-export type WithClassName<T = object> = T & {
-  className?: string
-}
-
-export type WithChildren<T = object> = T & {
-  children: React.ReactNode
-}
-
-export type PageProps<T = object> = T & {
-  params: { [key: string]: string }
-  searchParams: { [key: string]: string | string[] | undefined }
+export interface AuthContextType {
+  user: AuthUser | null
+  profile: UserProfile | null
+  loading: boolean
+  error: string | null
+  signInWithOTP: (email: string) => Promise<void>
+  verifyOTP: (data: OTPFormData) => Promise<void>
+  signInWithGoogle: () => Promise<void>
+  signOut: () => Promise<void>
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>
 }

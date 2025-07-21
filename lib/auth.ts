@@ -1,225 +1,93 @@
-/**
- * Authentication utilities and helpers
- */
+import { createClient } from '@/utils/supabase/client'
+import { UserProfile, OTPFormData } from './types'
 
-import { createClient as createServerClient } from './supabase/server'
-import { createClient as createBrowserClient } from './supabase/client'
-import { redirect } from 'next/navigation'
-import { ROUTES, ERROR_MESSAGES } from './constants'
-import type { AuthUser } from './types'
-import type { EmailOnlyFormData, OtpVerificationFormData } from './validations'
+export class AuthService {
+  private supabase = createClient()
 
-// Server-side auth utilities (only used in server components)
-export async function getUser(): Promise<AuthUser | null> {
-  // Skip auth checks during build time or when env vars are missing
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return null
+  async signInWithOTP(email: string) {
+    const { error } = await this.supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        // Remove emailRedirectTo to get OTP code instead of magic link
+      },
+    })
+
+    if (error) throw error
   }
 
-  try {
-    const supabase = await createServerClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (error || !user) {
-      return null
-    }
-
-    return user as AuthUser
-  } catch (error) {
-    console.error('Error getting user:', error)
-    return null
-  }
-}
-
-export async function requireAuth(): Promise<AuthUser> {
-  // Skip auth checks during build time or when env vars are missing
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return { id: 'build-user', email: 'build@example.com' } as AuthUser
-  }
-
-  try {
-    const user = await getUser()
-
-    if (!user) {
-      redirect(ROUTES.LOGIN)
-    }
-
-    return user
-  } catch (error) {
-    // Gracefully handle auth errors during build
-    console.warn('Auth check failed during build:', error)
-    return { id: 'build-user', email: 'build@example.com' } as AuthUser
-  }
-}
-
-export async function requireGuest(): Promise<void> {
-  // Skip auth checks during build time or when env vars are missing
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return
-  }
-
-  try {
-    const user = await getUser()
-
-    if (user) {
-      redirect(ROUTES.DASHBOARD)
-    }
-  } catch (error) {
-    // Gracefully handle auth errors during build
-    console.warn('Auth check failed during build:', error)
-  }
-}
-
-// Client-side auth utilities
-export class AuthClient {
-  private supabase = createBrowserClient()
-
-  async sendOtp(data: EmailOnlyFormData) {
-    try {
-      const { error } = await this.supabase.auth.signInWithOtp({
-        email: data.email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}${ROUTES.DASHBOARD}`,
-        },
-      })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return { error: null }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC,
-      }
-    }
-  }
-
-  async verifyOtp(data: OtpVerificationFormData) {
-    try {
-      const { data: authData, error } = await this.supabase.auth.verifyOtp({
-        email: data.email,
-        token: data.token,
-        type: 'email',
-      })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return { user: authData.user, session: authData.session, error: null }
-    } catch (error) {
-      return {
-        user: null,
-        session: null,
-        error: error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC,
-      }
-    }
+  async verifyOTP(data: OTPFormData) {
+    const { error } = await this.supabase.auth.verifyOtp({
+      email: data.email,
+      token: data.token,
+      type: 'email',
+    })
+    
+    if (error) throw error
   }
 
   async signInWithGoogle() {
-    try {
-      const { data, error } = await this.supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}${ROUTES.DASHBOARD}`,
-        },
-      })
+    const { data, error } = await this.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/profile/setup`,
+      },
+    })
 
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return { data, error: null }
-    } catch (error) {
-      return {
-        data: null,
-        error: error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC,
-      }
-    }
+    if (error) throw error
+    return data
   }
 
   async signOut() {
-    try {
-      const { error } = await this.supabase.auth.signOut()
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return { error: null }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC,
-      }
-    }
+    const { error } = await this.supabase.auth.signOut()
+    if (error) throw error
   }
 
-  async resendOtp(email: string) {
-    try {
-      const { error } = await this.supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}${ROUTES.DASHBOARD}`,
-        },
-      })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return { error: null }
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC,
-      }
-    }
+  async getCurrentUser() {
+    const { data: { user }, error } = await this.supabase.auth.getUser()
+    if (error) throw error
+    return user
   }
 
-  async getCurrentUser(): Promise<AuthUser | null> {
-    try {
-      const { data: { user }, error } = await this.supabase.auth.getUser()
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-      if (error || !user) {
-        return null
-      }
-
-      return user as AuthUser
-    } catch (error) {
-      console.error('Error getting current user:', error)
-      return null
-    }
+    if (error && error.code !== 'PGRST116') throw error
+    return data
   }
 
-  onAuthStateChange(callback: (user: AuthUser | null) => void) {
-    return this.supabase.auth.onAuthStateChange((event, session) => {
-      callback(session?.user as AuthUser | null)
+  async createUserProfile(profile: Omit<UserProfile, 'created_at' | 'updated_at'>) {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .insert(profile)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  onAuthStateChange(callback: (user: unknown) => void) {
+    return this.supabase.auth.onAuthStateChange((_event, session) => {
+      callback(session?.user || null)
     })
   }
 }
 
-// Create a singleton instance for client-side usage
-export const authClient = new AuthClient()
-
-// Auth state management helpers
-export function isAuthenticated(user: AuthUser | null): boolean {
-  return !!user
-}
-
-export function getUserDisplayName(user: AuthUser | null): string {
-  if (!user) return 'Guest'
-
-  return (
-    user.user_metadata?.full_name ||
-    user.email?.split('@')[0] ||
-    'User'
-  )
-}
-
-export function getUserAvatar(user: AuthUser | null): string | null {
-  return user?.user_metadata?.avatar_url || null
-}
-
-
+export const authService = new AuthService()

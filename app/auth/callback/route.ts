@@ -10,10 +10,10 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
 
   // if "next" is in param, use it as the redirect URL
-  let next = searchParams.get('next') ?? '/profile/setup'
+  let next = searchParams.get('next') ?? '/dashboard'
   if (!next.startsWith('/')) {
     // if "next" is not a relative URL, use the default
-    next = '/profile/setup'
+    next = '/dashboard'
   }
 
   // Handle OAuth errors from provider
@@ -28,6 +28,24 @@ export async function GET(request: Request) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Check if user already has a complete profile
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, full_name')
+          .eq('id', user.id)
+          .single()
+
+        // If profile exists and is complete, go to dashboard
+        if (profile && profile.role && profile.full_name) {
+          next = '/dashboard'
+        } else {
+          // Otherwise go to profile setup
+          next = '/profile/setup'
+        }
+      }
+
       // Add success parameter to match OTP flow experience
       const redirectUrl = new URL(next, origin)
       redirectUrl.searchParams.set('auth_success', 'true')

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { authService } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 import { toast } from 'sonner'
 
 interface GoogleAuthButtonProps {
@@ -16,7 +16,7 @@ export function GoogleAuthButton({ className, children }: GoogleAuthButtonProps)
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true)
-      await authService.signInWithGoogle()
+      await authClient.signInWithGoogle()
       // Redirect will be handled by the OAuth callback
     } catch (error) {
       console.error('Google sign-in error:', error)

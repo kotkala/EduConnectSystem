@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
-import { authService } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 import { UserProfile, AuthUser } from '@/lib/types'
 
 export function useAuth() {
@@ -50,7 +50,7 @@ export function useAuth() {
   const handleUserSession = async (authUser: User) => {
     try {
       setError(null)
-      const userProfile = await authService.getUserProfile(authUser.id)
+      const userProfile = await authClient.getUserProfile(authUser.id)
       
       const enhancedUser: AuthUser = {
         ...authUser,
@@ -70,7 +70,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       setLoading(true)
-      await authService.signOut()
+      await authClient.signOut()
       setUser(null)
       setProfile(null)
     } catch (err: any) {
@@ -85,7 +85,7 @@ export function useAuth() {
 
     try {
       setLoading(true)
-      const updatedProfile = await authService.updateUserProfile(user.id, updates)
+      const updatedProfile = await authClient.updateUserProfile(user.id, updates)
       setProfile(updatedProfile)
       
       // Update user object with new profile
@@ -102,7 +102,7 @@ export function useAuth() {
     if (!user) return
 
     try {
-      const userProfile = await authService.getUserProfile(user.id)
+      const userProfile = await authClient.getUserProfile(user.id)
       setProfile(userProfile)
       setUser(prev => prev ? { ...prev, profile: userProfile || undefined } : null)
     } catch (err: any) {

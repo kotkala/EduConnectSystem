@@ -18,6 +18,24 @@ export async function GET(request: NextRequest) {
       token_hash,
     })
     if (!error) {
+      // Check if user has complete profile
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, full_name')
+          .eq('id', user.id)
+          .single()
+
+        // If profile exists and is complete, go to dashboard
+        if (profile && profile.role && profile.full_name) {
+          redirectTo.pathname = '/dashboard'
+        } else {
+          // Otherwise go to profile setup
+          redirectTo.pathname = '/profile/setup'
+        }
+      }
+
       return NextResponse.redirect(redirectTo)
     }
   }

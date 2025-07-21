@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
-import { authService } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 import { UserRole } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -42,10 +42,20 @@ function ProfileSetupContent() {
     }
   }, [searchParams])
 
-  // Redirect if profile is already complete
+  // Pre-fill form with existing profile data
   useEffect(() => {
-    if (profile && profile.role && profile.full_name) {
-      router.push('/dashboard')
+    if (profile) {
+      // If profile is complete, redirect to dashboard
+      if (profile.role && profile.full_name) {
+        router.push('/dashboard')
+        return
+      }
+
+      // Pre-fill form with existing data
+      setFormData({
+        full_name: profile.full_name || '',
+        role: profile.role || 'student',
+      })
     }
   }, [profile, router])
 
@@ -68,24 +78,24 @@ function ProfileSetupContent() {
 
     try {
       setIsLoading(true)
-      
-      // Create user profile
-      await authService.createUserProfile({
+
+      // Create or update user profile (upsert handles both cases)
+      await authClient.createUserProfile({
         id: user.id,
         email: user.email!,
         full_name: formData.full_name,
         role: formData.role,
-        avatar_url: null,
+        avatar_url: profile?.avatar_url || null,
       })
 
       // Refresh profile data
       await refreshProfile()
-      
-      toast.success('Profile created successfully!')
+
+      toast.success('Profile setup completed successfully!')
       router.push('/dashboard')
     } catch (error) {
       console.error('Profile setup error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to create profile')
+      toast.error(error instanceof Error ? error.message : 'Failed to setup profile')
     } finally {
       setIsLoading(false)
     }

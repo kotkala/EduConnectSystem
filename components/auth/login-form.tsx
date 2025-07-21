@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { GoogleAuthButton } from './google-auth-button'
 import { OTPInput } from './otp-input'
-import { authService } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 import { toast } from 'sonner'
 
 export function LoginForm() {
@@ -27,7 +27,7 @@ export function LoginForm() {
 
     try {
       setIsLoading(true)
-      await authService.signInWithOTP(email)
+      await authClient.sendOtp({ email })
       setOtpSent(true)
       toast.success('OTP sent to your email!')
     } catch (error) {
@@ -38,9 +38,26 @@ export function LoginForm() {
     }
   }
 
-  const handleOTPSuccess = () => {
+  const handleOTPSuccess = async () => {
     toast.success('Successfully signed in!')
-    router.push('/profile/setup')
+
+    // Check if user has complete profile
+    try {
+      const user = await authClient.getCurrentUser()
+      if (user) {
+        const profile = await authClient.getUserProfile(user.id)
+        if (profile && profile.role && profile.full_name) {
+          router.push('/dashboard')
+        } else {
+          router.push('/profile/setup')
+        }
+      } else {
+        router.push('/profile/setup')
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error)
+      router.push('/profile/setup')
+    }
   }
 
   const handleBackToEmail = () => {

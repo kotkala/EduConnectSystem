@@ -23,9 +23,43 @@ export interface AuthState {
   error: string | null
 }
 
+// Form data types for authentication
+export interface EmailOnlyFormData {
+  email: string
+}
+
+export interface OtpVerificationFormData {
+  email: string
+  token: string
+}
+
+// Legacy OTP form data (for backward compatibility)
 export interface OTPFormData {
   email: string
   token: string
+}
+
+// Profile setup form data
+export interface ProfileSetupFormData {
+  full_name: string
+  role: UserRole
+}
+
+// Authentication response types
+export interface AuthResponse {
+  user: AuthUser | null
+  session: Session | null
+  error: string | null
+}
+
+// Session type from Supabase
+export interface Session {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  expires_at?: number
+  token_type: string
+  user: User
 }
 
 export interface AuthContextType {

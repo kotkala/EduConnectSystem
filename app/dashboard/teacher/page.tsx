@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +27,7 @@ export default async function TeacherDashboard() {
   }
 
   return (
-    <DashboardLayout role="teacher" title="Teacher Dashboard">
+    <SidebarLayout role="teacher" title="Teacher Dashboard">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -155,6 +155,6 @@ export default async function TeacherDashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </SidebarLayout>
   )
 }

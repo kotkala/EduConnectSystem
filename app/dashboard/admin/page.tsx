@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users, GraduationCap, BookOpen, Heart } from 'lucide-react'
@@ -43,7 +43,7 @@ export default async function AdminDashboard() {
   ]
 
   return (
-    <DashboardLayout role="admin" title="Admin Dashboard">
+    <SidebarLayout role="admin" title="Admin Dashboard">
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Welcome back, Administrator!</h2>
@@ -136,6 +136,6 @@ export default async function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </SidebarLayout>
   )
 }

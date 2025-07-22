@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +27,7 @@ export default async function ParentDashboard() {
   }
 
   return (
-    <DashboardLayout role="parent" title="Parent Dashboard">
+    <SidebarLayout role="parent" title="Parent Dashboard">
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
@@ -197,6 +197,6 @@ export default async function ParentDashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </SidebarLayout>
   )
 }

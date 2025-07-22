@@ -135,29 +135,7 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-muted-foreground mb-8">
-            Join thousands of users already using EduConnect for their educational needs.
-          </p>
-          <div className="space-x-4">
-            <Button size="lg" asChild>
-              <Link href="/auth/signup">Create Account</Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/auth/login">Sign In</Link>
-            </Button>
-          </div>
-        </motion.div>
-      </section>
-
+      
       {/* Footer */}
       <footer className="border-t bg-white/50 dark:bg-gray-800/50">
         <div className="container mx-auto px-4 py-8">

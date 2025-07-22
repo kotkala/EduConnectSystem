@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
-import { authClient } from '@/lib/auth-client'
+import { createUserProfileAction } from '@/lib/auth-actions'
 import { UserRole } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -79,8 +79,8 @@ function ProfileSetupContent() {
     try {
       setIsLoading(true)
 
-      // Create or update user profile (upsert handles both cases)
-      await authClient.createUserProfile({
+      // Create or update user profile using Server Action
+      const result = await createUserProfileAction({
         id: user.id,
         email: user.email!,
         full_name: formData.full_name,
@@ -88,14 +88,17 @@ function ProfileSetupContent() {
         avatar_url: profile?.avatar_url || null,
       })
 
-      // Refresh profile data
-      await refreshProfile()
-
-      toast.success('Profile setup completed successfully!')
-      router.push('/dashboard')
+      if (result.error) {
+        toast.error(result.error)
+      } else {
+        // Refresh profile data
+        await refreshProfile()
+        toast.success('Profile setup completed successfully!')
+        router.push('/dashboard')
+      }
     } catch (error) {
       console.error('Profile setup error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to setup profile')
+      toast.error('Failed to setup profile')
     } finally {
       setIsLoading(false)
     }

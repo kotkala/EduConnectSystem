@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/utils/supabase/client'
+import { verifyOtpAction, resendOtpAction } from '@/lib/auth-actions'
 import { toast } from 'sonner'
 
 interface OTPInputProps {
@@ -18,7 +19,7 @@ export function OTPInput({ email, onSuccess, onBack }: OTPInputProps) {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-  const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     // Focus first input on mount
@@ -71,17 +72,21 @@ export function OTPInput({ email, onSuccess, onBack }: OTPInputProps) {
 
     setLoading(true)
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const result = await verifyOtpAction({
         email,
-        token: otpCode,
-        type: 'email'
+        token: otpCode
       })
 
-      if (error) {
-        toast.error(error.message)
+      if (result.error) {
+        toast.error(result.error)
       } else {
         toast.success('Successfully verified!')
         onSuccess()
+
+        // Handle redirect if provided
+        if (result.redirectTo) {
+          router.push(result.redirectTo)
+        }
       }
     } catch (err) {
       console.error('Verification error:', err)
@@ -94,15 +99,10 @@ export function OTPInput({ email, onSuccess, onBack }: OTPInputProps) {
   const handleResend = async () => {
     setResending(true)
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false
-        }
-      })
+      const result = await resendOtpAction(email)
 
-      if (error) {
-        toast.error(error.message)
+      if (result.error) {
+        toast.error(result.error)
       } else {
         toast.success('New code sent to your email')
         setOtp(['', '', '', '', '', ''])

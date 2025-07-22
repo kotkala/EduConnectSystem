@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/use-auth'
+import AvatarUpload from '@/components/profile/avatar-upload'
 import { toast } from 'sonner'
-import { User, Settings, Shield, Camera } from 'lucide-react'
+import { User, Settings, Shield } from 'lucide-react'
 
 const roleConfig = {
   admin: { label: 'Administrator', color: 'bg-red-500' },
@@ -51,6 +51,17 @@ export default function ProfilePage() {
       email: profile?.email || user?.email || '',
     })
     setIsEditing(false)
+  }
+
+  const handleAvatarUpload = async (filePath: string) => {
+    try {
+      await updateProfile({
+        avatar_url: filePath,
+      })
+      toast.success('Avatar updated successfully!')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update avatar')
+    }
   }
 
   const getInitials = (name: string) => {
@@ -97,21 +108,13 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={profile.avatar_url || ''} />
-                    <AvatarFallback className="text-lg">
-                      {profile.full_name ? getInitials(profile.full_name) : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                </div>
+                <AvatarUpload
+                  uid={user.id}
+                  url={profile.avatar_url}
+                  size={80}
+                  onUpload={handleAvatarUpload}
+                  fallback={profile.full_name ? getInitials(profile.full_name) : 'U'}
+                />
                 <div className="flex-1">
                   <CardTitle className="text-2xl">
                     {profile.full_name || 'User Profile'}

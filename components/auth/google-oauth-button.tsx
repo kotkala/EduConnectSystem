@@ -2,43 +2,44 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { signInWithGoogleAction } from '@/lib/auth-actions'
+import { signInWithGoogleClient } from '@/lib/auth-utils'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 
-interface GoogleAuthButtonProps {
+interface GoogleOAuthButtonProps {
   className?: string
-  children?: React.ReactNode
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
 }
 
-export function GoogleAuthButton({ className, children }: GoogleAuthButtonProps) {
+export function GoogleOAuthButton({ 
+  className, 
+  variant = 'outline',
+  size = 'default'
+}: GoogleOAuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleGoogleSignIn = async () => {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
-      const result = await signInWithGoogleAction()
-      if (result.error) {
-        toast.error(result.error)
-      }
-      // Redirect will be handled by the Server Action
+      await signInWithGoogleClient()
+      // OAuth redirect will handle the rest
     } catch (error) {
-      console.error('Google sign-in error:', error)
-      toast.error('Failed to sign in with Google')
-    } finally {
+      toast.error(error instanceof Error ? error.message : 'Failed to sign in with Google')
       setIsLoading(false)
     }
   }
 
   return (
     <Button
-      type="button"
-      variant="outline"
       onClick={handleGoogleSignIn}
       disabled={isLoading}
       className={className}
+      variant={variant}
+      size={size}
     >
       {isLoading ? (
-        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
           <path
@@ -59,7 +60,7 @@ export function GoogleAuthButton({ className, children }: GoogleAuthButtonProps)
           />
         </svg>
       )}
-      {children || 'Continue with Google'}
+      Continue with Google
     </Button>
   )
 }

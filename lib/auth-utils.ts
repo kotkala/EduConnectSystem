@@ -101,11 +101,14 @@ export async function verifyOtpClient(email: string, token: string) {
 
 export async function signInWithGoogleClient() {
   const supabase = createClient()
-  
+
+  // Use environment variable for consistent URLs
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${siteUrl}/auth/callback`,
     },
   })
 
@@ -118,10 +121,85 @@ export async function signInWithGoogleClient() {
 
 export async function signOutClient() {
   const supabase = createClient()
-  
+
   const { error } = await supabase.auth.signOut()
-  
+
   if (error) {
     throw new Error(error.message)
   }
+}
+
+// Create user profile (client-side)
+export async function createUserProfileClient(profileData: { full_name: string; role: string }) {
+  const supabase = createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('No authenticated user found')
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({
+      id: user.id,
+      email: user.email!,
+      full_name: profileData.full_name,
+      role: profileData.role,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+// Update user profile (client-side)
+export async function updateUserProfileClient(userId: string, updates: Partial<{ full_name: string; role: string; avatar_url: string }>) {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+// Upload avatar to storage (client-side)
+export async function uploadAvatarClient(file: File, userId: string) {
+  const supabase = createClient()
+
+  const fileExt = file.name.split('.').pop()
+  const filePath = `${userId}-${Math.random()}.${fileExt}`
+
+  const { data, error } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data.path
+}
+
+// Get avatar public URL (client-side)
+export async function getAvatarUrlClient(path: string) {
+  const supabase = createClient()
+
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(path)
+
+  return data.publicUrl
 }

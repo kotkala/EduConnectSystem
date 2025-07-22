@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
-import { getUserProfile, onAuthStateChange } from '@/lib/auth-utils'
-import { signOutAction, updateUserProfileAction } from '@/lib/auth-actions'
+import { getUserProfile, onAuthStateChange, signOutClient, updateUserProfileClient } from '@/lib/auth-utils'
 import { UserProfile, AuthUser } from '@/lib/types'
 
 export function useAuth() {
@@ -71,13 +70,11 @@ export function useAuth() {
   const signOut = async () => {
     try {
       setLoading(true)
-      const result = await signOutAction()
-      if (result.error) {
-        setError(result.error)
-      } else {
-        setUser(null)
-        setProfile(null)
-      }
+      await signOutClient()
+      setUser(null)
+      setProfile(null)
+      // Redirect to home page after sign out
+      window.location.href = '/'
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -107,15 +104,10 @@ export function useAuth() {
         filteredUpdates.role = updates.role
       }
 
-      const result = await updateUserProfileAction(user.id, filteredUpdates)
-      if (result.error) {
-        setError(result.error)
-        throw new Error(result.error)
-      } else if (result.profile) {
-        setProfile(result.profile)
-        // Update user object with new profile
-        setUser(prev => prev ? { ...prev, profile: result.profile } : null)
-      }
+      const updatedProfile = await updateUserProfileClient(user.id, filteredUpdates)
+      setProfile(updatedProfile)
+      // Update user object with new profile
+      setUser(prev => prev ? { ...prev, profile: updatedProfile } : null)
     } catch (err: any) {
       setError(err.message)
       throw err

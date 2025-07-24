@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, GraduationCap, Users, BookOpen, RefreshCw } from "lucide-react"
 import { ClassTable } from "@/components/admin/class-table"
 import { ClassForm } from "@/components/admin/class-form"
+import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
 import { getClassesAction, getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
 import {
@@ -140,16 +141,17 @@ export default function ClassManagementPage() {
 
   if (classesLoading && classes.length === 0) {
     return (
-      <div className="container mx-auto py-6">
+      <SidebarLayout role="admin" title="Class Management">
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
-      </div>
+      </SidebarLayout>
     )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <SidebarLayout role="admin" title="Class Management">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -285,6 +287,7 @@ export default function ClassManagementPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </SidebarLayout>
   )
 }

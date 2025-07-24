@@ -43,10 +43,28 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { UserRole } from '@/lib/types'
+import { type AdminType } from '@/lib/admin-utils'
 
 // Platform items for each role
 const platformItems = {
   admin: [
+    { title: "Dashboard", url: "/dashboard/admin", icon: Home },
+    { title: "Users", url: "/dashboard/admin/users", icon: Users },
+    { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
+    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
+  ],
+  school_admin: [
+    { title: "Dashboard", url: "/dashboard/admin", icon: Home },
+    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
+    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
+  ],
+  admin_full: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
     { title: "Users", url: "/dashboard/admin/users", icon: Users },
     { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
@@ -86,10 +104,30 @@ const projects = [
 
 interface AppSidebarProps {
   role: UserRole
+  adminType?: AdminType
 }
 
-export function AppSidebar({ role }: AppSidebarProps) {
-  const items = platformItems[role] || []
+export function AppSidebar({ role, adminType }: AppSidebarProps) {
+  // Determine which items to show based on role and admin type
+  let items: typeof platformItems.admin = []
+
+  if (role === 'admin') {
+    if (adminType === null) {
+      // Full access for backwards compatibility
+      items = platformItems.admin_full
+    } else if (adminType === 'admin') {
+      // User management admin
+      items = platformItems.admin
+    } else if (adminType === 'school_admin') {
+      // School admin
+      items = platformItems.school_admin
+    } else {
+      // Default to full access
+      items = platformItems.admin_full
+    }
+  } else {
+    items = platformItems[role] || []
+  }
 
   return (
     <Sidebar collapsible="icon">

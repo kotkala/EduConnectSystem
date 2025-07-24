@@ -19,6 +19,7 @@ import {
 import { AppSidebar } from './app-sidebar'
 import { useAuth } from '@/hooks/use-auth'
 import { UserRole } from '@/lib/types'
+import { type AdminType } from '@/lib/admin-utils'
 import { User, Settings, LogOut } from 'lucide-react'
 
 interface SidebarLayoutProps {
@@ -30,6 +31,9 @@ interface SidebarLayoutProps {
 export function SidebarLayout({ children, role, title }: SidebarLayoutProps) {
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
+
+  // Get admin type from profile for admin users
+  const adminType: AdminType = role === 'admin' && profile ? (profile.admin_type as AdminType) : null
 
   const handleSignOut = async () => {
     await signOut()
@@ -47,7 +51,7 @@ export function SidebarLayout({ children, role, title }: SidebarLayoutProps) {
 
   return (
     <SidebarProvider>
-      <AppSidebar role={role} />
+      <AppSidebar role={role} adminType={adminType} />
       <SidebarInset>
         {/* Header */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">

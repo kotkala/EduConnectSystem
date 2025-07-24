@@ -1,26 +1,31 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Calendar, Clock, RefreshCw, BookOpen } from "lucide-react"
+import { Plus, Calendar, Clock, RefreshCw, BookOpen, AlertCircle } from "lucide-react"
 import { AcademicTable } from "@/components/admin/academic-table"
 import { AcademicYearForm } from "@/components/admin/academic-year-form"
 import { SemesterForm } from "@/components/admin/semester-form"
+import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
+import { useAdminPermissions } from "@/hooks/use-admin-permissions"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
-import { 
-  type AcademicYearWithSemesters, 
+import {
+  type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,
   type Semester,
-  type AcademicFilters 
+  type AcademicFilters
 } from "@/lib/validations/academic-validations"
 
 export default function AcademicManagementPage() {
-  
+  const router = useRouter()
+  const { canManageSchool, loading, isAdmin } = useAdminPermissions()
+
   // Academic Years State
   const [academicYears, setAcademicYears] = useState<AcademicYearWithSemesters[]>([])
   const [academicYearsLoading, setAcademicYearsLoading] = useState(true)
@@ -156,18 +161,53 @@ export default function AcademicManagementPage() {
   const currentSemester = semesters.find(semester => semester.is_current)
   const totalSemesters = semesters.length
 
+  // Redirect if user doesn't have permission
+  useEffect(() => {
+    if (!loading && (!isAdmin || !canManageSchool)) {
+      router.push('/dashboard/admin')
+    }
+  }, [loading, isAdmin, canManageSchool, router])
+
+  // Show loading state
+  if (loading) {
+    return (
+      <SidebarLayout role="admin" title="Academic Management">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      </SidebarLayout>
+    )
+  }
+
+  // Show access denied if no permission
+  if (!isAdmin || !canManageSchool) {
+    return (
+      <SidebarLayout role="admin" title="Access Denied">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <AlertCircle className="h-16 w-16 text-red-500" />
+          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
+          <p className="text-gray-600">You don&apos;t have permission to access academic management.</p>
+          <Button onClick={() => router.push('/dashboard/admin')}>
+            Return to Dashboard
+          </Button>
+        </div>
+      </SidebarLayout>
+    )
+  }
+
   if (academicYearsLoading && academicYears.length === 0) {
     return (
-      <div className="container mx-auto py-6">
+      <SidebarLayout role="admin" title="Academic Management">
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
-      </div>
+      </SidebarLayout>
     )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <SidebarLayout role="admin" title="Academic Management">
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -358,6 +398,7 @@ export default function AcademicManagementPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </SidebarLayout>
   )
 }

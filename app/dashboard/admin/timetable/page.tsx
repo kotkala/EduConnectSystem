@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { CalendarProvider } from "@/components/event-calendar/calendar-context";
+import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
 import TimetableCalendar from "@/components/timetable-calendar/timetable-calendar";
 
 export const metadata: Metadata = {
@@ -9,11 +10,13 @@ export const metadata: Metadata = {
 
 export default function TimetablePage() {
   return (
-    <CalendarProvider>
-      <div className="flex flex-1 flex-col gap-4 p-2 pt-0">
-        <TimetableCalendar />
-      </div>
-    </CalendarProvider>
+    <SidebarLayout role="admin" title="Timetable Management">
+      <CalendarProvider>
+        <div className="flex flex-1 flex-col gap-4">
+          <TimetableCalendar />
+        </div>
+      </CalendarProvider>
+    </SidebarLayout>
   );
 }
 

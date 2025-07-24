@@ -10,6 +10,7 @@ export interface UserProfile {
   full_name: string | null
   avatar_url: string | null
   role: UserRole
+  admin_type?: 'admin' | 'school_admin' | null
   created_at: string
   updated_at: string
 }

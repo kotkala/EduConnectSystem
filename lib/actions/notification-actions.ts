@@ -94,26 +94,40 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
         .eq('teacher_id', userId)
         .eq('is_active', true)
 
-      if (assignments) {
-        // Subject teacher can notify their assigned classes
-        const assignedClasses = assignments.map((a: unknown) => {
-          const assignment = a as { classes: { id: string; name: string; grade: string; homeroom_teacher_id: string } }
-          return {
-            id: assignment.classes.id,
-            name: assignment.classes.name,
-            grade: assignment.classes.grade
-          }
-        })
-        options.classes = assignedClasses
-        options.roles = ['student'] // Can only notify students in their classes
+      // Also check if teacher is a homeroom teacher for any class
+      const { data: homeroomClasses } = await supabase
+        .from('classes')
+        .select('id, name, grade')
+        .eq('homeroom_teacher_id', userId)
+        .eq('is_active', true)
 
-        // Check if they are also a homeroom teacher
-        const homeroomClasses = assignments.filter((a: unknown) => {
-          const assignment = a as { classes: { homeroom_teacher_id: string } }
-          return assignment.classes.homeroom_teacher_id === userId
-        })
-        if (homeroomClasses.length > 0) {
-          // Homeroom teachers can also notify parents
+      if (assignments || homeroomClasses) {
+        const allClasses = new Map<string, { id: string; name: string; grade: string }>()
+
+        // Add assigned classes (subject teacher)
+        if (assignments) {
+          assignments.forEach((a: unknown) => {
+            const assignment = a as { classes: { id: string; name: string; grade: string; homeroom_teacher_id: string } }
+            allClasses.set(assignment.classes.id, {
+              id: assignment.classes.id,
+              name: assignment.classes.name,
+              grade: assignment.classes.grade
+            })
+          })
+        }
+
+        // Add homeroom classes
+        if (homeroomClasses) {
+          homeroomClasses.forEach(cls => {
+            allClasses.set(cls.id, cls)
+          })
+        }
+
+        options.classes = Array.from(allClasses.values())
+        options.roles = ['student'] // All teachers can notify students
+
+        // If teacher is a homeroom teacher, they can also notify parents
+        if (homeroomClasses && homeroomClasses.length > 0) {
           options.roles.push('parent')
         }
       }

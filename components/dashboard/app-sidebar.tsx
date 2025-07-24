@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/collapsible"
 import { UserRole } from '@/lib/types'
 import { type AdminType } from '@/lib/admin-utils'
+import { NotificationBadge } from '@/components/notifications/notification-badge'
 
 // Platform items for each role
 const platformItems = {
@@ -170,6 +171,7 @@ export function AppSidebar({ role, adminType }: AppSidebarProps) {
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.title === 'Notifications' && <NotificationBadge />}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

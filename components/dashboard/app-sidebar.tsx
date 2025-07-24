@@ -14,7 +14,9 @@ import {
   Settings2,
   ChevronDown,
   ChevronUp,
-  User2
+  User2,
+  UserCheck,
+  Building
 } from "lucide-react"
 import {
   Sidebar,
@@ -47,6 +49,12 @@ const platformItems = {
   admin: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
     { title: "Users", url: "/dashboard/admin/users", icon: Users },
+    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
     { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
   ],

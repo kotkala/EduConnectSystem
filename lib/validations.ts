@@ -69,3 +69,41 @@ export const validateOtp = (otp: string): boolean => {
 export const validateName = (name: string): boolean => {
   return name.length >= VALIDATION.MIN_NAME_LENGTH && name.length <= VALIDATION.MAX_NAME_LENGTH
 }
+
+// Subject form validation
+export const SubjectFormSchema = z.object({
+  code: z
+    .string()
+    .min(2, 'Subject code must be at least 2 characters')
+    .max(10, 'Subject code must be less than 10 characters')
+    .regex(/^[A-Z0-9]+$/, 'Subject code must contain only uppercase letters and numbers')
+    .trim(),
+  name_vietnamese: z
+    .string()
+    .min(1, 'Vietnamese name is required')
+    .max(100, 'Vietnamese name must be less than 100 characters')
+    .trim(),
+  name_english: z
+    .string()
+    .min(1, 'English name is required')
+    .max(100, 'English name must be less than 100 characters')
+    .trim(),
+  category: z.enum(['core', 'specialized'], {
+    message: 'Please select a valid category',
+  }),
+  description: z
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .trim()
+    .optional()
+    .or(z.literal('')),
+})
+
+export type SubjectFormData = z.infer<typeof SubjectFormSchema>
+
+// Subject update form validation (for editing existing subjects)
+export const SubjectUpdateFormSchema = SubjectFormSchema.partial().extend({
+  id: z.string().uuid('Invalid subject ID'),
+})
+
+export type SubjectUpdateFormData = z.infer<typeof SubjectUpdateFormSchema>

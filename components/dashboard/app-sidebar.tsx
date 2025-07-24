@@ -16,7 +16,8 @@ import {
   ChevronUp,
   User2,
   UserCheck,
-  Building
+  Building,
+  Bell
 } from "lucide-react"
 import {
   Sidebar,
@@ -55,6 +56,7 @@ const platformItems = {
   ],
   school_admin: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
+    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
     { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
     { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
     { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
@@ -67,6 +69,7 @@ const platformItems = {
   admin_full: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
     { title: "Users", url: "/dashboard/admin/users", icon: Users },
+    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
     { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
     { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
     { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
@@ -78,18 +81,21 @@ const platformItems = {
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
+    { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
     { title: "Schedule", url: "/dashboard/teacher/schedule", icon: Calendar },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },
+    { title: "Notifications", url: "/dashboard/student/notifications", icon: Bell },
     { title: "My Courses", url: "/dashboard/student/courses", icon: BookOpen },
     { title: "Assignments", url: "/dashboard/student/assignments", icon: FileText },
     { title: "Grades", url: "/dashboard/student/grades", icon: Award },
   ],
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
+    { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
     { title: "My Children", url: "/dashboard/parent/children", icon: Heart },
     { title: "Messages", url: "/dashboard/parent/messages", icon: MessageSquare },
   ],

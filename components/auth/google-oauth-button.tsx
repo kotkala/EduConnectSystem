@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { signInWithGoogleClient } from '@/lib/auth-utils'
+import { clientAuth } from '@/lib/auth'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -22,7 +22,7 @@ export function GoogleOAuthButton({
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signInWithGoogleClient()
+      await clientAuth.signInWithGoogle()
       // OAuth redirect will handle the rest
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Google')

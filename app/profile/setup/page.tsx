@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
-import { createUserProfileClient } from '@/lib/auth-utils'
+import { clientAuth } from '@/lib/auth'
 import { UserRole } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -79,8 +79,8 @@ function ProfileSetupContent() {
     try {
       setIsLoading(true)
 
-      // Create user profile using client function
-      await createUserProfileClient({
+      // Create user profile using consolidated auth
+      await clientAuth.createUserProfile({
         full_name: formData.full_name,
         role: formData.role,
       })

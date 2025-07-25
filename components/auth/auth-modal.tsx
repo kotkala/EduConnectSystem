@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { useState, useCallback } from 'react'
+import { useMediaQuery } from '@/hooks/use-mobile'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { sendOtpClient, verifyOtpClient } from '@/lib/auth-utils'
+import { clientAuth } from '@/lib/auth'
 import { toast } from 'sonner'
 import { Mail, ArrowLeft, Loader2 } from 'lucide-react'
+import { OtpInput } from '@/components/ui/otp-input'
 
 interface AuthModalProps {
   open: boolean
@@ -19,8 +22,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Context7 pattern: Direct client-side OTP
-  const handleSendOtp = async (email: string) => {
+  // Optimized OTP sending with better UX
+  const handleSendOtp = useCallback(async (email: string) => {
     if (!email.trim()) {
       toast.error('Please enter your email address')
       return
@@ -28,69 +31,114 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
     setLoading(true)
     try {
-      await sendOtpClient(email)
+      await clientAuth.sendOtp(email)
       setEmail(email)
       setStep('otp')
-      toast.success('OTP sent to your email')
+      toast.success('Verification code sent!')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to send OTP')
+      toast.error(error instanceof Error ? error.message : 'Failed to send code')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  // Context7 pattern: Direct client-side verify
-  const handleVerifyOtp = async (token: string) => {
-    if (!token.trim()) {
-      toast.error('Please enter the OTP code')
+  // Optimized OTP verification
+  const handleVerifyOtp = useCallback(async (token: string) => {
+    if (!token.trim() || token.length !== 6) {
+      toast.error('Please enter a valid 6-digit code')
       return
     }
 
     setLoading(true)
     try {
-      await verifyOtpClient(email, token)
-      onOpenChange(false) // Close modal
-      toast.success('Successfully signed in!')
-      // Reset state for next time
+      await clientAuth.verifyOtp(email, token)
+      onOpenChange(false)
+      toast.success('Welcome to EduConnect!')
+      // Reset state
       setStep('email')
       setEmail('')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Invalid OTP code')
+      toast.error(error instanceof Error ? error.message : 'Invalid verification code')
     } finally {
       setLoading(false)
     }
-  }
+  }, [email, onOpenChange])
 
 
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setStep('email')
     setEmail('')
-  }
+  }, [])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onOpenChange(false)
-    // Reset state when closing
     setStep('email')
     setEmail('')
     setLoading(false)
+  }, [onOpenChange])
+
+  const isDesktop = useMediaQuery("(min-width: 768px)")
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center space-y-3">
+            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Mail className="h-6 w-6 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-semibold">
+              {step === 'email' ? 'Welcome back' : 'Check your email'}
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {step === 'email'
+                ? 'Enter your email to continue to EduConnect'
+                : `We sent a verification code to ${email}`
+              }
+            </p>
+          </DialogHeader>
+
+          <div className="mt-6">
+            {step === 'email' ? (
+              <EmailStep onSubmit={handleSendOtp} loading={loading} />
+            ) : (
+              <OtpStep
+                email={email}
+                onSubmit={handleVerifyOtp}
+                onBack={handleBack}
+                loading={loading}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
-        <SheetHeader>
-          <SheetTitle className="text-2xl font-bold">
-            {step === 'email' ? 'Sign In with Email' : 'Enter Verification Code'}
-          </SheetTitle>
-        </SheetHeader>
-        
-        <div className="mt-8 space-y-6">
+    <Drawer open={open} onOpenChange={handleClose}>
+      <DrawerContent>
+        <DrawerHeader className="text-center space-y-4 pb-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Mail className="h-8 w-8 text-white" />
+          </div>
+          <div className="space-y-2">
+            <DrawerTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+              {step === 'email' ? 'Welcome back' : 'Check your email'}
+            </DrawerTitle>
+            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              {step === 'email'
+                ? 'Enter your email to continue to EduConnect'
+                : `We sent a verification code to ${email}`
+              }
+            </p>
+          </div>
+        </DrawerHeader>
+
+        <div className="px-6 pb-8">
           {step === 'email' ? (
-            <EmailStep
-              onSubmit={handleSendOtp}
-              loading={loading}
-            />
+            <EmailStep onSubmit={handleSendOtp} loading={loading} />
           ) : (
             <OtpStep
               email={email}
@@ -100,12 +148,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             />
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   )
 }
 
-// Email input step component
+// Optimized Email Step
 interface EmailStepProps {
   onSubmit: (email: string) => void
   loading: boolean
@@ -116,46 +164,51 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(email)
+    if (email.trim()) onSubmit(email.trim())
   }
 
   return (
-    <div className="space-y-6">
-      {/* Email Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10"
-              required
-              disabled={loading}
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-3">
+        <Label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white">
+          Email address
+        </Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="student@university.edu"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="pl-11 h-12 text-base border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+            required
+            disabled={loading}
+            autoFocus
+            autoComplete="email"
+          />
         </div>
-        
-        <Button type="submit" className="w-full" disabled={loading || !email.trim()}>
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending OTP...
-            </>
-          ) : (
-            'Send Verification Code'
-          )}
-        </Button>
-      </form>
-    </div>
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full h-12 text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+        disabled={loading || !email.trim()}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Sending code...
+          </>
+        ) : (
+          'Continue'
+        )}
+      </Button>
+    </form>
   )
 }
 
-// OTP verification step component
+// Optimized OTP Step with beautiful OTP Input
 interface OtpStepProps {
   email: string
   onSubmit: (token: string) => void
@@ -164,62 +217,47 @@ interface OtpStepProps {
 }
 
 function OtpStep({ email, onSubmit, onBack, loading }: OtpStepProps) {
-  const [token, setToken] = useState('')
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(token)
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center space-y-2">
-        <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-          <Mail className="h-6 w-6 text-primary" />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          We&apos;ve sent a 6-digit verification code to
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Enter the 6-digit code sent to
         </p>
-        <p className="font-medium">{email}</p>
+        <p className="font-medium text-base text-gray-900 dark:text-white">{email}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="token">Verification Code</Label>
-          <Input
-            id="token"
-            type="text"
-            placeholder="Enter 6-digit code"
-            value={token}
-            onChange={(e) => setToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            className="text-center text-lg tracking-widest"
-            maxLength={6}
-            required
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <Label className="text-sm font-medium text-center block text-gray-900 dark:text-white">
+            Verification code
+          </Label>
+          <OtpInput
+            length={6}
+            onComplete={onSubmit}
             disabled={loading}
+            className="justify-center"
           />
         </div>
-        
-        <Button type="submit" className="w-full" disabled={loading || token.length !== 6}>
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Verifying...
-            </>
-          ) : (
-            'Verify Code'
-          )}
-        </Button>
-      </form>
 
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        disabled={loading}
-        className="w-full"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to email
-      </Button>
+        {loading && (
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Verifying...
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          disabled={loading}
+          className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Change email
+        </Button>
+      </div>
     </div>
   )
 }

@@ -84,12 +84,12 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
       
       options.classes = classes || []
     } else if (profile.role === 'teacher') {
-      // Get teacher's assignments to determine what they can target
+      // Get teacher's class assignments to determine what they can target
       const { data: assignments } = await supabase
-        .from('teacher_assignments')
+        .from('teacher_class_assignments')
         .select(`
           class_id,
-          classes!inner(id, name, grade, homeroom_teacher_id)
+          classes!inner(id, name, homeroom_teacher_id)
         `)
         .eq('teacher_id', userId)
         .eq('is_active', true)
@@ -97,9 +97,8 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
       // Also check if teacher is a homeroom teacher for any class
       const { data: homeroomClasses } = await supabase
         .from('classes')
-        .select('id, name, grade')
+        .select('id, name')
         .eq('homeroom_teacher_id', userId)
-        .eq('is_active', true)
 
       if (assignments || homeroomClasses) {
         const allClasses = new Map<string, { id: string; name: string; grade: string }>()
@@ -107,19 +106,23 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
         // Add assigned classes (subject teacher)
         if (assignments) {
           assignments.forEach((a: unknown) => {
-            const assignment = a as { classes: { id: string; name: string; grade: string; homeroom_teacher_id: string } }
+            const assignment = a as { class_id: string; classes: { id: string; name: string; homeroom_teacher_id: string | null } }
             allClasses.set(assignment.classes.id, {
               id: assignment.classes.id,
               name: assignment.classes.name,
-              grade: assignment.classes.grade
+              grade: assignment.classes.name // Use class name as grade for now
             })
           })
         }
 
         // Add homeroom classes
         if (homeroomClasses) {
-          homeroomClasses.forEach(cls => {
-            allClasses.set(cls.id, cls)
+          homeroomClasses.forEach((cls: { id: string; name: string }) => {
+            allClasses.set(cls.id, {
+              id: cls.id,
+              name: cls.name,
+              grade: cls.name // Use class name as grade for now
+            })
           })
         }
 

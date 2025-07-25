@@ -17,7 +17,8 @@ import {
   User2,
   UserCheck,
   Building,
-  Bell
+  Bell,
+  Clock
 } from "lucide-react"
 import {
   Sidebar,
@@ -83,6 +84,7 @@ const platformItems = {
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
+    { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
     { title: "Schedule", url: "/dashboard/teacher/schedule", icon: Calendar },
@@ -97,6 +99,8 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
+    { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
     { title: "My Children", url: "/dashboard/parent/children", icon: Heart },
     { title: "Messages", url: "/dashboard/parent/messages", icon: MessageSquare },
   ],

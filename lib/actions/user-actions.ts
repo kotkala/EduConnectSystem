@@ -341,20 +341,29 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       }
     }
 
-    // Check for duplicate emails
-    const { data: existingEmails } = await supabase
+    // Check for duplicate student email only
+    const { data: existingStudentEmail } = await supabase
       .from("profiles")
       .select("email")
-      .in("email", [validatedData.student.email, validatedData.parent.email])
+      .eq("email", validatedData.student.email)
+      .single()
 
-    if (existingEmails && existingEmails.length > 0) {
+    if (existingStudentEmail) {
       return {
         success: false,
-        error: "One or both email addresses already exist"
+        error: "Student email already exists"
       }
     }
 
-    // Start transaction by creating both users
+    // Check if parent already exists
+    const { data: existingParent } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, role")
+      .eq("email", validatedData.parent.email)
+      .eq("role", "parent")
+      .single()
+
+    // Always create student user
     const { data: studentAuthData, error: studentAuthError } = await supabase.auth.admin.createUser({
       email: validatedData.student.email,
       password: "TempPassword123!",
@@ -372,23 +381,34 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       }
     }
 
-    const { data: parentAuthData, error: parentAuthError } = await supabase.auth.admin.createUser({
-      email: validatedData.parent.email,
-      password: "TempPassword123!",
-      email_confirm: true,
-      user_metadata: {
-        full_name: validatedData.parent.full_name,
-        role: "parent"
-      }
-    })
+    // Only create parent user if they don't exist
+    let parentUserId: string
+    let shouldCreateParentProfile = false
 
-    if (parentAuthError || !parentAuthData.user) {
-      // Cleanup: delete student auth user
-      await supabase.auth.admin.deleteUser(studentAuthData.user.id)
-      return {
-        success: false,
-        error: parentAuthError?.message || "Failed to create parent account"
+    if (existingParent) {
+      parentUserId = existingParent.id
+    } else {
+      const { data: parentAuthData, error: parentAuthError } = await supabase.auth.admin.createUser({
+        email: validatedData.parent.email,
+        password: "TempPassword123!",
+        email_confirm: true,
+        user_metadata: {
+          full_name: validatedData.parent.full_name,
+          role: "parent"
+        }
+      })
+
+      if (parentAuthError || !parentAuthData.user) {
+        // Cleanup: delete student auth user
+        await supabase.auth.admin.deleteUser(studentAuthData.user.id)
+        return {
+          success: false,
+          error: parentAuthError?.message || "Failed to create parent account"
+        }
       }
+
+      parentUserId = parentAuthData.user.id
+      shouldCreateParentProfile = true
     }
 
     try {
@@ -411,29 +431,31 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
         throw new Error(`Student profile error: ${studentProfileError.message}`)
       }
 
-      // Create parent profile
-      const { error: parentProfileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: parentAuthData.user.id,
-          email: validatedData.parent.email,
-          full_name: validatedData.parent.full_name,
-          role: "parent",
-          phone_number: validatedData.parent.phone_number,
-          gender: validatedData.parent.gender,
-          date_of_birth: validatedData.parent.date_of_birth,
-          address: validatedData.parent.address
-        })
+      // Create parent profile only if it's a new parent
+      if (shouldCreateParentProfile) {
+        const { error: parentProfileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: parentUserId,
+            email: validatedData.parent.email,
+            full_name: validatedData.parent.full_name,
+            role: "parent",
+            phone_number: validatedData.parent.phone_number,
+            gender: validatedData.parent.gender,
+            date_of_birth: validatedData.parent.date_of_birth,
+            address: validatedData.parent.address
+          })
 
-      if (parentProfileError) {
-        throw new Error(`Parent profile error: ${parentProfileError.message}`)
+        if (parentProfileError) {
+          throw new Error(`Parent profile error: ${parentProfileError.message}`)
+        }
       }
 
       // Create parent-student relationship
       const { error: relationshipError } = await supabase
         .from("parent_student_relationships")
         .insert({
-          parent_id: parentAuthData.user.id,
+          parent_id: parentUserId,
           student_id: studentAuthData.user.id,
           relationship_type: validatedData.parent.relationship_type,
           is_primary_contact: validatedData.parent.is_primary_contact
@@ -446,13 +468,17 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       revalidatePath("/dashboard/admin/users/students")
       return {
         success: true,
-        message: "Student and parent created successfully"
+        message: existingParent
+          ? "Student created and linked to existing parent successfully"
+          : "Student and parent created successfully"
       }
 
     } catch (error) {
-      // Cleanup: delete both auth users if any profile/relationship creation fails
+      // Cleanup: delete student auth user and parent auth user only if it was newly created
       await supabase.auth.admin.deleteUser(studentAuthData.user.id)
-      await supabase.auth.admin.deleteUser(parentAuthData.user.id)
+      if (shouldCreateParentProfile) {
+        await supabase.auth.admin.deleteUser(parentUserId)
+      }
       throw error
     }
 

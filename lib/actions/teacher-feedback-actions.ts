@@ -239,7 +239,7 @@ export async function deleteFeedbackAction(feedbackId: string): Promise<{
 }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Authentication required")
@@ -262,6 +262,105 @@ export async function deleteFeedbackAction(feedbackId: string): Promise<{
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to delete feedback"
+    }
+  }
+}
+
+// Check if all students in a class have feedback for a timetable event
+export async function checkClassFeedbackCompletionAction(timetableEventId: string): Promise<{
+  success: boolean
+  data?: { isComplete: boolean; totalStudents: number; feedbackCount: number }
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Authentication required")
+    }
+
+    // Get the timetable event to get class_id
+    const { data: timetableEvent } = await supabase
+      .from('timetable_events')
+      .select('class_id, teacher_id')
+      .eq('id', timetableEventId)
+      .single()
+
+    if (!timetableEvent || timetableEvent.teacher_id !== user.id) {
+      throw new Error("Access denied")
+    }
+
+    // Count total students in the class
+    const { count: totalStudents } = await supabase
+      .from('student_class_assignments')
+      .select('*', { count: 'exact', head: true })
+      .eq('class_id', timetableEvent.class_id)
+      .eq('is_active', true)
+
+    // Count feedback given for this timetable event
+    const { count: feedbackCount } = await supabase
+      .from('student_feedback')
+      .select('*', { count: 'exact', head: true })
+      .eq('timetable_event_id', timetableEventId)
+      .eq('teacher_id', user.id)
+
+    const isComplete = (totalStudents || 0) > 0 && (feedbackCount || 0) >= (totalStudents || 0)
+
+    return {
+      success: true,
+      data: {
+        isComplete,
+        totalStudents: totalStudents || 0,
+        feedbackCount: feedbackCount || 0
+      }
+    }
+  } catch (error: unknown) {
+    console.error("Check feedback completion error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to check feedback completion"
+    }
+  }
+}
+
+// Manually trigger daily feedback completion check (for testing)
+export async function triggerDailyFeedbackCheckAction(): Promise<{
+  success: boolean
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Authentication required")
+    }
+
+    // Verify user is a teacher or admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
+      throw new Error("Access denied")
+    }
+
+    // Call the database function
+    const { error } = await supabase.rpc('check_daily_feedback_completion')
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Trigger daily feedback check error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to trigger feedback check"
     }
   }
 }

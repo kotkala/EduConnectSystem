@@ -85,6 +85,7 @@ const platformItems = {
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
@@ -99,6 +100,7 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
     { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
     { title: "My Children", url: "/dashboard/parent/children", icon: Heart },

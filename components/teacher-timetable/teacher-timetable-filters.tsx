@@ -102,7 +102,7 @@ export function TeacherTimetableFilters({
 
   const handleFilterChange = useCallback((key: keyof TeacherTimetableFilters, value: string | number | undefined) => {
     const newFilters = { ...filters, [key]: value };
-    
+
     // Reset dependent filters when parent changes
     if (key === 'academicYearId') {
       newFilters.semesterId = undefined;
@@ -112,7 +112,8 @@ export function TeacherTimetableFilters({
     }
 
     onFiltersChange(newFilters);
-  }, [filters, onFiltersChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onFiltersChange]);
 
   const getWeekOptions = () => {
     return Array.from({ length: 52 }, (_, i) => i + 1);

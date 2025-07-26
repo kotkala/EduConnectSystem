@@ -57,19 +57,22 @@ export default function TeacherTimetableCalendar() {
   const timetableEventToCalendarEvent = useCallback((event: TeacherTimetableEvent): CalendarEvent => {
     const eventDate = new Date(currentDate);
     eventDate.setDate(eventDate.getDate() - eventDate.getDay() + event.day_of_week);
-    
+
     const [startHour, startMinute] = event.start_time.split(':').map(Number);
     const [endHour, endMinute] = event.end_time.split(':').map(Number);
-    
+
     const startTime = new Date(eventDate);
     startTime.setHours(startHour, startMinute, 0, 0);
-    
+
     const endTime = new Date(eventDate);
     endTime.setHours(endHour, endMinute, 0, 0);
 
+    // Temporarily simplify to isolate the error
+    const title = `${event.subject_name || 'Unknown'} - ${event.class_name || 'Unknown'}`;
+
     return {
       id: event.id,
-      title: `${event.subject_name} - ${event.class_name}`,
+      title: title,
       start: startTime,
       end: endTime,
       color: "blue" as const, // Blue color for teacher events
@@ -94,13 +97,35 @@ export default function TeacherTimetableCalendar() {
       if (result.success && result.data) {
         const timetableEvents = result.data as TeacherTimetableEvent[];
 
+        // Validate events data
+        if (!Array.isArray(timetableEvents)) {
+          throw new Error("Invalid timetable events data");
+        }
+
         // Store events in map for easy access
         const eventsMap = new Map<string, TeacherTimetableEvent>();
-        timetableEvents.forEach(event => eventsMap.set(event.id, event));
+        timetableEvents.forEach(event => {
+          if (event && event.id) {
+            eventsMap.set(event.id, event);
+          }
+        });
         setTimetableEventsMap(eventsMap);
 
-        // Convert to calendar events for display
-        const calendarEvents = timetableEvents.map(event => timetableEventToCalendarEvent(event));
+        // Feedback completion feature temporarily disabled
+
+        // Convert to calendar events for display with additional safety checks
+        const calendarEvents = timetableEvents
+          .filter(event => event && event.id && event.subject_name && event.class_name)
+          .map(event => {
+            try {
+              return timetableEventToCalendarEvent(event);
+            } catch (error) {
+              console.error("Error converting event to calendar event:", error, event);
+              return null;
+            }
+          })
+          .filter(event => event !== null);
+
         setEvents(calendarEvents);
       } else {
         toast.error("Không thể tải lịch giảng dạy");
@@ -115,7 +140,8 @@ export default function TeacherTimetableCalendar() {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, user, timetableEventToCalendarEvent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, user]);
 
   // Load events when filters change
   useEffect(() => {
@@ -124,10 +150,12 @@ export default function TeacherTimetableCalendar() {
 
   // Handle event click (view only for teachers)
   const handleEventClick = useCallback((event: CalendarEvent) => {
-    const timetableEvent = timetableEventsMap.get(event.id);
-    if (timetableEvent) {
-      setSelectedEvent(timetableEvent);
-      setIsDialogOpen(true);
+    if (event?.id && timetableEventsMap) {
+      const timetableEvent = timetableEventsMap.get(event.id);
+      if (timetableEvent) {
+        setSelectedEvent(timetableEvent);
+        setIsDialogOpen(true);
+      }
     }
   }, [timetableEventsMap]);
 

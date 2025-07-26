@@ -61,6 +61,14 @@ export function TeacherFeedbackDialog({
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('individual')
   const [feedbackText, setFeedbackText] = useState('')
   const [rating, setRating] = useState<number | undefined>(undefined)
+  const [editingFeedback, setEditingFeedback] = useState<{
+    id: string
+    student_id: string
+    feedback_text: string
+    rating?: number
+    feedback_type: string
+    created_at: string
+  } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [existingFeedback, setExistingFeedback] = useState<Array<{
@@ -90,6 +98,7 @@ export function TeacherFeedbackDialog({
       setFeedbackText('')
       setRating(undefined)
       setFeedbackMode('individual')
+      setEditingFeedback(null)
     }
   }, [open])
 
@@ -184,10 +193,12 @@ export function TeacherFeedbackDialog({
       const result = await createStudentFeedbackAction(request)
       
       if (result.success) {
-        toast.success(`Đã tạo phản hồi cho ${result.data?.created_count} học sinh`)
+        const action = editingFeedback ? 'cập nhật' : 'tạo'
+        toast.success(`Đã ${action} phản hồi cho ${result.data?.created_count} học sinh`)
         setFeedbackText('')
         setRating(undefined)
         setSelectedStudents(new Set())
+        setEditingFeedback(null)
         loadExistingFeedback() // Reload to show new feedback
       } else {
         toast.error(result.error || 'Không thể tạo phản hồi')
@@ -201,6 +212,30 @@ export function TeacherFeedbackDialog({
 
   const getStudentFeedback = (studentId: string) => {
     return existingFeedback.find(f => f.student_id === studentId)
+  }
+
+  const canEditFeedback = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const now = new Date()
+    const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
+    return hoursDiff <= 24
+  }
+
+  const handleEditFeedback = (feedback: {
+    id: string
+    student_id: string
+    student_name: string
+    feedback_text: string
+    rating?: number
+    feedback_type: string
+    group_id?: string
+    created_at: string
+  }) => {
+    setEditingFeedback(feedback)
+    setFeedbackText(feedback.feedback_text)
+    setRating(feedback.rating)
+    setFeedbackMode('individual')
+    setSelectedStudents(new Set([feedback.student_id]))
   }
 
   if (!timetableEvent) return null
@@ -284,10 +319,30 @@ export function TeacherFeedbackDialog({
                         <label htmlFor={student.id} className="flex-1 text-sm cursor-pointer">
                           {student.full_name}
                           <span className="text-muted-foreground ml-1">({student.student_id})</span>
+                          {feedback && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              Phản hồi: {feedback.feedback_text.substring(0, 50)}
+                              {feedback.feedback_text.length > 50 ? '...' : ''}
+                            </div>
+                          )}
                         </label>
-                        {feedback && (
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        )}
+                        <div className="flex items-center gap-1">
+                          {feedback && (
+                            <>
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              {canEditFeedback(feedback.created_at) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditFeedback(feedback)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  ✏️
+                                </Button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
@@ -338,12 +393,12 @@ export function TeacherFeedbackDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
-          <Button 
-            onClick={handleSubmitFeedback} 
+          <Button
+            onClick={handleSubmitFeedback}
             disabled={isSubmitting || !feedbackText.trim()}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Tạo Phản Hồi
+            {editingFeedback ? 'Cập Nhật Phản Hồi' : 'Tạo Phản Hồi'}
           </Button>
         </DialogFooter>
       </DialogContent>

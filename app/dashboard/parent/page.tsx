@@ -16,6 +16,7 @@ import {
   type StudentInfo
 } from '@/lib/actions/parent-actions'
 import { Users, GraduationCap, Calendar, Plus, AlertCircle, User, School } from 'lucide-react'
+import { ParentMeetingSchedules } from '@/components/parent-dashboard/parent-meeting-schedules'
 
 export default function ParentDashboard() {
   const router = useRouter()
@@ -123,10 +124,13 @@ export default function ParentDashboard() {
               Manage your children&apos;s school activities and stay connected with their education.
             </p>
           </div>
-          <Button onClick={() => router.push('/dashboard/parent/leave-application')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Leave Application
-          </Button>
+          <div className="flex gap-2">
+            <ParentMeetingSchedules showUnreadCount={true} />
+            <Button onClick={() => router.push('/dashboard/parent/leave-application')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Leave Application
+            </Button>
+          </div>
         </div>
 
         {error && (

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 import { UserRole } from '@/lib/types'
-import { User, Settings, LogOut } from 'lucide-react'
+
 
 interface SidebarLayoutProps {
   children: React.ReactNode
@@ -16,26 +16,9 @@ interface SidebarLayoutProps {
 }
 
 export function SidebarLayout({ children, role, title }: SidebarLayoutProps) {
-  const { user, profile, signOut } = useAuth()
-  const router = useRouter()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
-  }
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
   return (
     <SidebarProvider>
-      <AppSidebar role={role} adminType={adminType} />
+      <AppSidebar role={role} />
       <SidebarInset>
         {/* Header */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">

@@ -70,3 +70,39 @@ export const validateName = (name: string): boolean => {
   return name.length >= VALIDATION.MIN_NAME_LENGTH && name.length <= VALIDATION.MAX_NAME_LENGTH
 }
 
+// Subject form validation
+export const SubjectFormSchema = z.object({
+  code: z
+    .string()
+    .min(1, 'Subject code is required')
+    .max(20, 'Subject code must be less than 20 characters')
+    .trim(),
+  name_vietnamese: z
+    .string()
+    .min(1, 'Vietnamese name is required')
+    .max(100, 'Vietnamese name must be less than 100 characters')
+    .trim(),
+  name_english: z
+    .string()
+    .min(1, 'English name is required')
+    .max(100, 'English name must be less than 100 characters')
+    .trim(),
+  category: z
+    .enum(['core', 'specialized'], {
+      message: 'Please select a valid category',
+    }),
+  description: z
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+})
+
+export type SubjectFormData = z.infer<typeof SubjectFormSchema>
+
+// Subject update form validation (partial)
+export const SubjectUpdateFormSchema = SubjectFormSchema.partial().extend({
+  id: z.string().uuid('Invalid subject ID'),
+})
+
+export type SubjectUpdateFormData = z.infer<typeof SubjectUpdateFormSchema>
+

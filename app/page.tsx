@@ -57,74 +57,104 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
+      <header className="container mx-auto px-6 py-6">
         <nav className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold">EduConnect</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">EduConnect</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button onClick={() => setAuthModalOpen(true)} variant="outline">
-              Sign In with Email
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setAuthModalOpen(true)}
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            >
+              Sign In
             </Button>
-            <GoogleOAuthButton />
+            <GoogleOAuthButton size="sm" />
           </div>
         </nav>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
+      <section className="container mx-auto px-6 py-16 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          className="max-w-md mx-auto space-y-8"
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Welcome to{' '}
-            <span className="text-primary">EduConnect</span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            A comprehensive educational platform with secure authentication and role-based access
-            for students, teachers, parents, and administrators.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={() => setAuthModalOpen(true)}>
+          {/* Logo */}
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+
+          {/* Heading */}
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome to{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                EduConnect
+              </span>
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+              A comprehensive educational platform with secure authentication and role-based access for students, teachers, parents, and administrators.
+            </p>
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="space-y-4">
+            <Button
+              onClick={() => setAuthModalOpen(true)}
+              size="lg"
+              className="w-full h-12 text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+            >
               Sign In with Email
             </Button>
-            <GoogleOAuthButton size="lg" />
+
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 px-2">or</span>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+
+            <GoogleOAuthButton
+              size="lg"
+              className="w-full h-12 text-base font-medium"
+            />
           </div>
         </motion.div>
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
-          <p className="text-muted-foreground">
+      <section className="container mx-auto px-6 py-16">
+        <div className="text-center mb-12 max-w-md mx-auto">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Powerful Features</h2>
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
             Built with modern technologies and security best practices
           </p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="space-y-6 max-w-md mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50"
             >
-              <Card>
-                <CardHeader>
-                  <feature.icon className="w-8 h-8 text-primary mb-2" />
-                  <CardTitle>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <feature.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">{feature.description}</p>
+              </div>
             </motion.div>
           ))}
         </div>

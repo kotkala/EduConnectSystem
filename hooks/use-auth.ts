@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
-import { getUserProfile, onAuthStateChange, signOutClient, updateUserProfileClient } from '@/lib/auth-utils'
+import { clientAuth, authUtils } from '@/lib/auth'
 import { UserProfile, AuthUser } from '@/lib/types'
 
 export function useAuth() {
@@ -31,8 +31,8 @@ export function useAuth() {
 
     getInitialSession()
 
-    // Listen for auth changes using simplified utility
-    const { data: { subscription } } = onAuthStateChange(
+    // Listen for auth changes using consolidated auth
+    const { data: { subscription } } = clientAuth.onAuthStateChange(
       async (user) => {
         if (user) {
           await handleUserSession(user)
@@ -50,7 +50,7 @@ export function useAuth() {
   const handleUserSession = async (authUser: User) => {
     try {
       setError(null)
-      const userProfile = await getUserProfile(authUser.id)
+      const userProfile = await clientAuth.getUserProfile(authUser.id)
 
       const enhancedUser: AuthUser = {
         ...authUser,
@@ -70,7 +70,7 @@ export function useAuth() {
   const signOut = async () => {
     try {
       setLoading(true)
-      await signOutClient()
+      await clientAuth.signOut()
       setUser(null)
       setProfile(null)
       // Redirect to home page after sign out
@@ -104,7 +104,7 @@ export function useAuth() {
         filteredUpdates.role = updates.role
       }
 
-      const updatedProfile = await updateUserProfileClient(user.id, filteredUpdates)
+      const updatedProfile = await clientAuth.updateUserProfile(user.id, filteredUpdates)
       setProfile(updatedProfile)
       // Update user object with new profile
       setUser(prev => prev ? { ...prev, profile: updatedProfile } : null)
@@ -120,7 +120,7 @@ export function useAuth() {
     if (!user) return
 
     try {
-      const userProfile = await getUserProfile(user.id)
+      const userProfile = await clientAuth.getUserProfile(user.id)
       setProfile(userProfile)
       setUser(prev => prev ? { ...prev, profile: userProfile || undefined } : null)
     } catch (err: any) {

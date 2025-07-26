@@ -81,7 +81,6 @@ export default function AvatarUpload({
 
       console.log('Upload successful:', data)
       onUpload(filePath)
-      toast.success('Avatar uploaded successfully!')
     } catch (error) {
       console.error('Avatar upload error:', error)
       toast.error(error instanceof Error ? error.message : 'Error uploading avatar!')

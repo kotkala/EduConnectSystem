@@ -289,9 +289,9 @@ export function StudySlotDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
             {slot?.id ? "Edit Study Slot" : "New Study Slot"}
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -317,7 +317,7 @@ export function StudySlotDialog({
           </div>
         )}
 
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
           {/* Subject Selection */}
           <div className="space-y-2">
             <Label htmlFor="subject">Subject *</Label>

@@ -255,17 +255,17 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserPlus className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
           Assign Teacher to Class Subject
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
           Select academic year, class block, class, subject, and teacher to create a teaching assignment.
           Each subject can only be assigned to one teacher per class.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {/* Error/Success Messages */}
           {error && (
             <Alert variant="destructive">
@@ -418,18 +418,18 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
           </div>
 
           {/* Submit Button */}
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={submitting || !watch('teacherId')}
-            className="w-full"
+            className="w-full h-10 sm:h-11"
           >
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Assigning Teacher...
+                <span className="text-sm sm:text-base">Assigning Teacher...</span>
               </>
             ) : (
-              'Assign Teacher'
+              <span className="text-sm sm:text-base">Assign Teacher</span>
             )}
           </Button>
         </form>

@@ -87,17 +87,17 @@ export function useAuth() {
 
     try {
       setLoading(true)
-      // Filter out null values and only include supported fields
+      // Filter out undefined values and include supported fields (null is allowed for avatar_url)
       const filteredUpdates: {
-        full_name?: string
-        avatar_url?: string
+        full_name?: string | null
+        avatar_url?: string | null
         role?: 'admin' | 'teacher' | 'student' | 'parent'
       } = {}
 
-      if (updates.full_name !== null && updates.full_name !== undefined) {
+      if (updates.full_name !== undefined) {
         filteredUpdates.full_name = updates.full_name
       }
-      if (updates.avatar_url !== null && updates.avatar_url !== undefined) {
+      if (updates.avatar_url !== undefined) {
         filteredUpdates.avatar_url = updates.avatar_url
       }
       if (updates.role !== undefined) {

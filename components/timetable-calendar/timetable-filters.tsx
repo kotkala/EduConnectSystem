@@ -295,12 +295,12 @@ export function TimetableFilters({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <CalendarDays className="h-5 w-5" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+            <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>Timetable Filters</span>
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading} className="w-full sm:w-auto">
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -308,7 +308,7 @@ export function TimetableFilters({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Academic Year Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Academic Year</label>
             <Select

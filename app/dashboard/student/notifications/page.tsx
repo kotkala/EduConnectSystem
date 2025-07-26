@@ -93,10 +93,10 @@ export default function StudentNotificationsPage() {
     <SidebarLayout role="student" title="Notifications">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Notifications</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               View notifications from your teachers and school administration
             </p>
           </div>

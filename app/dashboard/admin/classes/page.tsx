@@ -153,28 +153,28 @@ export default function ClassManagementPage() {
     <SidebarLayout role="admin" title="Class Management">
       <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Class Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Class Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage main classes and subject combination classes
           </p>
         </div>
-        <Button onClick={() => setShowCreateClassDialog(true)}>
+        <Button onClick={() => setShowCreateClassDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Class
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Total Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{classesTotal}</div>
+            <div className="text-lg sm:text-2xl font-bold">{classesTotal}</div>
             <p className="text-xs text-muted-foreground">
               All classes in system
             </p>
@@ -183,11 +183,11 @@ export default function ClassManagementPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Main Classes</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Main Classes</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mainClasses.length}</div>
+            <div className="text-lg sm:text-2xl font-bold">{mainClasses.length}</div>
             <p className="text-xs text-muted-foreground">
               Regular homeroom classes
             </p>
@@ -196,11 +196,11 @@ export default function ClassManagementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Combined Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Combined Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{combinedClasses.length}</div>
+            <div className="text-lg sm:text-2xl font-bold">{combinedClasses.length}</div>
             <p className="text-xs text-muted-foreground">
               Subject combination classes
             </p>
@@ -209,11 +209,11 @@ export default function ClassManagementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStudents}</div>
+            <div className="text-lg sm:text-2xl font-bold">{totalStudents}</div>
             <p className="text-xs text-muted-foreground">
               {totalCapacity > 0 ? `${Math.round((totalStudents / totalCapacity) * 100)}% capacity` : "No capacity"}
             </p>
@@ -258,9 +258,9 @@ export default function ClassManagementPage() {
 
       {/* Create Class Dialog */}
       <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Class</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Add New Class</DialogTitle>
           </DialogHeader>
           <ClassForm
             onSuccess={handleCreateClassSuccess}
@@ -271,9 +271,9 @@ export default function ClassManagementPage() {
 
       {/* Edit Class Dialog */}
       <Dialog open={showEditClassDialog} onOpenChange={setShowEditClassDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Class</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Edit Class</DialogTitle>
           </DialogHeader>
           {editingClass && (
             <ClassForm

@@ -21,7 +21,3 @@ export { useEventVisibility } from "./hooks/use-event-visibility";
 export * from "./constants";
 export * from "./utils";
 export * from "./types";
-
-// Hook exports
-export * from "./hooks/use-current-time-indicator";
-export * from "./hooks/use-event-visibility";

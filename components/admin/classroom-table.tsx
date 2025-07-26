@@ -208,12 +208,12 @@ export function ClassroomTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Classroom</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Capacity</TableHead>
-              <TableHead>Equipment</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="min-w-[100px]">Classroom</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[120px]">Location</TableHead>
+              <TableHead className="min-w-[80px]">Type</TableHead>
+              <TableHead className="min-w-[80px]">Capacity</TableHead>
+              <TableHead className="hidden md:table-cell min-w-[100px]">Equipment</TableHead>
+              <TableHead className="min-w-[80px]">Status</TableHead>
               <TableHead className="w-[70px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -229,16 +229,25 @@ export function ClassroomTable({
                 <TableRow key={classroom.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-2">
-                      <span>{classroom.name}</span>
+                      <span className="text-sm sm:text-base">{classroom.name}</span>
+                    </div>
+                    {/* Mobile: Show location info */}
+                    <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                      {classroom.building && classroom.floor
+                        ? `${classroom.building}, Floor ${classroom.floor}`
+                        : classroom.building || classroom.floor
+                        ? `${classroom.building || ''}${classroom.floor ? ` Floor ${classroom.floor}` : ''}`
+                        : 'Not specified'
+                      }
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                        {classroom.building && classroom.floor 
+                        {classroom.building && classroom.floor
                           ? `${classroom.building}, Floor ${classroom.floor}`
-                          : classroom.building || classroom.floor 
+                          : classroom.building || classroom.floor
                           ? `${classroom.building || ''}${classroom.floor ? ` Floor ${classroom.floor}` : ''}`
                           : 'Not specified'
                         }
@@ -246,17 +255,21 @@ export function ClassroomTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoomTypeColor(classroom.room_type)}>
+                    <Badge className={`${getRoomTypeColor(classroom.room_type)} text-xs`}>
                       {ROOM_TYPES.find(type => type.value === classroom.room_type)?.label || classroom.room_type}
                     </Badge>
+                    {/* Mobile: Show equipment info */}
+                    <div className="md:hidden text-xs text-muted-foreground mt-1">
+                      {formatEquipment(classroom.equipment)}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Users className="h-3 w-3 text-muted-foreground" />
-                      <span>{classroom.capacity}</span>
+                      <span className="text-sm">{classroom.capacity}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -281,7 +294,7 @@ export function ClassroomTable({
                     </TooltipProvider>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={classroom.is_active ? "default" : "secondary"}>
+                    <Badge variant={classroom.is_active ? "default" : "secondary"} className="text-xs">
                       {classroom.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>

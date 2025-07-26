@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/hooks/use-auth'
-import AvatarUpload from '@/components/profile/avatar-upload'
+import AvatarEditor from '@/components/profile/avatar-editor'
 import { toast } from 'sonner'
 import { User, Settings, Shield } from 'lucide-react'
 
@@ -75,6 +75,17 @@ export default function ProfilePage() {
     }
   }
 
+  const handleAvatarRemove = async () => {
+    try {
+      await updateProfile({
+        avatar_url: null,
+      })
+      toast.success('Avatar removed successfully!')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to remove avatar')
+    }
+  }
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -119,11 +130,12 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-4">
-                <AvatarUpload
+                <AvatarEditor
                   uid={user.id}
                   url={profile.avatar_url}
                   size={80}
                   onUpload={handleAvatarUpload}
+                  onRemove={handleAvatarRemove}
                   fallback={profile.full_name ? getInitials(profile.full_name) : 'U'}
                 />
                 <div className="flex-1">

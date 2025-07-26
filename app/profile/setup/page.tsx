@@ -112,42 +112,43 @@ function ProfileSetupContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-sm sm:max-w-md"
       >
-        <Card>
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Complete Your Profile</CardTitle>
-            <CardDescription className="text-center">
+        <Card className="p-3 sm:p-4 md:p-6">
+          <CardHeader className="space-y-2 sm:space-y-3 pb-4 sm:pb-6">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-center">Complete Your Profile</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-center">
               Tell us a bit about yourself to get started with EduConnect
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name *</Label>
+          <CardContent className="pt-0">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="space-y-2 sm:space-y-3">
+                <Label htmlFor="full_name" className="text-sm sm:text-base">Full Name *</Label>
                 <Input
                   id="full_name"
                   type="text"
                   placeholder="Enter your full name"
                   value={formData.full_name}
                   onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+
+              <div className="space-y-2 sm:space-y-3">
+                <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={user.email || ''}
                   disabled
-                  className="bg-muted"
+                  className="bg-muted h-10 sm:h-11 md:h-12 text-sm sm:text-base"
                 />
                 <p className="text-xs text-muted-foreground">
                   This is your verified email address

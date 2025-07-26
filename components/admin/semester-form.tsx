@@ -117,7 +117,7 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
       {/* Academic Year Selection */}
       <div className="space-y-2">
         <Label htmlFor="academic_year_id">Academic Year</Label>
@@ -267,22 +267,25 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
       )}
 
       {/* Form Actions */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-3 pt-4">
         <Button
           type="submit"
           disabled={isSubmitting || loadingAcademicYears}
-          className="flex-1"
+          className="flex-1 h-10 sm:h-11"
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? "Update Semester" : "Create Semester"}
+          <span className="text-sm sm:text-base">
+            {isEditing ? "Update Semester" : "Create Semester"}
+          </span>
         </Button>
-        
+
         {onCancel && (
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="h-10 sm:h-11 sm:w-auto"
           >
             Cancel
           </Button>

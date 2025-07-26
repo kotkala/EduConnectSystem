@@ -105,7 +105,7 @@ export function AcademicTable({
   return (
     <div className="space-y-4">
       {/* Search and Filters */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -115,7 +115,7 @@ export function AcademicTable({
             className="pl-10"
           />
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
           <Filter className="mr-2 h-4 w-4" />
           Filters
         </Button>
@@ -129,27 +129,27 @@ export function AcademicTable({
       )}
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               {type === "academic-years" ? (
                 <>
-                  <TableHead>Academic Year</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Semesters</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="min-w-[120px]">Academic Year</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[140px]">Period</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[100px]">Semesters</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[100px]">Created</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </>
               ) : (
                 <>
-                  <TableHead>Semester</TableHead>
-                  <TableHead>Academic Year</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Weeks</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="min-w-[120px]">Semester</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[120px]">Academic Year</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[140px]">Period</TableHead>
+                  <TableHead className="min-w-[80px]">Weeks</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[100px]">Created</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </>
               )}
@@ -173,10 +173,14 @@ export function AcademicTable({
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {item.name}
+                          <span className="text-sm sm:text-base">{item.name}</span>
+                        </div>
+                        {/* Mobile: Show period info */}
+                        <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                          {formatDate(item.start_date)} - {formatDate(item.end_date)}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <div className="text-sm">
                           <div>{formatDate(item.start_date)}</div>
                           <div className="text-muted-foreground">to {formatDate(item.end_date)}</div>
@@ -184,17 +188,21 @@ export function AcademicTable({
                       </TableCell>
                       <TableCell>
                         {item.is_current ? (
-                          <Badge className="bg-green-100 text-green-800">Current</Badge>
+                          <Badge className="bg-green-100 text-green-800 text-xs">Current</Badge>
                         ) : (
-                          <Badge variant="secondary">Inactive</Badge>
+                          <Badge variant="secondary" className="text-xs">Inactive</Badge>
                         )}
+                        {/* Mobile: Show semesters count */}
+                        <div className="md:hidden text-xs text-muted-foreground mt-1">
+                          {(item as AcademicYearWithSemesters).semesters?.length || 0} semesters
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="text-sm">
                           {(item as AcademicYearWithSemesters).semesters?.length || 0} semesters
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                         {formatDate(item.created_at)}
                       </TableCell>
                     </>
@@ -203,34 +211,42 @@ export function AcademicTable({
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          {item.name}
+                          <span className="text-sm sm:text-base">{item.name}</span>
                           <Badge variant="outline" className="text-xs">
                             S{(item as Semester).semester_number}
                           </Badge>
                         </div>
+                        {/* Mobile: Show academic year */}
+                        <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                          {(item as SemesterWithAcademicYear).academic_year?.name}
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         {(item as SemesterWithAcademicYear).academic_year?.name}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="text-sm">
                           <div>{formatDate(item.start_date)}</div>
                           <div className="text-muted-foreground">to {formatDate(item.end_date)}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-xs">
                           {(item as Semester).weeks_count} weeks
                         </Badge>
+                        {/* Mobile: Show period info */}
+                        <div className="md:hidden text-xs text-muted-foreground mt-1">
+                          {formatDate(item.start_date)} - {formatDate(item.end_date)}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {item.is_current ? (
-                          <Badge className="bg-green-100 text-green-800">Current</Badge>
+                          <Badge className="bg-green-100 text-green-800 text-xs">Current</Badge>
                         ) : (
-                          <Badge variant="secondary">Inactive</Badge>
+                          <Badge variant="secondary" className="text-xs">Inactive</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                         {formatDate(item.created_at)}
                       </TableCell>
                     </>
@@ -268,22 +284,23 @@ export function AcademicTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
             Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, total)} of {total} results
           </div>
-          
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center justify-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage <= 1}
+              className="h-8"
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              <span className="hidden sm:inline ml-1">Previous</span>
             </Button>
-            
+
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const page = i + 1
@@ -293,7 +310,7 @@ export function AcademicTable({
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => onPageChange(page)}
-                    className="w-8 h-8 p-0"
+                    className="w-8 h-8 p-0 text-xs"
                   >
                     {page}
                   </Button>
@@ -306,8 +323,9 @@ export function AcademicTable({
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
+              className="h-8"
             >
-              Next
+              <span className="hidden sm:inline mr-1">Next</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

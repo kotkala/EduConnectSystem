@@ -93,19 +93,20 @@ export default function ClassroomsPage() {
     <SidebarLayout role="admin" title="Classroom Management">
       <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Classroom Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Classroom Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage classrooms, their capacity, equipment, and availability
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
+            <span className="sm:hidden">Refresh</span>
           </Button>
-          <Button onClick={handleCreateClassroom}>
+          <Button onClick={handleCreateClassroom} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Classroom
           </Button>
@@ -113,14 +114,14 @@ export default function ClassroomsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Classrooms</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Classrooms</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{total}</div>
+            <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
               {activeClassrooms} active
             </p>
@@ -129,11 +130,11 @@ export default function ClassroomsPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Capacity</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCapacity}</div>
+            <div className="text-lg sm:text-2xl font-bold">{totalCapacity}</div>
             <p className="text-xs text-muted-foreground">
               students across all rooms
             </p>
@@ -142,11 +143,11 @@ export default function ClassroomsPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Room Types</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Room Types</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{roomTypes}</div>
+            <div className="text-lg sm:text-2xl font-bold">{roomTypes}</div>
             <p className="text-xs text-muted-foreground">
               different room types
             </p>
@@ -155,11 +156,11 @@ export default function ClassroomsPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Capacity</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Average Capacity</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-lg sm:text-2xl font-bold">
               {total > 0 ? Math.round(totalCapacity / total) : 0}
             </div>
             <p className="text-xs text-muted-foreground">

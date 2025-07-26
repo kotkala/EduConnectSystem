@@ -82,15 +82,15 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="text-center space-y-3">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <Mail className="h-6 w-6 text-white" />
+        <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-4 sm:p-6">
+          <DialogHeader className="text-center space-y-3 sm:space-y-4">
+            <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <DialogTitle className="text-2xl font-semibold">
+            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-semibold">
               {step === 'email' ? 'Welcome back' : 'Check your email'}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {step === 'email'
                 ? 'Enter your email to continue to EduConnect'
                 : `We sent a verification code to ${email}`
@@ -98,7 +98,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </p>
           </DialogHeader>
 
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             {step === 'email' ? (
               <EmailStep onSubmit={handleSendOtp} loading={loading} />
             ) : (
@@ -117,16 +117,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="text-center space-y-4 pb-6">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Mail className="h-8 w-8 text-white" />
+      <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-4 sm:p-6">
+        <DialogHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
+          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
           </div>
-          <div className="space-y-2">
-            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="space-y-2 sm:space-y-3">
+            <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
               {step === 'email' ? 'Welcome back' : 'Check your email'}
             </DialogTitle>
-            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+            <p className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm leading-relaxed">
               {step === 'email'
                 ? 'Enter your email to continue to EduConnect'
                 : `We sent a verification code to ${email}`
@@ -167,20 +167,20 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-3">
-        <Label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <div className="space-y-2 sm:space-y-3">
+        <Label htmlFor="email" className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
           Email address
         </Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Mail className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
           <Input
             id="email"
             type="email"
             placeholder="student@university.edu"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-11 h-12 text-base border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+            className="pl-8 sm:pl-11 h-10 sm:h-11 md:h-12 text-sm sm:text-base border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
             required
             disabled={loading}
             autoFocus
@@ -191,7 +191,7 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
 
       <Button
         type="submit"
-        className="w-full h-12 text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+        className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
         disabled={loading || !email.trim()}
       >
         {loading ? (

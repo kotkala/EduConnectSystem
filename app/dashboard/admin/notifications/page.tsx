@@ -101,14 +101,14 @@ export default function AdminNotificationsPage() {
     <SidebarLayout role="admin" title="Notifications">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Notifications</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Send and manage notifications to teachers, students, and parents
             </p>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
+          <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Send Notification
           </Button>
@@ -144,17 +144,17 @@ export default function AdminNotificationsPage() {
                 onClick={() => setSelectedNotification(notification)}
               >
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CardTitle className="text-lg">{notification.title}</CardTitle>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 mb-1">
+                        <CardTitle className="text-base sm:text-lg">{notification.title}</CardTitle>
                         {!notification.is_read && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs w-fit">
                             New
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <User className="h-3 w-3" />
                           {notification.sender?.full_name || 'Unknown'}

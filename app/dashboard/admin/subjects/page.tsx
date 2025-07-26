@@ -11,18 +11,14 @@ import { SubjectDeleteDialog } from '@/components/subjects/subject-delete-dialog
 
 export default async function AdminSubjectsPage() {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/auth/login')
-  }
 
   // Check if user is admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', user?.id)
     .single()
 
   if (!profile || profile.role !== 'admin') {
@@ -46,14 +42,16 @@ export default async function AdminSubjectsPage() {
   return (
     <SidebarLayout role="admin" title="Subject Management">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Subject Management</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Subject Management</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Manage Vietnamese high school subjects and curriculum
             </p>
           </div>
-          <SubjectCreateDialog />
+          <div className="w-full sm:w-auto">
+            <SubjectCreateDialog />
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -108,19 +106,19 @@ export default async function AdminSubjectsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {coreSubjects.map((subject: Subject) => (
-                <div key={subject.id} className="border rounded-lg p-4 space-y-2">
+                <div key={subject.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge variant="default">Core</Badge>
+                    <Badge variant="default" className="text-xs">Core</Badge>
                     <div className="flex gap-1">
                       <SubjectEditDialog subject={subject} />
                       <SubjectDeleteDialog subject={subject} />
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold">{subject.name_vietnamese}</h4>
-                    <p className="text-sm text-muted-foreground">{subject.name_english}</p>
+                    <h4 className="text-sm sm:text-base font-semibold">{subject.name_vietnamese}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{subject.name_english}</p>
                     <p className="text-xs text-muted-foreground mt-1">Code: {subject.code}</p>
                   </div>
                   {subject.description && (
@@ -144,19 +142,19 @@ export default async function AdminSubjectsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {specializedSubjects.map((subject: Subject) => (
-                <div key={subject.id} className="border rounded-lg p-4 space-y-2">
+                <div key={subject.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary">Specialized</Badge>
+                    <Badge variant="secondary" className="text-xs">Specialized</Badge>
                     <div className="flex gap-1">
                       <SubjectEditDialog subject={subject} />
                       <SubjectDeleteDialog subject={subject} />
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold">{subject.name_vietnamese}</h4>
-                    <p className="text-sm text-muted-foreground">{subject.name_english}</p>
+                    <h4 className="text-sm sm:text-base font-semibold">{subject.name_vietnamese}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{subject.name_english}</p>
                     <p className="text-xs text-muted-foreground mt-1">Code: {subject.code}</p>
                   </div>
                   {subject.description && (

@@ -368,9 +368,9 @@ export default function TimetableCalendar() {
           <div className="flex-1 rounded-lg border bg-card">
             <div className="flex flex-col h-full">
               {/* Calendar Header */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-semibold">Timetable</h2>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b">
+                <h2 className="text-base sm:text-lg font-semibold">Timetable</h2>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -396,13 +396,15 @@ export default function TimetableCalendar() {
                       setSelectedSlot(newSlot);
                       setIsDialogOpen(true);
                     }}
+                    className="w-full sm:w-auto"
                   >
-                    New Study Slot
+                    <span className="hidden sm:inline">New Study Slot</span>
+                    <span className="sm:hidden">Add Slot</span>
                   </Button>
                   <select
                     value={view}
                     onChange={(e) => setView(e.target.value as CalendarView)}
-                    className="px-3 py-1 border rounded"
+                    className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
                     <option value="week">Week</option>
                     <option value="day">Day</option>
@@ -412,7 +414,7 @@ export default function TimetableCalendar() {
               </div>
 
               {/* Calendar Content */}
-              <div className="flex-1 p-4">
+              <div className="flex-1 p-2 sm:p-4">
                 {view === "week" && (
                   <WeekView
                     events={events}

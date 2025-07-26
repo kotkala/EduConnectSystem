@@ -115,19 +115,22 @@ export default function ParentDashboard() {
     <SidebarLayout role="parent" title="Parent Dashboard">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="space-y-2 sm:space-y-3">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
               Welcome back, {profile.full_name || 'Parent'}!
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Manage your children&apos;s school activities and stay connected with their education.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <ParentMeetingSchedules showUnreadCount={true} />
-            <Button onClick={() => router.push('/dashboard/parent/leave-application')}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button
+              onClick={() => router.push('/dashboard/parent/leave-application')}
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-sm sm:text-base"
+            >
+              <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               Create Leave Application
             </Button>
           </div>
@@ -140,12 +143,12 @@ export default function ParentDashboard() {
         )}
 
         {/* Academic Year Filter */}
-        <div className="flex items-center gap-4">
-          <label htmlFor="academic-year" className="text-sm font-medium">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+          <label htmlFor="academic-year" className="text-sm sm:text-base font-medium whitespace-nowrap">
             Academic Year:
           </label>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
               <SelectValue placeholder="Select academic year" />
             </SelectTrigger>
             <SelectContent>
@@ -160,14 +163,14 @@ export default function ParentDashboard() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">My Children</CardTitle>
-              <Users className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">My Children</CardTitle>
+              <Users className="w-4 h-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{students.length}</div>
+              <div className="text-lg sm:text-2xl font-bold">{students.length}</div>
               <p className="text-xs text-muted-foreground">
                 {selectedYear && selectedYear !== 'all' ? 'In selected year' : 'Total children'}
               </p>
@@ -176,11 +179,11 @@ export default function ParentDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Classes</CardTitle>
-              <GraduationCap className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Active Classes</CardTitle>
+              <GraduationCap className="w-4 h-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold">
                 {students.filter(s => s.current_class).length}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -191,11 +194,11 @@ export default function ParentDashboard() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Academic Years</CardTitle>
-              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Academic Years</CardTitle>
+              <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{academicYears.length}</div>
+              <div className="text-lg sm:text-2xl font-bold">{academicYears.length}</div>
               <p className="text-xs text-muted-foreground">
                 Available years
               </p>

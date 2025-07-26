@@ -210,34 +210,43 @@ export default function AcademicManagementPage() {
     <SidebarLayout role="admin" title="Academic Management">
       <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Academic Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Academic Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage academic years and semesters
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowCreateSemesterDialog(true)} variant="outline">
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+          <Button
+            onClick={() => setShowCreateSemesterDialog(true)}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Add Semester
+            <span className="hidden sm:inline">Add Semester</span>
+            <span className="sm:hidden">Semester</span>
           </Button>
-          <Button onClick={() => setShowCreateAcademicYearDialog(true)}>
+          <Button
+            onClick={() => setShowCreateAcademicYearDialog(true)}
+            className="w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Add Academic Year
+            <span className="hidden sm:inline">Add Academic Year</span>
+            <span className="sm:hidden">Academic Year</span>
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Academic Year</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Current Academic Year</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-lg sm:text-2xl font-bold">
               {currentAcademicYear?.name || "None"}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -248,11 +257,11 @@ export default function AcademicManagementPage() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Semester</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Current Semester</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-lg sm:text-2xl font-bold">
               {currentSemester?.name || "None"}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -263,11 +272,11 @@ export default function AcademicManagementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Academic Years</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Academic Years</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{academicYearsTotal}</div>
+            <div className="text-lg sm:text-2xl font-bold">{academicYearsTotal}</div>
             <p className="text-xs text-muted-foreground">
               All academic years
             </p>
@@ -276,11 +285,11 @@ export default function AcademicManagementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Semesters</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Semesters</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalSemesters}</div>
+            <div className="text-lg sm:text-2xl font-bold">{totalSemesters}</div>
             <p className="text-xs text-muted-foreground">
               All semesters
             </p>
@@ -338,9 +347,9 @@ export default function AcademicManagementPage() {
 
       {/* Create Academic Year Dialog */}
       <Dialog open={showCreateAcademicYearDialog} onOpenChange={setShowCreateAcademicYearDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Academic Year</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Add New Academic Year</DialogTitle>
           </DialogHeader>
           <AcademicYearForm
             onSuccess={handleCreateAcademicYearSuccess}
@@ -351,9 +360,9 @@ export default function AcademicManagementPage() {
 
       {/* Edit Academic Year Dialog */}
       <Dialog open={showEditAcademicYearDialog} onOpenChange={setShowEditAcademicYearDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Academic Year</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Edit Academic Year</DialogTitle>
           </DialogHeader>
           {editingAcademicYear && (
             <AcademicYearForm
@@ -370,9 +379,9 @@ export default function AcademicManagementPage() {
 
       {/* Create Semester Dialog */}
       <Dialog open={showCreateSemesterDialog} onOpenChange={setShowCreateSemesterDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Semester</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Add New Semester</DialogTitle>
           </DialogHeader>
           <SemesterForm
             onSuccess={handleCreateSemesterSuccess}
@@ -383,9 +392,9 @@ export default function AcademicManagementPage() {
 
       {/* Edit Semester Dialog */}
       <Dialog open={showEditSemesterDialog} onOpenChange={setShowEditSemesterDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Semester</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Edit Semester</DialogTitle>
           </DialogHeader>
           {editingSemester && (
             <SemesterForm

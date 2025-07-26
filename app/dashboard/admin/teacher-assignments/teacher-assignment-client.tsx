@@ -106,13 +106,15 @@ export default function TeacherAssignmentClient({ currentUserId }: TeacherAssign
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="assign" className="flex items-center gap-2">
+          <TabsTrigger value="assign" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <UserPlus className="h-4 w-4" />
-            Assign Teacher
+            <span className="hidden sm:inline">Assign Teacher</span>
+            <span className="sm:hidden">Assign</span>
           </TabsTrigger>
-          <TabsTrigger value="view" className="flex items-center gap-2">
+          <TabsTrigger value="view" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
             <Users className="h-4 w-4" />
-            View Assignments
+            <span className="hidden sm:inline">View Assignments</span>
+            <span className="sm:hidden">View</span>
           </TabsTrigger>
         </TabsList>
 
@@ -127,16 +129,16 @@ export default function TeacherAssignmentClient({ currentUserId }: TeacherAssign
           {/* Academic Year Filter */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 Filter by Academic Year
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Select an academic year to filter assignments, or leave empty to view all assignments.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex-1">
                   <Select
                     value={selectedAcademicYear}

@@ -8,18 +8,14 @@ import { BookOpen, Users, Calendar, Plus } from 'lucide-react'
 
 export default async function TeacherDashboard() {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/auth/login')
-  }
 
   // Check if user is teacher
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', user?.id)
     .single()
 
   if (!profile || profile.role !== 'teacher') {
@@ -29,63 +25,63 @@ export default async function TeacherDashboard() {
   return (
     <SidebarLayout role="teacher" title="Teacher Dashboard">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-2 sm:space-y-3">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
               Welcome back, {profile.full_name || 'Teacher'}!
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Manage your courses and track student progress.
             </p>
           </div>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-sm sm:text-base">
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
             Create Course
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">My Courses</CardTitle>
-              <BookOpen className="w-4 h-4 text-muted-foreground" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+          <Card className="p-3 sm:p-4 md:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium">My Courses</CardTitle>
+              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3</div>
+            <CardContent className="pt-0">
+              <div className="text-xl sm:text-2xl font-bold">3</div>
               <p className="text-xs text-muted-foreground">
                 Active courses
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="w-4 h-4 text-muted-foreground" />
+          <Card className="p-3 sm:p-4 md:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Total Students</CardTitle>
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">47</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="pt-0">
+              <div className="text-xl sm:text-2xl font-bold">47</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Enrolled students
               </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Week</CardTitle>
-              <Calendar className="w-4 h-4 text-muted-foreground" />
+          <Card className="p-3 sm:p-4 md:p-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium">This Week</CardTitle>
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="pt-0">
+              <div className="text-xl sm:text-2xl font-bold">5</div>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Upcoming classes
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Card>
             <CardHeader>
               <CardTitle>My Courses</CardTitle>

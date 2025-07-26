@@ -281,14 +281,14 @@ export function ClassTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Class Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Academic Year</TableHead>
-                  <TableHead>Semester</TableHead>
-                  <TableHead>Subject Combination</TableHead>
-                  <TableHead>Homeroom Teacher</TableHead>
-                  <TableHead>Students</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="min-w-[120px]">Class Name</TableHead>
+                  <TableHead className="min-w-[80px]">Type</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[120px]">Academic Year</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[100px]">Semester</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[140px]">Subject Combination</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[140px]">Homeroom Teacher</TableHead>
+                  <TableHead className="min-w-[80px]">Students</TableHead>
+                  <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

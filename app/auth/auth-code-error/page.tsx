@@ -26,11 +26,11 @@ export default function AuthCodeErrorPage() {
             
             <div className="space-y-2">
               <Button asChild className="w-full">
-                <Link href="/auth/login">
+                <Link href="/">
                   Try Again
                 </Link>
               </Button>
-              
+
               <Button asChild variant="outline" className="w-full">
                 <Link href="/">
                   Go Home

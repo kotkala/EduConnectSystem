@@ -46,21 +46,12 @@ export async function GET(request: Request) {
         }
       }
 
-      // Add success parameter to match OTP flow experience
-      const redirectUrl = new URL(next, origin)
+      // Force HTTP for localhost to avoid SSL errors
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
+      const redirectUrl = new URL(next, siteUrl)
       redirectUrl.searchParams.set('auth_success', 'true')
 
-      const forwardedHost = request.headers.get('x-forwarded-host')
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-      if (isLocalEnv) {
-        return NextResponse.redirect(redirectUrl.toString())
-      } else if (forwardedHost) {
-        redirectUrl.protocol = 'https:'
-        redirectUrl.host = forwardedHost
-        return NextResponse.redirect(redirectUrl.toString())
-      } else {
-        return NextResponse.redirect(redirectUrl.toString())
-      }
+      return NextResponse.redirect(redirectUrl.toString())
     } else {
       console.error('OAuth code exchange error:', error)
     }

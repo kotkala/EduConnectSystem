@@ -49,7 +49,7 @@ export const clientAuth = {
   async signInWithGoogle() {
     const supabase = createBrowserClient()
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-    
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${siteUrl}/auth/callback` },
@@ -100,17 +100,30 @@ export const clientAuth = {
     return data
   },
 
-  async updateUserProfile(userId: string, updates: Partial<{ full_name: string; role: string; avatar_url: string }>) {
+  async updateUserProfile(userId: string, updates: Partial<{ full_name: string | null; role: string; avatar_url: string | null }>) {
     const supabase = createBrowserClient()
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', userId)
       .select()
-      .single()
 
     if (error) throw new Error(error.message)
-    return data
+
+    // Return the first item if data exists, otherwise fetch the updated profile
+    if (data && data.length > 0) {
+      return data[0]
+    }
+
+    // Fallback: fetch the updated profile
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select()
+      .eq('id', userId)
+      .single()
+
+    if (fetchError) throw new Error(fetchError.message)
+    return profile
   }
 }
 

@@ -155,18 +155,19 @@ export default function TeacherLeaveRequestsPage() {
     <SidebarLayout role="teacher" title="Leave Requests">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/dashboard/teacher')}
+            className="w-fit"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Leave Requests</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Leave Requests</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Review and manage leave applications from your homeroom students
             </p>
           </div>
@@ -179,23 +180,23 @@ export default function TeacherLeaveRequestsPage() {
         )}
 
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Requests</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{applications.length}</div>
+              <div className="text-lg sm:text-2xl font-bold">{applications.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600">
                 {applications.filter(app => app.status === 'pending').length}
               </div>
             </CardContent>

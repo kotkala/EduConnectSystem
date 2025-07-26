@@ -9,17 +9,14 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-   ChevronDown,
   Award,
-  BarChart3,
-  Settings2,
   UserCheck,
   Building,
   Bell,
   Clock,
   ChevronUp,
   User2,
-
+  Zap,
 } from "lucide-react"
 import {
   Sidebar,
@@ -32,7 +29,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -42,11 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
@@ -64,8 +56,6 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
-    { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
-    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
   ],
   admin_full: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
@@ -77,8 +67,6 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
-    { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
-    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
@@ -107,12 +95,7 @@ const platformItems = {
   ],
 }
 
-// Projects items
-const projects = [
-  { name: "Course Management", url: "#", icon: BookOpen },
-  { name: "Student Progress", url: "#", icon: BarChart3 },
-  { name: "Communication", url: "#", icon: MessageSquare },
-]
+
 
 interface AppSidebarProps {
   role: UserRole
@@ -139,27 +122,25 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  EduConnect Inc
-                  <ChevronDown className="ml-auto" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
-                <DropdownMenuItem>
-                  <span>EduConnect Inc</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>EduConnect Pro</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarHeader className="p-3 border-b border-sidebar-border/50">
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
+          {/* Logo Icon - Contained properly */}
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 shrink-0">
+            <Zap className="h-4 w-4 text-white" />
+          </div>
+
+          {/* Brand Text - Hidden when collapsed */}
+          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold text-sidebar-foreground">
+                EduConnect
+              </h1>
+              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                Portal
+              </span>
+            </div>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -179,55 +160,28 @@ export function AppSidebar({ role }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarSeparator />
-        <Collapsible defaultOpen className="group/collapsible">
-          <SidebarGroup>
-            <SidebarGroupLabel asChild>
-              <CollapsibleTrigger>
-                Projects
-                <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {projects.map((project) => (
-                    <SidebarMenuItem key={project.name}>
-                      <SidebarMenuButton asChild>
-                        <a href={project.url}>
-                          <project.icon />
-                          <span>{project.name}</span>
-                        </a>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </SidebarGroup>
-        </Collapsible>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-2 pb-6 group-data-[collapsible=icon]:pb-8">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="h-12">
-                  <Avatar className="h-8 w-8">
+                <SidebarMenuButton className="h-12 p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-2">
+                  <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={user?.user_metadata?.avatar_url} alt="Avatar" />
                     <AvatarFallback>
                       {profile?.full_name ? getInitials(profile.full_name) : 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start text-left">
-                    <span className="text-sm font-medium">
+                  <div className="flex flex-col items-start text-left min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                    <span className="text-sm font-medium truncate w-full">
                       {profile?.full_name || 'User'}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground truncate w-full">
                       {user?.email}
                     </span>
                   </div>
-                  <ChevronUp className="ml-auto" />
+                  <ChevronUp className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent

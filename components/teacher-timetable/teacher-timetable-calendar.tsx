@@ -189,16 +189,16 @@ export default function TeacherTimetableCalendar() {
           <div className="flex-1 rounded-lg border bg-card">
             <div className="flex flex-col h-full">
               {/* Calendar Header */}
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-semibold">Lịch Giảng Dạy Của Tôi</h2>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b">
+                <h2 className="text-base sm:text-lg font-semibold">Lịch Giảng Dạy Của Tôi</h2>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                   {/* View Toggle */}
-                  <div className="flex rounded-md border">
+                  <div className="flex rounded-md border w-full sm:w-auto">
                     <Button
                       variant={view === "day" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setView("day")}
-                      className="rounded-r-none"
+                      className="rounded-r-none flex-1 sm:flex-none text-xs sm:text-sm"
                     >
                       Ngày
                     </Button>
@@ -206,7 +206,7 @@ export default function TeacherTimetableCalendar() {
                       variant={view === "week" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setView("week")}
-                      className="rounded-none"
+                      className="rounded-none flex-1 sm:flex-none text-xs sm:text-sm"
                     >
                       Tuần
                     </Button>
@@ -214,7 +214,7 @@ export default function TeacherTimetableCalendar() {
                       variant={view === "month" ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setView("month")}
-                      className="rounded-l-none"
+                      className="rounded-l-none flex-1 sm:flex-none text-xs sm:text-sm"
                     >
                       Tháng
                     </Button>
@@ -268,7 +268,7 @@ export default function TeacherTimetableCalendar() {
               </div>
 
               {/* Calendar Content */}
-              <div className="flex-1 p-4">
+              <div className="flex-1 p-2 sm:p-4">
                 {view === "week" && (
                   <WeekView
                     events={events}

@@ -23,8 +23,6 @@ export const ERROR_MESSAGES = {
 // Route constants
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/auth/login',
-  OTP_VERIFY: '/auth/otp-verify',
   PROFILE_SETUP: '/profile/setup',
   DASHBOARD: '/dashboard',
   ADMIN_DASHBOARD: '/dashboard/admin',

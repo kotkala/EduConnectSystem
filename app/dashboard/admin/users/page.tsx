@@ -82,35 +82,35 @@ export default function UsersPage() {
     <SidebarLayout role="admin" title="User Management">
       <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <p className="text-muted-foreground">
+      <div className="space-y-2 sm:space-y-3">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">User Management</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Manage all user accounts in the EduConnect system
         </p>
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         {userTypes.map((userType) => {
           const Icon = userType.icon
           return (
             <Card key={userType.title} className="relative overflow-hidden">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-lg ${userType.color} flex items-center justify-center`}>
-                      <Icon className="w-6 h-6 text-white" />
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg ${userType.color} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-xl">{userType.title}</CardTitle>
-                      <CardDescription className="text-sm">
+                      <CardTitle className="text-lg sm:text-xl">{userType.title}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">
                         {userType.description}
                       </CardDescription>
                     </div>
                   </div>
                   <Button
                     onClick={() => router.push(userType.href)}
-                    className="shrink-0"
+                    className="w-full sm:w-auto shrink-0"
                   >
                     Manage
                     <ArrowRight className="ml-2 h-4 w-4" />

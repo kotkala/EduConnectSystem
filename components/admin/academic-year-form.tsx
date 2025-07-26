@@ -74,7 +74,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Academic
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
       {/* Academic Year Name */}
       <div className="space-y-2">
         <Label htmlFor="name">Academic Year Name</Label>
@@ -155,22 +155,25 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Academic
       )}
 
       {/* Form Actions */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-3 pt-4">
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1"
+          className="flex-1 h-10 sm:h-11"
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? "Update Academic Year" : "Create Academic Year"}
+          <span className="text-sm sm:text-base">
+            {isEditing ? "Update Academic Year" : "Create Academic Year"}
+          </span>
         </Button>
-        
+
         {onCancel && (
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="h-10 sm:h-11 sm:w-auto"
           >
             Cancel
           </Button>
@@ -178,16 +181,16 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Academic
       </div>
 
       {!isEditing && (
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+        <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
           <h4 className="text-sm font-medium text-blue-900 mb-2">Auto-Generated Semesters</h4>
-          <p className="text-sm text-blue-700">
+          <p className="text-xs sm:text-sm text-blue-700">
             When you create an academic year, two default semesters will be automatically created:
           </p>
-          <ul className="text-sm text-blue-700 mt-2 space-y-1">
+          <ul className="text-xs sm:text-sm text-blue-700 mt-2 space-y-1">
             <li>• <strong>Học kỳ 1:</strong> 18 weeks (first ~4 months)</li>
             <li>• <strong>Học kỳ 2:</strong> 17 weeks (remaining period)</li>
           </ul>
-          <p className="text-sm text-blue-700 mt-2">
+          <p className="text-xs sm:text-sm text-blue-700 mt-2">
             You can edit these semesters after creation if needed.
           </p>
         </div>

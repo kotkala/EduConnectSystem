@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react'
 import { useMediaQuery } from '@/hooks/use-mobile'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -117,16 +116,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   }
 
   return (
-    <Drawer open={open} onOpenChange={handleClose}>
-      <DrawerContent>
-        <DrawerHeader className="text-center space-y-4 pb-6">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="text-center space-y-4 pb-6">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
             <Mail className="h-8 w-8 text-white" />
           </div>
           <div className="space-y-2">
-            <DrawerTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">
               {step === 'email' ? 'Welcome back' : 'Check your email'}
-            </DrawerTitle>
+            </DialogTitle>
             <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
               {step === 'email'
                 ? 'Enter your email to continue to EduConnect'
@@ -134,7 +133,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               }
             </p>
           </div>
-        </DrawerHeader>
+        </DialogHeader>
 
         <div className="px-6 pb-8">
           {step === 'email' ? (
@@ -148,8 +147,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             />
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   )
 }
 

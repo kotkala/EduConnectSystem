@@ -2,6 +2,8 @@ import { User } from '@supabase/supabase-js'
 
 export type UserRole = 'admin' | 'teacher' | 'student' | 'parent'
 
+export type SubjectCategory = 'core' | 'specialized'
+
 export interface UserProfile {
   id: string
   email: string
@@ -72,4 +74,17 @@ export interface AuthContextType {
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (data: Partial<UserProfile>) => Promise<void>
+}
+
+// Subject management types
+export interface Subject {
+  id: string
+  code: string
+  name_vietnamese: string
+  name_english: string
+  category: SubjectCategory
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,11 +23,21 @@ const roleConfig = {
 
 export default function ProfilePage() {
   const { user, profile, updateProfile, loading } = useAuth()
+  const searchParams = useSearchParams()
   const [isEditing, setIsEditing] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile')
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || '',
     email: profile?.email || user?.email || '',
   })
+
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && ['profile', 'settings', 'security'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -131,7 +142,7 @@ export default function ProfilePage() {
           </Card>
         </motion.div>
 
-        <Tabs defaultValue="profile" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="w-4 h-4" />

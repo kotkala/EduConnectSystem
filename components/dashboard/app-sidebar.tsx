@@ -9,12 +9,17 @@ import {
   FileText,
   Calendar,
   MessageSquare,
+   ChevronDown,
   Award,
   BarChart3,
   Settings2,
-  ChevronDown,
+  UserCheck,
+  Building,
+  Bell,
+  Clock,
   ChevronUp,
-  User2
+  User2,
+
 } from "lucide-react"
 import {
   Sidebar,
@@ -29,6 +34,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +47,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
@@ -51,23 +57,51 @@ const platformItems = {
   admin: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
     { title: "Users", url: "/dashboard/admin/users", icon: Users },
+    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
+    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
+    { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
+  ],
+  admin_full: [
+    { title: "Dashboard", url: "/dashboard/admin", icon: Home },
+    { title: "Users", url: "/dashboard/admin/users", icon: Users },
+    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
+    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Analytics", url: "/dashboard/admin/analytics", icon: BarChart3 },
     { title: "Settings", url: "/dashboard/admin/settings", icon: Settings2 },
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
+    { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
+    { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
+    { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
-    { title: "Schedule", url: "/dashboard/teacher/schedule", icon: Calendar },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },
+    { title: "Notifications", url: "/dashboard/student/notifications", icon: Bell },
     { title: "My Courses", url: "/dashboard/student/courses", icon: BookOpen },
     { title: "Assignments", url: "/dashboard/student/assignments", icon: FileText },
     { title: "Grades", url: "/dashboard/student/grades", icon: Award },
   ],
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
+    { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
+    { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
+    { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
     { title: "My Children", url: "/dashboard/parent/children", icon: Heart },
     { title: "Messages", url: "/dashboard/parent/messages", icon: MessageSquare },
   ],
@@ -204,7 +238,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                   <User2 className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/settings')}>
+                <DropdownMenuItem onClick={() => router.push('/profile?tab=settings')}>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>

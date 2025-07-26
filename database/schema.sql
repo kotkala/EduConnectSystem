@@ -111,3 +111,85 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS profiles_role_idx ON profiles(role);
 CREATE INDEX IF NOT EXISTS profiles_email_idx ON profiles(email);
+
+-- Create subject category enum
+DROP TYPE IF EXISTS subject_category CASCADE;
+CREATE TYPE subject_category AS ENUM ('core', 'specialized');
+
+-- Create subjects table
+CREATE TABLE IF NOT EXISTS subjects (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code VARCHAR(10) UNIQUE NOT NULL,
+  name_vietnamese TEXT NOT NULL,
+  name_english TEXT NOT NULL,
+  category subject_category NOT NULL,
+  description TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create trigger for subjects updated_at
+CREATE TRIGGER update_subjects_updated_at
+  BEFORE UPDATE ON subjects
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable Row Level Security for subjects
+ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for subjects
+-- All authenticated users can view active subjects
+CREATE POLICY "All users can view active subjects" ON subjects
+  FOR SELECT
+  TO authenticated
+  USING (is_active = true);
+
+-- Admins can view all subjects (including inactive)
+CREATE POLICY "Admins can view all subjects" ON subjects
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = (SELECT auth.uid()) AND role = 'admin'
+    )
+  );
+
+-- Admins can insert subjects
+CREATE POLICY "Admins can insert subjects" ON subjects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = (SELECT auth.uid()) AND role = 'admin'
+    )
+  );
+
+-- Admins can update subjects
+CREATE POLICY "Admins can update subjects" ON subjects
+  FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = (SELECT auth.uid()) AND role = 'admin'
+    )
+  );
+
+-- Admins can delete subjects (soft delete by setting is_active = false)
+CREATE POLICY "Admins can delete subjects" ON subjects
+  FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = (SELECT auth.uid()) AND role = 'admin'
+    )
+  );
+
+-- Create indexes for subjects table
+CREATE INDEX IF NOT EXISTS subjects_code_idx ON subjects(code);
+CREATE INDEX IF NOT EXISTS subjects_category_idx ON subjects(category);
+CREATE INDEX IF NOT EXISTS subjects_is_active_idx ON subjects(is_active);

@@ -84,10 +84,10 @@ const platformItems = {
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
+    { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
-    { title: "Schedule", url: "/dashboard/teacher/schedule", icon: Calendar },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },

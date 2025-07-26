@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { NotificationForm } from '@/components/notifications/notification-form'
-import { useAdminPermissions } from '@/hooks/use-admin-permissions'
+import { useAuth } from '@/hooks/use-auth'
 import { 
   getUserNotificationsAction, 
   markNotificationAsReadAction,
@@ -21,7 +21,8 @@ import { formatDistanceToNow } from 'date-fns'
 
 export default function AdminNotificationsPage() {
   const router = useRouter()
-  const { canManageSchool, loading, isAdmin } = useAdminPermissions()
+  const { profile, loading } = useAuth()
+  const isAdmin = profile?.role === 'admin'
   
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
@@ -31,16 +32,16 @@ export default function AdminNotificationsPage() {
 
   // Redirect if user doesn't have permission
   useEffect(() => {
-    if (!loading && (!isAdmin || !canManageSchool)) {
+    if (!loading && !isAdmin) {
       router.push('/dashboard/admin')
     }
-  }, [loading, isAdmin, canManageSchool, router])
+  }, [loading, isAdmin, router])
 
   useEffect(() => {
-    if (!loading && isAdmin && canManageSchool) {
+    if (!loading && isAdmin) {
       loadNotifications()
     }
-  }, [loading, isAdmin, canManageSchool])
+  }, [loading, isAdmin])
 
   const loadNotifications = async () => {
     setNotificationsLoading(true)
@@ -81,7 +82,7 @@ export default function AdminNotificationsPage() {
   }
 
   // Show access denied if no permission
-  if (!isAdmin || !canManageSchool) {
+  if (!isAdmin) {
     return (
       <SidebarLayout role="admin" title="Access Denied">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">

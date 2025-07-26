@@ -43,7 +43,7 @@ async function checkNotificationPermissions() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role, admin_type")
+    .select("role")
     .eq("id", user.id)
     .single()
 
@@ -51,7 +51,7 @@ async function checkNotificationPermissions() {
     throw new Error("Profile not found")
   }
 
-  // Only admins (school_admin type) and teachers can create notifications
+  // Only admins and teachers can create notifications
   if (profile.role !== 'admin' && profile.role !== 'teacher') {
     throw new Error("Only administrators and teachers can create notifications")
   }
@@ -70,8 +70,8 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
       classes: [] as { id: string; name: string; grade: string }[]
     }
 
-    if (profile.role === 'admin' && profile.admin_type === 'school_admin') {
-      // School admins can target all roles
+    if (profile.role === 'admin') {
+      // Admins can target all roles
       options.roles = ['teacher', 'student', 'parent']
       
       // Get all classes for potential targeting

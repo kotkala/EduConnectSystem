@@ -12,7 +12,7 @@ import { AcademicTable } from "@/components/admin/academic-table"
 import { AcademicYearForm } from "@/components/admin/academic-year-form"
 import { SemesterForm } from "@/components/admin/semester-form"
 import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
-import { useAdminPermissions } from "@/hooks/use-admin-permissions"
+import { useAuth } from "@/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
 import {
   type AcademicYearWithSemesters,
@@ -24,7 +24,8 @@ import {
 
 export default function AcademicManagementPage() {
   const router = useRouter()
-  const { canManageSchool, loading, isAdmin } = useAdminPermissions()
+  const { profile, loading } = useAuth()
+  const isAdmin = profile?.role === 'admin'
 
   // Academic Years State
   const [academicYears, setAcademicYears] = useState<AcademicYearWithSemesters[]>([])
@@ -163,10 +164,10 @@ export default function AcademicManagementPage() {
 
   // Redirect if user doesn't have permission
   useEffect(() => {
-    if (!loading && (!isAdmin || !canManageSchool)) {
+    if (!loading && !isAdmin) {
       router.push('/dashboard/admin')
     }
-  }, [loading, isAdmin, canManageSchool, router])
+  }, [loading, isAdmin, router])
 
   // Show loading state
   if (loading) {
@@ -180,7 +181,7 @@ export default function AcademicManagementPage() {
   }
 
   // Show access denied if no permission
-  if (!isAdmin || !canManageSchool) {
+  if (!isAdmin) {
     return (
       <SidebarLayout role="admin" title="Access Denied">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">

@@ -5,19 +5,20 @@ import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
-import { useAdminPermissions } from "@/hooks/use-admin-permissions"
+import { useAuth } from "@/hooks/use-auth"
 import { Users, GraduationCap, UserPlus, Heart, ArrowRight, AlertCircle } from "lucide-react"
 
 export default function UsersPage() {
   const router = useRouter()
-  const { canManageUsers, loading, isAdmin } = useAdminPermissions()
+  const { profile, loading } = useAuth()
+  const isAdmin = profile?.role === 'admin'
 
   // Redirect if user doesn't have permission
   useEffect(() => {
-    if (!loading && (!isAdmin || !canManageUsers)) {
+    if (!loading && !isAdmin) {
       router.push('/dashboard/admin')
     }
-  }, [loading, isAdmin, canManageUsers, router])
+  }, [loading, isAdmin, router])
 
   // Show loading state
   if (loading) {
@@ -31,7 +32,7 @@ export default function UsersPage() {
   }
 
   // Show access denied if no permission
-  if (!isAdmin || !canManageUsers) {
+  if (!isAdmin) {
     return (
       <SidebarLayout role="admin" title="Access Denied">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">

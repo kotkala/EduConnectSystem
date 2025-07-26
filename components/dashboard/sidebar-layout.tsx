@@ -8,7 +8,6 @@ import {
 import { AppSidebar } from './app-sidebar'
 import { UserRole } from '@/lib/types'
 
-
 interface SidebarLayoutProps {
   children: React.ReactNode
   role: UserRole
@@ -16,6 +15,7 @@ interface SidebarLayoutProps {
 }
 
 export function SidebarLayout({ children, role, title }: SidebarLayoutProps) {
+
   return (
     <SidebarProvider>
       <AppSidebar role={role} />

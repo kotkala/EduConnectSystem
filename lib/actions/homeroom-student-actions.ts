@@ -123,6 +123,7 @@ export async function getHomeroomStudentsAction(): Promise<{
 }> {
   try {
     const { userId } = await checkHomeroomTeacherPermissions()
+
     const supabase = await createClient()
 
     // First get the homeroom class ID
@@ -139,12 +140,14 @@ export async function getHomeroomStudentsAction(): Promise<{
       }
     }
 
-    // Get students in the homeroom class
-    const { data: studentAssignments, error: studentsError } = await supabase
+
+
+    // Use optimized query with proper joins - Context7 pattern for complex relationships
+    const { data: studentsWithParentsData, error: queryError } = await supabase
       .from('student_class_assignments')
       .select(`
         student_id,
-        profiles!student_class_assignments_student_id_fkey(
+        profiles!student_class_assignments_student_id_fkey (
           id,
           full_name,
           email,
@@ -158,34 +161,39 @@ export async function getHomeroomStudentsAction(): Promise<{
       `)
       .eq('class_id', homeroomClass.id)
       .eq('is_active', true)
-      .order('profiles(full_name)')
 
-    if (studentsError) {
-      throw new Error(studentsError.message)
+    if (queryError) {
+      throw new Error(queryError.message)
     }
 
-    if (!studentAssignments || studentAssignments.length === 0) {
+
+
+    if (!studentsWithParentsData || studentsWithParentsData.length === 0) {
       return {
         success: true,
         data: []
       }
     }
 
-    // Get parent information for all students
-    const studentIds = studentAssignments.map(assignment => assignment.student_id)
-    
+    // Get all student IDs for parent lookup
+    const studentIds = studentsWithParentsData.map(item => {
+      // Handle the case where profiles might be an array or single object
+      const profiles = item.profiles
+      if (Array.isArray(profiles)) {
+        return profiles[0]?.id
+      }
+      return (profiles as { id: string } | null)?.id
+    }).filter(Boolean)
+
+
+    // Get parent relationships without embedded resources first
     const { data: parentRelationships, error: parentsError } = await supabase
       .from('parent_student_relationships')
       .select(`
         student_id,
+        parent_id,
         relationship_type,
-        is_primary_contact,
-        parent:profiles!parent_id(
-          id,
-          full_name,
-          email,
-          phone_number
-        )
+        is_primary_contact
       `)
       .in('student_id', studentIds)
       .order('is_primary_contact', { ascending: false })
@@ -194,9 +202,33 @@ export async function getHomeroomStudentsAction(): Promise<{
       throw new Error(parentsError.message)
     }
 
-    // Combine student and parent data
-    const studentsWithParents = studentAssignments.map(assignment => {
-      const student = assignment.profiles as unknown as {
+    // Get parent details separately
+    const parentIds = parentRelationships?.map(rel => rel.parent_id) || []
+
+    const { data: parents, error: parentsDetailError } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        full_name,
+        email,
+        phone_number
+      `)
+      .in('id', parentIds)
+
+    if (parentsDetailError) {
+      throw new Error(parentsDetailError.message)
+    }
+
+
+
+
+
+
+
+    // Combine student and parent data using correct mapping
+    const studentsWithParents = studentsWithParentsData.map(item => {
+      // Handle the case where profiles might be an array or single object
+      let student: {
         id: string
         full_name: string
         email: string
@@ -206,24 +238,51 @@ export async function getHomeroomStudentsAction(): Promise<{
         date_of_birth?: string
         address?: string
         avatar_url?: string
+      } | null = null
+
+      const profiles = item.profiles
+      if (Array.isArray(profiles)) {
+        student = profiles[0] || null
+      } else {
+        student = profiles as typeof student
       }
 
-      const studentParents = parentRelationships
-        ?.filter(rel => rel.student_id === assignment.student_id)
-        ?.map(rel => ({
-          id: (rel.parent as unknown as { id: string }).id,
-          full_name: (rel.parent as unknown as { full_name: string }).full_name,
-          email: (rel.parent as unknown as { email: string }).email,
-          phone_number: (rel.parent as unknown as { phone_number?: string }).phone_number,
+      if (!student) {
+        return null
+      }
+
+      const studentParentRelations = parentRelationships
+        ?.filter(rel => rel.student_id === student.id) || []
+
+      const studentParents = studentParentRelations.map(rel => {
+        const parentDetail = parents?.find(p => p.id === rel.parent_id)
+        return {
+          id: parentDetail?.id || '',
+          full_name: parentDetail?.full_name || '',
+          email: parentDetail?.email || '',
+          phone_number: parentDetail?.phone_number || '',
           relationship_type: rel.relationship_type,
           is_primary_contact: rel.is_primary_contact || false
-        })) || []
+        }
+      })
+
+
 
       return {
-        ...student,
+        id: student.id,
+        full_name: student.full_name,
+        email: student.email,
+        student_id: student.student_id,
+        phone_number: student.phone_number,
+        gender: student.gender,
+        date_of_birth: student.date_of_birth,
+        address: student.address,
+        avatar_url: student.avatar_url,
         parents: studentParents
       }
-    })
+    }).filter((student): student is NonNullable<typeof student> => student !== null)
+
+
 
     return {
       success: true,

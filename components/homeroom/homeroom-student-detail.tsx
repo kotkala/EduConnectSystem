@@ -54,45 +54,65 @@ export function HomeroomStudentDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="pb-6">
+          <DialogTitle className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
               <AvatarImage src={student.avatar_url} alt={student.full_name} />
-              <AvatarFallback>
+              <AvatarFallback className="text-lg font-bold">
                 {student.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-xl font-bold">{student.full_name}</h2>
-              <p className="text-sm text-muted-foreground">Student ID: {student.student_id}</p>
+              <h2 className="text-2xl font-bold">{student.full_name}</h2>
+              <p className="text-base text-muted-foreground">Student ID: {student.student_id}</p>
+              <div className="flex items-center gap-2 mt-2">
+                {student.gender && (
+                  <Badge variant="outline" className="text-sm">
+                    {student.gender.charAt(0).toUpperCase() + student.gender.slice(1)}
+                  </Badge>
+                )}
+                {student.parents.length > 0 ? (
+                  <Badge variant="secondary" className="text-sm">
+                    <UserCheck className="h-3 w-3 mr-1" />
+                    {student.parents.length} Parent{student.parents.length !== 1 ? 's' : ''}
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive" className="text-sm">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    No Parents
+                  </Badge>
+                )}
+              </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Class Information */}
           {classInfo && (
-            <Card>
+            <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-3 text-blue-700">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <GraduationCap className="h-6 w-6" />
+                  </div>
                   Class Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Class</p>
-                    <p className="font-semibold">{classInfo.name}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-blue-600">Class</p>
+                    <p className="text-lg font-bold text-blue-800">{classInfo.name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Academic Year</p>
-                    <p className="font-semibold">{classInfo.academic_year_name}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-blue-600">Academic Year</p>
+                    <p className="text-lg font-bold text-blue-800">{classInfo.academic_year_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Semester</p>
-                    <p className="font-semibold">{classInfo.semester_name}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-blue-600">Semester</p>
+                    <p className="text-lg font-bold text-blue-800">{classInfo.semester_name}</p>
                   </div>
                 </div>
               </CardContent>
@@ -100,29 +120,31 @@ export function HomeroomStudentDetail({
           )}
 
           {/* Student Information */}
-          <Card>
+          <Card className="border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-3 text-gray-700">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <User className="h-6 w-6" />
+                </div>
                 Student Information
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                    <p className="font-semibold">{student.full_name}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-600">Full Name</p>
+                    <p className="text-lg font-bold text-gray-800">{student.full_name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Student ID</p>
-                    <p className="font-semibold">{student.student_id}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-600">Student ID</p>
+                    <p className="text-lg font-bold text-gray-800">{student.student_id}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <p className="font-semibold">{student.email}</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-600">Email</p>
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5 text-gray-500" />
+                      <p className="text-base font-semibold text-gray-800">{student.email}</p>
                     </div>
                   </div>
                   {student.phone_number && (
@@ -168,13 +190,15 @@ export function HomeroomStudentDetail({
           </Card>
 
           {/* Parent Information */}
-          <Card>
+          <Card className={student.parents.length > 0 ? "border-green-200 bg-green-50/50" : "border-red-200 bg-red-50/50"}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
+              <CardTitle className={`flex items-center gap-3 ${student.parents.length > 0 ? "text-green-700" : "text-red-700"}`}>
+                <div className={`p-2 rounded-lg ${student.parents.length > 0 ? "bg-green-100" : "bg-red-100"}`}>
+                  <Users className="h-6 w-6" />
+                </div>
                 Parent Information
                 {student.parents.length > 0 ? (
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">
                     <UserCheck className="h-3 w-3 mr-1" />
                     {student.parents.length} Parent{student.parents.length !== 1 ? 's' : ''}
                   </Badge>
@@ -188,34 +212,37 @@ export function HomeroomStudentDetail({
             </CardHeader>
             <CardContent>
               {student.parents.length === 0 ? (
-                <div className="text-center py-8">
-                  <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Parent Information</h3>
-                  <p className="text-muted-foreground">
+                <div className="text-center py-12">
+                  <AlertTriangle className="h-16 w-16 mx-auto text-red-400 mb-6" />
+                  <h3 className="text-xl font-bold mb-3 text-red-800">No Parent Information</h3>
+                  <p className="text-red-600 text-base">
                     This student does not have any parent contacts registered.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {/* Primary Parent */}
                   {primaryParent && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <h4 className="font-semibold">Primary Contact</h4>
-                        <Badge variant="default">
-                          {primaryParent.relationship_type}
+                    <div className="border border-green-200 rounded-xl p-6 bg-white">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <UserCheck className="h-5 w-5 text-green-600" />
+                        </div>
+                        <h4 className="text-lg font-bold text-green-800">Primary Contact</h4>
+                        <Badge variant="default" className="bg-green-600 text-white">
+                          {primaryParent.relationship_type.charAt(0).toUpperCase() + primaryParent.relationship_type.slice(1)}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                          <p className="font-semibold">{primaryParent.full_name}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-green-600">Full Name</p>
+                          <p className="text-lg font-bold text-green-800">{primaryParent.full_name}</p>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Email</p>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <p className="font-semibold">{primaryParent.email}</p>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-green-600">Email</p>
+                          <div className="flex items-center gap-3">
+                            <Mail className="h-5 w-5 text-green-500" />
+                            <p className="text-base font-semibold text-green-800">{primaryParent.email}</p>
                           </div>
                         </div>
                         {primaryParent.phone_number && (

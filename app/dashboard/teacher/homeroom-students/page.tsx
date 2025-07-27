@@ -1,0 +1,360 @@
+"use client"
+
+import { useState, useEffect, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Users,
+  RefreshCw,
+  Search,
+  GraduationCap,
+  UserCheck,
+  User
+} from "lucide-react"
+import { toast } from "sonner"
+import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
+import {
+  getHomeroomClassInfoAction,
+  getHomeroomStudentsAction
+} from "@/lib/actions/homeroom-student-actions"
+import {
+  type HomeroomClass,
+  type HomeroomStudent,
+  type HomeroomFilters
+} from "@/lib/validations/homeroom-validations"
+import { HomeroomStudentCard } from "@/components/homeroom/homeroom-student-card"
+import { HomeroomStudentDetail } from "@/components/homeroom/homeroom-student-detail"
+
+export default function HomeroomStudentsPage() {
+  const [classInfo, setClassInfo] = useState<HomeroomClass | null>(null)
+  const [students, setStudents] = useState<HomeroomStudent[]>([])
+  const [filteredStudents, setFilteredStudents] = useState<HomeroomStudent[]>([])
+  const [selectedStudent, setSelectedStudent] = useState<HomeroomStudent | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<HomeroomFilters>({
+    search: '',
+    gender: 'all',
+    has_parents: undefined,
+    sort_by: 'name',
+    sort_order: 'asc'
+  })
+
+  // Load homeroom class information and students
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Get class information
+      const classResult = await getHomeroomClassInfoAction()
+      if (!classResult.success) {
+        setError(classResult.error || "Failed to load class information")
+        return
+      }
+
+      setClassInfo(classResult.data!)
+
+      // Get students
+      const studentsResult = await getHomeroomStudentsAction()
+      if (!studentsResult.success) {
+        setError(studentsResult.error || "Failed to load students")
+        return
+      }
+
+      setStudents(studentsResult.data || [])
+      setFilteredStudents(studentsResult.data || [])
+
+    } catch (err) {
+      console.error("Load data error:", err)
+      setError("An unexpected error occurred")
+      toast.error("Failed to load homeroom data")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Filter and sort students
+  const applyFilters = useCallback(() => {
+    let filtered = [...students]
+
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      filtered = filtered.filter(student => 
+        student.full_name.toLowerCase().includes(searchLower) ||
+        student.student_id.toLowerCase().includes(searchLower) ||
+        student.email.toLowerCase().includes(searchLower)
+      )
+    }
+
+    // Gender filter
+    if (filters.gender && filters.gender !== 'all') {
+      const genderFilter = filters.gender as 'male' | 'female' | 'other'
+      filtered = filtered.filter(student => student.gender === genderFilter)
+    }
+
+    // Has parents filter
+    if (filters.has_parents !== undefined) {
+      filtered = filtered.filter(student => 
+        filters.has_parents ? student.parents.length > 0 : student.parents.length === 0
+      )
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue: string
+      let bValue: string
+
+      switch (filters.sort_by) {
+        case 'student_id':
+          aValue = a.student_id
+          bValue = b.student_id
+          break
+        case 'email':
+          aValue = a.email
+          bValue = b.email
+          break
+        default:
+          aValue = a.full_name
+          bValue = b.full_name
+      }
+
+      const comparison = aValue.localeCompare(bValue)
+      return filters.sort_order === 'asc' ? comparison : -comparison
+    })
+
+    setFilteredStudents(filtered)
+  }, [students, filters])
+
+  // Apply filters when students or filters change
+  useEffect(() => {
+    applyFilters()
+  }, [applyFilters])
+
+  // Load data on component mount
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Handle filter changes
+  const handleFilterChange = (key: keyof HomeroomFilters, value: string | boolean | undefined) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+  }
+
+  // Handle refresh
+  const handleRefresh = () => {
+    loadData()
+    toast.success("Data refreshed")
+  }
+
+  if (loading && !classInfo) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !classInfo) {
+    return (
+      <div className="container mx-auto py-6">
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
+  return (
+    <SidebarLayout role="teacher" title="Homeroom Students">
+      <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Homeroom Students
+          </h1>
+          {classInfo && (
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {classInfo.name} • {classInfo.academic_year_name} • {classInfo.semester_name}
+            </p>
+          )}
+        </div>
+        <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Class Overview */}
+      {classInfo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Class Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <Users className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-2xl font-bold">{classInfo.student_count}</p>
+                  <p className="text-sm text-muted-foreground">Total Students</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <UserCheck className="h-8 w-8 text-green-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {students.filter(s => s.parents.length > 0).length}
+                  </p>
+                  <p className="text-sm text-muted-foreground">With Parents</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <User className="h-8 w-8 text-orange-500" />
+                <div>
+                  <p className="text-2xl font-bold">
+                    {students.filter(s => s.parents.length === 0).length}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Without Parents</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">Search</Label>
+              <Input
+                id="search"
+                placeholder="Name, Student ID, or Email"
+                value={filters.search || ''}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select
+                value={filters.gender || 'all'}
+                onValueChange={(value) => handleFilterChange('gender', value === 'all' ? undefined : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Genders" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Genders</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sort_by">Sort By</Label>
+              <Select
+                value={filters.sort_by}
+                onValueChange={(value) => handleFilterChange('sort_by', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="student_id">Student ID</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sort_order">Sort Order</Label>
+              <Select
+                value={filters.sort_order}
+                onValueChange={(value) => handleFilterChange('sort_order', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">Descending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Students Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredStudents.map((student) => (
+          <HomeroomStudentCard
+            key={student.id}
+            student={student}
+            onClick={() => setSelectedStudent(student)}
+          />
+        ))}
+      </div>
+
+      {/* No Students Message */}
+      {filteredStudents.length === 0 && !loading && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
+            <p className="text-muted-foreground">
+              {students.length === 0 
+                ? "No students are assigned to your homeroom class yet."
+                : "No students match your current filters."
+              }
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Student Detail Modal */}
+      {selectedStudent && (
+        <HomeroomStudentDetail
+          student={selectedStudent}
+          classInfo={classInfo}
+          open={!!selectedStudent}
+          onOpenChange={(open) => !open && setSelectedStudent(null)}
+        />
+      )}
+      </div>
+    </SidebarLayout>
+  )
+}

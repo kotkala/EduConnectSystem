@@ -73,6 +73,7 @@ const platformItems = {
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
     { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
+    { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },

@@ -54,19 +54,23 @@ export function TeacherTimetableFilters({
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Load academic years
+  // Load academic years - Context7 pattern for initial data loading
   useEffect(() => {
     const loadAcademicYears = async () => {
       if (!user) return;
-      
+
       setIsLoadingData(true);
       try {
         const result = await getTeacherAcademicYearsAction();
         if (result.success && result.data) {
           setAcademicYears(result.data);
+        } else {
+          console.error("Failed to load academic years:", result.error);
+          setAcademicYears([]);
         }
       } catch (error) {
         console.error("Error loading academic years:", error);
+        setAcademicYears([]);
       } finally {
         setIsLoadingData(false);
       }
@@ -75,7 +79,7 @@ export function TeacherTimetableFilters({
     loadAcademicYears();
   }, [user]);
 
-  // Load semesters when academic year changes
+  // Load semesters when academic year changes - Context7 pattern for dependent dropdowns
   useEffect(() => {
     const loadSemesters = async () => {
       if (!filters.academicYearId) {
@@ -89,6 +93,7 @@ export function TeacherTimetableFilters({
         if (result.success && result.data) {
           setSemesters(result.data);
         } else {
+          console.error("Failed to load semesters:", result.error);
           setSemesters([]);
         }
       } catch (error) {
@@ -98,22 +103,23 @@ export function TeacherTimetableFilters({
     };
 
     loadSemesters();
-  }, [filters.academicYearId, academicYears]);
+  }, [filters.academicYearId]); // Remove academicYears dependency to prevent unnecessary re-renders
 
   const handleFilterChange = useCallback((key: keyof TeacherTimetableFilters, value: string | number | undefined) => {
     const newFilters = { ...filters, [key]: value };
 
-    // Reset dependent filters when parent changes
+    // Reset dependent filters when parent changes - Context7 pattern for cascading dropdowns
     if (key === 'academicYearId') {
       newFilters.semesterId = undefined;
       newFilters.studyWeek = undefined;
+      // Clear semesters immediately when academic year changes
+      setSemesters([]);
     } else if (key === 'semesterId') {
       newFilters.studyWeek = undefined;
     }
 
     onFiltersChange(newFilters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onFiltersChange]);
+  }, [filters, onFiltersChange]);
 
   const getWeekOptions = () => {
     return Array.from({ length: 52 }, (_, i) => i + 1);

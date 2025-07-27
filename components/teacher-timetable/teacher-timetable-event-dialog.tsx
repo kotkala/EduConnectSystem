@@ -48,6 +48,7 @@ export interface TeacherTimetableEvent {
   room_type: string
   semester_name: string
   academic_year_name: string
+  student_count?: number // Optional field for feedback functionality
 }
 
 interface TeacherTimetableEventDialogProps {

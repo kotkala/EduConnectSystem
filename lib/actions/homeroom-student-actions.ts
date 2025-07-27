@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server"
 // Helper function to check homeroom teacher permissions
 async function checkHomeroomTeacherPermissions() {
   const supabase = await createClient()
-  
+
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     throw new Error("Authentication required")
@@ -48,8 +48,8 @@ export async function getHomeroomClassInfoAction(): Promise<{
     const { userId } = await checkHomeroomTeacherPermissions()
     const supabase = await createClient()
 
-    // Get homeroom class information
-    const { data: homeroomClass, error } = await supabase
+    // Get homeroom class information with proper type inference following Context7 pattern
+    const homeroomClassQuery = supabase
       .from('classes')
       .select(`
         id,
@@ -59,6 +59,8 @@ export async function getHomeroomClassInfoAction(): Promise<{
       `)
       .eq('homeroom_teacher_id', userId)
       .single()
+
+    const { data: homeroomClass, error } = await homeroomClassQuery
 
     if (error) {
       if (error.code === 'PGRST116') { // No rows returned
@@ -82,8 +84,12 @@ export async function getHomeroomClassInfoAction(): Promise<{
       data: {
         id: homeroomClass.id,
         name: homeroomClass.name,
-        academic_year_name: (homeroomClass.academic_years as unknown as { name: string }).name,
-        semester_name: (homeroomClass.semesters as unknown as { name: string }).name,
+        academic_year_name: Array.isArray(homeroomClass.academic_years)
+          ? homeroomClass.academic_years[0]?.name || ''
+          : (homeroomClass.academic_years as { name: string })?.name || '',
+        semester_name: Array.isArray(homeroomClass.semesters)
+          ? homeroomClass.semesters[0]?.name || ''
+          : (homeroomClass.semesters as { name: string })?.name || '',
         student_count: studentCount || 0
       }
     }
@@ -123,170 +129,47 @@ export async function getHomeroomStudentsAction(): Promise<{
 }> {
   try {
     const { userId } = await checkHomeroomTeacherPermissions()
-
     const supabase = await createClient()
 
-    // First get the homeroom class ID
-    const { data: homeroomClass } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('homeroom_teacher_id', userId)
-      .single()
-
-    if (!homeroomClass) {
-      return {
-        success: false,
-        error: "You are not assigned as a homeroom teacher to any class"
-      }
-    }
-
-
-
-    // Use optimized query with proper joins - Context7 pattern for complex relationships
-    const { data: studentsWithParentsData, error: queryError } = await supabase
-      .from('student_class_assignments')
-      .select(`
-        student_id,
-        profiles!student_class_assignments_student_id_fkey (
-          id,
-          full_name,
-          email,
-          student_id,
-          phone_number,
-          gender,
-          date_of_birth,
-          address,
-          avatar_url
-        )
-      `)
-      .eq('class_id', homeroomClass.id)
-      .eq('is_active', true)
-
-    if (queryError) {
-      throw new Error(queryError.message)
-    }
-
-
-
-    if (!studentsWithParentsData || studentsWithParentsData.length === 0) {
-      return {
-        success: true,
-        data: []
-      }
-    }
-
-    // Get all student IDs for parent lookup
-    const studentIds = studentsWithParentsData.map(item => {
-      // Handle the case where profiles might be an array or single object
-      const profiles = item.profiles
-      if (Array.isArray(profiles)) {
-        return profiles[0]?.id
-      }
-      return (profiles as { id: string } | null)?.id
-    }).filter(Boolean)
-
-
-    // Get parent relationships without embedded resources first
-    const { data: parentRelationships, error: parentsError } = await supabase
-      .from('parent_student_relationships')
-      .select(`
-        student_id,
-        parent_id,
-        relationship_type,
-        is_primary_contact
-      `)
-      .in('student_id', studentIds)
-      .order('is_primary_contact', { ascending: false })
-
-    if (parentsError) {
-      throw new Error(parentsError.message)
-    }
-
-    // Get parent details separately
-    const parentIds = parentRelationships?.map(rel => rel.parent_id) || []
-
-    const { data: parents, error: parentsDetailError } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        full_name,
-        email,
-        phone_number
-      `)
-      .in('id', parentIds)
-
-    if (parentsDetailError) {
-      throw new Error(parentsDetailError.message)
-    }
-
-
-
-
-
-
-
-    // Combine student and parent data using correct mapping
-    const studentsWithParents = studentsWithParentsData.map(item => {
-      // Handle the case where profiles might be an array or single object
-      let student: {
-        id: string
-        full_name: string
-        email: string
-        student_id: string
-        phone_number?: string
-        gender?: string
-        date_of_birth?: string
-        address?: string
-        avatar_url?: string
-      } | null = null
-
-      const profiles = item.profiles
-      if (Array.isArray(profiles)) {
-        student = profiles[0] || null
-      } else {
-        student = profiles as typeof student
-      }
-
-      if (!student) {
-        return null
-      }
-
-      const studentParentRelations = parentRelationships
-        ?.filter(rel => rel.student_id === student.id) || []
-
-      const studentParents = studentParentRelations.map(rel => {
-        const parentDetail = parents?.find(p => p.id === rel.parent_id)
-        return {
-          id: parentDetail?.id || '',
-          full_name: parentDetail?.full_name || '',
-          email: parentDetail?.email || '',
-          phone_number: parentDetail?.phone_number || '',
-          relationship_type: rel.relationship_type,
-          is_primary_contact: rel.is_primary_contact || false
-        }
+    // Use the optimized RPC function following Context7 pattern for complex queries
+    const { data: studentsWithParents, error: studentsError } = await supabase
+      .rpc('get_homeroom_students_with_parents', {
+        p_teacher_id: userId
       })
 
+    if (studentsError) {
+      console.error('Error fetching students with parents:', studentsError)
+      return { success: false, error: studentsError.message }
+    }
 
-
-      return {
-        id: student.id,
-        full_name: student.full_name,
-        email: student.email,
-        student_id: student.student_id,
-        phone_number: student.phone_number,
-        gender: student.gender,
-        date_of_birth: student.date_of_birth,
-        address: student.address,
-        avatar_url: student.avatar_url,
-        parents: studentParents
-      }
-    }).filter((student): student is NonNullable<typeof student> => student !== null)
-
-
+    // Transform the data to match the expected format
+    const formattedStudents = studentsWithParents?.map((student: {
+      student_id: string;
+      student_full_name: string;
+      student_email: string;
+      student_code: string;
+      student_phone_number?: string;
+      student_gender?: string;
+      student_date_of_birth?: string;
+      student_address?: string;
+      student_avatar_url?: string;
+      parents: unknown;
+    }) => ({
+      id: student.student_id,
+      full_name: student.student_full_name,
+      email: student.student_email,
+      student_id: student.student_code,
+      phone_number: student.student_phone_number || '',
+      gender: student.student_gender || '',
+      date_of_birth: student.student_date_of_birth || '',
+      address: student.student_address || '',
+      avatar_url: student.student_avatar_url || '',
+      parents: Array.isArray(student.parents) ? student.parents : []
+    })) || []
 
     return {
       success: true,
-      data: studentsWithParents
+      data: formattedStudents
     }
 
   } catch (error) {

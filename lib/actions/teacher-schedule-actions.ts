@@ -27,6 +27,7 @@ export interface TeacherScheduleEvent {
   room_type: string
   semester_name: string
   academic_year_name: string
+  student_count?: number // Optional field for feedback functionality
 }
 
 export interface TeacherScheduleFilters {
@@ -44,13 +45,13 @@ export interface TeacherScheduleFilterOptions {
   weeks: number[]
 }
 
-// Get teacher's schedule based on filters
+// Get teacher's schedule based on filters using Context7 RPC pattern
 export async function getTeacherScheduleAction(
   filters: TeacherScheduleFilters = {}
 ): Promise<{ success: boolean; data?: TeacherScheduleEvent[]; error?: string }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Authentication required")
@@ -67,33 +68,84 @@ export async function getTeacherScheduleAction(
       throw new Error("Access denied. Teacher role required.")
     }
 
-    let query = supabase
-      .from('timetable_events_detailed')
-      .select('*')
-      .eq('teacher_id', user.id)
+    // Build parameters object following Context7 pattern - only include defined values
+    const rpcParams: Record<string, unknown> = {
+      p_teacher_id: user.id
+    }
 
-    // Apply filters
+    // Add optional parameters only if they have values - Context7 best practice
     if (filters.semester_id) {
-      query = query.eq('semester_id', filters.semester_id)
+      rpcParams.p_semester_id = filters.semester_id
     }
-
     if (filters.week_number) {
-      query = query.eq('week_number', filters.week_number)
+      rpcParams.p_week_number = filters.week_number
     }
-
     if (filters.day_of_week !== undefined) {
-      query = query.eq('day_of_week', filters.day_of_week)
+      rpcParams.p_day_of_week = filters.day_of_week
     }
 
-    const { data: events, error } = await query
-      .order('day_of_week')
-      .order('start_time')
+    // Use optimized RPC function following Context7 pattern for complex queries
+    const { data: events, error } = await supabase
+      .rpc('get_teacher_schedule_with_students', rpcParams)
 
     if (error) {
       throw new Error(error.message)
     }
 
-    return { success: true, data: events || [] }
+    // Transform the data to match the expected interface
+    const formattedEvents: TeacherScheduleEvent[] = events?.map((event: {
+      id: string;
+      class_id: string;
+      subject_id: string;
+      teacher_id: string;
+      classroom_id: string;
+      semester_id: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      week_number: number;
+      notes: string | null;
+      created_at: string;
+      updated_at: string;
+      class_name: string;
+      subject_code: string;
+      subject_name: string;
+      teacher_name: string;
+      classroom_name: string;
+      building: string | null;
+      floor: number | null;
+      room_type: string;
+      semester_name: string;
+      academic_year_name: string;
+      student_count: number;
+    }) => ({
+      id: event.id,
+      class_id: event.class_id,
+      subject_id: event.subject_id,
+      teacher_id: event.teacher_id,
+      classroom_id: event.classroom_id,
+      semester_id: event.semester_id,
+      day_of_week: event.day_of_week,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      week_number: event.week_number,
+      notes: event.notes,
+      created_at: event.created_at,
+      updated_at: event.updated_at,
+      class_name: event.class_name,
+      subject_code: event.subject_code,
+      subject_name: event.subject_name,
+      teacher_name: event.teacher_name,
+      classroom_name: event.classroom_name,
+      building: event.building,
+      floor: event.floor,
+      room_type: event.room_type,
+      semester_name: event.semester_name,
+      academic_year_name: event.academic_year_name,
+      student_count: event.student_count
+    })) || []
+
+    return { success: true, data: formattedEvents }
   } catch (error: unknown) {
     console.error("Get teacher schedule error:", error)
     return {
@@ -103,54 +155,56 @@ export async function getTeacherScheduleAction(
   }
 }
 
-// Get filter options for teacher schedule
-export async function getTeacherScheduleFiltersAction(): Promise<{ 
-  success: boolean; 
-  data?: TeacherScheduleFilterOptions; 
-  error?: string 
+// Get filter options for teacher schedule using simplified queries
+export async function getTeacherScheduleFiltersAction(): Promise<{
+  success: boolean;
+  data?: TeacherScheduleFilterOptions;
+  error?: string
 }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Authentication required")
     }
 
-    // Get semesters where teacher has classes
-    const { data: semesters, error: semestersError } = await supabase
+    // Get unique semester IDs where teacher has classes
+    const { data: semesterIds, error: semesterIdsError } = await supabase
       .from('timetable_events')
-      .select(`
-        semester_id,
-        semesters(
-          id,
-          name,
-          academic_years(name)
-        )
-      `)
+      .select('semester_id')
       .eq('teacher_id', user.id)
 
-    if (semestersError) {
-      throw new Error(semestersError.message)
+    if (semesterIdsError) {
+      throw new Error(semesterIdsError.message)
     }
 
-    // Process semesters to remove duplicates and format
-    const semesterEntries = semesters?.map(item => {
-      const semester = item.semesters as unknown as { name: string; academic_years: { name: string } } | null
-      if (!semester) return null
-      return [
-        item.semester_id,
-        {
-          id: item.semester_id,
-          name: semester.name,
-          academic_year_name: semester.academic_years.name
-        }
-      ] as const
-    }).filter((entry): entry is [string, { id: string; name: string; academic_year_name: string }] => entry !== null) || []
-
-    const uniqueSemesters = Array.from(
-      new Map(semesterEntries).values()
+    const uniqueSemesterIds = Array.from(
+      new Set(semesterIds?.map(item => item.semester_id) || [])
     )
+
+    // Get semester details separately to avoid complex joins
+    const { data: semesterDetails, error: semesterDetailsError } = await supabase
+      .from('semesters')
+      .select(`
+        id,
+        name,
+        academic_years!inner(name)
+      `)
+      .in('id', uniqueSemesterIds)
+
+    if (semesterDetailsError) {
+      throw new Error(semesterDetailsError.message)
+    }
+
+    // Format semester data
+    const formattedSemesters = semesterDetails?.map(semester => ({
+      id: semester.id,
+      name: semester.name,
+      academic_year_name: Array.isArray(semester.academic_years)
+        ? semester.academic_years[0]?.name || ''
+        : (semester.academic_years as { name: string })?.name || ''
+    })) || []
 
     // Get weeks where teacher has classes
     const { data: weeks, error: weeksError } = await supabase
@@ -169,7 +223,7 @@ export async function getTeacherScheduleFiltersAction(): Promise<{
     return {
       success: true,
       data: {
-        semesters: uniqueSemesters,
+        semesters: formattedSemesters,
         weeks: uniqueWeeks
       }
     }
@@ -384,42 +438,45 @@ export async function getTeacherAcademicYearsAction(): Promise<{
       throw new Error("Access denied. Teacher role required.")
     }
 
-    // Get academic years where teacher has timetable events
-    const { data: academicYears, error } = await supabase
+    // Get unique semester IDs where teacher has timetable events
+    const { data: semesterIds, error: semesterIdsError } = await supabase
       .from('timetable_events')
-      .select(`
-        semesters!inner(
-          academic_years!inner(
-            id,
-            name,
-            start_date,
-            end_date
-          )
-        )
-      `)
+      .select('semester_id')
       .eq('teacher_id', user.id)
+
+    if (semesterIdsError) {
+      throw new Error(semesterIdsError.message)
+    }
+
+    const uniqueSemesterIds = Array.from(
+      new Set(semesterIds?.map(item => item.semester_id) || [])
+    )
+
+    // Get academic year IDs from semesters
+    const { data: semesterData, error: semesterError } = await supabase
+      .from('semesters')
+      .select('academic_year_id')
+      .in('id', uniqueSemesterIds)
+
+    if (semesterError) {
+      throw new Error(semesterError.message)
+    }
+
+    const uniqueAcademicYearIds = Array.from(
+      new Set(semesterData?.map(item => item.academic_year_id) || [])
+    )
+
+    // Get academic year details separately
+    const { data: academicYears, error } = await supabase
+      .from('academic_years')
+      .select('id, name, start_date, end_date')
+      .in('id', uniqueAcademicYearIds)
 
     if (error) {
       throw new Error(error.message)
     }
 
-    // Process and deduplicate academic years
-    const uniqueYears = Array.from(
-      new Map(
-        academicYears?.map(item => {
-          const academicYear = (item.semesters as unknown as { academic_years: { id: string; name: string; start_date: string; end_date: string } }).academic_years
-          return [
-            academicYear.id,
-            {
-              id: academicYear.id,
-              name: academicYear.name,
-              start_date: academicYear.start_date,
-              end_date: academicYear.end_date
-            }
-          ]
-        }) || []
-      ).values()
-    )
+    const uniqueYears = academicYears || []
 
     return { success: true, data: uniqueYears }
   } catch (error: unknown) {
@@ -451,43 +508,32 @@ export async function getTeacherSemestersAction(academicYearId: string): Promise
       throw new Error("Authentication required")
     }
 
-    // Get semesters where teacher has timetable events
-    const { data: semesters, error } = await supabase
+    // Get unique semester IDs where teacher has timetable events
+    const { data: semesterIds, error: semesterIdsError } = await supabase
       .from('timetable_events')
-      .select(`
-        semesters!inner(
-          id,
-          name,
-          start_date,
-          end_date,
-          academic_year_id
-        )
-      `)
+      .select('semester_id')
       .eq('teacher_id', user.id)
-      .eq('semesters.academic_year_id', academicYearId)
+
+    if (semesterIdsError) {
+      throw new Error(semesterIdsError.message)
+    }
+
+    const uniqueSemesterIds = Array.from(
+      new Set(semesterIds?.map(item => item.semester_id) || [])
+    )
+
+    // Get semester details for the specific academic year
+    const { data: semesters, error } = await supabase
+      .from('semesters')
+      .select('id, name, start_date, end_date, academic_year_id')
+      .in('id', uniqueSemesterIds)
+      .eq('academic_year_id', academicYearId)
 
     if (error) {
       throw new Error(error.message)
     }
 
-    // Process and deduplicate semesters
-    const uniqueSemesters = Array.from(
-      new Map(
-        semesters?.map(item => {
-          const semester = item.semesters as unknown as { id: string; name: string; start_date: string; end_date: string; academic_year_id: string }
-          return [
-            semester.id,
-            {
-              id: semester.id,
-              name: semester.name,
-              start_date: semester.start_date,
-              end_date: semester.end_date,
-              academic_year_id: semester.academic_year_id
-            }
-          ]
-        }) || []
-      ).values()
-    )
+    const uniqueSemesters = semesters || []
 
     return { success: true, data: uniqueSemesters }
   } catch (error: unknown) {

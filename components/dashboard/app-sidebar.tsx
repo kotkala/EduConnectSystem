@@ -17,6 +17,7 @@ import {
   ChevronUp,
   User2,
   Zap,
+  BarChart3,
 } from "lucide-react"
 import {
   Sidebar,
@@ -43,6 +44,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings } from 'lucide-react'
+import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
 
 // Platform items for each role
 const platformItems = {
@@ -88,6 +90,7 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
     { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
@@ -103,9 +106,19 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ role }: AppSidebarProps) {
-  const items = platformItems[role] || []
+  const baseItems = platformItems[role] || []
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
+  const { isHomeroomTeacher } = useHomeroomTeacher()
+
+  // Add feedback link for homeroom teachers
+  const items = role === 'teacher' && isHomeroomTeacher
+    ? [
+        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Meetings)
+        { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
+        ...baseItems.slice(4) // Add remaining items
+      ]
+    : baseItems
 
   const handleSignOut = async () => {
     await signOut()

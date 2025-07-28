@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server"
 export interface ParentFeedbackFilters {
   academic_year_id: string
   week_number: number
+  student_id?: string // Optional - if not provided, shows all children
 }
 
 export interface StudentFeedbackForParent {
@@ -29,6 +30,27 @@ export interface StudentFeedbackForParent {
   }>>
 }
 
+interface FeedbackNotification {
+  student_id: string
+  student_name: string
+  student_code: string
+  student_avatar_url: string | null
+  class_name: string
+  feedback_id: string
+  timetable_event_id: string
+  start_time: string
+  end_time: string
+  subject_name: string
+  subject_code: string
+  teacher_name: string
+  rating: number
+  feedback_text: string | null
+  created_at: string
+  sent_at: string
+  is_read: boolean
+  day_of_week: number
+}
+
 // Check if user is a parent
 async function checkParentPermissions() {
   const supabase = await createClient()
@@ -49,6 +71,89 @@ async function checkParentPermissions() {
   }
 
   return { userId: user.id }
+}
+
+// Get list of children for parent dropdown
+export async function getParentChildrenAction(): Promise<{
+  success: boolean;
+  data?: Array<{id: string, name: string, student_code: string, avatar_url: string | null, class_name: string}>;
+  error?: string
+}> {
+  try {
+    const { userId } = await checkParentPermissions()
+    const supabase = await createClient()
+
+    // First get the student relationships
+    const { data: relationships, error: relationshipsError } = await supabase
+      .from('parent_student_relationships')
+      .select(`
+        student_id,
+        profiles!parent_student_relationships_student_id_fkey(
+          id,
+          full_name,
+          student_id,
+          avatar_url
+        )
+      `)
+      .eq('parent_id', userId)
+
+    if (relationshipsError) {
+      throw new Error(relationshipsError.message)
+    }
+
+    if (!relationships || relationships.length === 0) {
+      return {
+        success: true,
+        data: []
+      }
+    }
+
+    // Get student IDs
+    const studentIds = relationships.map(rel => rel.student_id)
+
+    // Get class assignments for these students
+    const { data: classAssignments, error: classError } = await supabase
+      .from('student_class_assignments')
+      .select(`
+        student_id,
+        classes!inner(
+          name
+        )
+      `)
+      .in('student_id', studentIds)
+      .eq('is_active', true)
+
+    if (classError) {
+      throw new Error(classError.message)
+    }
+
+    // Combine the data
+    const childrenList = relationships.map(rel => {
+      const profile = rel.profiles as unknown as { id: string; full_name: string; student_id: string; avatar_url: string | null }
+      const classAssignment = classAssignments?.find(ca => ca.student_id === rel.student_id)
+      const classInfo = classAssignment?.classes as unknown as { name: string }
+
+      return {
+        id: profile.id,
+        name: profile.full_name,
+        student_code: profile.student_id,
+        avatar_url: profile.avatar_url,
+        class_name: classInfo?.name || 'Unknown Class'
+      }
+    })
+
+    return {
+      success: true,
+      data: childrenList
+    }
+
+  } catch (error) {
+    console.error("Get parent children error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch children list"
+    }
+  }
 }
 
 // Get available academic years for parent
@@ -133,10 +238,15 @@ export async function getStudentFeedbackForParentAction(
       throw new Error(feedbackError.message)
     }
 
+    // Filter by selected student if provided
+    const filteredFeedbackData = filters.student_id
+      ? (feedbackData || []).filter((notification: FeedbackNotification) => notification.student_id === filters.student_id)
+      : (feedbackData || [])
+
     // Group feedback by student and day
     const studentFeedbackMap = new Map<string, StudentFeedbackForParent>()
 
-    for (const notification of feedbackData || []) {
+    for (const notification of filteredFeedbackData) {
       if (!studentFeedbackMap.has(notification.student_id)) {
         studentFeedbackMap.set(notification.student_id, {
           student_id: notification.student_id,

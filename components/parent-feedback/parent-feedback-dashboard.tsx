@@ -23,6 +23,7 @@ import {
 import {
   getParentAcademicYearsAction,
   getStudentFeedbackForParentAction,
+  getParentChildrenAction,
   markFeedbackAsReadAction,
   type ParentFeedbackFilters,
   type StudentFeedbackForParent
@@ -33,9 +34,11 @@ import { toast } from "sonner"
 export default function ParentFeedbackDashboard() {
   const [filters, setFilters] = useState<ParentFeedbackFilters>({
     academic_year_id: "",
-    week_number: 1
+    week_number: 1,
+    student_id: "" // Empty means show all children
   })
   const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string}>>([])
+  const [children, setChildren] = useState<Array<{id: string, name: string, student_code: string, avatar_url: string | null, class_name: string}>>([])
   const [studentFeedback, setStudentFeedback] = useState<StudentFeedbackForParent[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -85,31 +88,44 @@ export default function ParentFeedbackDashboard() {
     return time.slice(0, 5) // Remove seconds
   }
 
-  // Load academic years
+  // Load academic years and children
   useEffect(() => {
-    const loadAcademicYears = async () => {
+    const loadInitialData = async () => {
       try {
-        const result = await getParentAcademicYearsAction()
-        if (result.success && result.data) {
-          setAcademicYears(result.data)
-          if (result.data.length > 0) {
-            setFilters(prev => ({ ...prev, academic_year_id: result.data![0].id }))
+        // Load academic years
+        const academicYearsResult = await getParentAcademicYearsAction()
+        if (academicYearsResult.success && academicYearsResult.data) {
+          setAcademicYears(academicYearsResult.data)
+          if (academicYearsResult.data.length > 0) {
+            setFilters(prev => ({ ...prev, academic_year_id: academicYearsResult.data![0].id }))
           }
         } else {
-          setError(result.error || "Failed to load academic years")
+          setError(academicYearsResult.error || "Failed to load academic years")
+        }
+
+        // Load children list
+        const childrenResult = await getParentChildrenAction()
+        if (childrenResult.success && childrenResult.data) {
+          setChildren(childrenResult.data)
+          // If parent has only one child, auto-select it
+          if (childrenResult.data.length === 1) {
+            setFilters(prev => ({ ...prev, student_id: childrenResult.data![0].id }))
+          }
+        } else {
+          setError(childrenResult.error || "Failed to load children list")
         }
       } catch (err) {
-        console.error("Load academic years error:", err)
+        console.error("Load initial data error:", err)
         setError("An unexpected error occurred")
       }
     }
 
-    loadAcademicYears()
+    loadInitialData()
   }, [])
 
   // Load student feedback when filters change
   useEffect(() => {
-    if (!filters.academic_year_id) return
+    if (!filters.academic_year_id || children.length === 0) return
 
     const loadStudentFeedback = async () => {
       setLoading(true)
@@ -131,7 +147,7 @@ export default function ParentFeedbackDashboard() {
     }
 
     loadStudentFeedback()
-  }, [filters])
+  }, [filters, children.length])
 
   // Handle filters change
   const handleFiltersChange = (key: keyof ParentFeedbackFilters, value: string | number) => {
@@ -183,7 +199,33 @@ export default function ParentFeedbackDashboard() {
           <CardTitle className="text-base">Bộ Lọc</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Student Selection - Only show if parent has multiple children */}
+            {children.length > 1 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Con Em</label>
+                <Select
+                  value={filters.student_id || "ALL_CHILDREN"}
+                  onValueChange={(value) => handleFiltersChange('student_id', value === "ALL_CHILDREN" ? "" : value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tất cả con em" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL_CHILDREN">Tất cả con em</SelectItem>
+                    {children.map((child) => (
+                      <SelectItem key={child.id} value={child.id}>
+                        <div className="flex items-center space-x-2">
+                          <span>{child.name}</span>
+                          <span className="text-xs text-muted-foreground">({child.student_code})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Academic Year */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Năm Học</label>

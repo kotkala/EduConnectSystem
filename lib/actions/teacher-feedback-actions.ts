@@ -125,6 +125,11 @@ export async function createStudentFeedbackAction(request: CreateFeedbackRequest
       throw new Error("Access denied. You are not assigned to this class.")
     }
 
+    // Generate group_id on server-side for security if feedback_type is 'group'
+    const groupId = request.feedback_data.some(f => f.feedback_type === 'group')
+      ? crypto.randomUUID()
+      : null
+
     // Prepare feedback records for insertion
     const feedbackRecords = request.feedback_data.map(feedback => ({
       teacher_id: user.id,
@@ -135,7 +140,7 @@ export async function createStudentFeedbackAction(request: CreateFeedbackRequest
       feedback_text: feedback.feedback_text,
       rating: feedback.rating,
       feedback_type: feedback.feedback_type,
-      group_id: feedback.group_id
+      group_id: feedback.feedback_type === 'group' ? groupId : null
     }))
 
     // Insert feedback records (upsert to handle updates)

@@ -51,6 +51,8 @@ export default function AcademicManagementPage() {
   const [showEditSemesterDialog, setShowEditSemesterDialog] = useState(false)
   const [editingSemester, setEditingSemester] = useState<Semester | null>(null)
 
+
+
   // Fetch Academic Years
   const fetchAcademicYears = useCallback(async () => {
     setAcademicYearsLoading(true)

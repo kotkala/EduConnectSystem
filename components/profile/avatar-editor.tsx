@@ -149,7 +149,7 @@ export default function AvatarEditor({
           try {
             // Upload to Supabase
             const fileExt = 'jpg'
-            const filePath = `${uid}-${Math.random()}.${fileExt}`
+            const filePath = `${uid}-${crypto.randomUUID()}.${fileExt}`
 
             const { error: uploadError } = await supabase.storage
               .from('avatars')

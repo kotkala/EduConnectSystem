@@ -28,6 +28,8 @@ export default function ClassroomsPage() {
     limit: 10
   })
 
+
+
   const loadClassrooms = useCallback(async () => {
     setLoading(true)
     setError(null)

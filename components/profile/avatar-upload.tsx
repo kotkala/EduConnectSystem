@@ -66,7 +66,7 @@ export default function AvatarUpload({
       }
 
       const fileExt = file.name.split('.').pop()
-      const filePath = `${uid}-${Math.random()}.${fileExt}`
+      const filePath = `${uid}-${crypto.randomUUID()}.${fileExt}`
 
       console.log('Uploading file:', { filePath, fileSize: file.size, fileType: file.type })
 

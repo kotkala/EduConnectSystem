@@ -173,14 +173,13 @@ export function TeacherFeedbackDialog({
 
     setIsSubmitting(true)
     try {
-      const groupId = feedbackMode === 'group' ? crypto.randomUUID() : undefined
-      
+      // Let server generate UUID for security - no client-side crypto.randomUUID()
       const feedbackData: FeedbackData[] = targetStudents.map(studentId => ({
         student_id: studentId,
         feedback_text: feedbackText,
         rating: rating,
         feedback_type: feedbackMode,
-        group_id: groupId
+        group_id: undefined // Server will generate UUID if needed
       }))
 
       const request: CreateFeedbackRequest = {

@@ -228,8 +228,20 @@ export async function uploadLeaveAttachmentAction(file: File): Promise<{ success
       throw new Error("Authentication required")
     }
 
+    // Validate file type and size
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
+    const maxSize = 5 * 1024 * 1024 // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Only images (JPEG, PNG, WebP, GIF) and PDF files are allowed.')
+    }
+
+    if (file.size > maxSize) {
+      throw new Error('File too large. Maximum size is 5MB.')
+    }
+
     const fileExt = file.name.split('.').pop()
-    const fileName = `${user.id}-${Date.now()}.${fileExt}`
+    const fileName = `${user.id}-${crypto.randomUUID()}.${fileExt}`
     const filePath = `${fileName}`
 
     const { error } = await supabase.storage

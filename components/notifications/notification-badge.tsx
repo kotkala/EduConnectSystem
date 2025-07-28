@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { getUnreadNotificationCountAction } from '@/lib/actions/notification-actions'
+import { createClient } from '@/utils/supabase/client'
 
 interface NotificationBadgeProps {
   className?: string
@@ -14,11 +15,23 @@ export function NotificationBadge({ className }: NotificationBadgeProps) {
 
   useEffect(() => {
     loadUnreadCount()
-    
-    // Set up polling to check for new notifications every 30 seconds
-    const interval = setInterval(loadUnreadCount, 30000)
-    
-    return () => clearInterval(interval)
+
+    // Set up real-time subscription instead of polling for better performance
+    const supabase = createClient()
+
+    const subscription = supabase
+      .channel('notifications')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        () => {
+          loadUnreadCount() // Reload count when notifications change
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const loadUnreadCount = async () => {

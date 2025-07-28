@@ -25,7 +25,7 @@ export function StudentWeeklyGrid({
   loading = false
 }: StudentWeeklyGridProps) {
   // Get day names in Vietnamese
-  const dayNames = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu']
+  const dayNames = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
 
   // Get initials for avatar
   const getInitials = (name: string): string => {
@@ -114,8 +114,8 @@ export function StudentWeeklyGrid({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {[1, 2, 3, 4, 5].map((dayOfWeek) => {
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((dayOfWeek) => {
                 const lessons = student.daily_schedules[dayOfWeek.toString()] || []
                 const stats = getDayStats(lessons)
                 

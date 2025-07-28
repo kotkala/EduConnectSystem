@@ -43,10 +43,11 @@ export default function ParentFeedbackDashboard() {
   // Day names
   const dayNames: Record<number, string> = {
     1: "Thứ Hai",
-    2: "Thứ Ba", 
+    2: "Thứ Ba",
     3: "Thứ Tư",
     4: "Thứ Năm",
-    5: "Thứ Sáu"
+    5: "Thứ Sáu",
+    6: "Thứ Bảy"
   }
 
   // Get initials for avatar
@@ -285,7 +286,7 @@ export default function ParentFeedbackDashboard() {
 
               {/* Weekly Feedback Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5].map((dayOfWeek) => {
+                {[1, 2, 3, 4, 5, 6].map((dayOfWeek) => {
                   const dayFeedback = student.daily_feedback[dayOfWeek.toString()] || []
 
                   return (

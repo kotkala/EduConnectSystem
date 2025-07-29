@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { CalendarProvider } from "@/components/event-calendar/calendar-context";
 import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
-import TimetableCalendar from "@/components/timetable-calendar/timetable-calendar";
+import TimetableBigCalendar from "@/components/timetable-big-calendar";
 
 export const metadata: Metadata = {
   title: "Timetable Management",
@@ -13,7 +13,7 @@ export default function TimetablePage() {
     <SidebarLayout role="admin" title="Timetable Management">
       <CalendarProvider>
         <div className="flex flex-1 flex-col gap-4">
-          <TimetableCalendar />
+          <TimetableBigCalendar />
         </div>
       </CalendarProvider>
     </SidebarLayout>

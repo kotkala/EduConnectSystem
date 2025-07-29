@@ -6,6 +6,21 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
 
+  // Exclude experiment folders from build
+  webpack: (config: any) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+
+    // Exclude experiment-06 folder from compilation
+    config.module.rules.push({
+      test: /\.(js|jsx|ts|tsx)$/,
+      exclude: /experiment-06/,
+    });
+
+    return config;
+  },
+
   // Security headers
   async headers() {
     return [

@@ -24,8 +24,6 @@ export default function TeachersPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<TeacherProfile | null>(null)
 
-
-
   const fetchTeachers = useCallback(async () => {
     setLoading(true)
     setError(null)

@@ -18,6 +18,7 @@ import {
   User2,
   Zap,
   BarChart3,
+  ArrowLeftRight,
 } from "lucide-react"
 import {
   Sidebar,
@@ -45,6 +46,8 @@ import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings } from 'lucide-react'
 import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
+import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
+import { Badge } from '@/components/ui/badge'
 
 // Platform items for each role
 const platformItems = {
@@ -58,6 +61,7 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
@@ -69,6 +73,7 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
@@ -110,6 +115,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
   const { isHomeroomTeacher } = useHomeroomTeacher()
+  const { counts } = useExchangeRequestsCount(role, user?.id)
 
   // Add feedback link for homeroom teachers
   const items = role === 'teacher' && isHomeroomTeacher
@@ -167,6 +173,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
+                      {/* Show notification badge for exchange requests */}
+                      {(item.title === "Exchange Requests" && counts.pending > 0) && (
+                        <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
+                          {counts.pending}
+                        </Badge>
+                      )}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

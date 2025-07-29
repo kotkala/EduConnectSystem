@@ -16,6 +16,8 @@ import {
 } from "./teacher-timetable/teacher-timetable-event-dialog";
 import { getTeacherScheduleAction } from "@/lib/actions/teacher-schedule-actions";
 import { useAuth } from "@/hooks/use-auth";
+import { ExchangeRequestForm } from "@/components/schedule-exchange/exchange-request-form";
+import { ExchangeRequestsList } from "@/components/schedule-exchange/exchange-requests-list";
 
 // Map teacher event types to colors
 const getTeacherEventColor = (): EventColor => {
@@ -54,6 +56,9 @@ export default function TeacherScheduleBigCalendar() {
   // Dialog state
   const [selectedEvent, setSelectedEvent] = useState<TeacherTimetableEvent | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Exchange requests refresh trigger
+  const [exchangeRefreshTrigger, setExchangeRefreshTrigger] = useState(0);
 
   // Convert timetable event to calendar event
   const timetableEventToCalendarEvent = useCallback((event: TeacherTimetableEvent): CalendarEvent => {
@@ -167,17 +172,30 @@ export default function TeacherScheduleBigCalendar() {
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      {/* Filters */}
-      <TeacherTimetableFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        loading={isLoading}
-        onRefresh={() => {
-          if (hasValidFilters(filters)) {
-            loadTimetableEvents();
-          }
-        }}
-      />
+      {/* Filters and Exchange Request Button */}
+      <div className="flex flex-col gap-4">
+        <TeacherTimetableFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          loading={isLoading}
+          onRefresh={() => {
+            if (hasValidFilters(filters)) {
+              loadTimetableEvents();
+            }
+          }}
+        />
+
+        {/* Exchange Request Actions */}
+        {user && hasValidFilters(filters) && (
+          <div className="flex justify-end">
+            <ExchangeRequestForm
+              teacherId={user.id}
+              semesterId={filters.semesterId!}
+              onSuccess={() => setExchangeRefreshTrigger(prev => prev + 1)}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Calendar */}
       <div className="flex-1">
@@ -188,6 +206,14 @@ export default function TeacherScheduleBigCalendar() {
           initialView="week"
         />
       </div>
+
+      {/* Exchange Requests List */}
+      {user && (
+        <ExchangeRequestsList
+          teacherId={user.id}
+          refreshTrigger={exchangeRefreshTrigger}
+        />
+      )}
 
       {/* Event Dialog (View Only) */}
       <TeacherTimetableEventDialog

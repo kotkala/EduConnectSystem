@@ -11,7 +11,7 @@ import { Download, Upload, Send, CheckCircle, Clock, FileText, Users } from 'luc
 import { toast } from 'sonner'
 import { getAcademicYearsAction, getSemestersAction } from '@/lib/actions/academic-actions'
 import { getClassesAction } from '@/lib/actions/class-actions'
-import { getStudentsForGradeSubmissionAction, createStudentGradeSubmissionAction, getStudentGradeSubmissionsAction, submitStudentGradesAction, getSubmissionGradesAction, sendGradesToHomeroomTeacherAction } from '@/lib/actions/individual-grade-actions'
+import { getStudentsForGradeSubmissionAction, createStudentGradeSubmissionAction, getStudentGradeSubmissionsAction, submitStudentGradesAction, sendGradesToHomeroomTeacherAction } from '@/lib/actions/individual-grade-actions'
 import { createIndividualGradeTemplate, parseIndividualGradeExcel, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
 import type { AcademicYear, Semester } from '@/lib/validations/academic-validations'
 import type { ClassWithDetails } from '@/lib/validations/class-validations'
@@ -60,41 +60,6 @@ export default function IndividualGradesClient() {
     students: false,
     submissions: false
   })
-
-  // Load academic years on mount
-  useEffect(() => {
-    loadAcademicYears()
-  }, [])
-
-  // Load semesters when academic year changes
-  useEffect(() => {
-    if (form.academic_year_id) {
-      loadSemesters(form.academic_year_id)
-    } else {
-      setSemesters([])
-    }
-  }, [form.academic_year_id])
-
-  // Load classes when semester changes
-  useEffect(() => {
-    if (form.semester_id) {
-      loadClasses(form.semester_id)
-    } else {
-      setClasses([])
-    }
-  }, [form.semester_id])
-
-  // Load students when class changes
-  useEffect(() => {
-    if (form.class_id) {
-      loadStudentsAndSubjects(form.class_id)
-      loadSubmissions()
-    } else {
-      setStudents([])
-      setSubjects([])
-      setSubmissions([])
-    }
-  }, [form.class_id, form.academic_year_id, form.semester_id])
 
   const loadAcademicYears = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, academicYears: true }))
@@ -180,6 +145,41 @@ export default function IndividualGradesClient() {
     }
   }, [form.class_id, form.academic_year_id, form.semester_id])
 
+  // Load academic years on mount
+  useEffect(() => {
+    loadAcademicYears()
+  }, [loadAcademicYears])
+
+  // Load semesters when academic year changes
+  useEffect(() => {
+    if (form.academic_year_id) {
+      loadSemesters(form.academic_year_id)
+    } else {
+      setSemesters([])
+    }
+  }, [form.academic_year_id, loadSemesters])
+
+  // Load classes when semester changes
+  useEffect(() => {
+    if (form.semester_id) {
+      loadClasses(form.semester_id)
+    } else {
+      setClasses([])
+    }
+  }, [form.semester_id, loadClasses])
+
+  // Load students when class changes
+  useEffect(() => {
+    if (form.class_id) {
+      loadStudentsAndSubjects(form.class_id)
+      loadSubmissions()
+    } else {
+      setStudents([])
+      setSubjects([])
+      setSubmissions([])
+    }
+  }, [form.class_id, form.academic_year_id, form.semester_id, loadStudentsAndSubjects, loadSubmissions])
+
   const handleFormChange = useCallback((field: keyof IndividualGradeForm, value: string) => {
     setForm(prev => {
       const newForm = { ...prev, [field]: value }
@@ -246,7 +246,6 @@ export default function IndividualGradesClient() {
     setLoading(true)
     try {
       // Create submission if not exists
-      const selectedClass = classes.find(c => c.id === form.class_id)
       const selectedSemester = semesters.find(s => s.id === form.semester_id)
       const selectedAcademicYear = academicYears.find(ay => ay.id === form.academic_year_id)
 

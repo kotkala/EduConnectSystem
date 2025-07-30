@@ -4,6 +4,8 @@
 - `schema.sql` - Database schema with tables, RLS policies, and triggers
 - `seeds.sql` - Sample data for testing
 - `subjects_seeds.sql` - Vietnamese high school subjects data
+- `add_ai_summary_to_feedback.sql` - AI summary functionality for feedback system
+- `ensure_ai_summary_view.sql` - Ensures AI summary view exists (safe to run multiple times)
 - `README.md` - Setup instructions
 
 ## Setup Instructions
@@ -21,6 +23,13 @@
 1. Copy and paste `subjects_seeds.sql`
 2. Execute to import all 17 Vietnamese high school subjects
 3. Verify import with: `SELECT COUNT(*) FROM subjects;`
+
+### 4. Setup AI Summary Features
+1. Copy and paste `add_ai_summary_to_feedback.sql`
+2. Execute to add AI summary functionality
+3. Copy and paste `ensure_ai_summary_view.sql`
+4. Execute to ensure parent feedback view exists
+5. Verify setup with: `SELECT * FROM parent_feedback_with_ai_summary LIMIT 1;`
 
 ### 4. Configure Authentication
 1. Go to Authentication > Providers → Enable Google OAuth

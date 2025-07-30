@@ -18,7 +18,9 @@ import {
   Star,
   GraduationCap,
   Eye,
-  User
+  User,
+  Sparkles,
+  TrendingUp
 } from "lucide-react"
 import {
   getParentAcademicYearsAction,
@@ -31,6 +33,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
+
+
 export default function ParentFeedbackDashboard() {
   const [filters, setFilters] = useState<ParentFeedbackFilters>({
     academic_year_id: "",
@@ -42,6 +46,8 @@ export default function ParentFeedbackDashboard() {
   const [studentFeedback, setStudentFeedback] = useState<StudentFeedbackForParent[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showAiSummary] = useState(true)
+  const [showDailyAiSummary] = useState(true)
 
   // Day names
   const dayNames: Record<number, string> = {
@@ -154,6 +160,8 @@ export default function ParentFeedbackDashboard() {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
+
+
   // Mark feedback as read
   const handleMarkAsRead = async (feedbackId: string) => {
     try {
@@ -186,11 +194,13 @@ export default function ParentFeedbackDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Phản Hồi Học Tập</h2>
-        <p className="text-muted-foreground">
-          Xem phản hồi học tập của con em từ giáo viên theo tuần học
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold tracking-tight">Phản Hồi Học Tập</h2>
+          <p className="text-muted-foreground">
+            Xem phản hồi học tập của con em từ giáo viên theo tuần học
+          </p>
+        </div>
       </div>
 
       {/* Filters */}
@@ -326,6 +336,55 @@ export default function ParentFeedbackDashboard() {
                 </div>
               </div>
 
+              {/* AI Summary Section */}
+              {showAiSummary && Object.values(student.daily_feedback).flat().length > 0 && (
+                <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-purple-800 dark:text-purple-200">
+                        <Sparkles className="h-5 w-5" />
+                        <span>Tóm Tắt AI & Tiến Bộ - Tuần {filters.week_number}</span>
+                      </div>
+                      {filters.week_number > 1 && (
+                        <div className="flex items-center space-x-1 text-xs text-purple-600 dark:text-purple-400">
+                          <TrendingUp className="h-3 w-3" />
+                          <span>So với tuần trước</span>
+                        </div>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-purple-200/50 dark:border-purple-800/50">
+                      <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {/* Mock AI summary with progress - In real implementation, this would come from the database */}
+                        <div className="space-y-2">
+                          <span className="italic text-purple-600 dark:text-purple-400">
+                            &ldquo;{student.student_name} tiến bộ rõ rệt tuần này! Điểm Toán tăng từ 3.5 lên 4.5. Tiếp tục duy trì.&rdquo;
+                          </span>
+                          {filters.week_number > 1 && (
+                            <div className="flex items-center space-x-2 text-xs">
+                              <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
+                                <TrendingUp className="h-3 w-3" />
+                                <span>Điểm trung bình: +0.8</span>
+                              </div>
+                              <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                              <span className="text-gray-500">So với tuần {filters.week_number - 1}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-3 text-xs text-purple-600 dark:text-purple-400 flex items-center justify-between">
+                        <div className="flex items-center space-x-1">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Được tạo bởi AI với theo dõi tiến bộ</span>
+                        </div>
+                        <span className="text-gray-400">Tuần {filters.week_number}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Weekly Feedback Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((dayOfWeek) => {
@@ -353,6 +412,64 @@ export default function ParentFeedbackDashboard() {
                       <CardContent>
                         {dayFeedback.length > 0 ? (
                           <div className="space-y-4">
+                            {/* Teacher's Daily AI Summary */}
+                            {showDailyAiSummary && dayFeedback.length > 0 && (() => {
+                              // Find teacher's AI summary for this day
+                              const teacherAiSummary = dayFeedback.find(f => f.ai_summary && f.use_ai_summary)
+
+                              return teacherAiSummary ? (
+                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-3 border border-green-200/50 dark:border-green-800/50 mb-4">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <Sparkles className="h-4 w-4 text-green-600" />
+                                      <span className="text-xs font-medium text-green-800 dark:text-green-200">
+                                        Tóm tắt từ Giáo viên - {dayNames[dayOfWeek]}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-green-600 dark:text-green-400">
+                                      {new Date(teacherAiSummary.ai_generated_at!).toLocaleDateString('vi-VN')}
+                                    </div>
+                                  </div>
+                                  <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
+                                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                                      &ldquo;{teacherAiSummary.ai_summary}&rdquo;
+                                    </p>
+                                  </div>
+                                  <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-between">
+                                    <div className="flex items-center space-x-1">
+                                      <Sparkles className="h-3 w-3" />
+                                      <span>Tóm tắt AI từ giáo viên</span>
+                                    </div>
+                                    <span className="text-gray-400">
+                                      {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                // Show message when no teacher AI summary available
+                                <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20 rounded-lg p-3 border border-gray-200/50 dark:border-gray-800/50 mb-4">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <MessageSquare className="h-4 w-4 text-gray-500" />
+                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Tóm tắt AI - {dayNames[dayOfWeek]}
+                                    </span>
+                                  </div>
+                                  <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">
+                                      Giáo viên chưa tạo tóm tắt AI cho ngày này.
+                                    </p>
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-between">
+                                    <span>Có {dayFeedback.length} phản hồi chi tiết</span>
+                                    <span className="text-gray-400">
+                                      {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            })()}
+
+                            {/* Individual Feedback Items */}
                             {dayFeedback.map((feedback) => (
                               <div key={feedback.feedback_id} className={`bg-white dark:bg-gray-800 rounded-lg p-4 border-l-4 ${feedback.is_read ? 'border-l-gray-300' : 'border-l-blue-500'} shadow-sm`}>
                                 {/* Subject and Time */}

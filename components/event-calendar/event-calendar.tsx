@@ -50,6 +50,7 @@ export interface EventCalendarProps {
   onEventAdd?: (event: CalendarEvent) => void;
   onEventUpdate?: (event: CalendarEvent) => void;
   onEventDelete?: (eventId: string) => void;
+  onSelectEvent?: (event: CalendarEvent) => void;
   className?: string;
   initialView?: CalendarView;
 }
@@ -59,6 +60,7 @@ export function EventCalendar({
   onEventAdd,
   onEventUpdate,
   onEventDelete,
+  onSelectEvent,
   className,
   initialView = "month",
 }: EventCalendarProps) {
@@ -139,8 +141,14 @@ export function EventCalendar({
 
   const handleEventSelect = (event: CalendarEvent) => {
     console.log("Event selected:", event); // Debug log
-    setSelectedEvent(event);
-    setIsEventDialogOpen(true);
+
+    // If external onSelectEvent is provided, use it instead of internal dialog
+    if (onSelectEvent) {
+      onSelectEvent(event);
+    } else {
+      setSelectedEvent(event);
+      setIsEventDialogOpen(true);
+    }
   };
 
   const handleEventCreate = (startTime: Date) => {
@@ -206,9 +214,9 @@ export function EventCalendar({
       const start = startOfWeek(currentDate, { weekStartsOn: 0 });
       const end = endOfWeek(currentDate, { weekStartsOn: 0 });
       if (isSameMonth(start, end)) {
-        return format(start, "MMMM yyyy");
+        return `${format(start, "MMM d")} - ${format(end, "d, yyyy")}`;
       } else {
-        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`;
+        return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
       }
     } else if (view === "day") {
       return (

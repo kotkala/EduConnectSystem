@@ -209,8 +209,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
 // Get grade statistics for a student
 export async function getStudentGradeStatsAction(submissionId: string) {
   try {
-    const { user } = await checkParentPermissions()
-    const supabase = await createClient()
+    await checkParentPermissions()
 
     // Get submission details first
     const detailResult = await getStudentGradeDetailAction(submissionId)

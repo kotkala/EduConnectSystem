@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   Home,
   Users,
@@ -20,6 +21,7 @@ import {
   BarChart3,
   ArrowLeftRight,
   ClipboardList,
+  Bot,
 } from "lucide-react"
 import {
   Sidebar,
@@ -45,13 +47,22 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
-import { LogOut, Settings } from 'lucide-react'
+import { LogOut, Settings, MessageCircle } from 'lucide-react'
 import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
 import { Badge } from '@/components/ui/badge'
+import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
+
+// Platform item type
+interface PlatformItem {
+  title: string
+  url: string
+  icon: React.ComponentType
+  isSpecial?: boolean
+}
 
 // Platform items for each role
-const platformItems = {
+const platformItems: Record<string, PlatformItem[]> = {
   admin: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
     { title: "Users", url: "/dashboard/admin/users", icon: Users },
@@ -99,6 +110,8 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Trợ Lý AI", url: "#", icon: Bot, isSpecial: true },
+    { title: "Trợ Lý AI - Mở Rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
     { title: "Bảng Điểm Con Em", url: "/dashboard/parent/grades", icon: Award },
     { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
@@ -122,8 +135,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const { isHomeroomTeacher } = useHomeroomTeacher()
   const { counts } = useExchangeRequestsCount(role, user?.id)
 
+  // Chatbot state for parent role
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false)
+  const [isChatbotMinimized, setIsChatbotMinimized] = useState(false)
+
   // Add feedback link for homeroom teachers
-  const items = role === 'teacher' && isHomeroomTeacher
+  const items: PlatformItem[] = role === 'teacher' && isHomeroomTeacher
     ? [
         ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Meetings)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
@@ -143,6 +160,14 @@ export function AppSidebar({ role }: AppSidebarProps) {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  // Handle chatbot toggle for parent role
+  const handleChatbotClick = () => {
+    if (role === 'parent') {
+      setIsChatbotOpen(true)
+      setIsChatbotMinimized(false)
+    }
   }
 
   return (
@@ -174,18 +199,29 @@ export function AppSidebar({ role }: AppSidebarProps) {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  {/* Special handling for chatbot button */}
+                  {item.isSpecial && item.title === "Trợ Lý AI" ? (
+                    <SidebarMenuButton onClick={handleChatbotClick} className="cursor-pointer">
                       <item.icon />
                       <span>{item.title}</span>
-                      {/* Show notification badge for exchange requests */}
-                      {(item.title === "Exchange Requests" && counts.pending > 0) && (
-                        <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
-                          {counts.pending}
-                        </Badge>
-                      )}
-                    </a>
-                  </SidebarMenuButton>
+                      <div className="ml-auto">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      </div>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton asChild>
+                      <a href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                        {/* Show notification badge for exchange requests */}
+                        {(item.title === "Exchange Requests" && counts.pending > 0) && (
+                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
+                            {counts.pending}
+                          </Badge>
+                        )}
+                      </a>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -236,6 +272,17 @@ export function AppSidebar({ role }: AppSidebarProps) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      {/* Chatbot for parent role */}
+      {role === 'parent' && (
+        <ParentChatbot
+          isOpen={isChatbotOpen}
+          onClose={() => setIsChatbotOpen(false)}
+          onMinimize={() => setIsChatbotMinimized(!isChatbotMinimized)}
+          isMinimized={isChatbotMinimized}
+          mode="floating"
+        />
+      )}
     </Sidebar>
   )
 }

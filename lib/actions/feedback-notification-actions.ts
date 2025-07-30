@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 
 // Send all daily feedback to parents
 export async function sendDailyFeedbackToParentsAction(
@@ -102,18 +103,17 @@ export async function sendDailyFeedbackToParentsAction(
       }
     }
 
-    const { error: insertError } = await supabase
+    // Use upsert to handle duplicates - update sent_at if already exists
+    // Use admin client to bypass RLS since we've already verified teacher permissions
+    const adminSupabase = createAdminClient()
+    const { error: insertError } = await adminSupabase
       .from('feedback_notifications')
-      .insert(notifications)
+      .upsert(notifications, {
+        onConflict: 'student_feedback_id,parent_id',
+        ignoreDuplicates: false
+      })
 
     if (insertError) {
-      // Check if it's a duplicate error (feedback already sent)
-      if (insertError.code === '23505') {
-        return {
-          success: false,
-          error: "Some feedback has already been sent to parents"
-        }
-      }
       throw new Error(insertError.message)
     }
 
@@ -209,18 +209,17 @@ export async function sendFeedbackToParentsAction(
       teacher_id: user.id
     }))
 
-    const { error: insertError } = await supabase
+    // Use upsert to handle duplicates - update sent_at if already exists
+    // Use admin client to bypass RLS since we've already verified teacher permissions
+    const adminSupabase = createAdminClient()
+    const { error: insertError } = await adminSupabase
       .from('feedback_notifications')
-      .insert(notifications)
+      .upsert(notifications, {
+        onConflict: 'student_feedback_id,parent_id',
+        ignoreDuplicates: false
+      })
 
     if (insertError) {
-      // Check if it's a duplicate error (feedback already sent)
-      if (insertError.code === '23505') {
-        return {
-          success: false,
-          error: "Feedback has already been sent to parents"
-        }
-      }
       throw new Error(insertError.message)
     }
 

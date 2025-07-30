@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -82,11 +82,7 @@ export default function AnalyticsClient() {
     trends: false
   })
 
-  useEffect(() => {
-    loadAllAnalytics()
-  }, [])
-
-  const loadAllAnalytics = async () => {
+  const loadAllAnalytics = useCallback(async () => {
     setLoading(true)
     await Promise.all([
       loadOverallStats(),
@@ -96,7 +92,11 @@ export default function AnalyticsClient() {
       loadTrendAnalysis()
     ])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    loadAllAnalytics()
+  }, [loadAllAnalytics])
 
   const loadOverallStats = async () => {
     setLoadingStates(prev => ({ ...prev, overall: true }))

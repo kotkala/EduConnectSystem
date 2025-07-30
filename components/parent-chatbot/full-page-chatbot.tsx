@@ -1,0 +1,375 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Slider } from "@/components/ui/slider"
+import {
+  Bot,
+  Send,
+  User,
+  Sparkles,
+  Copy,
+  Share
+} from "lucide-react"
+import { toast } from "sonner"
+
+interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
+  contextUsed?: {
+    studentsCount: number
+    feedbackCount: number
+    gradesCount: number
+  }
+}
+
+interface FullPageChatbotProps {
+  className?: string
+}
+
+export default function FullPageChatbot({ className }: FullPageChatbotProps) {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
+      timestamp: new Date()
+    }
+  ])
+  const [inputMessage, setInputMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [fontSize, setFontSize] = useState([14]) // Font size setting
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [])
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: inputMessage.trim(),
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInputMessage('')
+    setIsLoading(true)
+
+    try {
+      // Prepare conversation history for API
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      }))
+
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputMessage.trim(),
+          conversationHistory
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          contextUsed: data.contextUsed
+        }
+        setMessages(prev => [...prev, assistantMessage])
+      } else {
+        throw new Error(data.error || 'Failed to get response')
+      }
+    } catch (error) {
+      console.error('Chat error:', error)
+      toast.error('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.')
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  }
+
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content)
+    toast.success('Đã sao chép tin nhắn')
+  }
+
+  // Suggested prompts for parents
+  const suggestedPrompts = [
+    "Điểm số gần đây của con em như thế nào?",
+    "Con em có cần cải thiện môn nào không?",
+    "Phản hồi từ giáo viên tuần này ra sao?",
+    "Con em có tiến bộ gì đáng chú ý không?",
+    "Môn nào con em học tốt nhất?",
+    "Tôi nên hỗ trợ con em học tập như thế nào?"
+  ]
+
+  return (
+    <div className={`flex h-screen bg-white text-gray-900 ${className}`}>
+      {/* Main Content - No separate sidebar, use existing layout */}
+      <div className="flex-1 flex">
+        {/* Chat Area */}
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Top Bar */}
+          <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Bot className="h-6 w-6 text-blue-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Trợ Lý AI EduConnect</h2>
+              </div>
+              <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
+                ● Đang hoạt động
+              </Badge>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                <Share className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Suggested Prompts */}
+          {messages.length === 1 && (
+            <div className="p-6 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">💡 Gợi ý câu hỏi:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {suggestedPrompts.map((prompt, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="text-left justify-start h-auto p-3 text-sm text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                    onClick={() => setInputMessage(prompt)}
+                  >
+                    {prompt}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
+            {messages.map((message) => (
+              <div key={message.id} className="group">
+                <div className="flex items-start space-x-4">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback className={`${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-green-500 text-white'
+                    }`}>
+                      {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm font-medium text-gray-900">
+                        {message.role === 'user' ? 'Bạn' : 'EduConnect AI'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatTime(message.timestamp)}
+                      </span>
+                    </div>
+
+                    <div className="prose max-w-none">
+                      <p
+                        className="text-gray-800 whitespace-pre-wrap leading-relaxed"
+                        style={{ fontSize: `${fontSize[0]}px` }}
+                      >
+                        {message.content}
+                      </p>
+                    </div>
+                    
+                    {/* Context info for assistant messages */}
+                    {message.role === 'assistant' && message.contextUsed && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-2 text-xs text-blue-700">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center space-x-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyMessage(message.content)}
+                        className="h-6 px-2 text-xs text-gray-600 hover:text-gray-900"
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="flex items-start space-x-4">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-green-500 text-white">
+                    <Bot className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">EduConnect AI</span>
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t border-gray-200 p-6 bg-white">
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <Input
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Hỏi về tình hình học tập của con em..."
+                  disabled={isLoading}
+                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <Button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isLoading}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Settings */}
+        <div className="w-80 bg-gray-50 border-l border-gray-200 p-6">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">⚙️ CÀI ĐẶT HIỂN THỊ</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-medium text-gray-600">Kích cỡ chữ</label>
+                    <span className="text-xs text-gray-600">{fontSize[0]}px</span>
+                  </div>
+                  <Slider
+                    value={fontSize}
+                    onValueChange={setFontSize}
+                    max={20}
+                    min={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Nhỏ</span>
+                    <span>Vừa</span>
+                    <span>Lớn</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">📋 THÔNG TIN</h3>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <div className="space-y-2 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Model:</span>
+                    <span className="font-medium">EduConnect AI</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Phiên bản:</span>
+                    <span className="font-medium">2.0</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Trạng thái:</span>
+                    <span className="font-medium text-green-600">● Hoạt động</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">💡 HƯỚNG DẪN</h3>
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="space-y-2 text-xs text-blue-700">
+                  <p>• Hỏi về điểm số và thành tích học tập</p>
+                  <p>• Xem phản hồi từ giáo viên</p>
+                  <p>• Theo dõi tiến bộ của con em</p>
+                  <p>• Nhận tư vấn hỗ trợ học tập</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

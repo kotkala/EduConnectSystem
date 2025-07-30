@@ -271,8 +271,7 @@ export async function getStudentParentsAction(studentId: string) {
 // Send grades to all parents in class
 export async function sendAllGradesToParentsAction(summaryId: string) {
   try {
-    const { user } = await checkTeacherPermissions()
-    const supabase = await createClient()
+    await checkTeacherPermissions()
 
     // Get class grade details
     const detailsResult = await getClassGradeDetailsAction(summaryId)
@@ -283,7 +282,7 @@ export async function sendAllGradesToParentsAction(summaryId: string) {
       }
     }
 
-    const { summary, submissions } = detailsResult.data
+    const { submissions } = detailsResult.data
     let successCount = 0
     let errorCount = 0
 

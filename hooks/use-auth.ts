@@ -22,8 +22,8 @@ export function useAuth() {
         if (session?.user) {
           await handleUserSession(session.user)
         }
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred')
       } finally {
         setLoading(false)
       }

@@ -505,7 +505,13 @@ export async function getStudentsWithParentsAction(filters?: UserFilters) {
           id,
           relationship_type,
           is_primary_contact,
-          parent:parent_id(*)
+          parent:profiles!parent_id(
+            id,
+            full_name,
+            email,
+            phone_number,
+            role
+          )
         )
       `)
       .eq("role", "student")

@@ -74,37 +74,47 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
   }
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
+    <Card className="w-full max-w-5xl mx-auto shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 border-b">
+        <CardTitle className="flex items-center gap-3 text-2xl font-bold">
+          <Users className="h-6 w-6 text-blue-600" />
           Add New Student & Parent
         </CardTitle>
-        <CardDescription>
-          Create a new student account with mandatory parent information. Both accounts will be created together.
+        <CardDescription className="text-base mt-2">
+          Create a new student account with mandatory parent information. Both accounts will be created together with secure authentication.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <CardContent className="p-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
           {/* Student Information Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-blue-600">Student Information</h3>
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 pb-4 border-b border-blue-100">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-blue-700">Student Information</h3>
+                <p className="text-sm text-blue-600">Enter the student&apos;s personal details</p>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Student ID */}
-              <div className="space-y-2">
-                <Label htmlFor="student_id">Student ID *</Label>
+              <div className="space-y-3">
+                <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
+                  Student ID *
+                </Label>
                 <Input
                   id="student_id"
                   {...form.register("student.student_id")}
                   placeholder="e.g., STU001"
-                  className={form.formState.errors.student?.student_id ? "border-red-500" : ""}
+                  className={`h-11 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
                 />
                 {form.formState.errors.student?.student_id && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.student_id.message}</p>
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <span className="text-red-500">⚠</span>
+                    {form.formState.errors.student.student_id.message}
+                  </p>
                 )}
               </div>
 
@@ -203,17 +213,21 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
             </div>
           </div>
 
-          <Separator />
+          <Separator className="my-8" />
 
           {/* Parent Information Section */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-green-600" />
-              <h3 className="text-lg font-semibold text-green-600">Parent Information</h3>
-              <span className="text-sm text-muted-foreground">(Required)</span>
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 pb-4 border-b border-green-100">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <User className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-green-700">Parent Information</h3>
+                <p className="text-sm text-green-600">Enter the parent/guardian details (Required)</p>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Parent Full Name */}
               <div className="space-y-2">
                 <Label htmlFor="parent_name">Full Name *</Label>
@@ -344,45 +358,52 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
 
           {/* Error/Success Messages */}
           {submitError && (
-            <Alert variant="destructive">
-              <AlertDescription>{submitError}</AlertDescription>
+            <Alert variant="destructive" className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800 font-medium">
+                <span className="text-red-500 mr-2">⚠</span>
+                {submitError}
+              </AlertDescription>
             </Alert>
           )}
 
           {submitSuccess && (
-            <Alert>
-              <AlertDescription className="text-green-600">{submitSuccess}</AlertDescription>
+            <Alert className="border-green-200 bg-green-50">
+              <AlertDescription className="text-green-800 font-medium">
+                <span className="text-green-500 mr-2">✓</span>
+                {submitSuccess}
+              </AlertDescription>
             </Alert>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-gray-200">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-200"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                   Creating Student & Parent...
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-3 h-5 w-5" />
                   Create Student & Parent
                 </>
               )}
             </Button>
-            
+
             {onCancel && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onCancel}
                 disabled={isSubmitting}
+                className="h-12 px-8 text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
-                <X className="mr-2 h-4 w-4" />
+                <X className="mr-2 h-5 w-5" />
                 Cancel
               </Button>
             )}

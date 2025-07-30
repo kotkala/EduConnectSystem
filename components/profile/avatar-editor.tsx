@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/utils/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -102,7 +103,7 @@ export default function AvatarEditor({
       setUploading(true)
 
       // Create image element to load the selected image
-      const img = new Image()
+      const img = new window.Image()
       img.onload = async () => {
         const canvas = canvasRef.current!
         const ctx = canvas.getContext('2d')!
@@ -148,7 +149,7 @@ export default function AvatarEditor({
           try {
             // Upload to Supabase
             const fileExt = 'jpg'
-            const filePath = `${uid}-${Math.random()}.${fileExt}`
+            const filePath = `${uid}-${crypto.randomUUID()}.${fileExt}`
 
             const { error: uploadError } = await supabase.storage
               .from('avatars')
@@ -266,11 +267,14 @@ export default function AvatarEditor({
                       transformOrigin: 'center'
                     }}
                   >
-                    <img
+                    <Image
                       ref={imageRef}
                       src={selectedImage}
                       alt="Preview"
+                      width={256}
+                      height={256}
                       className="max-h-64 max-w-full object-contain"
+                      unoptimized
                     />
                   </div>
 

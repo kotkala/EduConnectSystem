@@ -17,6 +17,8 @@ import {
   ChevronUp,
   User2,
   Zap,
+  BarChart3,
+  ArrowLeftRight,
 } from "lucide-react"
 import {
   Sidebar,
@@ -43,6 +45,9 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings } from 'lucide-react'
+import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
+import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
+import { Badge } from '@/components/ui/badge'
 
 // Platform items for each role
 const platformItems = {
@@ -56,6 +61,7 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
     { title: "Dashboard", url: "/dashboard/admin", icon: Home },
@@ -67,12 +73,14 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
     { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
+    { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
     { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
     { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
@@ -87,6 +95,7 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
     { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
@@ -102,9 +111,20 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ role }: AppSidebarProps) {
-  const items = platformItems[role] || []
+  const baseItems = platformItems[role] || []
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
+  const { isHomeroomTeacher } = useHomeroomTeacher()
+  const { counts } = useExchangeRequestsCount(role, user?.id)
+
+  // Add feedback link for homeroom teachers
+  const items = role === 'teacher' && isHomeroomTeacher
+    ? [
+        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Meetings)
+        { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
+        ...baseItems.slice(4) // Add remaining items
+      ]
+    : baseItems
 
   const handleSignOut = async () => {
     await signOut()
@@ -153,6 +173,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
+                      {/* Show notification badge for exchange requests */}
+                      {(item.title === "Exchange Requests" && counts.pending > 0) && (
+                        <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
+                          {counts.pending}
+                        </Badge>
+                      )}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -171,12 +171,16 @@ export function TimetableEventForm({
 
   // Auto-calculate end time when start time changes
   const startTime = form.watch('start_time')
+
+  // Optimize form dependency for useEffect - Context7 React Best Practice
+  const formSetValue = useMemo(() => form.setValue, [form.setValue])
+
   useEffect(() => {
     if (startTime) {
       const endTime = calculateEndTime(startTime, 45)
-      form.setValue('end_time', endTime)
+      formSetValue('end_time', endTime)
     }
-  }, [startTime, form])
+  }, [startTime, formSetValue])
 
   // Check for conflicts when relevant fields change
   useEffect(() => {

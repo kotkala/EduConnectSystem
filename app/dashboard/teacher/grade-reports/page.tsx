@@ -2,9 +2,9 @@ import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
-import StudentsPageClient from './students-page-client'
+import TeacherGradeReportsClient from './teacher-grade-reports-client'
 
-export default async function StudentsPage() {
+export default async function TeacherGradeReportsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -14,20 +14,19 @@ export default async function StudentsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, homeroom_enabled')
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || profile.role !== 'teacher') {
     redirect('/dashboard')
   }
 
   return (
-    <SidebarLayout role="admin" title="Student & Parent Management">
+    <SidebarLayout role="teacher" title="Quản Lý Bảng Điểm">
       <Suspense fallback={<div>Loading...</div>}>
-        <StudentsPageClient />
+        <TeacherGradeReportsClient />
       </Suspense>
     </SidebarLayout>
   )
 }
-

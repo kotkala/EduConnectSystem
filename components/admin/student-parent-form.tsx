@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
@@ -12,23 +12,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, Save, X, User, Users } from "lucide-react"
-import { studentParentSchema, type StudentParentFormData } from "@/lib/validations/user-validations"
-import { createStudentWithParentAction } from "@/lib/actions/user-actions"
+import { Loader2, Save, X, User, Users, RefreshCw } from "lucide-react"
+import { studentParentSchema, type StudentParentFormData, type StudentWithParent } from "@/lib/validations/user-validations"
+import { createStudentWithParentAction, generateNextStudentIdAction } from "@/lib/actions/user-actions"
+import { EmailSuggestionInput } from "@/components/admin/email-suggestion-input"
 
 interface StudentParentFormProps {
+  editMode?: boolean
+  initialData?: StudentWithParent
   onSuccess?: () => void
   onCancel?: () => void
 }
 
-export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProps) {
+export function StudentParentForm({ editMode = false, initialData, onSuccess, onCancel }: StudentParentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const [generatingId, setGeneratingId] = useState(false)
 
-  const form = useForm<StudentParentFormData>({
-    resolver: zodResolver(studentParentSchema),
-    defaultValues: {
+  // Prepare initial values based on edit mode
+  const getInitialValues = (): StudentParentFormData => {
+    if (editMode && initialData) {
+      return {
+        student: {
+          student_id: initialData.student_id || "",
+          full_name: initialData.full_name || "",
+          email: initialData.email || "",
+          phone_number: initialData.phone_number || "",
+          gender: (initialData.gender as "male" | "female") || "male",
+          date_of_birth: initialData.date_of_birth || "",
+          address: initialData.address || ""
+        },
+        parent: {
+          full_name: initialData.parent_relationship?.parent?.full_name || "",
+          email: initialData.parent_relationship?.parent?.email || "",
+          phone_number: initialData.parent_relationship?.parent?.phone_number || "",
+          gender: "male", // Default since we don't have parent gender in relationship
+          date_of_birth: "",
+          address: "",
+          relationship_type: (initialData.parent_relationship?.relationship_type as "father" | "mother" | "guardian") || "father",
+          is_primary_contact: initialData.parent_relationship?.is_primary_contact ?? true
+        }
+      }
+    }
+
+    return {
       student: {
         student_id: "",
         full_name: "",
@@ -49,7 +77,33 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
         is_primary_contact: true as boolean
       }
     }
+  }
+
+  const form = useForm<StudentParentFormData>({
+    resolver: zodResolver(studentParentSchema),
+    defaultValues: getInitialValues()
   })
+
+  const generateStudentId = useCallback(async () => {
+    setGeneratingId(true)
+    try {
+      const result = await generateNextStudentIdAction()
+      if (result.success && result.data) {
+        form.setValue("student.student_id", result.data)
+      }
+    } catch (error) {
+      console.error("Failed to generate student ID:", error)
+    } finally {
+      setGeneratingId(false)
+    }
+  }, [form])
+
+  // Auto-generate student ID for new students
+  useEffect(() => {
+    if (!editMode && !form.getValues("student.student_id")) {
+      generateStudentId()
+    }
+  }, [editMode, form, generateStudentId])
 
   const onSubmit = async (data: StudentParentFormData) => {
     setIsSubmitting(true)
@@ -60,11 +114,13 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
       const result = await createStudentWithParentAction(data)
 
       if (result.success) {
-        setSubmitSuccess(result.message || "Student and parent created successfully")
-        form.reset()
+        setSubmitSuccess(result.message || `Student and parent ${editMode ? 'updated' : 'created'} successfully`)
+        if (!editMode) {
+          form.reset()
+        }
         onSuccess?.()
       } else {
-        setSubmitError(result.error || "Failed to create student and parent")
+        setSubmitError(result.error || `Failed to ${editMode ? 'update' : 'create'} student and parent`)
       }
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "An unexpected error occurred")
@@ -73,15 +129,30 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
     }
   }
 
+  // Handle parent email suggestion selection
+  const handleParentEmailSelect = (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => {
+    if (user) {
+      form.setValue("parent.full_name", user.full_name || "")
+      form.setValue("parent.phone_number", user.phone_number || "")
+      form.setValue("parent.address", user.address || "")
+      const validGender = user.gender === "male" || user.gender === "female" || user.gender === "other" ? user.gender : "male"
+      form.setValue("parent.gender", validGender)
+      form.setValue("parent.date_of_birth", user.date_of_birth || "")
+    }
+  }
+
   return (
     <Card className="w-full max-w-5xl mx-auto shadow-lg">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 border-b">
         <CardTitle className="flex items-center gap-3 text-2xl font-bold">
           <Users className="h-6 w-6 text-blue-600" />
-          Add New Student & Parent
+          {editMode ? "Edit Student & Parent Information" : "Add New Student & Parent"}
         </CardTitle>
         <CardDescription className="text-base mt-2">
-          Create a new student account with mandatory parent information. Both accounts will be created together with secure authentication.
+          {editMode
+            ? "Update student and parent information. Changes will be saved to both accounts."
+            : "Create a new student account with mandatory parent information. Both accounts will be created together with secure authentication."
+          }
         </CardDescription>
       </CardHeader>
       <CardContent className="p-8">
@@ -104,16 +175,40 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
                 <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
                   Student ID *
                 </Label>
-                <Input
-                  id="student_id"
-                  {...form.register("student.student_id")}
-                  placeholder="e.g., STU001"
-                  className={`h-11 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"}`}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="student_id"
+                    {...form.register("student.student_id")}
+                    placeholder="e.g., SU001"
+                    readOnly={editMode}
+                    className={`h-11 flex-1 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
+                  />
+                  {!editMode && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateStudentId}
+                      disabled={generatingId}
+                      className="h-11 px-3"
+                    >
+                      {generatingId ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
                 {form.formState.errors.student?.student_id && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
                     <span className="text-red-500">⚠</span>
                     {form.formState.errors.student.student_id.message}
+                  </p>
+                )}
+                {!editMode && (
+                  <p className="text-xs text-gray-500">
+                    Student ID will be auto-generated (SU001, SU002, etc.)
                   </p>
                 )}
               </div>
@@ -242,20 +337,17 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
                 )}
               </div>
 
-              {/* Parent Email */}
-              <div className="space-y-2">
-                <Label htmlFor="parent_email">Email *</Label>
-                <Input
-                  id="parent_email"
-                  type="email"
-                  {...form.register("parent.email")}
-                  placeholder="parent@email.com"
-                  className={form.formState.errors.parent?.email ? "border-red-500" : ""}
-                />
-                {form.formState.errors.parent?.email && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.email.message}</p>
-                )}
-              </div>
+              {/* Parent Email with Suggestion */}
+              <EmailSuggestionInput
+                id="parent_email"
+                label="Email *"
+                placeholder="parent@email.com"
+                value={form.watch("parent.email")}
+                onChange={(value) => form.setValue("parent.email", value)}
+                onBlur={() => form.trigger("parent.email")}
+                error={form.formState.errors.parent?.email?.message}
+                onUserSelect={handleParentEmailSelect}
+              />
 
               {/* Parent Phone */}
               <div className="space-y-2">
@@ -385,12 +477,12 @@ export function StudentParentForm({ onSuccess, onCancel }: StudentParentFormProp
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                  Creating Student & Parent...
+                  {editMode ? "Updating Student & Parent..." : "Creating Student & Parent..."}
                 </>
               ) : (
                 <>
                   <Save className="mr-3 h-5 w-5" />
-                  Create Student & Parent
+                  {editMode ? "Update Student & Parent" : "Create Student & Parent"}
                 </>
               )}
             </Button>

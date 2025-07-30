@@ -634,3 +634,85 @@ export async function deleteStudentAction(studentId: string) {
     }
   }
 }
+
+// Search users by email for suggestions
+export async function searchUsersByEmailAction(emailQuery: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, phone_number, address, gender, date_of_birth')
+      .ilike('email', `%${emailQuery}%`)
+      .limit(5)
+      .order('full_name', { ascending: true })
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    return {
+      success: true,
+      data: users || []
+    }
+  } catch (error) {
+    console.error('Error searching users by email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to search users"
+    }
+  }
+}
+
+// Generate next student ID (SU + auto-increment number)
+export async function generateNextStudentIdAction() {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    // Get the highest student ID number
+    const { data: students, error } = await supabase
+      .from('profiles')
+      .select('student_id')
+      .eq('role', 'student')
+      .not('student_id', 'is', null)
+      .order('student_id', { ascending: false })
+      .limit(1)
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    let nextNumber = 1
+    if (students && students.length > 0) {
+      const lastStudentId = students[0].student_id
+      if (lastStudentId && lastStudentId.startsWith('SU')) {
+        const lastNumber = parseInt(lastStudentId.substring(2))
+        if (!isNaN(lastNumber)) {
+          nextNumber = lastNumber + 1
+        }
+      }
+    }
+
+    // Format with leading zeros (SU001, SU002, etc.)
+    const nextStudentId = `SU${nextNumber.toString().padStart(3, '0')}`
+
+    return {
+      success: true,
+      data: nextStudentId
+    }
+  } catch (error) {
+    console.error('Error generating next student ID:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to generate student ID"
+    }
+  }
+}

@@ -2,9 +2,9 @@ import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
-import StudentsPageClient from './students-page-client'
+import ParentGradesClient from './parent-grades-client'
 
-export default async function StudentsPage() {
+export default async function ParentGradesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -18,16 +18,15 @@ export default async function StudentsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || profile.role !== 'parent') {
     redirect('/dashboard')
   }
 
   return (
-    <SidebarLayout role="admin" title="Student & Parent Management">
+    <SidebarLayout role="parent" title="Bảng Điểm Con Em">
       <Suspense fallback={<div>Loading...</div>}>
-        <StudentsPageClient />
+        <ParentGradesClient />
       </Suspense>
     </SidebarLayout>
   )
 }
-

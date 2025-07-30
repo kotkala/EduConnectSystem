@@ -19,6 +19,7 @@ import {
   Zap,
   BarChart3,
   ArrowLeftRight,
+  ClipboardList,
 } from "lucide-react"
 import {
   Sidebar,
@@ -61,6 +62,7 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
@@ -73,12 +75,14 @@ const platformItems = {
     { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
+    { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
     { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
     { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Bảng Điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
     { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
@@ -95,6 +99,7 @@ const platformItems = {
   parent: [
     { title: "Dashboard", url: "/dashboard/parent", icon: Home },
     { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Bảng Điểm Con Em", url: "/dashboard/parent/grades", icon: Award },
     { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },

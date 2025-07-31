@@ -15,6 +15,8 @@ export interface CalendarEvent {
   teacher_name?: string;
   classroom_name?: string;
   class_name?: string;
+  // Store original event data for dialogs
+  originalEvent?: unknown;
 }
 
 export type EventColor = "blue" | "orange" | "violet" | "rose" | "emerald";

@@ -85,6 +85,7 @@ export default function TeacherScheduleBigCalendar() {
       end: endTime,
       color: color,
       location: event.classroom_name || 'TBD',
+      originalEvent: event, // Store original timetable event for dialog
     };
   }, [currentDate]);
 
@@ -160,15 +161,17 @@ export default function TeacherScheduleBigCalendar() {
 
   // Event selection is handled through the EventDialog component
 
-  // Handle event creation (disabled for teachers)
-  const handleEventAdd = useCallback(() => {
-    toast.info("Chỉ quản trị viên mới có thể tạo lịch giảng dạy mới");
-  }, []);
 
-  // Handle event update (disabled for teachers)
-  const handleEventUpdate = useCallback(() => {
-    toast.info("Chỉ quản trị viên mới có thể chỉnh sửa lịch giảng dạy");
-  }, []);
+
+  // Handle event selection (open dialog)
+  const handleEventSelect = useCallback((event: CalendarEvent) => {
+    // Find the corresponding timetable event
+    const timetableEvent = events.find(e => e.id === event.id);
+    if (timetableEvent && timetableEvent.originalEvent) {
+      setSelectedEvent(timetableEvent.originalEvent as TeacherTimetableEvent);
+      setIsDialogOpen(true);
+    }
+  }, [events]);
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -201,8 +204,7 @@ export default function TeacherScheduleBigCalendar() {
       <div className="flex-1">
         <EventCalendar
           events={visibleEvents}
-          onEventAdd={handleEventAdd}
-          onEventUpdate={handleEventUpdate}
+          onSelectEvent={handleEventSelect}
           initialView="week"
         />
       </div>

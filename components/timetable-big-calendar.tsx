@@ -236,6 +236,13 @@ export default function TimetableBigCalendar() {
       day_of_week: event.start.getDay(),
       start_time: format(event.start, "HH:mm"),
       end_time: format(event.end, "HH:mm"),
+      // Include all required fields to avoid constraint violations
+      classroom_id: slot.classroom_id,
+      teacher_id: slot.teacher_id,
+      semester_id: slot.semester_id,
+      week_number: slot.week_number,
+      class_id: slot.class_id,
+      subject_id: slot.subject_id,
     };
 
     try {

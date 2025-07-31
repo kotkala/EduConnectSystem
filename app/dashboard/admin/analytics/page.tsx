@@ -2,9 +2,9 @@ import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
-import StudentsPageClient from './students-page-client'
+import AnalyticsClient from './analytics-client'
 
-export default async function StudentsPage() {
+export default async function AnalyticsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -23,11 +23,10 @@ export default async function StudentsPage() {
   }
 
   return (
-    <SidebarLayout role="admin" title="Student & Parent Management">
+    <SidebarLayout role="admin" title="Phân Tích Điểm Số">
       <Suspense fallback={<div>Loading...</div>}>
-        <StudentsPageClient />
+        <AnalyticsClient />
       </Suspense>
     </SidebarLayout>
   )
 }
-

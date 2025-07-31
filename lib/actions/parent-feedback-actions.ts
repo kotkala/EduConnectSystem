@@ -27,28 +27,33 @@ export interface StudentFeedbackForParent {
     created_at: string
     sent_at: string
     is_read: boolean
+    ai_summary: string | null
+    use_ai_summary: boolean | null
+    ai_generated_at: string | null
   }>>
 }
 
-interface FeedbackNotification {
+interface ParentFeedbackViewData {
   student_id: string
   student_name: string
-  student_code: string
-  student_avatar_url: string | null
+  student_email: string
   class_name: string
-  feedback_id: string
-  timetable_event_id: string
+  student_feedback_id: string
   start_time: string
   end_time: string
   subject_name: string
   subject_code: string
   teacher_name: string
   rating: number
-  feedback_text: string | null
-  created_at: string
+  comment: string | null
+  feedback_created_at: string
   sent_at: string
   is_read: boolean
   day_of_week: number
+  week_number: number
+  ai_summary: string | null
+  use_ai_summary: boolean | null
+  ai_generated_at: string | null
 }
 
 // Check if user is a parent
@@ -224,15 +229,37 @@ export async function getStudentFeedbackForParentAction(
 
 
 
-    // Get feedback notifications for these students in the specified week using RPC
-    const { data: feedbackData, error: feedbackError } = await supabase.rpc(
-      'get_parent_feedback_notifications',
-      {
-        p_parent_id: userId,
-        p_academic_year_id: filters.academic_year_id,
-        p_week_number: filters.week_number
-      }
-    )
+    // Get student IDs for filtering
+    const studentIds = studentRelationships.map(rel => rel.student_id)
+
+    // Get feedback notifications for these students in the specified week using view
+    const { data: feedbackData, error: feedbackError } = await supabase
+      .from('parent_feedback_with_ai_summary')
+      .select(`
+        student_id,
+        student_name,
+        student_email,
+        class_name,
+        student_feedback_id,
+        start_time,
+        end_time,
+        subject_name,
+        subject_code,
+        teacher_name,
+        rating,
+        comment,
+        feedback_created_at,
+        sent_at,
+        is_read,
+        day_of_week,
+        week_number,
+        ai_summary,
+        use_ai_summary,
+        ai_generated_at
+      `)
+      .eq('parent_id', userId)
+      .eq('week_number', filters.week_number)
+      .in('student_id', studentIds)
 
     if (feedbackError) {
       throw new Error(feedbackError.message)
@@ -240,19 +267,23 @@ export async function getStudentFeedbackForParentAction(
 
     // Filter by selected student if provided
     const filteredFeedbackData = filters.student_id
-      ? (feedbackData || []).filter((notification: FeedbackNotification) => notification.student_id === filters.student_id)
+      ? (feedbackData || []).filter((notification: ParentFeedbackViewData) => notification.student_id === filters.student_id)
       : (feedbackData || [])
 
     // Group feedback by student and day
     const studentFeedbackMap = new Map<string, StudentFeedbackForParent>()
 
-    for (const notification of filteredFeedbackData) {
+    for (const notification of filteredFeedbackData as ParentFeedbackViewData[]) {
       if (!studentFeedbackMap.has(notification.student_id)) {
+        // Get student info from relationships
+        const studentRel = studentRelationships.find(rel => rel.student_id === notification.student_id)
+        const studentProfile = studentRel?.profiles as { student_id: string; avatar_url: string | null } | undefined
+
         studentFeedbackMap.set(notification.student_id, {
           student_id: notification.student_id,
           student_name: notification.student_name,
-          student_code: notification.student_code,
-          student_avatar_url: notification.student_avatar_url,
+          student_code: studentProfile?.student_id || '',
+          student_avatar_url: studentProfile?.avatar_url || null,
           class_name: notification.class_name,
           daily_feedback: {}
         })
@@ -266,18 +297,21 @@ export async function getStudentFeedbackForParentAction(
       }
 
       studentFeedback.daily_feedback[dayKey].push({
-        feedback_id: notification.feedback_id,
-        timetable_event_id: notification.timetable_event_id,
+        feedback_id: notification.student_feedback_id,
+        timetable_event_id: '', // Not available in view
         start_time: notification.start_time,
         end_time: notification.end_time,
         subject_name: notification.subject_name,
         subject_code: notification.subject_code,
         teacher_name: notification.teacher_name,
         rating: notification.rating,
-        comment: notification.feedback_text,
-        created_at: notification.created_at,
+        comment: notification.comment,
+        created_at: notification.feedback_created_at,
         sent_at: notification.sent_at,
-        is_read: notification.is_read
+        is_read: notification.is_read,
+        ai_summary: notification.ai_summary,
+        use_ai_summary: notification.use_ai_summary,
+        ai_generated_at: notification.ai_generated_at
       })
     }
 

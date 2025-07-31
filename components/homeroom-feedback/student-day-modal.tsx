@@ -19,9 +19,15 @@ import {
   Calendar,
   GraduationCap,
   Send,
-  Check
+  Check,
+  Sparkles,
+  Eye,
+  EyeOff,
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 import {
   getStudentDayScheduleWithFeedbackAction,
@@ -56,6 +62,12 @@ export function StudentDayModal({
   const [error, setError] = useState<string | null>(null)
   const [sendingDailyFeedback, setSendingDailyFeedback] = useState(false)
   const [dailySentStatus, setDailySentStatus] = useState<{ sent: boolean; sentAt?: string; feedbackCount?: number; parentCount?: number }>({ sent: false })
+
+  // AI Summary states
+  const [aiSummary, setAiSummary] = useState<string>("")
+  const [generatingAiSummary, setGeneratingAiSummary] = useState(false)
+  const [showAiSummary, setShowAiSummary] = useState(false)
+  const [useAiSummary, setUseAiSummary] = useState(false)
 
   // Get initials for avatar
   const getInitials = (name: string): string => {
@@ -97,7 +109,48 @@ export function StudentDayModal({
     setSendingDailyFeedback(true)
 
     try {
-      // Get semester ID from filters
+      // If using AI summary, save it to database first
+      if (useAiSummary && aiSummary) {
+        const feedbacks = lessons
+          .filter(lesson => lesson.feedback)
+          .map(lesson => ({
+            id: lesson.feedback!.id,
+            subject_name: lesson.subject_name,
+            teacher_name: lesson.teacher_name,
+            rating: lesson.feedback!.rating,
+            comment: lesson.feedback!.comment || "",
+            created_at: lesson.feedback!.created_at
+          }))
+
+        // Save AI summary to database
+        const formattedDate = new Date().toLocaleDateString('vi-VN', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+
+        await fetch('/api/ai/summarize-feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            feedbacks,
+            studentName: student.student_name,
+            date: formattedDate,
+            saveToDatabase: true, // Save to database
+            studentId: student.student_id,
+            dayOfWeek,
+            academicYearId: filters.academic_year_id,
+            semesterId: filters.semester_id,
+            weekNumber: filters.week_number,
+            includeProgressTracking: true // Enable progress tracking
+          })
+        })
+      }
+
+      // Send feedback to parents
       const result = await sendDailyFeedbackToParentsAction(
         student.student_id,
         dayOfWeek,
@@ -107,7 +160,10 @@ export function StudentDayModal({
       )
 
       if (result.success) {
-        toast.success(result.message || "Daily feedback sent to parents successfully")
+        const message = useAiSummary && aiSummary
+          ? "AI summary sent to parents successfully"
+          : "Daily feedback sent to parents successfully"
+        toast.success(result.message || message)
         // Update sent status
         setDailySentStatus({ sent: true, sentAt: new Date().toISOString() })
       } else {
@@ -139,6 +195,75 @@ export function StudentDayModal({
       console.error("Check daily sent status error:", error)
     }
   }, [student.student_id, dayOfWeek, filters.academic_year_id, filters.semester_id, filters.week_number])
+
+  // Generate AI summary of feedback
+  const generateAiSummary = async () => {
+    setGeneratingAiSummary(true)
+    setError(null)
+
+    try {
+      // Prepare feedback data for AI
+      const feedbacks = lessons
+        .filter(lesson => lesson.feedback)
+        .map(lesson => ({
+          id: lesson.feedback!.id,
+          subject_name: lesson.subject_name,
+          teacher_name: lesson.teacher_name,
+          rating: lesson.feedback!.rating,
+          comment: lesson.feedback!.comment || "",
+          created_at: lesson.feedback!.created_at
+        }))
+
+      if (feedbacks.length === 0) {
+        toast.error("Không có feedback nào để tóm tắt")
+        return
+      }
+
+      // Format date for display
+      const currentDate = new Date()
+      const formattedDate = currentDate.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+
+      const response = await fetch('/api/ai/summarize-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          feedbacks,
+          studentName: student.student_name,
+          date: formattedDate,
+          saveToDatabase: true, // Save to database immediately
+          studentId: student.student_id,
+          dayOfWeek,
+          academicYearId: filters.academic_year_id,
+          semesterId: filters.semester_id,
+          weekNumber: filters.week_number,
+          includeProgressTracking: true // Enable progress tracking
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setAiSummary(result.summary)
+        setShowAiSummary(true)
+        toast.success("AI đã tóm tắt feedback thành công!")
+      } else {
+        throw new Error(result.error || 'Failed to generate AI summary')
+      }
+    } catch (error) {
+      console.error('AI Summary Error:', error)
+      toast.error('Không thể tạo tóm tắt AI. Vui lòng thử lại.')
+      setError(error instanceof Error ? error.message : 'AI summarization failed')
+    } finally {
+      setGeneratingAiSummary(false)
+    }
+  }
 
   // Load detailed day schedule when modal opens
   useEffect(() => {
@@ -241,28 +366,12 @@ export function StudentDayModal({
                     {lessons.length} tiết học
                   </Badge>
 
-                  {/* Send All Daily Feedback Button */}
-                  {lessons.some(lesson => lesson.feedback) && (
-                    dailySentStatus.sent ? (
-                      <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
-                        <Check className="h-4 w-4" />
-                        <span>Đã gửi phụ huynh ({dailySentStatus.feedbackCount} feedback)</span>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={handleSendDailyFeedbackToParents}
-                        disabled={sendingDailyFeedback}
-                        className="text-sm"
-                      >
-                        {sendingDailyFeedback ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        ) : (
-                          <Send className="h-4 w-4 mr-2" />
-                        )}
-                        Gửi tất cả feedback ngày này
-                      </Button>
-                    )
+                  {/* Daily Sent Status Indicator */}
+                  {lessons.some(lesson => lesson.feedback) && dailySentStatus.sent && (
+                    <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                      <Check className="h-4 w-4" />
+                      <span>Đã gửi phụ huynh ({dailySentStatus.feedbackCount} feedback)</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -365,6 +474,131 @@ export function StudentDayModal({
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* AI Summary & Send Section */}
+          {!loading && !error && lessons.length > 0 && (
+            <div className="space-y-4 border-t pt-6">
+              {/* AI Summary Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-600" />
+                    Tóm Tắt AI & Theo Dõi Tiến Bộ
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAiSummary}
+                      disabled={generatingAiSummary || lessons.filter(l => l.feedback).length === 0}
+                    >
+                      {generatingAiSummary ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Đang tạo...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Tạo Tóm Tắt & Theo Dõi Tiến Bộ
+                        </>
+                      )}
+                    </Button>
+                    {aiSummary && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAiSummary(!showAiSummary)}
+                      >
+                        {showAiSummary ? (
+                          <>
+                            <EyeOff className="h-4 w-4 mr-2" />
+                            Ẩn
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Xem
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* AI Summary Display */}
+                {showAiSummary && aiSummary && (
+                  <Alert className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <AlertDescription className="text-sm">
+                      <div className="space-y-2">
+                        <p className="font-medium text-purple-800 dark:text-purple-200">
+                          Tóm tắt AI cho phụ huynh:
+                        </p>
+                        <div className="bg-white dark:bg-gray-900 rounded-md p-3 border">
+                          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {aiSummary}
+                          </p>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Option to use AI summary */}
+                {aiSummary && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="useAiSummary"
+                      checked={useAiSummary}
+                      onChange={(e) => setUseAiSummary(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="useAiSummary" className="text-sm">
+                      Gửi tóm tắt AI thay vì feedback chi tiết
+                    </Label>
+                  </div>
+                )}
+              </div>
+
+              {/* Send to Parents Button */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  {dailySentStatus.sent ? (
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <Check className="h-4 w-4" />
+                      <span>Đã gửi feedback cho phụ huynh</span>
+                      {dailySentStatus.sentAt && (
+                        <span className="text-xs">
+                          ({new Date(dailySentStatus.sentAt).toLocaleString('vi-VN')})
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span>Gửi tất cả feedback ngày này cho phụ huynh</span>
+                  )}
+                </div>
+                <Button
+                  onClick={handleSendDailyFeedbackToParents}
+                  disabled={sendingDailyFeedback || dailySentStatus.sent || lessons.filter(l => l.feedback).length === 0}
+                  className="min-w-[140px]"
+                >
+                  {sendingDailyFeedback ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Đang gửi...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      {useAiSummary && aiSummary ? 'Gửi Tóm Tắt AI' : 'Gửi Feedback'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </DialogContent>

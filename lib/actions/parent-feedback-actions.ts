@@ -162,7 +162,7 @@ export async function getParentChildrenAction(): Promise<{
 }
 
 // Get available academic years for parent
-export async function getParentAcademicYearsAction(): Promise<{ success: boolean; data?: Array<{id: string, name: string}>; error?: string }> {
+export async function getParentAcademicYearsAction(): Promise<{ success: boolean; data?: Array<{id: string, name: string, start_date: string, end_date: string}>; error?: string }> {
   try {
     await checkParentPermissions()
     const supabase = await createClient()
@@ -172,7 +172,9 @@ export async function getParentAcademicYearsAction(): Promise<{ success: boolean
       .from('academic_years')
       .select(`
         id,
-        name
+        name,
+        start_date,
+        end_date
       `)
       .order('start_date', { ascending: false })
 

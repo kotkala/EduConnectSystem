@@ -16,6 +16,8 @@ import {
   getHomeroomSemestersAction,
   type HomeroomFeedbackFilters as FiltersType
 } from "@/lib/actions/homeroom-feedback-actions"
+import { format, endOfWeek } from 'date-fns'
+import { getWeekStartDate } from '@/components/timetable-calendar/data-mappers'
 
 // Types for filter data
 interface AcademicYear {
@@ -26,6 +28,15 @@ interface AcademicYear {
 interface Semester {
   id: string
   name: string
+  start_date: string
+  end_date: string
+}
+
+interface WeekOption {
+  number: number
+  startDate: Date
+  endDate: Date
+  label: string
 }
 
 interface HomeroomFeedbackFiltersProps {
@@ -39,6 +50,7 @@ export function HomeroomFeedbackFilters({
 }: HomeroomFeedbackFiltersProps) {
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
   const [semesters, setSemesters] = useState<Semester[]>([])
+  const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
   const [isLoadingData, setIsLoadingData] = useState(false)
 
   // Load academic years - Context7 pattern for initial data loading
@@ -89,6 +101,46 @@ export function HomeroomFeedbackFilters({
     loadSemesters()
   }, [filters.academic_year_id])
 
+  // Generate week options when semester changes - Context7 pattern for synchronized week calculation
+  useEffect(() => {
+    const generateWeekOptions = () => {
+      const semester = semesters.find(s => s.id === filters.semester_id)
+      if (!semester) {
+        setWeekOptions([])
+        return
+      }
+
+      const semesterStartDate = new Date(semester.start_date)
+      const semesterEndDate = new Date(semester.end_date)
+
+      const weeks: WeekOption[] = []
+      let weekNumber = 1
+
+      while (weekNumber <= 20) { // Max 20 weeks per semester
+        // Use the same calculation as timetable and violations systems
+        const weekStartDate = getWeekStartDate(semesterStartDate, weekNumber)
+        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 1 })
+
+        // Stop if week starts after semester ends
+        if (weekStartDate > semesterEndDate) {
+          break
+        }
+
+        weeks.push({
+          number: weekNumber,
+          startDate: weekStartDate,
+          endDate: weekEndDate,
+          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+        })
+        weekNumber++
+      }
+
+      setWeekOptions(weeks)
+    }
+
+    generateWeekOptions()
+  }, [filters.semester_id, semesters])
+
   const handleFilterChange = useCallback((key: keyof FiltersType, value: string | number) => {
     const newFilters = { ...filters, [key]: value }
 
@@ -96,18 +148,19 @@ export function HomeroomFeedbackFilters({
     if (key === 'academic_year_id') {
       newFilters.semester_id = ''
       newFilters.week_number = 1
-      // Clear semesters immediately when academic year changes
+      // Clear semesters and weeks immediately when academic year changes
       setSemesters([])
+      setWeekOptions([])
     } else if (key === 'semester_id') {
       newFilters.week_number = 1
+      // Clear weeks immediately when semester changes
+      setWeekOptions([])
     }
 
     onFiltersChange(newFilters)
   }, [filters, onFiltersChange])
 
-  const getWeekOptions = () => {
-    return Array.from({ length: 52 }, (_, i) => i + 1)
-  }
+
 
   return (
     <Card>
@@ -170,15 +223,15 @@ export function HomeroomFeedbackFilters({
             <Select
               value={filters.week_number?.toString() || ""}
               onValueChange={(value) => handleFilterChange('week_number', parseInt(value))}
-              disabled={!filters.semester_id}
+              disabled={!filters.semester_id || weekOptions.length === 0}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn tuần" />
               </SelectTrigger>
               <SelectContent>
-                {getWeekOptions().map((week) => (
-                  <SelectItem key={week} value={week.toString()}>
-                    Tuần {week}
+                {weekOptions.map((week) => (
+                  <SelectItem key={week.number} value={week.number.toString()}>
+                    {week.label}
                   </SelectItem>
                 ))}
               </SelectContent>

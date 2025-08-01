@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen } from 'lucide-react'
@@ -40,8 +39,7 @@ export default async function AdminSubjectsPage() {
   const specializedSubjects = subjects?.filter(subject => subject.category === 'specialized') || []
 
   return (
-    <SidebarLayout role="admin" title="Subject Management">
-      <div className="space-y-6">
+    <div className="space-y-6 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Subject Management</h2>
@@ -165,7 +163,6 @@ export default async function AdminSubjectsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </SidebarLayout>
+    </div>
   )
 }

@@ -22,6 +22,7 @@ import {
   ArrowLeftRight,
   ClipboardList,
   Bot,
+  AlertTriangle,
 } from "lucide-react"
 import {
   Sidebar,
@@ -48,7 +49,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings, MessageCircle } from 'lucide-react'
-import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
+import { UserProfile as ExtendedUserProfile } from '@/lib/validations/user-validations'
+
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
 import { Badge } from '@/components/ui/badge'
 import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
@@ -74,6 +76,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
@@ -87,6 +90,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
@@ -114,6 +118,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Trợ Lý AI - Mở Rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
     { title: "Bảng Điểm Con Em", url: "/dashboard/parent/grades", icon: Award },
     { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
+    { title: "Vi Phạm Con Em", url: "/dashboard/parent/violations", icon: AlertTriangle },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
     { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
@@ -132,18 +137,22 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const baseItems = platformItems[role] || []
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
-  const { isHomeroomTeacher } = useHomeroomTeacher()
   const { counts } = useExchangeRequestsCount(role, user?.id)
 
   // Chatbot state for parent role
   const [isChatbotOpen, setIsChatbotOpen] = useState(false)
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false)
 
-  // Add feedback link for homeroom teachers
-  const items: PlatformItem[] = role === 'teacher' && isHomeroomTeacher
+  // Check homeroom teacher status directly from profile (more reliable than separate hook)
+  // Use type assertion since the profile from database includes homeroom_enabled for teachers
+  const isHomeroomTeacher = role === 'teacher' && (profile as ExtendedUserProfile)?.homeroom_enabled === true
+
+  // Add feedback and violations links for homeroom teachers
+  const items: PlatformItem[] = isHomeroomTeacher
     ? [
-        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Meetings)
+        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Grade Reports)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
+        { title: "Vi Phạm Học Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
         ...baseItems.slice(4) // Add remaining items
       ]
     : baseItems

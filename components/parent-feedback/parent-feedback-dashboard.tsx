@@ -32,8 +32,15 @@ import {
 } from "@/lib/actions/parent-feedback-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { format, endOfWeek } from 'date-fns'
+import { getWeekStartDate } from '@/components/timetable-calendar/data-mappers'
 
-
+interface WeekOption {
+  number: number
+  startDate: Date
+  endDate: Date
+  label: string
+}
 
 export default function ParentFeedbackDashboard() {
   const [filters, setFilters] = useState<ParentFeedbackFilters>({
@@ -41,9 +48,10 @@ export default function ParentFeedbackDashboard() {
     week_number: 1,
     student_id: "" // Empty means show all children
   })
-  const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string}>>([])
+  const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string, start_date: string, end_date: string}>>([])
   const [children, setChildren] = useState<Array<{id: string, name: string, student_code: string, avatar_url: string | null, class_name: string}>>([])
   const [studentFeedback, setStudentFeedback] = useState<StudentFeedbackForParent[]>([])
+  const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAiSummary] = useState(true)
@@ -128,6 +136,48 @@ export default function ParentFeedbackDashboard() {
 
     loadInitialData()
   }, [])
+
+  // Generate week options when academic year changes - Context7 pattern for synchronized week calculation
+  useEffect(() => {
+    const generateWeekOptions = () => {
+      const academicYear = academicYears.find(ay => ay.id === filters.academic_year_id)
+      if (!academicYear) {
+        setWeekOptions([])
+        return
+      }
+
+      // For parent feedback, we'll use the academic year dates to generate weeks
+      // This assumes the academic year spans the full year with semesters
+      const academicYearStartDate = new Date(academicYear.start_date)
+      const academicYearEndDate = new Date(academicYear.end_date)
+
+      const weeks: WeekOption[] = []
+      let weekNumber = 1
+
+      while (weekNumber <= 52) { // Max 52 weeks per academic year
+        // Use the same calculation as timetable and violations systems
+        const weekStartDate = getWeekStartDate(academicYearStartDate, weekNumber)
+        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 1 })
+
+        // Stop if week starts after academic year ends
+        if (weekStartDate > academicYearEndDate) {
+          break
+        }
+
+        weeks.push({
+          number: weekNumber,
+          startDate: weekStartDate,
+          endDate: weekEndDate,
+          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+        })
+        weekNumber++
+      }
+
+      setWeekOptions(weeks)
+    }
+
+    generateWeekOptions()
+  }, [filters.academic_year_id, academicYears])
 
   // Load student feedback when filters change
   useEffect(() => {
@@ -262,14 +312,15 @@ export default function ParentFeedbackDashboard() {
               <Select
                 value={filters.week_number.toString()}
                 onValueChange={(value) => handleFiltersChange('week_number', parseInt(value))}
+                disabled={weekOptions.length === 0}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn tuần" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
-                    <SelectItem key={week} value={week.toString()}>
-                      Tuần {week}
+                  {weekOptions.map((week) => (
+                    <SelectItem key={week.number} value={week.number.toString()}>
+                      {week.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

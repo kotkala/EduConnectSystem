@@ -1,7 +1,6 @@
 import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -223,8 +222,7 @@ export default async function AdminDashboard() {
   const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <SidebarLayout role="admin" title="Admin Dashboard">
-      <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-6 lg:space-y-8 p-6">
         {/* Enhanced Header */}
         <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
@@ -495,6 +493,5 @@ export default async function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </SidebarLayout>
   )
 }

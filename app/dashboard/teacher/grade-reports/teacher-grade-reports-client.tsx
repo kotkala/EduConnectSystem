@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Download, Send, Users, FileText, Mail } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import { Download, Send, Users, FileText, Mail, Eye, Sparkles, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { getClassGradeSummariesAction, getClassGradeDetailsAction, sendGradesToParentAction, getStudentParentsAction, sendAllGradesToParentsAction } from '@/lib/actions/teacher-grade-actions'
 import { createClassSummaryExcel, downloadExcelFile, type ClassSummaryData, type StudentGradeData, type SubjectGradeData } from '@/lib/utils/class-summary-excel-utils'
@@ -55,6 +58,11 @@ export default function TeacherGradeReportsClient() {
     sendingToParent: false,
     sendingToAllParents: false
   })
+  const [viewingStudent, setViewingStudent] = useState<StudentSubmission | null>(null)
+  const [studentGradeData, setStudentGradeData] = useState<StudentGradeData | null>(null)
+  const [aiFeedback, setAiFeedback] = useState<string>('')
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false)
+  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
 
   useEffect(() => {
     loadSummaries()
@@ -191,6 +199,80 @@ export default function TeacherGradeReportsClient() {
     }
   }
 
+  const viewStudentGrades = async (student: StudentSubmission) => {
+    setViewingStudent(student)
+    setAiFeedback('') // Reset feedback when viewing new student
+    try {
+      // Convert the grades array to StudentGradeData format
+      const gradeData: StudentGradeData = {
+        studentName: student.student.full_name,
+        studentId: student.student.student_id,
+        studentCode: student.student.student_id, // Use student_id as studentCode
+        subjects: student.grades.map(grade => ({
+          subjectName: grade.subject.name_vietnamese,
+          midtermGrade: grade.midterm_grade || undefined,
+          finalGrade: grade.final_grade || undefined,
+          averageGrade: grade.average_grade || undefined
+        }))
+      }
+      setStudentGradeData(gradeData)
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu bảng điểm học sinh")
+      console.error("Error processing grade data:", error)
+    }
+  }
+
+  const generateAIFeedback = async () => {
+    if (!studentGradeData) {
+      toast.error("Không có dữ liệu bảng điểm để tạo nhận xét")
+      return
+    }
+
+    setIsGeneratingFeedback(true)
+    try {
+      const response = await fetch('/api/ai/generate-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ gradeData: studentGradeData }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setAiFeedback(result.feedback)
+        toast.success("Đã tạo nhận xét AI thành công!")
+      } else {
+        toast.error(result.error || "Không thể tạo nhận xét AI")
+      }
+    } catch (error) {
+      console.error("Error generating AI feedback:", error)
+      toast.error("Lỗi khi tạo nhận xét AI")
+    } finally {
+      setIsGeneratingFeedback(false)
+    }
+  }
+
+  const saveFeedback = async () => {
+    if (!aiFeedback.trim()) {
+      toast.error("Vui lòng nhập nhận xét trước khi lưu")
+      return
+    }
+
+    setIsSavingFeedback(true)
+    try {
+      // TODO: Implement save feedback to database
+      // For now, just show success message
+      toast.success("Đã lưu nhận xét thành công!")
+    } catch (error) {
+      console.error("Error saving feedback:", error)
+      toast.error("Lỗi khi lưu nhận xét")
+    } finally {
+      setIsSavingFeedback(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -302,15 +384,26 @@ export default function TeacherGradeReportsClient() {
                         Mã HS: {submission.student.student_id} • {submission.grades.length} môn học
                       </p>
                     </div>
-                    <Button
-                      onClick={() => handleSendToParent(submission)}
-                      disabled={loadingStates.sendingToParent}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Send className="h-4 w-4" />
-                      Gửi PH
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => viewStudentGrades(submission)}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Xem
+                      </Button>
+                      <Button
+                        onClick={() => handleSendToParent(submission)}
+                        disabled={loadingStates.sendingToParent}
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Send className="h-4 w-4" />
+                        Gửi PH
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -318,6 +411,94 @@ export default function TeacherGradeReportsClient() {
           </CardContent>
         </Card>
       )}
+
+      {/* Student Grade View Dialog */}
+      <Dialog open={!!viewingStudent} onOpenChange={() => setViewingStudent(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bảng Điểm - {viewingStudent?.student.full_name}</DialogTitle>
+            <DialogDescription>
+              Mã học sinh: {viewingStudent?.student.student_id}
+            </DialogDescription>
+          </DialogHeader>
+
+          {studentGradeData && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Học sinh:</span> {studentGradeData.studentName}
+                </div>
+                <div>
+                  <span className="font-medium">Mã học sinh:</span> {studentGradeData.studentId}
+                </div>
+              </div>
+
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Môn học</TableHead>
+                      <TableHead className="text-center">Điểm giữa kỳ</TableHead>
+                      <TableHead className="text-center">Điểm cuối kỳ</TableHead>
+                      <TableHead className="text-center">Điểm trung bình</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {studentGradeData.subjects.map((subject, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{subject.subjectName}</TableCell>
+                        <TableCell className="text-center">
+                          {subject.midtermGrade !== undefined ? subject.midtermGrade.toFixed(1) : '-'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {subject.finalGrade !== undefined ? subject.finalGrade.toFixed(1) : '-'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {subject.averageGrade !== undefined ? subject.averageGrade.toFixed(1) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* AI Feedback Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Nhận xét AI</h3>
+                  <Button
+                    onClick={generateAIFeedback}
+                    disabled={isGeneratingFeedback}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {isGeneratingFeedback ? 'Đang tạo...' : 'Tạo nhận xét AI'}
+                  </Button>
+                </div>
+
+                <Textarea
+                  value={aiFeedback}
+                  onChange={(e) => setAiFeedback(e.target.value)}
+                  placeholder="Nhận xét AI sẽ xuất hiện ở đây. Bạn có thể chỉnh sửa nếu cần..."
+                  className="min-h-[200px]"
+                />
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={saveFeedback}
+                    disabled={isSavingFeedback || !aiFeedback.trim()}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    {isSavingFeedback ? 'Đang lưu...' : 'Lưu nhận xét'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

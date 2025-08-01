@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import { NotificationForm } from '@/components/notifications/notification-form'
 import { useAuth } from '@/hooks/use-auth'
 import { 
@@ -16,7 +16,7 @@ import {
   markNotificationAsReadAction,
   type Notification 
 } from '@/lib/actions/notification-actions'
-import { Plus, Bell, Clock, User, AlertCircle, Eye } from 'lucide-react'
+import { Plus, Bell, Clock, User, AlertCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function TeacherNotificationsPage() {
@@ -29,6 +29,12 @@ export default function TeacherNotificationsPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const pageSize = 10
+
   // Redirect if user doesn't have permission
   useEffect(() => {
     if (!loading && (!user || profile?.role !== 'teacher')) {
@@ -36,22 +42,64 @@ export default function TeacherNotificationsPage() {
     }
   }, [loading, user, profile, router])
 
+  const loadNotifications = useCallback(async () => {
+    setNotificationsLoading(true)
+    try {
+      const result = await getUserNotificationsAction()
+      if (result.success && result.data) {
+        // Simple client-side pagination
+        const allNotifications = result.data
+        const totalItems = allNotifications.length
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize)
+
+        setTotalCount(totalItems)
+        setTotalPages(calculatedTotalPages)
+
+        // Ensure current page is valid
+        const validCurrentPage = Math.min(currentPage, Math.max(1, calculatedTotalPages))
+        if (validCurrentPage !== currentPage) {
+          setCurrentPage(validCurrentPage)
+        }
+
+        // Get current page notifications
+        const startIndex = (validCurrentPage - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        setNotifications(allNotifications.slice(startIndex, endIndex))
+
+        console.log('Loaded notifications:', {
+          total: totalItems,
+          pages: calculatedTotalPages,
+          currentPage: validCurrentPage,
+          showing: allNotifications.slice(startIndex, endIndex).length
+        })
+      } else {
+        setError(result.error || 'Failed to load notifications')
+        setNotifications([])
+        setTotalCount(0)
+        setTotalPages(1)
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error)
+      setError('An error occurred while loading notifications')
+      setNotifications([])
+      setTotalCount(0)
+      setTotalPages(1)
+    }
+    setNotificationsLoading(false)
+  }, [currentPage, pageSize]) // ✅ Add dependencies
+
   useEffect(() => {
     if (!loading && user && profile?.role === 'teacher') {
       loadNotifications()
     }
-  }, [loading, user, profile])
+  }, [loading, user, profile]) // ✅ Initial load
 
-  const loadNotifications = async () => {
-    setNotificationsLoading(true)
-    const result = await getUserNotificationsAction()
-    if (result.success && result.data) {
-      setNotifications(result.data)
-    } else {
-      setError(result.error || 'Failed to load notifications')
+  // Separate effect for page changes
+  useEffect(() => {
+    if (!loading && user && profile?.role === 'teacher' && currentPage > 1) {
+      loadNotifications()
     }
-    setNotificationsLoading(false)
-  }
+  }, [currentPage]) // ✅ Page change effect
 
   const handleMarkAsRead = async (notificationId: string) => {
     const result = await markNotificationAsReadAction(notificationId)
@@ -72,18 +120,18 @@ export default function TeacherNotificationsPage() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="teacher" title="Notifications">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'teacher') {
     return (
-      <SidebarLayout role="teacher" title="Access Denied">
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
@@ -92,12 +140,12 @@ export default function TeacherNotificationsPage() {
             Return to Dashboard
           </Button>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   return (
-    <SidebarLayout role="teacher" title="Notifications">
+    <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -195,6 +243,60 @@ export default function TeacherNotificationsPage() {
           )}
         </div>
 
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Trang {currentPage} / {totalPages} - Tổng {totalCount} thông báo
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Trước
+                  </Button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                      if (pageNum > totalPages) return null
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Create Notification Dialog */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -276,6 +378,6 @@ export default function TeacherNotificationsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

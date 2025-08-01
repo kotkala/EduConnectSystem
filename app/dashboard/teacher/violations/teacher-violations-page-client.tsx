@@ -206,52 +206,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
     }
   }
 
-  const handleSendToParent = async (violation: StudentViolationWithDetails) => {
-    try {
-      // Context7 pattern: Find parent of the student first
-      const { data: parentStudentRelations, error: parentError } = await supabase
-        .from('parent_student_relationships')
-        .select('parent_id')
-        .eq('student_id', violation.student?.id)
 
-      if (parentError) {
-        console.error('Error finding parent:', parentError)
-        toast.error('Failed to find parent information')
-        return
-      }
-
-      if (!parentStudentRelations || parentStudentRelations.length === 0) {
-        toast.error('No parent found for this student')
-        return
-      }
-
-      // Send notification to all parents of the student
-      const notifications = parentStudentRelations.map(relation => ({
-        recipient_id: relation.parent_id,
-        title: `Vi phạm của học sinh ${violation.student?.full_name}`,
-        content: `Học sinh ${violation.student?.full_name} (${violation.student?.student_id}) đã vi phạm: ${violation.violation_type?.name}. Mức độ: ${getSeverityLabel(violation.severity)}. ${violation.description ? `Chi tiết: ${violation.description}` : ''}`,
-        type: 'violation' as const,
-        sender_id: user.id,
-        target_roles: ['parent'] as string[]
-      }))
-
-      // Context7 pattern: Batch insert notifications
-      const { error } = await supabase
-        .from('notifications')
-        .insert(notifications)
-
-      if (error) {
-        console.error('Error sending notification:', error)
-        toast.error('Failed to send notification to parent')
-        return
-      }
-
-      toast.success(`Notification sent to parent(s) of ${violation.student?.full_name}`)
-    } catch (error) {
-      console.error('Error:', error)
-      toast.error('An error occurred while sending notification')
-    }
-  }
 
   const handleSendAllToParents = async () => {
     if (filteredViolations.length === 0) {
@@ -593,16 +548,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
                           <span>Recorded by: {violation.recorded_by.full_name}</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleSendToParent(violation)}
-                        >
-                          <Send className="h-4 w-4 mr-1" />
-                          Send to Parent
-                        </Button>
-                      </div>
+
                     </div>
                   </div>
                 ))}

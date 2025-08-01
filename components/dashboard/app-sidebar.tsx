@@ -49,7 +49,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings, MessageCircle } from 'lucide-react'
-import { UserProfile as ExtendedUserProfile } from '@/lib/validations/user-validations'
+// Note: ExtendedUserProfile import removed as no longer needed
 
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
 import { useNotificationCount } from '@/hooks/use-notification-count'
@@ -102,8 +102,6 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
-    { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
-    { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },
@@ -145,12 +143,10 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false)
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false)
 
-  // Check homeroom teacher status directly from profile (more reliable than separate hook)
-  // Use type assertion since the profile from database includes homeroom_enabled for teachers
-  const isHomeroomTeacher = role === 'teacher' && (profile as ExtendedUserProfile)?.homeroom_enabled === true
+  // Note: Previously checked homeroom teacher status, now showing feedback/violations for all teachers
 
-  // Add feedback and violations links for homeroom teachers
-  const items: PlatformItem[] = isHomeroomTeacher
+  // Add feedback and violations links for all teachers (always visible)
+  const items: PlatformItem[] = role === 'teacher'
     ? [
         ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Grade Reports)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },

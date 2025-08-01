@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -10,22 +10,31 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { useAuth } from '@/hooks/use-auth'
-import { 
-  getUserNotificationsAction, 
+import { useNotificationCount } from '@/hooks/use-notification-count'
+import {
+  getUserNotificationsAction,
   markNotificationAsReadAction,
-  type Notification 
+  type Notification
 } from '@/lib/actions/notification-actions'
-import { Bell, Clock, User, AlertCircle, Eye } from 'lucide-react'
+import { Bell, Clock, User, AlertCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function ParentNotificationsPage() {
   const router = useRouter()
   const { user, profile, loading } = useAuth()
+  const { refreshCounts } = useNotificationCount('parent', user?.id)
   
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const pageSize = 10
 
   // Redirect if user doesn't have permission
   useEffect(() => {
@@ -34,31 +43,59 @@ export default function ParentNotificationsPage() {
     }
   }, [loading, user, profile, router])
 
+  const loadNotifications = useCallback(async () => {
+    setNotificationsLoading(true)
+    try {
+      const result = await getUserNotificationsAction()
+      if (result.success && result.data) {
+        // Store all notifications for pagination
+        const allNotifications = result.data
+        const totalItems = allNotifications.length
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize) || 1
+
+        setTotalCount(totalItems)
+        setTotalPages(calculatedTotalPages)
+
+        // Get current page notifications
+        const startIndex = (currentPage - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        setNotifications(allNotifications.slice(startIndex, endIndex))
+
+      } else {
+        setError(result.error || 'Failed to load notifications')
+        setNotifications([])
+        setTotalCount(0)
+        setTotalPages(1)
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error)
+      setError('An error occurred while loading notifications')
+      setNotifications([])
+      setTotalCount(0)
+      setTotalPages(1)
+    }
+    setNotificationsLoading(false)
+  }, [currentPage, pageSize])
+
   useEffect(() => {
     if (!loading && user && profile?.role === 'parent') {
       loadNotifications()
     }
-  }, [loading, user, profile])
-
-  const loadNotifications = async () => {
-    setNotificationsLoading(true)
-    const result = await getUserNotificationsAction()
-    if (result.success && result.data) {
-      setNotifications(result.data)
-    } else {
-      setError(result.error || 'Failed to load notifications')
-    }
-    setNotificationsLoading(false)
-  }
+  }, [loading, user, profile, loadNotifications])
 
   const handleMarkAsRead = async (notificationId: string) => {
     const result = await markNotificationAsReadAction(notificationId)
     if (result.success) {
-      setNotifications(prev => 
-        prev.map(n => 
+      setNotifications(prev =>
+        prev.map(n =>
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       )
+      // Refresh notification count in sidebar
+      refreshCounts()
+      toast.success('Notification marked as read')
+    } else {
+      toast.error(result.error || 'Failed to mark notification as read')
     }
   }
 
@@ -178,6 +215,60 @@ export default function ParentNotificationsPage() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Trang {currentPage} / {totalPages} - Tổng {totalCount} thông báo
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Trước
+                  </Button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                      if (pageNum > totalPages) return null
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Notification Detail Dialog */}
         <Dialog 

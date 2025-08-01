@@ -68,10 +68,6 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
 
   const supabase = createClient()
 
-  useEffect(() => {
-    loadDashboardData()
-  }, []) // ✅ loadDashboardData is stable, no dependencies needed
-
   const loadDashboardData = async () => {
     setLoading(true)
     try {
@@ -88,21 +84,14 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
     }
   }
 
+  useEffect(() => {
+    loadDashboardData()
+  }, [loadDashboardData]) // ✅ Include loadDashboardData dependency
+
   const loadWeeklyStats = async () => {
     try {
-      // Get homeroom class info
-      const { data: _homeroomClass } = await supabase
-        .from('teacher_class_assignments')
-        .select(`
-          class:classes(
-            id,
-            name,
-            students:student_class_assignments(count)
-          )
-        `)
-        .eq('teacher_id', profile.id)
-        .eq('is_homeroom_teacher', true)
-        .single()
+      // Get homeroom class info (currently simplified)
+      // TODO: Implement homeroom class query when needed
 
       // Get total teaching assignments
       const { data: teachingAssignments } = await supabase

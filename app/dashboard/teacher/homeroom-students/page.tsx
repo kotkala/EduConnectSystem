@@ -163,7 +163,7 @@ export default function HomeroomStudentsPage() {
   // Load data on component mount
   useEffect(() => {
     loadData()
-  }, []) // ✅ Empty dependency array for initial load only
+  }, [loadData]) // ✅ Include loadData dependency
 
   // Handle filter changes
   const handleFilterChange = (key: keyof HomeroomFilters, value: string | boolean | undefined) => {

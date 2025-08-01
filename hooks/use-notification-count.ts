@@ -15,6 +15,7 @@ export function useNotificationCount(role: UserRole, userId?: string) {
     total: 0
   })
   const [loading, setLoading] = useState(true)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
     if (!userId) {
@@ -85,7 +86,11 @@ export function useNotificationCount(role: UserRole, userId?: string) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [userId]) // ✅ All dependencies declared
+  }, [userId, refreshTrigger]) // ✅ Include refreshTrigger for manual updates
 
-  return { counts, loading }
+  const refreshCounts = () => {
+    setRefreshTrigger(prev => prev + 1)
+  }
+
+  return { counts, loading, refreshCounts }
 }

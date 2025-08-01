@@ -11,17 +11,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 
 import { NotificationForm } from '@/components/notifications/notification-form'
 import { useAuth } from '@/hooks/use-auth'
-import { 
-  getUserNotificationsAction, 
+import { useNotificationCount } from '@/hooks/use-notification-count'
+import {
+  getUserNotificationsAction,
   markNotificationAsReadAction,
-  type Notification 
+  type Notification
 } from '@/lib/actions/notification-actions'
 import { Plus, Bell, Clock, User, AlertCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function TeacherNotificationsPage() {
   const router = useRouter()
   const { user, profile, loading } = useAuth()
+  const { refreshCounts } = useNotificationCount('teacher', user?.id)
   
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
@@ -47,31 +50,22 @@ export default function TeacherNotificationsPage() {
     try {
       const result = await getUserNotificationsAction()
       if (result.success && result.data) {
-        // Simple client-side pagination
+        // Store all notifications for pagination
         const allNotifications = result.data
         const totalItems = allNotifications.length
-        const calculatedTotalPages = Math.ceil(totalItems / pageSize)
+        const calculatedTotalPages = Math.ceil(totalItems / pageSize) || 1
 
         setTotalCount(totalItems)
         setTotalPages(calculatedTotalPages)
 
         // Ensure current page is valid
-        const validCurrentPage = Math.min(currentPage, Math.max(1, calculatedTotalPages))
-        if (validCurrentPage !== currentPage) {
-          setCurrentPage(validCurrentPage)
-        }
+        const validCurrentPage = Math.min(currentPage, calculatedTotalPages)
 
         // Get current page notifications
         const startIndex = (validCurrentPage - 1) * pageSize
         const endIndex = startIndex + pageSize
         setNotifications(allNotifications.slice(startIndex, endIndex))
 
-        console.log('Loaded notifications:', {
-          total: totalItems,
-          pages: calculatedTotalPages,
-          currentPage: validCurrentPage,
-          showing: allNotifications.slice(startIndex, endIndex).length
-        })
       } else {
         setError(result.error || 'Failed to load notifications')
         setNotifications([])
@@ -92,23 +86,21 @@ export default function TeacherNotificationsPage() {
     if (!loading && user && profile?.role === 'teacher') {
       loadNotifications()
     }
-  }, [loading, user, profile]) // ✅ Initial load
-
-  // Separate effect for page changes
-  useEffect(() => {
-    if (!loading && user && profile?.role === 'teacher' && currentPage > 1) {
-      loadNotifications()
-    }
-  }, [currentPage]) // ✅ Page change effect
+  }, [loading, user, profile, loadNotifications]) // ✅ Include loadNotifications for proper updates
 
   const handleMarkAsRead = async (notificationId: string) => {
     const result = await markNotificationAsReadAction(notificationId)
     if (result.success) {
-      setNotifications(prev => 
-        prev.map(n => 
+      setNotifications(prev =>
+        prev.map(n =>
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       )
+      // Refresh notification count in sidebar
+      refreshCounts()
+      toast.success('Notification marked as read')
+    } else {
+      toast.error(result.error || 'Failed to mark notification as read')
     }
   }
 

@@ -52,6 +52,7 @@ import { LogOut, Settings, MessageCircle } from 'lucide-react'
 import { UserProfile as ExtendedUserProfile } from '@/lib/validations/user-validations'
 
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
+import { useNotificationCount } from '@/hooks/use-notification-count'
 import { Badge } from '@/components/ui/badge'
 import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
 
@@ -138,6 +139,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
   const { counts } = useExchangeRequestsCount(role, user?.id)
+  const { counts: notificationCounts } = useNotificationCount(role, user?.id)
 
   // Chatbot state for parent role
   const [isChatbotOpen, setIsChatbotOpen] = useState(false)
@@ -226,6 +228,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
                         {(item.title === "Exchange Requests" && counts.pending > 0) && (
                           <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
                             {counts.pending}
+                          </Badge>
+                        )}
+                        {/* Show notification badge for notifications */}
+                        {(item.title === "Notifications" && notificationCounts.unread > 0) && (
+                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
+                            {notificationCounts.unread}
                           </Badge>
                         )}
                       </a>

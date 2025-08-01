@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import TeacherViolationsPageClient from './teacher-violations-page-client'
 
 export default async function TeacherViolationsPage() {
@@ -36,7 +36,7 @@ export default async function TeacherViolationsPage() {
     if (!profile.homeroom_enabled) {
       // Teacher exists but homeroom is not enabled
       return (
-        <SidebarLayout role="teacher" title="Student Violations">
+        <div className="p-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -56,7 +56,7 @@ export default async function TeacherViolationsPage() {
               </div>
             </div>
           </div>
-        </SidebarLayout>
+        </div>
       )
     }
 
@@ -76,7 +76,7 @@ export default async function TeacherViolationsPage() {
     const isHomeroomTeacher = profile.homeroom_enabled
 
     return (
-      <SidebarLayout role="teacher" title="Student Violations">
+      <div className="p-6">
         <Suspense fallback={<div>Loading...</div>}>
           <TeacherViolationsPageClient
             homeroomClass={homeroomClass}
@@ -84,13 +84,13 @@ export default async function TeacherViolationsPage() {
             user={user}
           />
         </Suspense>
-      </SidebarLayout>
+      </div>
     )
   } catch (error) {
     console.error('Page error:', error)
     // Context7 pattern: Graceful error handling
     return (
-      <SidebarLayout role="teacher" title="Student Violations">
+      <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <h2 className="text-lg font-semibold mb-2">Connection Error</h2>
@@ -102,7 +102,7 @@ export default async function TeacherViolationsPage() {
             </p>
           </div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 }

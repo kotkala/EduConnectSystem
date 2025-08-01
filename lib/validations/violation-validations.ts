@@ -217,6 +217,7 @@ export interface StudentViolationWithDetails {
   semester: {
     id: string
     name: string
+    start_date: string
   }
 }
 

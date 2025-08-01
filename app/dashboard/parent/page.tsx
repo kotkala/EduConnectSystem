@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import { useAuth } from '@/hooks/use-auth'
 import {
   getParentStudentsAction,
@@ -87,18 +87,18 @@ export default function ParentDashboard() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="parent" title="Parent Dashboard">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'parent') {
     return (
-      <SidebarLayout role="parent" title="Access Denied">
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
@@ -107,12 +107,12 @@ export default function ParentDashboard() {
             Return to Dashboard
           </Button>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   return (
-    <SidebarLayout role="parent" title="Parent Dashboard">
+    <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
@@ -275,6 +275,6 @@ export default function ParentDashboard() {
           </CardContent>
         </Card>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

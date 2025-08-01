@@ -11,7 +11,7 @@ import { Plus, Calendar, Clock, RefreshCw, BookOpen, AlertCircle } from "lucide-
 import { AcademicTable } from "@/components/admin/academic-table"
 import { AcademicYearForm } from "@/components/admin/academic-year-form"
 import { SemesterForm } from "@/components/admin/semester-form"
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
+
 import { useAuth } from "@/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
 import {
@@ -174,18 +174,18 @@ export default function AcademicManagementPage() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="admin" title="Academic Management">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   // Show access denied if no permission
   if (!isAdmin) {
     return (
-      <SidebarLayout role="admin" title="Access Denied">
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
@@ -194,22 +194,22 @@ export default function AcademicManagementPage() {
             Return to Dashboard
           </Button>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   if (academicYearsLoading && academicYears.length === 0) {
     return (
-      <SidebarLayout role="admin" title="Academic Management">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   return (
-    <SidebarLayout role="admin" title="Academic Management">
+    <div className="p-6">
       <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -411,6 +411,6 @@ export default function AcademicManagementPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

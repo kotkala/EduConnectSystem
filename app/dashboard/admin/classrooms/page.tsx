@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Building, Users, Settings, RefreshCw } from "lucide-react"
 import { ClassroomTable } from "@/components/admin/classroom-table"
 import { ClassroomForm } from "@/components/admin/classroom-form"
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
+
 import { getClassroomsAction, type Classroom } from "@/lib/actions/classroom-actions"
 import { type ClassroomFilters } from "@/lib/validations/timetable-validations"
 
@@ -92,7 +92,7 @@ export default function ClassroomsPage() {
   const roomTypes = [...new Set(classrooms.map(c => c.room_type))].length
 
   return (
-    <SidebarLayout role="admin" title="Classroom Management">
+    <div className="p-6">
       <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -214,6 +214,6 @@ export default function ClassroomsPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

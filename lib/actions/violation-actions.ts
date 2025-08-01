@@ -599,8 +599,23 @@ export async function getHomeroomViolationsAction(): Promise<{ success: boolean;
   }
 }
 
-// Get violations for parent
-export async function getParentViolationsAction(studentId?: string): Promise<{ success: boolean; data?: StudentViolationWithDetails[]; error?: string }> {
+// Get violations for parent with filtering and pagination
+export async function getParentViolationsAction(
+  studentId?: string,
+  filters?: {
+    week?: number
+    severity?: string
+    page?: number
+    limit?: number
+  }
+): Promise<{
+  success: boolean
+  data?: StudentViolationWithDetails[]
+  totalCount?: number
+  totalPages?: number
+  currentPage?: number
+  error?: string
+}> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -608,6 +623,11 @@ export async function getParentViolationsAction(studentId?: string): Promise<{ s
     if (!user) {
       throw new Error("Authentication required")
     }
+
+    // Set default pagination values
+    const page = filters?.page || 1
+    const limit = filters?.limit || 10
+    const offset = (page - 1) * limit
 
     let query = supabase
       .from('student_violations')
@@ -622,21 +642,45 @@ export async function getParentViolationsAction(studentId?: string): Promise<{ s
         ),
         recorded_by:profiles!student_violations_recorded_by_fkey(id, full_name),
         academic_year:academic_years(id, name),
-        semester:semesters(id, name)
+        semester:semesters(id, name, start_date)
       `)
 
+    // Filter by student if specified
     if (studentId) {
       query = query.eq('student_id', studentId)
     }
 
+    // Note: Week filtering is done client-side since week_number is calculated dynamically
+
+    // Filter by severity if specified
+    if (filters?.severity && filters.severity !== 'all') {
+      query = query.eq('severity', filters.severity)
+    }
+
+    // Get total count for pagination
+    const { count: totalCount } = await supabase
+      .from('student_violations')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', studentId || '')
+
+    // Apply pagination and ordering
     const { data: violations, error } = await query
       .order('recorded_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       throw new Error(error.message)
     }
 
-    return { success: true, data: violations || [] }
+    const totalPages = Math.ceil((totalCount || 0) / limit)
+
+    return {
+      success: true,
+      data: violations || [],
+      totalCount: totalCount || 0,
+      totalPages,
+      currentPage: page
+    }
   } catch (error: unknown) {
     return {
       success: false,

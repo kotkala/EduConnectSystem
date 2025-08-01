@@ -4,17 +4,27 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, Clock, User, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getParentViolationsAction } from '@/lib/actions/violation-actions'
 import { getParentStudentsAction, type StudentInfo } from '@/lib/actions/parent-actions'
-import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails } from '@/lib/validations/violation-validations'
+import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, violationSeverityLevels } from '@/lib/validations/violation-validations'
+import { getWeekNumberFromDate } from '@/components/timetable-calendar/data-mappers'
 import { toast } from 'sonner'
 
 export default function ParentViolationsPageClient() {
   const [violations, setViolations] = useState<StudentViolationWithDetails[]>([])
   const [students, setStudents] = useState<StudentInfo[]>([])
   const [selectedStudentId, setSelectedStudentId] = useState<string>('all')
+  const [selectedWeek, setSelectedWeek] = useState<string>('all')
+  const [selectedSeverity, setSelectedSeverity] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [availableWeeks, setAvailableWeeks] = useState<number[]>([])
+
+  const pageSize = 10
 
   useEffect(() => {
     // Move loadStudents logic inside useEffect (Context7 pattern)
@@ -41,13 +51,51 @@ export default function ParentViolationsPageClient() {
 
   useEffect(() => {
     // Move loadViolations logic inside useEffect (Context7 pattern)
-    const loadViolations = async (studentId?: string) => {
+    const loadViolations = async () => {
       try {
         setLoading(true)
-        const result = await getParentViolationsAction(studentId)
+
+        // Prepare filters (only severity and pagination for server-side)
+        const filters = {
+          severity: selectedSeverity !== 'all' ? selectedSeverity : undefined,
+          page: 1, // Get all data for client-side filtering
+          limit: 1000 // Large limit to get all violations
+        }
+
+        const studentId = selectedStudentId !== 'all' ? selectedStudentId : undefined
+        const result = await getParentViolationsAction(studentId, filters)
 
         if (result && result.success && result.data) {
-          setViolations(result.data)
+          // Calculate week numbers for all violations
+          const violationsWithWeeks = result.data.map(v => {
+            let weekNumber = null
+            if (v.semester && v.semester.start_date) {
+              const semesterStartDate = new Date(v.semester.start_date)
+              const recordedDate = new Date(v.recorded_at)
+              weekNumber = getWeekNumberFromDate(recordedDate, semesterStartDate)
+            }
+            return { ...v, calculatedWeekNumber: weekNumber }
+          })
+
+          // Client-side week filtering
+          let filteredViolations = violationsWithWeeks
+          if (selectedWeek !== 'all') {
+            const targetWeek = parseInt(selectedWeek)
+            filteredViolations = violationsWithWeeks.filter(v => v.calculatedWeekNumber === targetWeek)
+          }
+
+          // Client-side pagination
+          const startIndex = (currentPage - 1) * pageSize
+          const endIndex = startIndex + pageSize
+          const paginatedViolations = filteredViolations.slice(startIndex, endIndex)
+
+          setViolations(paginatedViolations)
+          setTotalPages(Math.ceil(filteredViolations.length / pageSize))
+          setTotalCount(filteredViolations.length)
+
+          // Extract available weeks from all violations data
+          const weeks = [...new Set(violationsWithWeeks.map(v => v.calculatedWeekNumber).filter((week): week is number => week !== null))]
+          setAvailableWeeks(weeks.sort((a, b) => a - b))
         } else {
           toast.error(result?.error || 'Failed to load violations')
         }
@@ -58,12 +106,16 @@ export default function ParentViolationsPageClient() {
       }
     }
 
-    if (selectedStudentId && selectedStudentId !== 'all') {
-      loadViolations(selectedStudentId)
-    } else {
-      loadViolations()
-    }
-  }, [selectedStudentId]) // ✅ All dependencies declared
+    loadViolations()
+  }, [selectedStudentId, selectedWeek, selectedSeverity, currentPage]) // ✅ All dependencies declared
+
+  // Reset filters function
+  const resetFilters = () => {
+    setSelectedStudentId('all')
+    setSelectedWeek('all')
+    setSelectedSeverity('all')
+    setCurrentPage(1)
+  }
 
   const selectedStudent = students.find(s => s.id === selectedStudentId)
 
@@ -85,44 +137,100 @@ export default function ParentViolationsPageClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Vi Phạm Con Em</h1>
           <p className="text-muted-foreground">
-            View your children&apos;s violation records and disciplinary actions
+            Theo dõi các vi phạm của con em trong quá trình học tập
           </p>
         </div>
-      </div>
 
-      {students.length > 1 && (
+        {/* Filters Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Select Student
+              <Filter className="h-5 w-5" />
+              Bộ Lọc
             </CardTitle>
             <CardDescription>
-              Choose which child&apos;s violations you want to view
+              Lọc vi phạm theo học sinh, tuần học và mức độ nghiêm trọng
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a student" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Children</SelectItem>
-                {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.full_name} ({student.student_id})
-                    {student.current_class && ` - ${student.current_class.name}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Student Selection */}
+              <div className="flex items-center gap-2 min-w-[200px]">
+                <User className="h-4 w-4" />
+                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Chọn con em" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả con em</SelectItem>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.full_name} ({student.student_id})
+                        {student.current_class && ` - ${student.current_class.name}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Week Filter */}
+              <div className="flex items-center gap-2 min-w-[150px]">
+                <Clock className="h-4 w-4" />
+                <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tuần học" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả tuần</SelectItem>
+                    {availableWeeks.map((week) => (
+                      <SelectItem key={week} value={week.toString()}>
+                        Tuần {week}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Severity Filter */}
+              <div className="flex items-center gap-2 min-w-[150px]">
+                <AlertTriangle className="h-4 w-4" />
+                <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Mức độ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    {violationSeverityLevels.map((severity) => (
+                      <SelectItem key={severity} value={severity}>
+                        {getSeverityLabel(severity)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Reset Filters Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetFilters}
+                className="ml-auto"
+              >
+                Đặt lại bộ lọc
+              </Button>
+
+              {/* Results Summary */}
+              <div className="text-sm text-muted-foreground">
+                Hiển thị {violations.length} / {totalCount} vi phạm
+              </div>
+            </div>
           </CardContent>
         </Card>
-      )}
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -217,6 +325,60 @@ export default function ParentViolationsPageClient() {
             </Card>
           )}
         </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Trang {currentPage} / {totalPages} - Tổng {totalCount} vi phạm
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Trước
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                    if (pageNum > totalPages) return null
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

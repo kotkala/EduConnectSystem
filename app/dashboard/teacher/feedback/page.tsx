@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
 import { HomeroomFeedbackDashboard } from "@/components/homeroom-feedback/homeroom-feedback-dashboard";
 
 export const metadata: Metadata = {
@@ -9,10 +8,10 @@ export const metadata: Metadata = {
 
 export default function HomeroomFeedbackPage() {
   return (
-    <SidebarLayout role="teacher" title="Phản Hồi Học Sinh">
+    <div className="p-6">
       <div className="flex flex-1 flex-col gap-4">
         <HomeroomFeedbackDashboard />
       </div>
-    </SidebarLayout>
+    </div>
   );
 }

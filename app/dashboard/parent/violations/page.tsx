@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import ParentViolationsPageClient from './parent-violations-page-client'
 
 export default async function ParentViolationsPage() {
@@ -23,10 +22,10 @@ export default async function ParentViolationsPage() {
   }
 
   return (
-    <SidebarLayout role="parent" title="Student Violations">
+    <div className="p-6">
       <Suspense fallback={<div>Loading...</div>}>
         <ParentViolationsPageClient />
       </Suspense>
-    </SidebarLayout>
+    </div>
   )
 }

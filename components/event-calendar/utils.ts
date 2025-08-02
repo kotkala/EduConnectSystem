@@ -5,7 +5,7 @@ import type { CalendarEvent, EventColor } from "@/components/event-calendar";
 /**
  * Get CSS classes for event colors
  */
-export function getEventColorClasses(color?: EventColor | string): string {
+export function getEventColorClasses(color?: EventColor): string {
   const eventColor = color || "sky";
 
   switch (eventColor) {
@@ -32,14 +32,42 @@ export function getBorderRadiusClasses(
   isLastDay: boolean,
 ): string {
   if (isFirstDay && isLastDay) {
-    return "rounded"; // Both ends rounded
+    return getBorderRadiusForSingleDay();
   } else if (isFirstDay) {
-    return "rounded-l rounded-r-none not-in-data-[slot=popover-content]:w-[calc(100%+5px)]"; // Only left end rounded
+    return getBorderRadiusForFirstDay();
   } else if (isLastDay) {
-    return "rounded-r rounded-l-none not-in-data-[slot=popover-content]:w-[calc(100%+4px)] not-in-data-[slot=popover-content]:-translate-x-[4px]"; // Only right end rounded
+    return getBorderRadiusForLastDay();
   } else {
-    return "rounded-none not-in-data-[slot=popover-content]:w-[calc(100%+9px)] not-in-data-[slot=popover-content]:-translate-x-[4px]"; // No rounded corners
+    return getBorderRadiusForMiddleDay();
   }
+}
+
+/**
+ * Get border radius classes for single day events
+ */
+export function getBorderRadiusForSingleDay(): string {
+  return "rounded"; // Both ends rounded
+}
+
+/**
+ * Get border radius classes for first day of multi-day events
+ */
+export function getBorderRadiusForFirstDay(): string {
+  return "rounded-l rounded-r-none not-in-data-[slot=popover-content]:w-[calc(100%+5px)]"; // Only left end rounded
+}
+
+/**
+ * Get border radius classes for last day of multi-day events
+ */
+export function getBorderRadiusForLastDay(): string {
+  return "rounded-r rounded-l-none not-in-data-[slot=popover-content]:w-[calc(100%+4px)] not-in-data-[slot=popover-content]:-translate-x-[4px]"; // Only right end rounded
+}
+
+/**
+ * Get border radius classes for middle days of multi-day events
+ */
+export function getBorderRadiusForMiddleDay(): string {
+  return "rounded-none not-in-data-[slot=popover-content]:w-[calc(100%+9px)] not-in-data-[slot=popover-content]:-translate-x-[4px]"; // No rounded corners
 }
 
 /**

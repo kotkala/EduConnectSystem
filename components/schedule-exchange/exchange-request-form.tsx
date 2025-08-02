@@ -51,9 +51,9 @@ interface TimetableEvent {
 }
 
 interface ExchangeRequestFormProps {
-  teacherId: string
-  semesterId: string
-  onSuccess?: () => void
+  readonly teacherId: string
+  readonly semesterId: string
+  readonly onSuccess?: () => void
 }
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -243,13 +243,11 @@ export function ExchangeRequestForm({ teacherId, semesterId, onSuccess }: Exchan
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={
-                          !selectedEventId 
-                            ? "Select a teaching slot first" 
-                            : loadingTeachers 
-                              ? "Loading teachers..." 
-                              : "Select a teacher"
-                        } />
+                        <SelectValue placeholder={(() => {
+                          if (!selectedEventId) return "Select a teaching slot first"
+                          if (loadingTeachers) return "Loading teachers..."
+                          return "Select a teacher"
+                        })()} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -300,7 +298,6 @@ export function ExchangeRequestForm({ teacherId, semesterId, onSuccess }: Exchan
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) => date < new Date()}
-                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>

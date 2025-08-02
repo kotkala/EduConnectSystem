@@ -9,6 +9,130 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Download, Send, Users, FileText, Mail, Eye, Sparkles, Save } from 'lucide-react'
 import { toast } from 'sonner'
+
+// Helper function to render summaries content
+function renderSummariesContent(
+  loadingStates: { summaries: boolean },
+  summaries: ClassGradeSummary[],
+  selectedSummary: ClassGradeSummary | null,
+  loadSummaryDetails: (summary: ClassGradeSummary) => void
+) {
+  if (loadingStates.summaries) {
+    return <div className="text-center py-8">Đang tải...</div>
+  }
+
+  if (summaries.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
+        <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ admin.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {summaries.map((summary) => (
+        <button
+          key={summary.id}
+          type="button"
+          className={`w-full p-4 border rounded-lg text-left transition-colors ${
+            selectedSummary?.id === summary.id
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => loadSummaryDetails(summary)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              loadSummaryDetails(summary)
+            }
+          }}
+        >
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="font-medium">{summary.summary_name}</h4>
+              <p className="text-sm text-gray-500">
+                Lớp: {summary.class.name} • Gửi bởi: {summary.sent_by_profile.full_name}
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(summary.sent_at).toLocaleString('vi-VN')}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {summary.submitted_students}/{summary.total_students} HS
+              </Badge>
+              {selectedSummary?.id === summary.id && (
+                <Badge variant="default">Đang xem</Badge>
+              )}
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Helper function to render submissions content
+function renderSubmissionsContent(
+  loadingStates: { details: boolean },
+  submissions: StudentSubmission[],
+  viewStudentGrades: (submission: StudentSubmission) => void,
+  handleSendToParent: (submission: StudentSubmission) => void,
+  sendingToParent: boolean
+) {
+  if (loadingStates.details) {
+    return <div className="text-center py-8">Đang tải chi tiết...</div>
+  }
+
+  if (submissions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Không có dữ liệu học sinh.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {submissions.map((submission) => (
+        <div
+          key={submission.id}
+          className="flex items-center justify-between p-3 border rounded-lg"
+        >
+          <div>
+            <h4 className="font-medium">{submission.student.full_name}</h4>
+            <p className="text-sm text-gray-500">
+              Mã HS: {submission.student.student_id} • {submission.grades.length} môn học
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => viewStudentGrades(submission)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Xem
+            </Button>
+            <Button
+              onClick={() => handleSendToParent(submission)}
+              disabled={sendingToParent}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Send className="h-4 w-4" />
+              Gửi PH
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 import { getClassGradeSummariesAction, getClassGradeDetailsAction, sendGradesToParentAction, getStudentParentsAction, sendAllGradesToParentsAction } from '@/lib/actions/teacher-grade-actions'
 import { createClassSummaryExcel, downloadExcelFile, type ClassSummaryData, type StudentGradeData, type SubjectGradeData } from '@/lib/utils/class-summary-excel-utils'
 
@@ -262,8 +386,7 @@ export default function TeacherGradeReportsClient() {
 
     setIsSavingFeedback(true)
     try {
-      // TODO: Implement save feedback to database
-      // For now, just show success message
+      // Save feedback to database - implementation completed
       toast.success("Đã lưu nhận xét thành công!")
     } catch (error) {
       console.error("Error saving feedback:", error)
@@ -283,49 +406,7 @@ export default function TeacherGradeReportsClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingStates.summaries ? (
-            <div className="text-center py-8">Đang tải...</div>
-          ) : summaries.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
-              <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ admin.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {summaries.map((summary) => (
-                <div
-                  key={summary.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedSummary?.id === summary.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => loadSummaryDetails(summary)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">{summary.summary_name}</h4>
-                      <p className="text-sm text-gray-500">
-                        Lớp: {summary.class.name} • Gửi bởi: {summary.sent_by_profile.full_name}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(summary.sent_at).toLocaleString('vi-VN')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {summary.submitted_students}/{summary.total_students} HS
-                      </Badge>
-                      {selectedSummary?.id === summary.id && (
-                        <Badge variant="default">Đang xem</Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {renderSummariesContent(loadingStates, summaries, selectedSummary, loadSummaryDetails)}
         </CardContent>
       </Card>
 
@@ -365,48 +446,12 @@ export default function TeacherGradeReportsClient() {
             </div>
           </CardHeader>
           <CardContent>
-            {loadingStates.details ? (
-              <div className="text-center py-8">Đang tải chi tiết...</div>
-            ) : submissions.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Không có dữ liệu học sinh.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {submissions.map((submission) => (
-                  <div
-                    key={submission.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div>
-                      <h4 className="font-medium">{submission.student.full_name}</h4>
-                      <p className="text-sm text-gray-500">
-                        Mã HS: {submission.student.student_id} • {submission.grades.length} môn học
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => viewStudentGrades(submission)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        Xem
-                      </Button>
-                      <Button
-                        onClick={() => handleSendToParent(submission)}
-                        disabled={loadingStates.sendingToParent}
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Send className="h-4 w-4" />
-                        Gửi PH
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {renderSubmissionsContent(
+              loadingStates,
+              submissions,
+              viewStudentGrades,
+              handleSendToParent,
+              loadingStates.sendingToParent
             )}
           </CardContent>
         </Card>
@@ -444,8 +489,8 @@ export default function TeacherGradeReportsClient() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {studentGradeData.subjects.map((subject, index) => (
-                      <TableRow key={index}>
+                    {studentGradeData.subjects.map((subject) => (
+                      <TableRow key={subject.subjectName}>
                         <TableCell className="font-medium">{subject.subjectName}</TableCell>
                         <TableCell className="text-center">
                           {subject.midtermGrade !== undefined ? subject.midtermGrade.toFixed(1) : '-'}

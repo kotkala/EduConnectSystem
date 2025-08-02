@@ -39,6 +39,18 @@ import {
   type UpdateTimetableEventFormData
 } from '@/lib/validations/timetable-validations'
 
+// Helper function to get floor text
+function getFloorText(floor?: number | null): string {
+  return floor ? `, Floor ${floor}` : ''
+}
+
+// Helper function to get button text
+function getButtonText(loading: boolean, isEditing: boolean): string {
+  if (loading) return 'Saving...'
+  if (isEditing) return 'Update Event'
+  return 'Create Event'
+}
+
 interface TimetableEventFormProps {
   event?: TimetableEventDetailed
   onSuccess: () => void
@@ -109,13 +121,15 @@ async function loadDropdownData(
 
 // Helper function to handle conflict checking
 async function handleConflictCheck(
-  classroomId: string,
-  teacherId: string,
-  dayOfWeek: number,
-  startTime: string,
-  weekNumber: number,
-  semesterId: string,
-  eventId: string | undefined,
+  params: {
+    classroomId: string
+    teacherId: string
+    dayOfWeek: number
+    startTime: string
+    weekNumber: number
+    semesterId: string
+    eventId?: string
+  },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setConflictCheck: (check: any) => void
 ) {
@@ -123,13 +137,13 @@ async function handleConflictCheck(
 
   try {
     const result = await checkTimetableConflictsAction(
-      classroomId,
-      teacherId,
-      dayOfWeek,
-      startTime,
-      weekNumber,
-      semesterId,
-      eventId
+      params.classroomId,
+      params.teacherId,
+      params.dayOfWeek,
+      params.startTime,
+      params.weekNumber,
+      params.semesterId,
+      params.eventId
     );
 
     if (result.success) {
@@ -151,7 +165,7 @@ export function TimetableEventForm({
   onSuccess,
   onCancel,
   defaultValues
-}: TimetableEventFormProps) {
+}: Readonly<TimetableEventFormProps>) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflictCheck, setConflictCheck] = useState<{
@@ -201,13 +215,15 @@ export function TimetableEventForm({
     semesterId: string
   ) => {
     await handleConflictCheck(
-      classroomId,
-      teacherId,
-      dayOfWeek,
-      startTime,
-      weekNumber,
-      semesterId,
-      isEditing ? event?.id : undefined,
+      {
+        classroomId,
+        teacherId,
+        dayOfWeek,
+        startTime,
+        weekNumber,
+        semesterId,
+        eventId: isEditing ? event?.id : undefined
+      },
       setConflictCheck
     );
   }, [isEditing, event?.id])
@@ -411,7 +427,7 @@ export function TimetableEventForm({
                       {dropdownData.classrooms.map((classroom) => (
                         <SelectItem key={classroom.id} value={classroom.id}>
                           {classroom.name}
-                          {classroom.building && ` (${classroom.building}${classroom.floor ? `, Floor ${classroom.floor}` : ''})`}
+                          {classroom.building && ` (${classroom.building}${getFloorText(classroom.floor)})`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -560,7 +576,7 @@ export function TimetableEventForm({
               type="submit" 
               disabled={loading || conflictCheck.hasConflict}
             >
-              {loading ? 'Saving...' : isEditing ? 'Update Event' : 'Create Event'}
+              {getButtonText(loading, isEditing)}
             </Button>
           </div>
         </form>

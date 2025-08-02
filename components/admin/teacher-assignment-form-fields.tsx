@@ -42,9 +42,13 @@ interface TeacherAssignmentFormFieldsProps {
   readonly setValue: (name: keyof FormData, value: string) => void
 }
 
-// Helper function to get academic year placeholder text
-function getAcademicYearPlaceholder(loadingAcademicYears: boolean): string {
-  return loadingAcademicYears ? "Loading..." : "Select academic year"
+// Helper functions to get academic year placeholder text
+function getAcademicYearLoadingPlaceholder(): string {
+  return "Loading..."
+}
+
+function getAcademicYearDefaultPlaceholder(): string {
+  return "Select academic year"
 }
 
 // Helper function to get class block placeholder text
@@ -114,7 +118,7 @@ export function TeacherAssignmentFormFields({
           disabled={loadingAcademicYears}
         >
           <SelectTrigger id="academic-year-select">
-            <SelectValue placeholder={getAcademicYearPlaceholder(loadingAcademicYears)} />
+            <SelectValue placeholder={loadingAcademicYears ? getAcademicYearLoadingPlaceholder() : getAcademicYearDefaultPlaceholder()} />
           </SelectTrigger>
           <SelectContent>
             {academicYears.map((year) => (

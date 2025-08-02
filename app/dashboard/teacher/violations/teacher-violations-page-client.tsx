@@ -39,7 +39,7 @@ interface Semester {
   end_date: string
 }
 
-export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomTeacher, user }: TeacherViolationsPageClientProps) {
+export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomTeacher, user }: Readonly<TeacherViolationsPageClientProps>) {
   const [violations, setViolations] = useState<StudentViolationWithDetails[]>([])
   const [filteredViolations, setFilteredViolations] = useState<StudentViolationWithDetails[]>([])
   const [loading, setLoading] = useState(true)
@@ -380,9 +380,9 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Semester Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Học Kỳ</label>
+              <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger>
+                <SelectTrigger id="semester-select">
                   <SelectValue placeholder="Chọn học kỳ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -397,13 +397,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Week Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tuần Học</label>
+              <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
               <Select
                 value={selectedWeek?.toString() || "all"}
                 onValueChange={(value) => setSelectedWeek(value === "all" ? null : parseInt(value))}
                 disabled={!selectedSemester}
               >
-                <SelectTrigger>
+                <SelectTrigger id="week-select">
                   <SelectValue placeholder="Tất cả tuần" />
                 </SelectTrigger>
                 <SelectContent>
@@ -419,10 +419,11 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Search */}
             <div className="relative space-y-2">
-              <label className="text-sm font-medium">Tìm Kiếm</label>
+              <label htmlFor="search-input" className="text-sm font-medium">Tìm Kiếm</label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
+                  id="search-input"
                   placeholder="Tên hoặc mã học sinh..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -433,9 +434,9 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Severity Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Mức Độ</label>
+              <label htmlFor="severity-select" className="text-sm font-medium">Mức Độ</label>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger>
+                <SelectTrigger id="severity-select">
                   <SelectValue placeholder="Tất cả mức độ" />
                 </SelectTrigger>
                 <SelectContent>
@@ -453,7 +454,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Clear Filters */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">&nbsp;</label>
+              <div className="text-sm font-medium" aria-hidden="true">&nbsp;</div>
               <Button variant="outline" onClick={clearFilters} className="w-full">
                 Xóa Bộ Lọc
               </Button>

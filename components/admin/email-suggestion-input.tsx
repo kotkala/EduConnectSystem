@@ -184,22 +184,15 @@ export function EmailSuggestionInput({
         >
           <CardContent className="p-0">
             {suggestions.map((user, index) => (
-              <div
+              <button
                 key={user.id}
-                role="button"
-                tabIndex={0}
-                className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${
+                type="button"
+                className={`w-full p-3 text-left border-b border-gray-100 last:border-b-0 transition-colors ${
                   index === selectedIndex
                     ? 'bg-blue-50 border-blue-200'
                     : 'hover:bg-gray-50'
                 }`}
                 onClick={() => handleSelectUser(user)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    handleSelectUser(user)
-                  }
-                }}
                 aria-label={`Select user ${user.full_name} with email ${user.email}`}
               >
                 <div className="flex items-center justify-between">
@@ -226,7 +219,7 @@ export function EmailSuggestionInput({
                     <Check className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              </button>
             ))}
           </CardContent>
         </Card>

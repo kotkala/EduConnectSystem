@@ -182,15 +182,22 @@ export default function ParentGradesClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingStates.submissions ? (
-            <div className="text-center py-8">Đang tải...</div>
-          ) : Object.keys(studentGroups).length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
-              <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loadingStates.submissions) {
+              return <div className="text-center py-8">Đang tải...</div>
+            }
+
+            if (Object.keys(studentGroups).length === 0) {
+              return (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
+                  <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
+                </div>
+              )
+            }
+
+            return (
             <div className="space-y-6">
               {Object.values(studentGroups).map(({ student, submissions: studentSubmissions }) => (
                 <div key={student.id} className="border rounded-lg p-4">
@@ -206,9 +213,10 @@ export default function ParentGradesClient() {
                   
                   <div className="grid gap-3">
                     {studentSubmissions.map((submission) => (
-                      <div
+                      <button
                         key={submission.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        type="button"
+                        className={`w-full text-left p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedSubmission?.id === submission.id
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
@@ -244,13 +252,14 @@ export default function ParentGradesClient() {
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

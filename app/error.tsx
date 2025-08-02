@@ -4,12 +4,12 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-interface ErrorProps {
-  error: Error & { digest?: string }
-  reset: () => void
+interface ErrorPageProps {
+  readonly error: Error & { digest?: string }
+  readonly reset: () => void
 }
 
-export default function Error({ error, reset }: ErrorProps) {
+export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // Log the error to an error reporting service
     console.error('Application error:', error)

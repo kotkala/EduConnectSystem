@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, Clock, User, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AlertTriangle, Clock, User, Filter } from 'lucide-react'
 import { getParentViolationsAction } from '@/lib/actions/violation-actions'
 import { getParentStudentsAction, type StudentInfo } from '@/lib/actions/parent-actions'
 import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, violationSeverityLevels } from '@/lib/validations/violation-validations'
 import { getWeekNumberFromDate } from '@/components/timetable-calendar/data-mappers'
+import { SharedPaginationControls } from '@/components/shared/shared-pagination-controls'
 import { toast } from 'sonner'
 
 // Helper function to render violations content
@@ -345,58 +346,13 @@ export default function ParentViolationsPageClient() {
       {renderViolationsContent(loading, violations, selectedStudent)}
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Trang {currentPage} / {totalPages} - Tổng {totalCount} vi phạm
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Trước
-                </Button>
-
-                {/* Page Numbers */}
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
-                    if (pageNum > totalPages) return null
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Sau
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <SharedPaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={setCurrentPage}
+        itemName="vi phạm"
+      />
     </div>
   )
 }

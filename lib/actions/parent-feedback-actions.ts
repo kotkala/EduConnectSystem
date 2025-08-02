@@ -57,8 +57,6 @@ interface ParentFeedbackViewData {
   ai_generated_at: string | null
 }
 
-
-
 // Get list of children for parent dropdown
 export async function getParentChildrenAction(): Promise<{
   success: boolean;
@@ -209,8 +207,6 @@ export async function getStudentFeedbackForParentAction(
         data: []
       }
     }
-
-
 
     // Get student IDs for filtering
     const studentIds = studentRelationships.map(rel => rel.student_id)

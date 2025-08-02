@@ -19,11 +19,10 @@ import {
   Search,
   GraduationCap,
   UserCheck,
-  User,
-  ChevronLeft,
-  ChevronRight
+  User
 } from "lucide-react"
 import { toast } from "sonner"
+import { SharedPaginationControls } from "@/components/shared/shared-pagination-controls"
 
 import {
   getHomeroomClassInfoAction,
@@ -348,58 +347,13 @@ export default function HomeroomStudentsPage() {
       </div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Trang {currentPage} / {totalPages} - Tổng {totalCount} học sinh
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Trước
-                </Button>
-
-                {/* Page Numbers */}
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
-                    if (pageNum > totalPages) return null
-
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setCurrentPage(pageNum)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Sau
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <SharedPaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={setCurrentPage}
+        itemName="học sinh"
+      />
 
       {/* No Students Message */}
       {filteredStudents.length === 0 && !loading && (

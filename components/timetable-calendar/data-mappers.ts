@@ -30,7 +30,12 @@ export function mapTimetableToCalendarEvent(
   return {
     id: timetableEvent.id,
     title: `${timetableEvent.class_name} - ${timetableEvent.subject_code}`,
-    description: `Teacher: ${timetableEvent.teacher_name}\nClassroom: ${timetableEvent.classroom_name}${timetableEvent.notes ? `\nNotes: ${timetableEvent.notes}` : ''}`,
+    description: (() => {
+      const teacherInfo = `Teacher: ${timetableEvent.teacher_name}`
+      const classroomInfo = `Classroom: ${timetableEvent.classroom_name}`
+      const notesInfo = timetableEvent.notes ? `\nNotes: ${timetableEvent.notes}` : ''
+      return `${teacherInfo}\n${classroomInfo}${notesInfo}`
+    })(),
     start: startDateTime,
     end: endDateTime,
     color: getSubjectColor(timetableEvent.subject_code),
@@ -134,7 +139,10 @@ export function getWeekNumberFromDate(date: Date, semesterStartDate: Date): numb
 export function formatTimeDisplay(time: string): string {
   const [hour, minute] = time.split(':').map(Number);
   const period = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const displayHour = (() => {
+    if (hour === 0) return 12
+    return hour > 12 ? hour - 12 : hour
+  })()
   return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
 }
 

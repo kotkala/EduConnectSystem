@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { z } from "zod";
+
 
 import {
   type CalendarEvent,
@@ -82,7 +82,12 @@ function studySlotToCalendarEvent(slot: StudySlot & {
   return {
     id: slot.id || `temp-${Date.now()}`,
     title: `${slot.subject_code || 'Subject'} - ${slot.subject_name || ''}`,
-    description: `Teacher: ${slot.teacher_name || 'TBD'}\nRoom: ${slot.classroom_name || 'TBD'}${slot.notes ? `\nNotes: ${slot.notes}` : ''}`,
+    description: (() => {
+      const teacherInfo = `Teacher: ${slot.teacher_name || 'TBD'}`
+      const roomInfo = `Room: ${slot.classroom_name || 'TBD'}`
+      const notesInfo = slot.notes ? `\nNotes: ${slot.notes}` : ''
+      return `${teacherInfo}\n${roomInfo}${notesInfo}`
+    })(),
     start: startDate,
     end: endDate,
     allDay: false,
@@ -91,15 +96,12 @@ function studySlotToCalendarEvent(slot: StudySlot & {
   };
 }
 
-// UUID validation function using Zod
+// UUID validation function using regex
 const isValidUUID = (value: string): boolean => {
   if (!value || value === "") return false;
-  try {
-    z.string().uuid().parse(value);
-    return true;
-  } catch {
-    return false;
-  }
+  // UUID v4 regex pattern
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
 };
 
 // Check if filter has valid values for creating study slots
@@ -229,7 +231,7 @@ export default function TimetableBigCalendar() {
 
   const handleEventUpdate = async (event: CalendarEvent) => {
     const slot = studySlots.find(s => s.id === event.id);
-    if (!slot || !slot.id) return;
+    if (!slot?.id) return;
 
     const updatedSlot = {
       id: slot.id,

@@ -154,7 +154,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {suggestedPrompts.map((prompt, index) => (
                   <Button
-                    key={index}
+                    key={`prompt-${prompt.slice(0, 20)}-${index}`}
                     variant="outline"
                     className="text-left justify-start h-auto p-3 text-sm text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300"
                     onClick={() => setInputMessage(prompt)}
@@ -247,7 +247,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                   ref={inputRef}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => handleKeyPress(e, sendMessage)}
+                  onKeyDown={(e) => handleKeyPress(e, sendMessage)}
                   placeholder="Hỏi về tình hình học tập của con em..."
                   disabled={isLoading}
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
@@ -273,10 +273,11 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-medium text-gray-600">Kích cỡ chữ</label>
+                    <label htmlFor="font-size-slider" className="text-xs font-medium text-gray-600">Kích cỡ chữ</label>
                     <span className="text-xs text-gray-600">{fontSize[0]}px</span>
                   </div>
                   <Slider
+                    id="font-size-slider"
                     value={fontSize}
                     onValueChange={setFontSize}
                     max={20}

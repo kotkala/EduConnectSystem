@@ -187,6 +187,18 @@ export function ExchangeRequestsManagement() {
   const [selectedRequest, setSelectedRequest] = useState<ScheduleExchangeRequestDetailed | null>(null)
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve')
   const [processing, setProcessing] = useState(false)
+
+  // Helper function to render request cards
+  const renderRequestCards = (requestList: ScheduleExchangeRequestDetailed[]) => {
+    return requestList.map(request => (
+      <RequestCard
+        key={request.id}
+        request={request}
+        onApprove={(req) => openActionDialog(req, 'approve')}
+        onReject={(req) => openActionDialog(req, 'reject')}
+      />
+    ))
+  }
   const [activeTab, setActiveTab] = useState('pending')
 
   const form = useForm<ResponseFormData>({
@@ -338,14 +350,7 @@ export function ExchangeRequestsManagement() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                pendingRequests.map(request => (
-                  <RequestCard
-                    key={request.id}
-                    request={request}
-                    onApprove={(req) => openActionDialog(req, 'approve')}
-                    onReject={(req) => openActionDialog(req, 'reject')}
-                  />
-                ))
+                renderRequestCards(pendingRequests)
               )}
             </TabsContent>
 
@@ -357,14 +362,7 @@ export function ExchangeRequestsManagement() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                approvedRequests.map(request => (
-                  <RequestCard
-                    key={request.id}
-                    request={request}
-                    onApprove={(req) => openActionDialog(req, 'approve')}
-                    onReject={(req) => openActionDialog(req, 'reject')}
-                  />
-                ))
+                renderRequestCards(approvedRequests)
               )}
             </TabsContent>
 
@@ -376,14 +374,7 @@ export function ExchangeRequestsManagement() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                rejectedRequests.map(request => (
-                  <RequestCard
-                    key={request.id}
-                    request={request}
-                    onApprove={(req) => openActionDialog(req, 'approve')}
-                    onReject={(req) => openActionDialog(req, 'reject')}
-                  />
-                ))
+                renderRequestCards(rejectedRequests)
               )}
             </TabsContent>
           </Tabs>

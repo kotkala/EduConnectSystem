@@ -37,10 +37,10 @@ export interface TeacherTimetableFilters {
 }
 
 interface TeacherTimetableFiltersProps {
-  filters: TeacherTimetableFilters;
-  onFiltersChange: (filters: TeacherTimetableFilters) => void;
-  onRefresh: () => void;
-  loading?: boolean;
+  readonly filters: TeacherTimetableFilters;
+  readonly onFiltersChange: (filters: TeacherTimetableFilters) => void;
+  readonly onRefresh: () => void;
+  readonly loading?: boolean;
 }
 
 export function TeacherTimetableFilters({
@@ -144,13 +144,14 @@ export function TeacherTimetableFilters({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Academic Year Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Năm Học</label>
+            <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
             <Select
               value={filters.academicYearId || ""}
               onValueChange={(value) => handleFilterChange('academicYearId', value)}
               disabled={isLoadingData}
+              name="academic-year-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="academic-year-select">
                 <SelectValue placeholder="Chọn năm học" />
               </SelectTrigger>
               <SelectContent>
@@ -165,13 +166,14 @@ export function TeacherTimetableFilters({
 
           {/* Semester Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Học Kỳ</label>
+            <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
             <Select
               value={filters.semesterId || ""}
               onValueChange={(value) => handleFilterChange('semesterId', value)}
               disabled={!filters.academicYearId || semesters.length === 0}
+              name="semester-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="semester-select">
                 <SelectValue placeholder="Chọn học kỳ" />
               </SelectTrigger>
               <SelectContent>
@@ -186,13 +188,14 @@ export function TeacherTimetableFilters({
 
           {/* Study Week Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Tuần Học</label>
+            <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
             <Select
               value={filters.studyWeek?.toString() || ""}
               onValueChange={(value) => handleFilterChange('studyWeek', parseInt(value))}
               disabled={!filters.semesterId}
+              name="week-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="week-select">
                 <SelectValue placeholder="Chọn tuần" />
               </SelectTrigger>
               <SelectContent>

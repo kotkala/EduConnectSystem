@@ -214,25 +214,24 @@ export default function ParentFeedbackDashboard() {
 
 
 
+  // Helper function to update feedback read status
+  const updateFeedbackReadStatus = useCallback((student: StudentFeedbackForParent, feedbackId: string): StudentFeedbackForParent => {
+    const updatedDailyFeedback = Object.fromEntries(
+      Object.entries(student.daily_feedback).map(([day, feedback]) => [
+        day,
+        feedback.map(f => f.feedback_id === feedbackId ? { ...f, is_read: true } : f)
+      ])
+    )
+    return { ...student, daily_feedback: updatedDailyFeedback }
+  }, [])
+
   // Mark feedback as read
   const handleMarkAsRead = useCallback(async (feedbackId: string) => {
     try {
       const result = await markFeedbackAsReadAction(feedbackId)
       if (result.success) {
-        // Update local state directly without helper
-        setStudentFeedback(prev =>
-          prev.map(student => ({
-            ...student,
-            daily_feedback: Object.fromEntries(
-              Object.entries(student.daily_feedback).map(([day, feedback]) => [
-                day,
-                feedback.map(f =>
-                  f.feedback_id === feedbackId ? { ...f, is_read: true } : f
-                )
-              ])
-            )
-          }))
-        )
+        // Update local state using helper function
+        setStudentFeedback(prev => prev.map(student => updateFeedbackReadStatus(student, feedbackId)))
         toast.success("Marked as read")
       } else {
         toast.error(result.error || "Failed to mark as read")
@@ -241,7 +240,7 @@ export default function ParentFeedbackDashboard() {
       console.error("Mark as read error:", error)
       toast.error("An unexpected error occurred")
     }
-  }, [])
+  }, [updateFeedbackReadStatus])
 
 
 

@@ -268,6 +268,39 @@ export async function getStudentParentsAction(studentId: string) {
   }
 }
 
+// Helper function to process a single student's grade submission
+async function processStudentGradeSubmission(submission: { id: string; student_id: string }): Promise<{ success: boolean }> {
+  try {
+    // Get parents for this student
+    const parentsResult = await getStudentParentsAction(submission.student_id)
+    if (parentsResult.success && parentsResult.data && parentsResult.data.length > 0) {
+      const parentIds = (parentsResult.data as unknown as Array<{ id: string }>).map(p => p.id)
+      const sendResult = await sendGradesToParentAction(submission.id, parentIds)
+      return { success: sendResult.success }
+    }
+    return { success: false }
+  } catch {
+    return { success: false }
+  }
+}
+
+// Helper function to process all submissions and count results
+async function processAllSubmissions(submissions: Array<{ id: string; student_id: string }>): Promise<{ successCount: number; errorCount: number }> {
+  let successCount = 0
+  let errorCount = 0
+
+  for (const submission of submissions) {
+    const result = await processStudentGradeSubmission(submission)
+    if (result.success) {
+      successCount++
+    } else {
+      errorCount++
+    }
+  }
+
+  return { successCount, errorCount }
+}
+
 // Send grades to all parents in class
 export async function sendAllGradesToParentsAction(summaryId: string) {
   try {
@@ -283,29 +316,7 @@ export async function sendAllGradesToParentsAction(summaryId: string) {
     }
 
     const { submissions } = detailsResult.data
-    let successCount = 0
-    let errorCount = 0
-
-    // Send grades for each student
-    for (const submission of submissions) {
-      try {
-        // Get parents for this student
-        const parentsResult = await getStudentParentsAction(submission.student_id)
-        if (parentsResult.success && parentsResult.data && parentsResult.data.length > 0) {
-          const parentIds = (parentsResult.data as unknown as Array<{ id: string }>).map(p => p.id)
-          const sendResult = await sendGradesToParentAction(submission.id, parentIds)
-          if (sendResult.success) {
-            successCount++
-          } else {
-            errorCount++
-          }
-        } else {
-          errorCount++
-        }
-      } catch {
-        errorCount++
-      }
-    }
+    const { successCount, errorCount } = await processAllSubmissions(submissions)
 
     revalidatePath('/dashboard/teacher/grade-reports')
     const errorMessage = errorCount > 0 ? ` ${errorCount} bảng điểm gặp lỗi.` : ''

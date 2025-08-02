@@ -20,7 +20,7 @@ import {
 } from '@/lib/validations/academic-validations'
 
 interface TeacherAssignmentClientProps {
-  currentUserId: string
+  readonly currentUserId: string
 }
 
 export default function TeacherAssignmentClient({ currentUserId }: TeacherAssignmentClientProps) {
@@ -182,7 +182,14 @@ export default function TeacherAssignmentClient({ currentUserId }: TeacherAssign
             <TeacherAssignmentTable
               assignments={assignments}
               onUpdate={handleAssignmentUpdate}
-              title={`Teacher Assignments${selectedAcademicYear ? ` - ${academicYears.find(y => y.id === selectedAcademicYear)?.name}` : ''}`}
+              title={(() => {
+                const baseTitle = 'Teacher Assignments'
+                if (selectedAcademicYear) {
+                  const yearName = academicYears.find(y => y.id === selectedAcademicYear)?.name
+                  return `${baseTitle} - ${yearName}`
+                }
+                return baseTitle
+              })()}
               description={
                 selectedAcademicYear 
                   ? `Teacher assignments for the selected academic year`

@@ -218,60 +218,72 @@ export default function ParentDashboard() {
             </p>
           </CardHeader>
           <CardContent>
-            {studentsLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              </div>
-            ) : students.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32">
-                <Users className="h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500">No children found</p>
-                <p className="text-sm text-gray-400">
-                  {selectedYear && selectedYear !== 'all' ? 'No children in the selected academic year' : 'No children registered'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {students.map((student) => (
-                  <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-blue-600" />
+            {(() => {
+              if (studentsLoading) {
+                return (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  </div>
+                )
+              }
+
+              if (students.length === 0) {
+                const noChildrenMessage = selectedYear && selectedYear !== 'all'
+                  ? 'No children in the selected academic year'
+                  : 'No children registered'
+
+                return (
+                  <div className="flex flex-col items-center justify-center h-32">
+                    <Users className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-500">No children found</p>
+                    <p className="text-sm text-gray-400">{noChildrenMessage}</p>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="space-y-4">
+                  {students.map((student) => (
+                    <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{student.full_name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Student ID: {student.student_id}
+                          </p>
+                          {student.current_class && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <School className="w-3 h-3 text-gray-500" />
+                              <span className="text-xs text-gray-600">
+                                {student.current_class.name} - {student.current_class.academic_year}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium">{student.full_name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Student ID: {student.student_id}
-                        </p>
-                        {student.current_class && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <School className="w-3 h-3 text-gray-500" />
-                            <span className="text-xs text-gray-600">
-                              {student.current_class.name} - {student.current_class.academic_year}
-                            </span>
+                      <div className="flex items-center gap-2">
+                        {student.current_class ? (
+                          <Badge variant="default">Enrolled</Badge>
+                        ) : (
+                          <Badge variant="secondary">Not Enrolled</Badge>
+                        )}
+                        {student.current_class?.homeroom_teacher && (
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Homeroom Teacher</p>
+                            <p className="text-sm font-medium">
+                              {student.current_class.homeroom_teacher.full_name}
+                            </p>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {student.current_class ? (
-                        <Badge variant="default">Enrolled</Badge>
-                      ) : (
-                        <Badge variant="secondary">Not Enrolled</Badge>
-                      )}
-                      {student.current_class?.homeroom_teacher && (
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Homeroom Teacher</p>
-                          <p className="text-sm font-medium">
-                            {student.current_class.homeroom_teacher.full_name}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )
+            })()}
           </CardContent>
         </Card>
       </div>

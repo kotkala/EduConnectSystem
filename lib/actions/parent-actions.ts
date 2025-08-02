@@ -127,82 +127,119 @@ export async function getParentStudentsAction(): Promise<{ success: boolean; dat
   }
 }
 
+// Helper function to get parent's student relationships
+async function getParentStudentRelationships(supabase: Awaited<ReturnType<typeof createClient>>, parentId: string): Promise<string[]> {
+  const { data: relationships } = await supabase
+    .from('parent_student_relationships')
+    .select('student_id')
+    .eq('parent_id', parentId)
+
+  return relationships?.map((r: { student_id: string }) => r.student_id) || []
+}
+
+// Helper function to get student profiles
+async function getStudentProfiles(supabase: Awaited<ReturnType<typeof createClient>>, studentIds: string[]): Promise<Array<{ id: string; full_name: string; email: string; student_id: string }>> {
+  if (studentIds.length === 0) return []
+
+  const { data: students } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, student_id')
+    .eq('role', 'student')
+    .in('id', studentIds)
+
+  return students || []
+}
+
+// Helper function to get class assignments for students
+async function getStudentClassAssignments(supabase: Awaited<ReturnType<typeof createClient>>, academicYearId: string, studentIds: string[]) {
+  const { data: assignments, error } = await supabase
+    .from('student_class_assignments')
+    .select(`
+      student_id,
+      class_id,
+      classes(
+        id,
+        name,
+        homeroom_teacher_id,
+        academic_years(id, name),
+        homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(id, full_name)
+      )
+    `)
+    .eq('academic_year_id', academicYearId)
+    .eq('is_active', true)
+    .in('student_id', studentIds)
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return assignments || []
+}
+
+// Helper function to transform assignment data to StudentInfo
+function transformAssignmentToStudentInfo(
+  assignment: {
+    student_id: string
+    class_id: string
+    classes: unknown
+  },
+  student: { id: string; full_name: string; email: string; student_id: string }
+): StudentInfo {
+  const classes = assignment.classes as {
+    id: string
+    name: string
+    academic_years: { name: string } | null
+    homeroom_teacher: { id: string; full_name: string } | null
+  }
+
+  return {
+    id: student.id,
+    full_name: student.full_name,
+    email: student.email,
+    student_id: student.student_id,
+    current_class: {
+      id: classes.id,
+      name: classes.name,
+      academic_year: classes.academic_years?.name || 'Unknown',
+      homeroom_teacher: classes.homeroom_teacher ? {
+        id: classes.homeroom_teacher.id,
+        full_name: classes.homeroom_teacher.full_name
+      } : undefined
+    }
+  }
+}
+
 // Get students by academic year for a parent
 export async function getParentStudentsByYearAction(academicYearId: string): Promise<{ success: boolean; data?: StudentInfo[]; error?: string }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Authentication required")
     }
 
-    // First get the student IDs for this parent
-    const { data: relationships } = await supabase
-      .from('parent_student_relationships')
-      .select('student_id')
-      .eq('parent_id', user.id)
-
-    if (!relationships || relationships.length === 0) {
+    // Get student IDs for this parent
+    const studentIds = await getParentStudentRelationships(supabase, user.id)
+    if (studentIds.length === 0) {
       return { success: true, data: [] }
     }
 
-    // Get student profiles manually
-    const studentProfileIds = relationships.map(r => r.student_id)
-    const { data: students } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, student_id')
-      .eq('role', 'student')
-      .in('id', studentProfileIds)
-
-    if (!students || students.length === 0) {
+    // Get student profiles
+    const students = await getStudentProfiles(supabase, studentIds)
+    if (students.length === 0) {
       return { success: true, data: [] }
     }
 
-    // Get students for this parent in the specified academic year
-    const { data: assignments, error } = await supabase
-      .from('student_class_assignments')
-      .select(`
-        student_id,
-        class_id,
-        classes(
-          id,
-          name,
-          homeroom_teacher_id,
-          academic_years(id, name),
-          homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(id, full_name)
-        )
-      `)
-      .eq('academic_year_id', academicYearId)
-      .eq('is_active', true)
-      .in('student_id', studentProfileIds)
+    // Get class assignments for the academic year
+    const assignments = await getStudentClassAssignments(supabase, academicYearId, studentIds)
 
-    if (error) {
-      throw new Error(error.message)
-    }
-
+    // Transform assignments to StudentInfo
     const studentsWithClasses: StudentInfo[] = []
-
-    if (assignments) {
-      for (const assignment of assignments) {
-        const student = students.find(s => s.id === assignment.student_id)
-        if (student) {
-          studentsWithClasses.push({
-            id: student.id,
-            full_name: student.full_name,
-            email: student.email,
-            student_id: student.student_id,
-            current_class: {
-              id: (assignment.classes as unknown as { id: string }).id,
-              name: (assignment.classes as unknown as { name: string }).name,
-              academic_year: (assignment.classes as unknown as { academic_years: { name: string } | null })?.academic_years?.name || 'Unknown',
-              homeroom_teacher: (assignment.classes as unknown as { homeroom_teacher: { id: string; full_name: string } | null }).homeroom_teacher ? {
-                id: (assignment.classes as unknown as { homeroom_teacher: { id: string; full_name: string } }).homeroom_teacher.id,
-                full_name: (assignment.classes as unknown as { homeroom_teacher: { id: string; full_name: string } }).homeroom_teacher.full_name
-              } : undefined
-            }
-          })
-        }
+    for (const assignment of assignments) {
+      const student = students.find(s => s.id === assignment.student_id)
+      if (student) {
+        studentsWithClasses.push(transformAssignmentToStudentInfo(assignment, student))
       }
     }
 

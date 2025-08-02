@@ -12,6 +12,89 @@ import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, v
 import { getWeekNumberFromDate } from '@/components/timetable-calendar/data-mappers'
 import { toast } from 'sonner'
 
+// Helper function to render violations content
+function renderViolationsContent(
+  loading: boolean,
+  violations: StudentViolationWithDetails[],
+  selectedStudent: StudentInfo | undefined
+) {
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          Loading violations...
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (violations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-8">
+          <AlertTriangle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No violations recorded</h3>
+          <p className="text-muted-foreground">
+            {selectedStudent
+              ? `${selectedStudent.full_name} has no recorded violations.`
+              : 'Your children have no recorded violations.'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {violations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Violations ({violations.length})
+            </CardTitle>
+            <CardDescription>
+              All recorded violations for your children
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {violations.map((violation) => (
+              <div key={violation.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold">{violation.student.full_name}</h4>
+                      <Badge variant="outline">{violation.student.student_id}</Badge>
+                      <Badge variant="outline">{violation.class.name}</Badge>
+                      <Badge className={getSeverityColor(violation.severity)}>
+                        {getSeverityLabel(violation.severity)}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {violation.violation_type.category.name} • {violation.violation_type.name}
+                    </p>
+                    {violation.description && (
+                      <p className="text-sm">{violation.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
+                      </span>
+                      <span>Recorded by: {violation.recorded_by.full_name}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
 export default function ParentViolationsPageClient() {
   const [violations, setViolations] = useState<StudentViolationWithDetails[]>([])
   const [students, setStudents] = useState<StudentInfo[]>([])
@@ -69,7 +152,7 @@ export default function ParentViolationsPageClient() {
           // Calculate week numbers for all violations
           const violationsWithWeeks = result.data.map(v => {
             let weekNumber = null
-            if (v.semester && v.semester.start_date) {
+            if (v.semester?.start_date) {
               const semesterStartDate = new Date(v.semester.start_date)
               const recordedDate = new Date(v.recorded_at)
               weekNumber = getWeekNumberFromDate(recordedDate, semesterStartDate)
@@ -95,7 +178,7 @@ export default function ParentViolationsPageClient() {
 
           // Extract available weeks from all violations data
           const weeks = [...new Set(violationsWithWeeks.map(v => v.calculatedWeekNumber).filter((week): week is number => week !== null))]
-          setAvailableWeeks(weeks.sort((a, b) => a - b))
+          setAvailableWeeks(weeks.toSorted((a, b) => a - b))
         } else {
           toast.error(result?.error || 'Failed to load violations')
         }
@@ -259,73 +342,7 @@ export default function ParentViolationsPageClient() {
         </Card>
       </div>
 
-      {loading ? (
-        <Card>
-          <CardContent className="text-center py-8">
-            Loading violations...
-          </CardContent>
-        </Card>
-      ) : violations.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-8">
-            <AlertTriangle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No violations recorded</h3>
-            <p className="text-muted-foreground">
-              {selectedStudent 
-                ? `${selectedStudent.full_name} has no recorded violations.`
-                : 'Your children have no recorded violations.'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {violations.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  Violations ({violations.length})
-                </CardTitle>
-                <CardDescription>
-                  All recorded violations for your children
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {violations.map((violation) => (
-                  <div key={violation.id} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{violation.student.full_name}</h4>
-                          <Badge variant="outline">{violation.student.student_id}</Badge>
-                          <Badge variant="outline">{violation.class.name}</Badge>
-                          <Badge className={getSeverityColor(violation.severity)}>
-                            {getSeverityLabel(violation.severity)}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {violation.violation_type.category.name} • {violation.violation_type.name}
-                        </p>
-                        {violation.description && (
-                          <p className="text-sm">{violation.description}</p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
-                          </span>
-                          <span>Recorded by: {violation.recorded_by.full_name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+      {renderViolationsContent(loading, violations, selectedStudent)}
 
       {/* Pagination Controls */}
       {totalPages > 1 && (

@@ -67,6 +67,13 @@ interface TrendData {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']
 
+// Helper function to get badge variant based on average grade
+function getBadgeVariant(averageGrade: number): 'default' | 'secondary' | 'outline' {
+  if (averageGrade >= 8.5) return 'default'
+  if (averageGrade >= 7.0) return 'secondary'
+  return 'outline'
+}
+
 // Helper function to create a generic data loader
 function createDataLoader<T>(
   setData: (data: T) => void,
@@ -105,7 +112,7 @@ function createLoadingStateUpdater(setLoadingStates: React.Dispatch<React.SetSta
 }
 
 // Statistics Cards Component
-function StatisticsCards({ overallStats }: { overallStats: OverallStats | null }) {
+function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats | null }) {
   const statsData = [
     {
       title: "Tổng bảng điểm",
@@ -135,8 +142,8 @@ function StatisticsCards({ overallStats }: { overallStats: OverallStats | null }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {statsData.map((stat, index) => (
-        <Card key={index}>
+      {statsData.map((stat) => (
+        <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
             <stat.icon className="h-4 w-4 text-muted-foreground" />
@@ -304,7 +311,7 @@ export default function AnalyticsClient() {
                     nameKey="name"
                   >
                     {gradeDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -388,7 +395,7 @@ export default function AnalyticsClient() {
                   <div className="flex items-center gap-4 text-right">
                     <div>
                       <div className="text-sm text-gray-500">Trung bình</div>
-                      <Badge variant={subject.averageGrade >= 8.5 ? 'default' : subject.averageGrade >= 7.0 ? 'secondary' : 'outline'}>
+                      <Badge variant={getBadgeVariant(subject.averageGrade)}>
                         {subject.averageGrade.toFixed(1)}
                       </Badge>
                     </div>

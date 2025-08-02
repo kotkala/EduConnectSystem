@@ -94,12 +94,12 @@ function StudentInfoSection({
   editMode,
   generatingId,
   generateStudentId
-}: {
+}: Readonly<{
   form: ReturnType<typeof useForm<StudentParentFormData>>;
   editMode: boolean;
   generatingId: boolean;
   generateStudentId: () => void
-}) {
+}>) {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3 pb-4 border-b border-blue-100">
@@ -256,10 +256,10 @@ function StudentInfoSection({
 function ParentInfoSection({
   form,
   handleParentEmailSelect
-}: {
+}: Readonly<{
   form: ReturnType<typeof useForm<StudentParentFormData>>;
   handleParentEmailSelect: (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => void
-}) {
+}>) {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3 pb-4 border-b border-green-100">
@@ -400,7 +400,7 @@ function ParentInfoSection({
   )
 }
 
-export function StudentParentForm({ editMode = false, initialData, onSuccess, onCancel }: StudentParentFormProps) {
+export function StudentParentForm({ editMode = false, initialData, onSuccess, onCancel }: Readonly<StudentParentFormProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)

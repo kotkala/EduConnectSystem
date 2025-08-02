@@ -90,7 +90,7 @@ function FormField({
   error,
   disabled,
   helpText
-}: {
+}: Readonly<{
   id: string;
   label: string;
   type?: string;
@@ -100,7 +100,7 @@ function FormField({
   error?: string;
   disabled?: boolean;
   helpText?: string;
-}) {
+}>) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -121,7 +121,7 @@ function FormField({
   );
 }
 
-export function AcademicYearForm({ academicYear, onSuccess, onCancel }: AcademicYearFormProps) {
+export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly<AcademicYearFormProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)

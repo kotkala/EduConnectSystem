@@ -31,9 +31,8 @@ interface SimpleTeacher {
   full_name: string
   employee_id: string
 }
-import { createClassAction, updateClassAction } from "@/lib/actions/class-actions"
+import { createClassAction, updateClassAction, getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
-import { getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
 interface ClassFormProps {
@@ -110,12 +109,12 @@ function SubjectCombinationSection({
   form,
   watchIsSubjectCombination,
   watchSubjectCombinationType
-}: {
+}: Readonly<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
   watchIsSubjectCombination: boolean;
   watchSubjectCombinationType: string | undefined
-}) {
+}>) {
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -184,7 +183,7 @@ function SubjectCombinationSection({
   );
 }
 
-export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormProps) {
+export function ClassForm({ class: classData, onSuccess, onCancel }: Readonly<ClassFormProps>) {
   const isEditing = !!classData
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)

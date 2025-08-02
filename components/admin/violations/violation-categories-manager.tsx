@@ -28,6 +28,19 @@ import {
 } from '@/components/ui/table'
 import { Plus, Edit, Settings } from 'lucide-react'
 import { toast } from 'sonner'
+
+// Helper function to get button text for category operations
+function getCategoryButtonText(loading: boolean, selectedCategory: unknown): string {
+  if (loading) return 'Saving...'
+  return selectedCategory ? 'Update' : 'Create'
+}
+
+// Helper function to get button text for type operations
+function getTypeButtonText(loading: boolean, selectedType: unknown): string {
+  if (loading) return 'Saving...'
+  return selectedType ? 'Update' : 'Create'
+}
+
 import {
   violationCategorySchema,
   violationTypeSchema,
@@ -301,7 +314,7 @@ export default function ViolationCategoriesManager() {
                         Cancel
                       </Button>
                       <Button type="submit" disabled={loading}>
-                        {loading ? 'Saving...' : (selectedCategory ? 'Update' : 'Create')}
+                        {getCategoryButtonText(loading, selectedCategory)}
                       </Button>
                     </div>
                   </form>
@@ -488,7 +501,7 @@ export default function ViolationCategoriesManager() {
                         Cancel
                       </Button>
                       <Button type="submit" disabled={loading}>
-                        {loading ? 'Saving...' : (selectedType ? 'Update' : 'Create')}
+                        {getTypeButtonText(loading, selectedType)}
                       </Button>
                     </div>
                   </form>

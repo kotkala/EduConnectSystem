@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useId,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -31,7 +32,7 @@ function calculatePreciseTime(time: number): { hours: number; minutes: number } 
   const fractionalHour = time - hours;
 
   // Map to nearest 15 minute interval (0, 0.25, 0.5, 0.75)
-  let minutes = 0;
+  let minutes: number;
   if (fractionalHour < 0.125) minutes = 0;
   else if (fractionalHour < 0.375) minutes = 15;
   else if (fractionalHour < 0.625) minutes = 30;
@@ -65,14 +66,14 @@ function hasDateChanged(newTime: Date, currentTime: Date | null): boolean {
 }
 
 // Helper function to reset drag state
-function resetDragState(
-  setActiveEvent: (event: CalendarEvent | null) => void,
-  setActiveId: (id: UniqueIdentifier | null) => void,
-  setActiveView: (view: "month" | "week" | "day" | null) => void,
-  setCurrentTime: (time: Date | null) => void,
-  setEventHeight: (height: number | null) => void,
-  setIsMultiDay: (isMultiDay: boolean) => void,
-  setMultiDayWidth: (width: number | null) => void,
+interface DragStateSetters {
+  setActiveEvent: (event: CalendarEvent | null) => void;
+  setActiveId: (id: UniqueIdentifier | null) => void;
+  setActiveView: (view: "month" | "week" | "day" | null) => void;
+  setCurrentTime: (time: Date | null) => void;
+  setEventHeight: (height: number | null) => void;
+  setIsMultiDay: (isMultiDay: boolean) => void;
+  setMultiDayWidth: (width: number | null) => void;
   setDragHandlePosition: (position: {
     x?: number;
     y?: number;
@@ -80,16 +81,18 @@ function resetDragState(
       isFirstDay?: boolean;
       isLastDay?: boolean;
     };
-  } | null) => void
-) {
-  setActiveEvent(null);
-  setActiveId(null);
-  setActiveView(null);
-  setCurrentTime(null);
-  setEventHeight(null);
-  setIsMultiDay(false);
-  setMultiDayWidth(null);
-  setDragHandlePosition(null);
+  } | null) => void;
+}
+
+function resetDragState(setters: DragStateSetters) {
+  setters.setActiveEvent(null);
+  setters.setActiveId(null);
+  setters.setActiveView(null);
+  setters.setCurrentTime(null);
+  setters.setEventHeight(null);
+  setters.setIsMultiDay(false);
+  setters.setMultiDayWidth(null);
+  setters.setDragHandlePosition(null);
 }
 
 // Helper function to check if start time has changed
@@ -146,7 +149,7 @@ interface CalendarDndProviderProps {
 export function CalendarDndProvider({
   children,
   onEventUpdate,
-}: CalendarDndProviderProps) {
+}: Readonly<CalendarDndProviderProps>) {
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [activeView, setActiveView] = useState<"month" | "week" | "day" | null>(
@@ -164,6 +167,27 @@ export function CalendarDndProvider({
       isLastDay?: boolean;
     };
   } | null>(null);
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    activeEvent,
+    activeId,
+    activeView,
+    currentTime,
+    eventHeight,
+    isMultiDay,
+    multiDayWidth,
+    dragHandlePosition,
+  }), [
+    activeEvent,
+    activeId,
+    activeView,
+    currentTime,
+    eventHeight,
+    isMultiDay,
+    multiDayWidth,
+    dragHandlePosition,
+  ]);
 
   // Store original event dimensions
   const eventDimensions = useRef<{ height: number }>({ height: 0 });
@@ -283,7 +307,7 @@ export function CalendarDndProvider({
     // Add robust error checking
     if (!over || !activeEvent || !currentTime) {
       // Reset state and exit early
-      resetDragState(
+      resetDragState({
         setActiveEvent,
         setActiveId,
         setActiveView,
@@ -292,7 +316,7 @@ export function CalendarDndProvider({
         setIsMultiDay,
         setMultiDayWidth,
         setDragHandlePosition
-      );
+      });
       return;
     }
 
@@ -326,7 +350,7 @@ export function CalendarDndProvider({
         const fractionalHour = time - hours;
 
         // Map to nearest 15 minute interval (0, 0.25, 0.5, 0.75)
-        let minutes = 0;
+        let minutes: number;
         if (fractionalHour < 0.125) minutes = 0;
         else if (fractionalHour < 0.375) minutes = 15;
         else if (fractionalHour < 0.625) minutes = 30;
@@ -362,7 +386,7 @@ export function CalendarDndProvider({
       console.error("Error in drag end handler:", error);
     } finally {
       // Always reset state
-      resetDragState(
+      resetDragState({
         setActiveEvent,
         setActiveId,
         setActiveView,
@@ -371,7 +395,7 @@ export function CalendarDndProvider({
         setIsMultiDay,
         setMultiDayWidth,
         setDragHandlePosition
-      );
+      });
     }
   };
 
@@ -383,18 +407,7 @@ export function CalendarDndProvider({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <CalendarDndContext.Provider
-        value={{
-          activeEvent,
-          activeId,
-          activeView,
-          currentTime,
-          eventHeight,
-          isMultiDay,
-          multiDayWidth,
-          dragHandlePosition,
-        }}
-      >
+      <CalendarDndContext.Provider value={contextValue}>
         {children}
 
         <DragOverlay adjustScale={false} dropAnimation={null}>

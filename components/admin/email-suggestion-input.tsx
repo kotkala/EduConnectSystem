@@ -9,15 +9,15 @@ import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/lib/actions/user-actions"
 
 interface EmailSuggestionInputProps {
-  id: string
-  label: string
-  placeholder?: string
-  value: string
-  onChange: (value: string) => void
-  onBlur?: () => void
-  error?: string
-  onUserSelect?: (user: UserSuggestion) => void
-  className?: string
+  readonly id: string
+  readonly label: string
+  readonly placeholder?: string
+  readonly value: string
+  readonly onChange: (value: string) => void
+  readonly onBlur?: () => void
+  readonly error?: string
+  readonly onUserSelect?: (user: UserSuggestion) => void
+  readonly className?: string
 }
 
 interface UserSuggestion {

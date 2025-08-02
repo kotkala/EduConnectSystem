@@ -45,7 +45,7 @@ export default function TeacherScheduleBigCalendar() {
   const { user } = useAuth();
   const { currentDate, isColorVisible } = useCalendarContext();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [, setTimetableEventsMap] = useState<Map<string, TeacherTimetableEvent>>(new Map());
+  const [timetableEventsMap, setTimetableEventsMap] = useState<Map<string, TeacherTimetableEvent>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<TeacherTimetableFiltersType>({
     academicYearId: undefined,
@@ -80,7 +80,11 @@ export default function TeacherScheduleBigCalendar() {
     return {
       id: event.id,
       title: title,
-      description: `Room: ${event.classroom_name || 'TBD'}${event.notes ? `\nNotes: ${event.notes}` : ''}`,
+      description: (() => {
+        const roomInfo = `Room: ${event.classroom_name || 'TBD'}`
+        const notesInfo = event.notes ? `\nNotes: ${event.notes}` : ''
+        return `${roomInfo}${notesInfo}`
+      })(),
       start: startTime,
       end: endTime,
       color: color,
@@ -119,7 +123,7 @@ export default function TeacherScheduleBigCalendar() {
         // Store events in map for easy access
         const eventsMap = new Map<string, TeacherTimetableEvent>();
         timetableEvents.forEach(event => {
-          if (event && event.id) {
+          if (event?.id) {
             eventsMap.set(event.id, event);
           }
         });
@@ -127,7 +131,7 @@ export default function TeacherScheduleBigCalendar() {
 
         // Convert to calendar events for display with additional safety checks
         const calendarEvents = timetableEvents
-          .filter(event => event && event.id && event.subject_name && event.class_name)
+          .filter(event => event?.id && event?.subject_name && event?.class_name)
           .map(event => {
             try {
               return timetableEventToCalendarEvent(event);
@@ -165,13 +169,21 @@ export default function TeacherScheduleBigCalendar() {
 
   // Handle event selection (open dialog)
   const handleEventSelect = useCallback((event: CalendarEvent) => {
-    // Find the corresponding timetable event
+    // Find the corresponding timetable event from the map or events array
+    const timetableEventFromMap = timetableEventsMap.get(event.id);
+    if (timetableEventFromMap) {
+      setSelectedEvent(timetableEventFromMap);
+      setIsDialogOpen(true);
+      return;
+    }
+
+    // Fallback to finding from events array
     const timetableEvent = events.find(e => e.id === event.id);
-    if (timetableEvent && timetableEvent.originalEvent) {
+    if (timetableEvent?.originalEvent) {
       setSelectedEvent(timetableEvent.originalEvent as TeacherTimetableEvent);
       setIsDialogOpen(true);
     }
-  }, [events]);
+  }, [events, timetableEventsMap]);
 
   return (
     <div className="flex flex-1 flex-col gap-4">

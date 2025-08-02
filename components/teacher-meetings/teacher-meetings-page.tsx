@@ -100,6 +100,81 @@ export default function TeacherMeetingsPage() {
     return new Date(dateString) > new Date()
   }
 
+  const renderMeetingSchedulesList = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Đang tải lịch họp...</span>
+        </div>
+      )
+    }
+
+    if (meetingSchedules.length === 0) {
+      return (
+        <div className="text-center py-8 text-muted-foreground">
+          <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>Chưa có lịch họp nào được tạo</p>
+          <p className="text-sm">Nhấn &quot;Tạo Lịch Họp&quot; để bắt đầu</p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-4">
+        {meetingSchedules.map((meeting) => (
+          <div key={meeting.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">{meeting.title}</h3>
+                  <Badge variant="outline">{getMeetingTypeLabel(meeting.meeting_type)}</Badge>
+                  {isUpcoming(meeting.meeting_date) && (
+                    <Badge variant="default">Sắp diễn ra</Badge>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {formatDateTime(meeting.meeting_date)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {formatDuration(meeting.duration_minutes)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {meeting.class_name}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {meeting.recipients_count} phụ huynh
+                  </div>
+                  {meeting.meeting_location && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      {meeting.meeting_location}
+                    </div>
+                  )}
+                </div>
+
+                {meeting.description && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    {meeting.description.length > 150
+                      ? `${meeting.description.substring(0, 150)}...`
+                      : meeting.description
+                    }
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -224,70 +299,7 @@ export default function TeacherMeetingsPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2">Đang tải lịch họp...</span>
-            </div>
-          ) : meetingSchedules.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Chưa có lịch họp nào được tạo</p>
-              <p className="text-sm">Nhấn &quot;Tạo Lịch Họp&quot; để bắt đầu</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {meetingSchedules.map((meeting) => (
-                <div key={meeting.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg">{meeting.title}</h3>
-                        <Badge variant="outline">{getMeetingTypeLabel(meeting.meeting_type)}</Badge>
-                        {isUpcoming(meeting.meeting_date) && (
-                          <Badge variant="default">Sắp diễn ra</Badge>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          {formatDateTime(meeting.meeting_date)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          {formatDuration(meeting.duration_minutes)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {meeting.class_name}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {meeting.recipients_count} phụ huynh
-                        </div>
-                        {meeting.meeting_location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {meeting.meeting_location}
-                          </div>
-                        )}
-                      </div>
-
-                      {meeting.description && (
-                        <p className="text-sm text-gray-600 mt-2">
-                          {meeting.description.length > 150
-                            ? `${meeting.description.substring(0, 150)}...`
-                            : meeting.description
-                          }
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {renderMeetingSchedulesList()}
         </CardContent>
       </Card>
 

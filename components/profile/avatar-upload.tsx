@@ -8,11 +8,11 @@ import { toast } from 'sonner'
 import { Camera, Loader2 } from 'lucide-react'
 
 interface AvatarUploadProps {
-  uid: string
-  url: string | null
-  size?: number
-  onUpload: (filePath: string) => void
-  fallback?: string
+  readonly uid: string
+  readonly url: string | null
+  readonly size?: number
+  readonly onUpload: (filePath: string) => void
+  readonly fallback?: string
 }
 
 export default function AvatarUpload({ 

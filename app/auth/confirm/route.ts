@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
           .single()
 
         // If profile exists and is complete, go to dashboard
-        if (profile && profile.role && profile.full_name) {
+        if (profile?.role && profile?.full_name) {
           redirectTo.pathname = '/dashboard'
         } else {
           // Otherwise go to profile setup

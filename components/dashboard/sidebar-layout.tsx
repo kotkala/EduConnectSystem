@@ -9,9 +9,9 @@ import { AppSidebar } from './app-sidebar'
 import { UserRole } from '@/lib/types'
 
 interface SidebarLayoutProps {
-  children: React.ReactNode
-  role: UserRole
-  title: string
+  readonly children: React.ReactNode
+  readonly role: UserRole
+  readonly title: string
 }
 
 export function SidebarLayout({ children, role, title }: SidebarLayoutProps) {

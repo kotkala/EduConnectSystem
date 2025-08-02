@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   try {
     const { gradeData }: { gradeData: StudentGradeData } = await request.json()
 
-    if (!gradeData || !gradeData.subjects || gradeData.subjects.length === 0) {
+    if (!gradeData?.subjects?.length) {
       return NextResponse.json(
         { error: 'Invalid grade data provided' },
         { status: 400 }

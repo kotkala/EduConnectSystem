@@ -9,15 +9,15 @@ import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/lib/actions/user-actions"
 
 interface EmailSuggestionInputProps {
-  id: string
-  label: string
-  placeholder?: string
-  value: string
-  onChange: (value: string) => void
-  onBlur?: () => void
-  error?: string
-  onUserSelect?: (user: UserSuggestion) => void
-  className?: string
+  readonly id: string
+  readonly label: string
+  readonly placeholder?: string
+  readonly value: string
+  readonly onChange: (value: string) => void
+  readonly onBlur?: () => void
+  readonly error?: string
+  readonly onUserSelect?: (user: UserSuggestion) => void
+  readonly className?: string
 }
 
 interface UserSuggestion {
@@ -186,12 +186,21 @@ export function EmailSuggestionInput({
             {suggestions.map((user, index) => (
               <div
                 key={user.id}
+                role="button"
+                tabIndex={0}
                 className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${
-                  index === selectedIndex 
-                    ? 'bg-blue-50 border-blue-200' 
+                  index === selectedIndex
+                    ? 'bg-blue-50 border-blue-200'
                     : 'hover:bg-gray-50'
                 }`}
                 onClick={() => handleSelectUser(user)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleSelectUser(user)
+                  }
+                }}
+                aria-label={`Select user ${user.full_name} with email ${user.email}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

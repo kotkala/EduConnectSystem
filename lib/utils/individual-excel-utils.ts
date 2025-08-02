@@ -43,6 +43,32 @@ interface CellStyleConfig {
   }
 }
 
+// Helper function to create standard border style - eliminates duplication
+function createStandardBorder() {
+  return {
+    top: { style: 'thin' },
+    bottom: { style: 'thin' },
+    left: { style: 'thin' },
+    right: { style: 'thin' }
+  }
+}
+
+// Helper function to get cell address - eliminates duplication
+function getCellAddress(row: number, col: number): string {
+  return XLSX.utils.encode_cell({ r: row, c: col })
+}
+
+// Helper function to create data row style - eliminates duplication
+function createDataRowStyle(isSubjectNameColumn: boolean = false): CellStyleConfig {
+  return {
+    alignment: {
+      horizontal: isSubjectNameColumn ? 'left' : 'center',
+      vertical: 'center'
+    },
+    border: createStandardBorder()
+  }
+}
+
 // Helper function to create header rows
 function createHeaderRows(data: IndividualGradeExportData): (string | number)[][] {
   return [
@@ -106,12 +132,7 @@ function getCellStyle(rowIndex: number): CellStyleConfig | null {
       font: { bold: true },
       alignment: { horizontal: 'center', vertical: 'center' },
       fill: { fgColor: { rgb: 'BBDEFB' } },
-      border: {
-        top: { style: 'thin' },
-        bottom: { style: 'thin' },
-        left: { style: 'thin' },
-        right: { style: 'thin' }
-      }
+      border: createStandardBorder()
     }
   } else if (rowIndex === 6) {
     return {
@@ -130,7 +151,7 @@ function applyWorksheetStyling(worksheet: XLSX.WorkSheet): void {
   // Style header rows (0-6)
   for (let R = 0; R <= 6; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
+      const cellAddress = getCellAddress(R, C)
       if (!worksheet[cellAddress]) continue
 
       const style = getCellStyle(R)
@@ -143,25 +164,13 @@ function applyWorksheetStyling(worksheet: XLSX.WorkSheet): void {
   // Style data rows with borders
   for (let R = 7; R <= range.e.r; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
+      const cellAddress = getCellAddress(R, C)
       if (!worksheet[cellAddress]) {
         worksheet[cellAddress] = { t: 's', v: '' }
       }
 
-      worksheet[cellAddress].s = {
-        alignment: { horizontal: 'center', vertical: 'center' },
-        border: {
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      }
-
-      // Left align subject name column
-      if (C === 1) {
-        worksheet[cellAddress].s.alignment.horizontal = 'left'
-      }
+      // Apply data row style with appropriate alignment
+      worksheet[cellAddress].s = createDataRowStyle(C === 1)
     }
   }
 }

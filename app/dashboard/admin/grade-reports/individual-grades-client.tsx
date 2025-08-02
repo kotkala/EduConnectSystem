@@ -162,7 +162,7 @@ export default function IndividualGradesClient() {
         form.semester_id
       )
       if (result.success) {
-        setSubmissions(result.data || [])
+        setSubmissions((result.data as StudentGradeSubmissionWithDetails[]) || [])
       }
     } catch (error) {
       console.error('Error loading submissions:', error)
@@ -281,7 +281,7 @@ export default function IndividualGradesClient() {
 
       let submissionId: string
       if (createResult.success) {
-        submissionId = createResult.data?.id || ''
+        submissionId = (createResult.data as { id: string })?.id || ''
       } else {
         // If submission exists, find it
         const existingSubmission = submissions.find(s => s.student_id === student.id)

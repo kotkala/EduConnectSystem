@@ -9,6 +9,70 @@ import {
   type BulkIndividualGradesFormData
 } from '@/lib/validations/individual-grade-validations'
 
+// Data types for action responses
+type StudentsForGradeSubmissionData = {
+  students: Array<{
+    id: string
+    full_name: string
+    student_id: string
+    email: string
+  }>
+  subjects: Array<{
+    id: string
+    code: string
+    name_vietnamese: string
+    name_english: string
+    category: string
+  }>
+}
+
+// Common response types
+type ActionResponse<T = unknown> = {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
+
+// Helper function to create error response - eliminates duplication
+function createErrorResponse<T = unknown>(error: unknown, defaultMessage: string): ActionResponse<T> {
+  return {
+    success: false,
+    error: error instanceof Error ? error.message : defaultMessage
+  }
+}
+
+// Helper function to create success response - eliminates duplication
+function createSuccessResponse<T>(data?: T, message?: string): ActionResponse<T> {
+  return {
+    success: true,
+    ...(data !== undefined && { data }),
+    ...(message && { message })
+  }
+}
+
+// Helper function to handle database errors - eliminates duplication
+function handleDatabaseError<T = unknown>(error: { message: string } | null, defaultMessage: string): ActionResponse<T> {
+  if (error) {
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+  return createErrorResponse<T>(null, defaultMessage)
+}
+
+// Helper function to revalidate grade reports path - eliminates duplication
+function revalidateGradeReports(): void {
+  revalidatePath('/dashboard/admin/grade-reports')
+}
+
+// Helper function to get authenticated supabase client - eliminates duplication
+async function getAuthenticatedSupabaseClient() {
+  await checkAdminPermissions()
+  return await createClient()
+}
+
 // Helper function to check admin permissions
 async function checkAdminPermissions() {
   const supabase = await createClient()
@@ -32,10 +96,9 @@ async function checkAdminPermissions() {
 }
 
 // Get students in a class for grade submission
-export async function getStudentsForGradeSubmissionAction(classId: string) {
+export async function getStudentsForGradeSubmissionAction(classId: string): Promise<ActionResponse<StudentsForGradeSubmissionData>> {
   try {
-    await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = await getAuthenticatedSupabaseClient()
 
     // Get students in the class
     const { data: students, error: studentsError } = await supabase
@@ -52,10 +115,7 @@ export async function getStudentsForGradeSubmissionAction(classId: string) {
       .eq('is_active', true)
 
     if (studentsError) {
-      return {
-        success: false,
-        error: studentsError.message
-      }
+      return handleDatabaseError<StudentsForGradeSubmissionData>(studentsError, "Failed to fetch students")
     }
 
     // Get subjects for the class
@@ -67,30 +127,21 @@ export async function getStudentsForGradeSubmissionAction(classId: string) {
       .order('name_vietnamese', { ascending: true })
 
     if (subjectsError) {
-      return {
-        success: false,
-        error: subjectsError.message
-      }
+      return handleDatabaseError<StudentsForGradeSubmissionData>(subjectsError, "Failed to fetch subjects")
     }
 
-    return {
-      success: true,
-      data: {
-        students: students?.map(s => s.student).filter(Boolean) || [],
-        subjects: subjects || []
-      }
-    }
+    return createSuccessResponse({
+      students: students?.map(s => s.student).filter(Boolean) as unknown as StudentsForGradeSubmissionData['students'] || [],
+      subjects: subjects as unknown as StudentsForGradeSubmissionData['subjects'] || []
+    })
   } catch (error) {
     console.error('Error fetching students for grade submission:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch students"
-    }
+    return createErrorResponse(error, "Failed to fetch students")
   }
 }
 
 // Create student grade submission
-export async function createStudentGradeSubmissionAction(data: StudentGradeSubmissionFormData) {
+export async function createStudentGradeSubmissionAction(data: StudentGradeSubmissionFormData): Promise<ActionResponse<unknown>> {
   try {
     const { user } = await checkAdminPermissions()
     const validatedData = studentGradeSubmissionSchema.parse(data)
@@ -107,10 +158,7 @@ export async function createStudentGradeSubmissionAction(data: StudentGradeSubmi
       .single()
 
     if (existingSubmission) {
-      return {
-        success: false,
-        error: "Grade submission already exists for this student"
-      }
+      return createErrorResponse(null, "Grade submission already exists for this student")
     }
 
     // Create submission
@@ -129,32 +177,21 @@ export async function createStudentGradeSubmissionAction(data: StudentGradeSubmi
       .single()
 
     if (createError) {
-      return {
-        success: false,
-        error: createError.message
-      }
+      return handleDatabaseError(createError, "Failed to create grade submission")
     }
 
-    revalidatePath('/dashboard/admin/grade-reports')
-    return {
-      success: true,
-      data: submission,
-      message: "Grade submission created successfully"
-    }
+    revalidateGradeReports()
+    return createSuccessResponse(submission, "Grade submission created successfully")
   } catch (error) {
     console.error('Error creating grade submission:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to create grade submission"
-    }
+    return createErrorResponse(error, "Failed to create grade submission")
   }
 }
 
 // Get student grade submissions for a class
-export async function getStudentGradeSubmissionsAction(classId: string, academicYearId: string, semesterId: string) {
+export async function getStudentGradeSubmissionsAction(classId: string, academicYearId: string, semesterId: string): Promise<ActionResponse<unknown[]>> {
   try {
-    await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = await getAuthenticatedSupabaseClient()
 
     const { data: submissions, error } = await supabase
       .from('student_grade_submissions')
@@ -174,31 +211,21 @@ export async function getStudentGradeSubmissionsAction(classId: string, academic
       .order('created_at', { ascending: false })
 
     if (error) {
-      return {
-        success: false,
-        error: error.message
-      }
+      return handleDatabaseError(error, "Failed to fetch grade submissions")
     }
 
-    return {
-      success: true,
-      data: submissions || []
-    }
+    return createSuccessResponse(submissions || [])
   } catch (error) {
     console.error('Error fetching grade submissions:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch grade submissions"
-    }
+    return createErrorResponse(error, "Failed to fetch grade submissions")
   }
 }
 
 // Submit grades for a student (bulk update)
-export async function submitStudentGradesAction(data: BulkIndividualGradesFormData) {
+export async function submitStudentGradesAction(data: BulkIndividualGradesFormData): Promise<ActionResponse> {
   try {
-    await checkAdminPermissions()
+    const supabase = await getAuthenticatedSupabaseClient()
     const validatedData = bulkIndividualGradesSchema.parse(data)
-    const supabase = await createClient()
 
     // Verify submission exists
     const { data: submission, error: submissionError } = await supabase
@@ -208,10 +235,7 @@ export async function submitStudentGradesAction(data: BulkIndividualGradesFormDa
       .single()
 
     if (submissionError || !submission) {
-      return {
-        success: false,
-        error: "Grade submission not found"
-      }
+      return createErrorResponse(null, "Grade submission not found")
     }
 
     // Prepare grades for upsert
@@ -234,10 +258,7 @@ export async function submitStudentGradesAction(data: BulkIndividualGradesFormDa
       })
 
     if (gradesError) {
-      return {
-        success: false,
-        error: gradesError.message
-      }
+      return handleDatabaseError(gradesError, "Failed to submit grades")
     }
 
     // Update submission status to submitted
@@ -250,31 +271,21 @@ export async function submitStudentGradesAction(data: BulkIndividualGradesFormDa
       .eq('id', validatedData.submission_id)
 
     if (updateError) {
-      return {
-        success: false,
-        error: updateError.message
-      }
+      return handleDatabaseError(updateError, "Failed to update submission status")
     }
 
-    revalidatePath('/dashboard/admin/grade-reports')
-    return {
-      success: true,
-      message: `Successfully submitted grades for ${gradesToUpsert.length} subjects`
-    }
+    revalidateGradeReports()
+    return createSuccessResponse(undefined, `Successfully submitted grades for ${gradesToUpsert.length} subjects`)
   } catch (error) {
     console.error('Error submitting grades:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to submit grades"
-    }
+    return createErrorResponse(error, "Failed to submit grades")
   }
 }
 
 // Get grades for a specific submission
-export async function getSubmissionGradesAction(submissionId: string) {
+export async function getSubmissionGradesAction(submissionId: string): Promise<ActionResponse<unknown[]>> {
   try {
-    await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = await getAuthenticatedSupabaseClient()
 
     const { data: grades, error } = await supabase
       .from('individual_subject_grades')
@@ -292,27 +303,18 @@ export async function getSubmissionGradesAction(submissionId: string) {
       .order('subject.category', { ascending: true })
 
     if (error) {
-      return {
-        success: false,
-        error: error.message
-      }
+      return handleDatabaseError(error, "Failed to fetch submission grades")
     }
 
-    return {
-      success: true,
-      data: grades || []
-    }
+    return createSuccessResponse(grades || [])
   } catch (error) {
     console.error('Error fetching submission grades:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch submission grades"
-    }
+    return createErrorResponse(error, "Failed to fetch submission grades")
   }
 }
 
 // Send class grade summary to homeroom teacher
-export async function sendGradesToHomeroomTeacherAction(classId: string, academicYearId: string, semesterId: string) {
+export async function sendGradesToHomeroomTeacherAction(classId: string, academicYearId: string, semesterId: string): Promise<ActionResponse> {
   try {
     const { user } = await checkAdminPermissions()
     const supabase = await createClient()
@@ -334,17 +336,11 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .single()
 
     if (classError || !classInfo) {
-      return {
-        success: false,
-        error: "Không tìm thấy thông tin lớp học"
-      }
+      return createErrorResponse(null, "Không tìm thấy thông tin lớp học")
     }
 
     if (!classInfo.homeroom_teacher_id) {
-      return {
-        success: false,
-        error: "Lớp học chưa có giáo viên chủ nhiệm"
-      }
+      return createErrorResponse(null, "Lớp học chưa có giáo viên chủ nhiệm")
     }
 
     // Get academic year and semester info
@@ -369,20 +365,14 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .eq('semester_id', semesterId)
 
     if (submissionsError) {
-      return {
-        success: false,
-        error: submissionsError.message
-      }
+      return handleDatabaseError(submissionsError, "Failed to fetch submissions")
     }
 
     const totalStudents = submissions?.length || 0
     const submittedStudents = submissions?.filter(s => s.status === 'submitted').length || 0
 
     if (submittedStudents === 0) {
-      return {
-        success: false,
-        error: "Chưa có học sinh nào được nhập điểm"
-      }
+      return createErrorResponse(null, "Chưa có học sinh nào được nhập điểm")
     }
 
     // Create class grade summary
@@ -404,10 +394,7 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .single()
 
     if (summaryError) {
-      return {
-        success: false,
-        error: summaryError.message
-      }
+      return handleDatabaseError(summaryError, "Failed to create grade summary")
     }
 
     // Update all submissions status to sent_to_teacher
@@ -423,10 +410,7 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .eq('status', 'submitted')
 
     if (updateError) {
-      return {
-        success: false,
-        error: updateError.message
-      }
+      return handleDatabaseError(updateError, "Failed to update submission status")
     }
 
     // Create notification for homeroom teacher
@@ -453,16 +437,13 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       // Don't fail the whole operation if notification fails
     }
 
-    revalidatePath('/dashboard/admin/grade-reports')
-    return {
-      success: true,
-      message: `Đã gửi bảng điểm cho GVCN ${(classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A'}. Tổng cộng ${submittedStudents}/${totalStudents} học sinh.`
-    }
+    revalidateGradeReports()
+    return createSuccessResponse(
+      undefined,
+      `Đã gửi bảng điểm cho GVCN ${(classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A'}. Tổng cộng ${submittedStudents}/${totalStudents} học sinh.`
+    )
   } catch (error) {
     console.error('Error sending grades to homeroom teacher:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to send grades to homeroom teacher"
-    }
+    return createErrorResponse(error, "Failed to send grades to homeroom teacher")
   }
 }

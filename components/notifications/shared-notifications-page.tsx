@@ -20,6 +20,89 @@ import { Bell, Clock, User, AlertCircle, Eye, ChevronLeft, ChevronRight } from '
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 
+// Helper function to render notifications content
+function renderNotificationsContent(
+  notificationsLoading: boolean,
+  notifications: Notification[],
+  config: NotificationPageConfig,
+  setSelectedNotification: (notification: Notification) => void,
+  handleMarkAsRead: (id: string) => void
+) {
+  if (notificationsLoading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (notifications.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center h-32">
+          <Bell className="h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-gray-500">No notifications yet</p>
+          <p className="text-sm text-gray-400">{config.emptyStateMessage}</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return notifications.map((notification) => (
+    <Card
+      key={notification.id}
+      className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+        !notification.is_read ? 'border-blue-200 bg-blue-50' : ''
+      }`}
+      onClick={() => setSelectedNotification(notification)}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <CardTitle className="text-lg">{notification.title}</CardTitle>
+              {!notification.is_read && (
+                <Badge variant="secondary" className="text-xs">
+                  New
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                {notification.sender?.full_name || 'Unknown'}
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {!notification.is_read && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleMarkAsRead(notification.id)
+                }}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className="text-sm text-gray-600 line-clamp-2">
+          {notification.content}
+        </p>
+      </CardContent>
+    </Card>
+  ))
+}
+
 // Configuration interface for different roles
 export interface NotificationPageConfig {
   readonly role: 'parent' | 'student' | 'teacher' | 'admin'
@@ -160,73 +243,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
         {/* Notifications List */}
         <div className="space-y-4">
-          {notificationsLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          ) : notifications.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center h-32">
-                <Bell className="h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-500">No notifications yet</p>
-                <p className="text-sm text-gray-400">{config.emptyStateMessage}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            notifications.map((notification) => (
-              <Card 
-                key={notification.id} 
-                className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                  !notification.is_read ? 'border-blue-200 bg-blue-50' : ''
-                }`}
-                onClick={() => setSelectedNotification(notification)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <CardTitle className="text-lg">{notification.title}</CardTitle>
-                        {!notification.is_read && (
-                          <Badge variant="secondary" className="text-xs">
-                            New
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {notification.sender?.full_name || 'Unknown'}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!notification.is_read && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleMarkAsRead(notification.id)
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {notification.content}
-                  </p>
-                </CardContent>
-              </Card>
-            ))
-          )}
+          {renderNotificationsContent(notificationsLoading, notifications, config, setSelectedNotification, handleMarkAsRead)}
         </div>
 
         {/* Pagination Controls */}

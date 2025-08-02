@@ -250,6 +250,115 @@ export async function getViolationTypesAction(categoryId?: string): Promise<{ su
   }
 }
 
+// Helper functions for getStudentViolationsAction
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function applyViolationFilters(query: any, filters: any, supabase: any): Promise<{ query: any; isEmpty: boolean }> {
+  if (filters.search) {
+    query = query.ilike('description', `%${filters.search}%`)
+  }
+  if (filters.student_id) {
+    query = query.eq('student_id', filters.student_id)
+  }
+  if (filters.class_id) {
+    query = query.eq('class_id', filters.class_id)
+  }
+  if (filters.severity && filters.severity !== 'all') {
+    query = query.eq('severity', filters.severity)
+  }
+  if (filters.date_from) {
+    query = query.gte('recorded_at', filters.date_from)
+  }
+  if (filters.date_to) {
+    query = query.lte('recorded_at', filters.date_to)
+  }
+
+  // Handle category filter
+  if (filters.category_id && filters.category_id !== 'all') {
+    const { data: violationTypes } = await supabase
+      .from('violation_types')
+      .select('id')
+      .eq('category_id', filters.category_id)
+
+    if (violationTypes?.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typeIds = violationTypes.map((vt: any) => vt.id)
+      query = query.in('violation_type_id', typeIds)
+    } else {
+      return { query, isEmpty: true }
+    }
+  }
+
+  return { query, isEmpty: false }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getViolationCount(supabase: any, filters: any) {
+  const countQuery = supabase
+    .from('student_violations')
+    .select('*', { count: 'exact', head: true })
+
+  const { query: filteredCountQuery, isEmpty } = await applyViolationFilters(countQuery, filters, supabase)
+
+  if (isEmpty) {
+    return { count: 0, error: null }
+  }
+
+  return await filteredCountQuery
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getViolationData(supabase: any, filters: any) {
+  const dataQuery = supabase
+    .from('student_violations')
+    .select(`
+      *,
+      student:profiles!student_id(id, full_name, email, student_id),
+      class:classes!class_id(id, name),
+      violation_type:violation_types!violation_type_id(id, name, category_id),
+      recorded_by:profiles!recorded_by(id, full_name)
+    `)
+
+  const { query: filteredDataQuery, isEmpty } = await applyViolationFilters(dataQuery, filters, supabase)
+
+  if (isEmpty) {
+    return { data: [], error: null }
+  }
+
+  // Apply pagination and ordering
+  const offset = (filters.page - 1) * filters.limit
+  const finalQuery = filteredDataQuery
+    .order('recorded_at', { ascending: false })
+    .range(offset, offset + filters.limit - 1)
+
+  return await finalQuery
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function enrichViolationsWithCategories(violations: any[], supabase: any) {
+  if (!violations?.length) return violations
+
+  const categoryIds = [...new Set(violations
+    .map(v => v.violation_type?.category_id)
+    .filter(Boolean))]
+
+  if (categoryIds.length === 0) return violations
+
+  const { data: categories } = await supabase
+    .from('violation_categories')
+    .select('id, name')
+    .in('id', categoryIds)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const categoriesMap = new Map(categories?.map((c: any) => [c.id, c]) || [])
+  violations.forEach(violation => {
+    if (violation.violation_type?.category_id) {
+      violation.violation_type.category = categoriesMap.get(violation.violation_type.category_id)
+    }
+  })
+
+  return violations
+}
+
 // Student Violations Actions
 export async function createStudentViolationAction(data: StudentViolationFormData) {
   try {
@@ -356,130 +465,22 @@ export async function getStudentViolationsAction(filters?: ViolationFilters): Pr
     const { supabase } = await checkAdminPermissions()
     const validatedFilters = filters ? violationFiltersSchema.parse(filters) : { page: 1, limit: 10 }
 
-    // Simple count query first
-    let countQuery = supabase
-      .from('student_violations')
-      .select('*', { count: 'exact', head: true })
-
-    // Apply same filters to count
-    if (validatedFilters.search) {
-      countQuery = countQuery.ilike('description', `%${validatedFilters.search}%`)
-    }
-    if (validatedFilters.student_id) {
-      countQuery = countQuery.eq('student_id', validatedFilters.student_id)
-    }
-    if (validatedFilters.class_id) {
-      countQuery = countQuery.eq('class_id', validatedFilters.class_id)
-    }
-    if (validatedFilters.severity && validatedFilters.severity !== 'all') {
-      countQuery = countQuery.eq('severity', validatedFilters.severity)
-    }
-    if (validatedFilters.date_from) {
-      countQuery = countQuery.gte('recorded_at', validatedFilters.date_from)
-    }
-    if (validatedFilters.date_to) {
-      countQuery = countQuery.lte('recorded_at', validatedFilters.date_to)
-    }
-
-    // Handle category filter for count
-    if (validatedFilters.category_id && validatedFilters.category_id !== 'all') {
-      const { data: violationTypes } = await supabase
-        .from('violation_types')
-        .select('id')
-        .eq('category_id', validatedFilters.category_id)
-
-      if (violationTypes && violationTypes.length > 0) {
-        const typeIds = violationTypes.map(vt => vt.id)
-        countQuery = countQuery.in('violation_type_id', typeIds)
-      } else {
-        return { success: true, data: [], total: 0 }
-      }
-    }
-
-    const { count, error: countError } = await countQuery
+    // Get count using helper function
+    const { count, error: countError } = await getViolationCount(supabase, validatedFilters)
     if (countError) {
       throw new Error(countError.message)
     }
 
-    // Simple data query with basic joins
-    let dataQuery = supabase
-      .from('student_violations')
-      .select(`
-        *,
-        student:profiles!student_id(id, full_name, email, student_id),
-        class:classes!class_id(id, name),
-        violation_type:violation_types!violation_type_id(id, name, category_id),
-        recorded_by:profiles!recorded_by(id, full_name)
-      `)
-
-    // Apply same filters to data query
-    if (validatedFilters.search) {
-      dataQuery = dataQuery.ilike('description', `%${validatedFilters.search}%`)
-    }
-    if (validatedFilters.student_id) {
-      dataQuery = dataQuery.eq('student_id', validatedFilters.student_id)
-    }
-    if (validatedFilters.class_id) {
-      dataQuery = dataQuery.eq('class_id', validatedFilters.class_id)
-    }
-    if (validatedFilters.severity && validatedFilters.severity !== 'all') {
-      dataQuery = dataQuery.eq('severity', validatedFilters.severity)
-    }
-    if (validatedFilters.date_from) {
-      dataQuery = dataQuery.gte('recorded_at', validatedFilters.date_from)
-    }
-    if (validatedFilters.date_to) {
-      dataQuery = dataQuery.lte('recorded_at', validatedFilters.date_to)
-    }
-
-    // Handle category filter for data
-    if (validatedFilters.category_id && validatedFilters.category_id !== 'all') {
-      const { data: violationTypes } = await supabase
-        .from('violation_types')
-        .select('id')
-        .eq('category_id', validatedFilters.category_id)
-
-      if (violationTypes && violationTypes.length > 0) {
-        const typeIds = violationTypes.map(vt => vt.id)
-        dataQuery = dataQuery.in('violation_type_id', typeIds)
-      } else {
-        return { success: true, data: [], total: 0 }
-      }
-    }
-
-    // Apply pagination and ordering
-    const offset = (validatedFilters.page - 1) * validatedFilters.limit
-    dataQuery = dataQuery
-      .order('recorded_at', { ascending: false })
-      .range(offset, offset + validatedFilters.limit - 1)
-
-    const { data: violations, error: dataError } = await dataQuery
+    // Get data using helper function
+    const { data: violations, error: dataError } = await getViolationData(supabase, validatedFilters)
     if (dataError) {
       throw new Error(dataError.message)
     }
 
-    // Get category names for violation types
-    if (violations && violations.length > 0) {
-      const categoryIds = [...new Set(violations
-        .map(v => v.violation_type?.category_id)
-        .filter(Boolean))]
+    // Enrich with category data using helper function
+    const enrichedViolations = await enrichViolationsWithCategories(violations, supabase)
 
-      if (categoryIds.length > 0) {
-        const { data: categories } = await supabase
-          .from('violation_categories')
-          .select('id, name')
-          .in('id', categoryIds)
-
-        const categoriesMap = new Map(categories?.map(c => [c.id, c]) || [])
-        violations.forEach(violation => {
-          if (violation.violation_type?.category_id) {
-            violation.violation_type.category = categoriesMap.get(violation.violation_type.category_id)
-          }
-        })
-      }
-    }
-
-    return { success: true, data: violations || [], total: count || 0 }
+    return { success: true, data: enrichedViolations || [], total: count || 0 }
   } catch (error: unknown) {
     return {
       success: false,
@@ -706,11 +707,8 @@ export async function getClassBlocksAction(): Promise<{ success: boolean; data?:
 
     // Filter out any items with empty IDs or names
     const filteredClassBlocks = (classBlocks || []).filter(block =>
-      block &&
-      block.id &&
-      block.id.trim() !== '' &&
-      block.display_name &&
-      block.display_name.trim() !== ''
+      block?.id?.trim() !== '' &&
+      block?.display_name?.trim() !== ''
     )
 
     return { success: true, data: filteredClassBlocks }
@@ -756,7 +754,7 @@ export async function getClassesByBlockAction(classBlockId: string): Promise<{ s
 
     // Transform data with proper null safety
     const transformedClasses = classes
-      .filter(cls => cls && cls.id && cls.name)
+      .filter(cls => cls?.id && cls?.name)
       .map(cls => ({
         id: cls.id,
         name: cls.name,
@@ -812,13 +810,9 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
       const filteredStudents = students
         .filter(student =>
           studentIdsInClass.includes(student.id) &&
-          student &&
-          student.id &&
-          student.id.trim() !== '' &&
-          student.full_name &&
-          student.full_name.trim() !== '' &&
-          student.email &&
-          student.email.trim() !== ''
+          student?.id?.trim() !== '' &&
+          student?.full_name?.trim() !== '' &&
+          student?.email?.trim() !== ''
         )
         .map(student => ({
           id: student.id,
@@ -833,13 +827,9 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
     // Return all students if no class filter
     const allStudents = students
       .filter(student =>
-        student &&
-        student.id &&
-        student.id.trim() !== '' &&
-        student.full_name &&
-        student.full_name.trim() !== '' &&
-        student.email &&
-        student.email.trim() !== ''
+        student?.id?.trim() !== '' &&
+        student?.full_name?.trim() !== '' &&
+        student?.email?.trim() !== ''
       )
       .map(student => ({
         id: student.id,

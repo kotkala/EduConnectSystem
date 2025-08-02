@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { checkAdminPermissions } from '@/lib/utils/permission-utils'
 import {
   studentGradeSubmissionSchema,
   bulkIndividualGradesSchema,
@@ -73,27 +74,7 @@ async function getAuthenticatedSupabaseClient() {
   return await createClient()
 }
 
-// Helper function to check admin permissions
-async function checkAdminPermissions() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error("Authentication required")
-  }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'admin') {
-    throw new Error("Admin access required")
-  }
-
-  return { user, profile }
-}
 
 // Get students in a class for grade submission
 export async function getStudentsForGradeSubmissionAction(classId: string): Promise<ActionResponse<StudentsForGradeSubmissionData>> {
@@ -143,7 +124,7 @@ export async function getStudentsForGradeSubmissionAction(classId: string): Prom
 // Create student grade submission
 export async function createStudentGradeSubmissionAction(data: StudentGradeSubmissionFormData): Promise<ActionResponse<unknown>> {
   try {
-    const { user } = await checkAdminPermissions()
+    const { userId } = await checkAdminPermissions()
     const validatedData = studentGradeSubmissionSchema.parse(data)
     const supabase = await createClient()
 
@@ -171,7 +152,7 @@ export async function createStudentGradeSubmissionAction(data: StudentGradeSubmi
         student_id: validatedData.student_id,
         submission_name: validatedData.submission_name,
         notes: validatedData.notes,
-        created_by: user.id
+        created_by: userId
       })
       .select()
       .single()
@@ -316,7 +297,7 @@ export async function getSubmissionGradesAction(submissionId: string): Promise<A
 // Send class grade summary to homeroom teacher
 export async function sendGradesToHomeroomTeacherAction(classId: string, academicYearId: string, semesterId: string): Promise<ActionResponse> {
   try {
-    const { user } = await checkAdminPermissions()
+    const { userId } = await checkAdminPermissions()
     const supabase = await createClient()
 
     // Get class info and homeroom teacher
@@ -387,7 +368,7 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
         summary_name: summaryName,
         total_students: totalStudents,
         submitted_students: submittedStudents,
-        sent_by: user.id,
+        sent_by: userId,
         sent_at: new Date().toISOString()
       })
       .select()
@@ -418,7 +399,7 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .from('notifications')
       .insert({
         recipient_id: classInfo.homeroom_teacher_id,
-        sender_id: user.id,
+        sender_id: userId,
         title: `Bảng điểm lớp ${classInfo.name} đã sẵn sàng`,
         content: `Bảng điểm ${semester?.name} của lớp ${classInfo.name} đã được hoàn thành với ${submittedStudents}/${totalStudents} học sinh. Vui lòng kiểm tra và gửi cho phụ huynh.`,
         message: `Bảng điểm ${semester?.name} của lớp ${classInfo.name} đã được hoàn thành với ${submittedStudents}/${totalStudents} học sinh. Vui lòng kiểm tra và gửi cho phụ huynh.`,

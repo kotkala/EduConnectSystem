@@ -19,16 +19,15 @@ export default async function DashboardPage() {
   }
 
   // Redirect to role-specific dashboard
-  switch (profile.role) {
-    case 'admin':
-      redirect('/dashboard/admin')
-    case 'teacher':
-      redirect('/dashboard/teacher')
-    case 'student':
-      redirect('/dashboard/student')
-    case 'parent':
-      redirect('/dashboard/parent')
-    default:
-      redirect('/dashboard/student')
+  if (profile.role === 'admin') {
+    redirect('/dashboard/admin')
+  } else if (profile.role === 'teacher') {
+    redirect('/dashboard/teacher')
+  } else if (profile.role === 'student') {
+    redirect('/dashboard/student')
+  } else if (profile.role === 'parent') {
+    redirect('/dashboard/parent')
+  } else {
+    redirect('/dashboard/student')
   }
 }

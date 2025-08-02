@@ -308,9 +308,10 @@ export async function sendAllGradesToParentsAction(summaryId: string) {
     }
 
     revalidatePath('/dashboard/teacher/grade-reports')
+    const errorMessage = errorCount > 0 ? ` ${errorCount} bảng điểm gặp lỗi.` : ''
     return {
       success: true,
-      message: `Đã gửi thành công ${successCount} bảng điểm. ${errorCount > 0 ? `${errorCount} bảng điểm gặp lỗi.` : ''}`
+      message: `Đã gửi thành công ${successCount} bảng điểm.${errorMessage}`
     }
   } catch (error) {
     console.error('Error sending all grades to parents:', error)

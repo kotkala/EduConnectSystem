@@ -48,7 +48,7 @@ interface ChatAvatarProps {
   readonly showOnlineStatus?: boolean
 }
 
-function ChatAvatar({ role, size = 'md', showOnlineStatus = false }: ChatAvatarProps) {
+export function ChatAvatar({ role, size = 'md', showOnlineStatus = false }: ChatAvatarProps) {
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-10 w-10',
@@ -77,7 +77,7 @@ function ChatAvatar({ role, size = 'md', showOnlineStatus = false }: ChatAvatarP
 }
 
 // Helper function to create messages and eliminate duplication
-function createMessage(
+export function createMessage(
   role: 'user' | 'assistant',
   content: string,
   contextUsed?: Message['contextUsed']
@@ -88,6 +88,26 @@ function createMessage(
     content,
     timestamp: new Date(),
     ...(contextUsed && { contextUsed })
+  }
+}
+
+// Shared utility functions to eliminate duplication
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+export function copyMessage(content: string): void {
+  navigator.clipboard.writeText(content)
+  toast.success('Đã sao chép tin nhắn')
+}
+
+export function handleKeyPress(e: React.KeyboardEvent, sendMessage: () => void): void {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    sendMessage()
   }
 }
 

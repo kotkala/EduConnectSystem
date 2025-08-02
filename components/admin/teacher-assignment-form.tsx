@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, UserPlus } from 'lucide-react'
-import { 
+import {
   getAvailableSubjectsForClassAction,
   getAvailableTeachersForSubjectAction,
   assignTeacherToClassSubjectAction,
@@ -32,10 +32,11 @@ import {
 import {
   type Class
 } from '@/lib/validations/class-validations'
+import { TeacherAssignmentFormFields } from './teacher-assignment-form-fields'
 
 interface TeacherAssignmentFormProps {
-  onSuccess?: () => void
-  currentUserId: string
+  readonly onSuccess?: () => void
+  readonly currentUserId: string
 }
 
 interface FormData {
@@ -227,184 +228,7 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
     }
   }, [watchSubjectId, setValue, loadAvailableTeachersData])
 
-// Form Fields Component
-function TeacherAssignmentFormFields({
-  academicYears,
-  classBlocks,
-  classes,
-  availableSubjects,
-  availableTeachers,
-  loadingAcademicYears,
-  loadingClassBlocks,
-  loadingClasses,
-  loadingSubjects,
-  loadingTeachers,
-  watchAcademicYearId,
-  watchClassBlockId,
-  watchClassId,
-  watchSubjectId,
-  watch,
-  setValue
-}: {
-  academicYears: AcademicYear[]
-  classBlocks: ClassBlock[]
-  classes: Class[]
-  availableSubjects: AvailableSubject[]
-  availableTeachers: AvailableTeacher[]
-  loadingAcademicYears: boolean
-  loadingClassBlocks: boolean
-  loadingClasses: boolean
-  loadingSubjects: boolean
-  loadingTeachers: boolean
-  watchAcademicYearId: string
-  watchClassBlockId: string
-  watchClassId: string
-  watchSubjectId: string
-  watch: (name: keyof FormData) => string
-  setValue: (name: keyof FormData, value: string) => void
-}) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Academic Year Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Academic Year *</label>
-        <Select
-          value={watchAcademicYearId}
-          onValueChange={(value) => setValue('academicYearId', value)}
-          disabled={loadingAcademicYears}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={loadingAcademicYears ? "Loading..." : "Select academic year"} />
-          </SelectTrigger>
-          <SelectContent>
-            {academicYears.map((year) => (
-              <SelectItem key={year.id} value={year.id}>
-                {year.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
-      {/* Class Block Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Class Block (Grade Level) *</label>
-        <Select
-          value={watchClassBlockId}
-          onValueChange={(value) => setValue('classBlockId', value)}
-          disabled={!watchAcademicYearId || loadingClassBlocks}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={
-              !watchAcademicYearId
-                ? "Select academic year first"
-                : loadingClassBlocks
-                ? "Loading..."
-                : "Select class block"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {classBlocks.filter(block => block.id && block.id.trim() !== '').map((block) => (
-              <SelectItem key={block.id} value={block.id}>
-                {block.display_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Class Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Class *</label>
-        <Select
-          value={watchClassId}
-          onValueChange={(value) => setValue('classId', value)}
-          disabled={!watchClassBlockId || loadingClasses}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={
-              !watchClassBlockId
-                ? "Select class block first"
-                : loadingClasses
-                ? "Loading..."
-                : "Select class"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {classes.filter(cls => cls.id && cls.id.trim() !== '').map((cls) => (
-              <SelectItem key={cls.id} value={cls.id}>
-                {cls.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Subject Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Subject *</label>
-        <Select
-          value={watchSubjectId}
-          onValueChange={(value) => setValue('subjectId', value)}
-          disabled={!watchClassId || loadingSubjects}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={
-              !watchClassId
-                ? "Select class first"
-                : loadingSubjects
-                ? "Loading..."
-                : availableSubjects.length === 0
-                ? "No available subjects"
-                : "Select subject"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {availableSubjects.filter(subject => subject.id && subject.id.trim() !== '').map((subject) => (
-              <SelectItem key={subject.id} value={subject.id}>
-                {subject.code} - {subject.name_vietnamese}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {watchClassId && availableSubjects.length === 0 && !loadingSubjects && (
-          <p className="text-sm text-muted-foreground">
-            All subjects have been assigned to teachers for this class.
-          </p>
-        )}
-      </div>
-
-      {/* Teacher Selection */}
-      <div className="space-y-2 md:col-span-2">
-        <label className="text-sm font-medium">Teacher *</label>
-        <Select
-          value={watchSubjectId ? watch('teacherId') : ''}
-          onValueChange={(value) => setValue('teacherId', value)}
-          disabled={!watchSubjectId || loadingTeachers}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={
-              !watchSubjectId
-                ? "Select subject first"
-                : loadingTeachers
-                ? "Loading..."
-                : availableTeachers.length === 0
-                ? "No available teachers"
-                : "Select teacher"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {availableTeachers.filter(teacher => teacher.teacher_id && teacher.teacher_id.trim() !== '').map((teacher) => (
-              <SelectItem key={teacher.teacher_id} value={teacher.teacher_id}>
-                {teacher.teacher_name} ({teacher.teacher_email})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  )
-}
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true)

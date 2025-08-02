@@ -67,6 +67,90 @@ interface TrendData {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042']
 
+// Helper function to create a generic data loader
+function createDataLoader<T>(
+  setData: (data: T) => void,
+  setLoadingState: (key: string, loading: boolean) => void,
+  loadingKey: string,
+  errorMessage: string
+) {
+  return async (apiCall: () => Promise<{ success: boolean; data?: unknown; error?: string }>) => {
+    setLoadingState(loadingKey, true);
+    try {
+      const result = await apiCall();
+      if (result.success && result.data) {
+        setData(result.data as T);
+      } else {
+        toast.error(result.error || errorMessage);
+      }
+    } catch {
+      toast.error(`Có lỗi xảy ra khi ${errorMessage.toLowerCase()}`);
+    } finally {
+      setLoadingState(loadingKey, false);
+    }
+  };
+}
+
+// Helper function to update loading states
+function createLoadingStateUpdater(setLoadingStates: React.Dispatch<React.SetStateAction<{
+  overall: boolean;
+  distribution: boolean;
+  classes: boolean;
+  subjects: boolean;
+  trends: boolean;
+}>>) {
+  return (key: string, loading: boolean) => {
+    setLoadingStates((prev) => ({ ...prev, [key]: loading }));
+  };
+}
+
+// Statistics Cards Component
+function StatisticsCards({ overallStats }: { overallStats: OverallStats | null }) {
+  const statsData = [
+    {
+      title: "Tổng bảng điểm",
+      value: overallStats?.totalSubmissions || 0,
+      description: "Bảng điểm đã hoàn thành",
+      icon: GraduationCap
+    },
+    {
+      title: "Học sinh",
+      value: overallStats?.totalStudents || 0,
+      description: "Học sinh có điểm",
+      icon: Users
+    },
+    {
+      title: "Lớp học",
+      value: overallStats?.totalClasses || 0,
+      description: "Lớp có bảng điểm",
+      icon: BookOpen
+    },
+    {
+      title: "Môn học",
+      value: overallStats?.totalSubjects || 0,
+      description: "Môn học có điểm",
+      icon: BarChart3
+    }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {statsData.map((stat, index) => (
+        <Card key={index}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+            <stat.icon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stat.value}</div>
+            <p className="text-xs text-muted-foreground">{stat.description}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default function AnalyticsClient() {
   const [loading, setLoading] = useState(false)
   const [overallStats, setOverallStats] = useState<OverallStats | null>(null)
@@ -82,101 +166,60 @@ export default function AnalyticsClient() {
     trends: false
   })
 
+  // Create loading state updater
+  const updateLoadingState = createLoadingStateUpdater(setLoadingStates)
+
+  // Create data loaders
+  const loadOverallStats = createDataLoader(
+    setOverallStats,
+    updateLoadingState,
+    'overall',
+    'Không thể tải thống kê tổng quan'
+  )
+
+  const loadGradeDistribution = createDataLoader(
+    setGradeDistribution,
+    updateLoadingState,
+    'distribution',
+    'Không thể tải phân bố điểm'
+  )
+
+  const loadClassPerformance = createDataLoader(
+    setClassPerformance,
+    updateLoadingState,
+    'classes',
+    'Không thể tải hiệu suất lớp'
+  )
+
+  const loadSubjectAnalysis = createDataLoader(
+    setSubjectAnalysis,
+    updateLoadingState,
+    'subjects',
+    'Không thể tải phân tích môn học'
+  )
+
+  const loadTrendAnalysis = createDataLoader(
+    setTrendData,
+    updateLoadingState,
+    'trends',
+    'Không thể tải xu hướng điểm'
+  )
+
   const loadAllAnalytics = useCallback(async () => {
     setLoading(true)
     await Promise.all([
-      loadOverallStats(),
-      loadGradeDistribution(),
-      loadClassPerformance(),
-      loadSubjectAnalysis(),
-      loadTrendAnalysis()
+      loadOverallStats(getOverallGradeStatsAction),
+      loadGradeDistribution(getGradeDistributionAction),
+      loadClassPerformance(getClassPerformanceAction),
+      loadSubjectAnalysis(getSubjectAnalysisAction),
+      loadTrendAnalysis(getTrendAnalysisAction)
     ])
     setLoading(false)
-  }, [])
+  }, [loadOverallStats, loadGradeDistribution, loadClassPerformance, loadSubjectAnalysis, loadTrendAnalysis])
 
   useEffect(() => {
     loadAllAnalytics()
   }, [loadAllAnalytics])
-
-  const loadOverallStats = async () => {
-    setLoadingStates(prev => ({ ...prev, overall: true }))
-    try {
-      const result = await getOverallGradeStatsAction()
-      if (result.success) {
-        setOverallStats(result.data as OverallStats)
-      } else {
-        toast.error(result.error || "Không thể tải thống kê tổng quan")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải thống kê tổng quan")
-    } finally {
-      setLoadingStates(prev => ({ ...prev, overall: false }))
-    }
-  }
-
-  const loadGradeDistribution = async () => {
-    setLoadingStates(prev => ({ ...prev, distribution: true }))
-    try {
-      const result = await getGradeDistributionAction()
-      if (result.success) {
-        setGradeDistribution(result.data as GradeDistribution[])
-      } else {
-        toast.error(result.error || "Không thể tải phân bố điểm")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải phân bố điểm")
-    } finally {
-      setLoadingStates(prev => ({ ...prev, distribution: false }))
-    }
-  }
-
-  const loadClassPerformance = async () => {
-    setLoadingStates(prev => ({ ...prev, classes: true }))
-    try {
-      const result = await getClassPerformanceAction()
-      if (result.success) {
-        setClassPerformance(result.data as ClassPerformance[])
-      } else {
-        toast.error(result.error || "Không thể tải hiệu suất lớp")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải hiệu suất lớp")
-    } finally {
-      setLoadingStates(prev => ({ ...prev, classes: false }))
-    }
-  }
-
-  const loadSubjectAnalysis = async () => {
-    setLoadingStates(prev => ({ ...prev, subjects: true }))
-    try {
-      const result = await getSubjectAnalysisAction()
-      if (result.success) {
-        setSubjectAnalysis(result.data as SubjectAnalysis[])
-      } else {
-        toast.error(result.error || "Không thể tải phân tích môn học")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải phân tích môn học")
-    } finally {
-      setLoadingStates(prev => ({ ...prev, subjects: false }))
-    }
-  }
-
-  const loadTrendAnalysis = async () => {
-    setLoadingStates(prev => ({ ...prev, trends: true }))
-    try {
-      const result = await getTrendAnalysisAction()
-      if (result.success) {
-        setTrendData(result.data as TrendData[])
-      } else {
-        toast.error(result.error || "Không thể tải xu hướng điểm")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải xu hướng điểm")
-    } finally {
-      setLoadingStates(prev => ({ ...prev, trends: false }))
-    }
-  }
 
   const handleExportReport = async () => {
     toast.info("Chức năng xuất báo cáo đang được phát triển")
@@ -212,51 +255,7 @@ export default function AnalyticsClient() {
       </div>
 
       {/* Overall Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tổng bảng điểm</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallStats?.totalSubmissions || 0}</div>
-            <p className="text-xs text-muted-foreground">Bảng điểm đã hoàn thành</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Học sinh</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallStats?.totalStudents || 0}</div>
-            <p className="text-xs text-muted-foreground">Học sinh có điểm</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lớp học</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallStats?.totalClasses || 0}</div>
-            <p className="text-xs text-muted-foreground">Lớp có bảng điểm</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Môn học</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallStats?.totalSubjects || 0}</div>
-            <p className="text-xs text-muted-foreground">Môn học có điểm</p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatisticsCards overallStats={overallStats} />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

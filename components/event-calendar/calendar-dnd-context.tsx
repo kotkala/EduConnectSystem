@@ -25,6 +25,84 @@ import { addMinutes, differenceInMinutes } from "date-fns";
 
 import { EventItem, type CalendarEvent } from "@/components/event-calendar";
 
+// Helper function to calculate time with 15-minute precision
+function calculatePreciseTime(time: number): { hours: number; minutes: number } {
+  const hours = Math.floor(time);
+  const fractionalHour = time - hours;
+
+  // Map to nearest 15 minute interval (0, 0.25, 0.5, 0.75)
+  let minutes = 0;
+  if (fractionalHour < 0.125) minutes = 0;
+  else if (fractionalHour < 0.375) minutes = 15;
+  else if (fractionalHour < 0.625) minutes = 30;
+  else minutes = 45;
+
+  return { hours, minutes };
+}
+
+// Helper function to check if time has changed
+function hasTimeChanged(newTime: Date, currentTime: Date | null): boolean {
+  if (!currentTime) return true;
+
+  return (
+    newTime.getHours() !== currentTime.getHours() ||
+    newTime.getMinutes() !== currentTime.getMinutes() ||
+    newTime.getDate() !== currentTime.getDate() ||
+    newTime.getMonth() !== currentTime.getMonth() ||
+    newTime.getFullYear() !== currentTime.getFullYear()
+  );
+}
+
+// Helper function to check if date has changed
+function hasDateChanged(newTime: Date, currentTime: Date | null): boolean {
+  if (!currentTime) return true;
+
+  return (
+    newTime.getDate() !== currentTime.getDate() ||
+    newTime.getMonth() !== currentTime.getMonth() ||
+    newTime.getFullYear() !== currentTime.getFullYear()
+  );
+}
+
+// Helper function to reset drag state
+function resetDragState(
+  setActiveEvent: (event: CalendarEvent | null) => void,
+  setActiveId: (id: UniqueIdentifier | null) => void,
+  setActiveView: (view: "month" | "week" | "day" | null) => void,
+  setCurrentTime: (time: Date | null) => void,
+  setEventHeight: (height: number | null) => void,
+  setIsMultiDay: (isMultiDay: boolean) => void,
+  setMultiDayWidth: (width: number | null) => void,
+  setDragHandlePosition: (position: {
+    x?: number;
+    y?: number;
+    data?: {
+      isFirstDay?: boolean;
+      isLastDay?: boolean;
+    };
+  } | null) => void
+) {
+  setActiveEvent(null);
+  setActiveId(null);
+  setActiveView(null);
+  setCurrentTime(null);
+  setEventHeight(null);
+  setIsMultiDay(false);
+  setMultiDayWidth(null);
+  setDragHandlePosition(null);
+}
+
+// Helper function to check if start time has changed
+function hasStartTimeChanged(originalStart: Date, newStart: Date): boolean {
+  return (
+    originalStart.getFullYear() !== newStart.getFullYear() ||
+    originalStart.getMonth() !== newStart.getMonth() ||
+    originalStart.getDate() !== newStart.getDate() ||
+    originalStart.getHours() !== newStart.getHours() ||
+    originalStart.getMinutes() !== newStart.getMinutes()
+  );
+}
+
 // Define the context type
 type CalendarDndContextType = {
   activeEvent: CalendarEvent | null;
@@ -172,29 +250,11 @@ export function CalendarDndProvider({
       // Update time for week/day views
       if (time !== undefined && activeView !== "month") {
         const newTime = new Date(date);
-
-        // Calculate hours and minutes with 15-minute precision
-        const hours = Math.floor(time);
-        const fractionalHour = time - hours;
-
-        // Map to nearest 15 minute interval (0, 0.25, 0.5, 0.75)
-        let minutes = 0;
-        if (fractionalHour < 0.125) minutes = 0;
-        else if (fractionalHour < 0.375) minutes = 15;
-        else if (fractionalHour < 0.625) minutes = 30;
-        else minutes = 45;
-
+        const { hours, minutes } = calculatePreciseTime(time);
         newTime.setHours(hours, minutes, 0, 0);
 
         // Only update if time has changed
-        if (
-          !currentTime ||
-          newTime.getHours() !== currentTime.getHours() ||
-          newTime.getMinutes() !== currentTime.getMinutes() ||
-          newTime.getDate() !== currentTime.getDate() ||
-          newTime.getMonth() !== currentTime.getMonth() ||
-          newTime.getFullYear() !== currentTime.getFullYear()
-        ) {
+        if (hasTimeChanged(newTime, currentTime)) {
           setCurrentTime(newTime);
         }
       } else if (activeView === "month") {
@@ -210,12 +270,7 @@ export function CalendarDndProvider({
         }
 
         // Only update if date has changed
-        if (
-          !currentTime ||
-          newTime.getDate() !== currentTime.getDate() ||
-          newTime.getMonth() !== currentTime.getMonth() ||
-          newTime.getFullYear() !== currentTime.getFullYear()
-        ) {
+        if (hasDateChanged(newTime, currentTime)) {
           setCurrentTime(newTime);
         }
       }
@@ -228,14 +283,16 @@ export function CalendarDndProvider({
     // Add robust error checking
     if (!over || !activeEvent || !currentTime) {
       // Reset state and exit early
-      setActiveEvent(null);
-      setActiveId(null);
-      setActiveView(null);
-      setCurrentTime(null);
-      setEventHeight(null);
-      setIsMultiDay(false);
-      setMultiDayWidth(null);
-      setDragHandlePosition(null);
+      resetDragState(
+        setActiveEvent,
+        setActiveId,
+        setActiveView,
+        setCurrentTime,
+        setEventHeight,
+        setIsMultiDay,
+        setMultiDayWidth,
+        setDragHandlePosition
+      );
       return;
     }
 
@@ -293,14 +350,7 @@ export function CalendarDndProvider({
       const newEnd = addMinutes(newStart, durationMinutes);
 
       // Only update if the start time has actually changed
-      const hasStartTimeChanged =
-        originalStart.getFullYear() !== newStart.getFullYear() ||
-        originalStart.getMonth() !== newStart.getMonth() ||
-        originalStart.getDate() !== newStart.getDate() ||
-        originalStart.getHours() !== newStart.getHours() ||
-        originalStart.getMinutes() !== newStart.getMinutes();
-
-      if (hasStartTimeChanged) {
+      if (hasStartTimeChanged(originalStart, newStart)) {
         // Update the event only if the time has changed
         onEventUpdate({
           ...calendarEvent,
@@ -312,14 +362,16 @@ export function CalendarDndProvider({
       console.error("Error in drag end handler:", error);
     } finally {
       // Always reset state
-      setActiveEvent(null);
-      setActiveId(null);
-      setActiveView(null);
-      setCurrentTime(null);
-      setEventHeight(null);
-      setIsMultiDay(false);
-      setMultiDayWidth(null);
-      setDragHandlePosition(null);
+      resetDragState(
+        setActiveEvent,
+        setActiveId,
+        setActiveView,
+        setCurrentTime,
+        setEventHeight,
+        setIsMultiDay,
+        setMultiDayWidth,
+        setDragHandlePosition
+      );
     }
   };
 

@@ -52,6 +52,100 @@ interface TimetableEventFormProps {
   }
 }
 
+// Helper function to get default form values
+function getDefaultFormValues(
+  event?: TimetableEventDetailed,
+  defaultValues?: TimetableEventFormProps['defaultValues']
+) {
+  if (event) {
+    return {
+      id: event.id,
+      class_id: event.class_id,
+      subject_id: event.subject_id,
+      teacher_id: event.teacher_id,
+      classroom_id: event.classroom_id,
+      semester_id: event.semester_id,
+      day_of_week: event.day_of_week,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      week_number: event.week_number,
+      notes: event.notes || ''
+    };
+  }
+
+  return {
+    class_id: defaultValues?.class_id || '',
+    subject_id: '',
+    teacher_id: '',
+    classroom_id: '',
+    semester_id: defaultValues?.semester_id || '',
+    day_of_week: defaultValues?.day_of_week ?? 1, // Monday
+    start_time: '',
+    end_time: '',
+    week_number: defaultValues?.week_number || 1,
+    notes: ''
+  };
+}
+
+// Helper function to load dropdown data
+async function loadDropdownData(
+  setDropdownData: (data: TimetableDropdownData) => void,
+  setError: (error: string | null) => void,
+  setLoadingData: (loading: boolean) => void
+) {
+  try {
+    const result = await getTimetableDropdownDataAction();
+    if (result.success && result.data) {
+      setDropdownData(result.data);
+    } else {
+      setError(result.error || 'Failed to load form data');
+    }
+  } catch {
+    setError('Failed to load form data');
+  } finally {
+    setLoadingData(false);
+  }
+}
+
+// Helper function to handle conflict checking
+async function handleConflictCheck(
+  classroomId: string,
+  teacherId: string,
+  dayOfWeek: number,
+  startTime: string,
+  weekNumber: number,
+  semesterId: string,
+  eventId: string | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setConflictCheck: (check: any) => void
+) {
+  setConflictCheck({ checking: true, hasConflict: false });
+
+  try {
+    const result = await checkTimetableConflictsAction(
+      classroomId,
+      teacherId,
+      dayOfWeek,
+      startTime,
+      weekNumber,
+      semesterId,
+      eventId
+    );
+
+    if (result.success) {
+      setConflictCheck({
+        checking: false,
+        hasConflict: result.hasConflict || false,
+        conflictType: result.conflictType
+      });
+    } else {
+      setConflictCheck({ checking: false, hasConflict: false });
+    }
+  } catch {
+    setConflictCheck({ checking: false, hasConflict: false });
+  }
+}
+
 export function TimetableEventForm({
   event,
   onSuccess,
@@ -80,50 +174,12 @@ export function TimetableEventForm({
 
   // Context7 pattern: Load dropdown data on component mount
   useEffect(() => {
-    const loadDropdownData = async () => {
-      try {
-        const result = await getTimetableDropdownDataAction()
-        if (result.success && result.data) {
-          setDropdownData(result.data)
-        } else {
-          setError(result.error || 'Failed to load form data')
-        }
-      } catch {
-        setError('Failed to load form data')
-      } finally {
-        setLoadingData(false)
-      }
-    }
-
-    loadDropdownData()
+    loadDropdownData(setDropdownData, setError, setLoadingData);
   }, [])
 
   const form = useForm({
     resolver: zodResolver(isEditing ? updateTimetableEventSchema : timetableEventSchema),
-    defaultValues: isEditing ? {
-      id: event.id,
-      class_id: event.class_id,
-      subject_id: event.subject_id,
-      teacher_id: event.teacher_id,
-      classroom_id: event.classroom_id,
-      semester_id: event.semester_id,
-      day_of_week: event.day_of_week,
-      start_time: event.start_time,
-      end_time: event.end_time,
-      week_number: event.week_number,
-      notes: event.notes || ''
-    } : {
-      class_id: defaultValues?.class_id || '',
-      subject_id: '',
-      teacher_id: '',
-      classroom_id: '',
-      semester_id: defaultValues?.semester_id || '',
-      day_of_week: defaultValues?.day_of_week ?? 1, // Monday
-      start_time: '',
-      end_time: '',
-      week_number: defaultValues?.week_number || 1,
-      notes: ''
-    }
+    defaultValues: getDefaultFormValues(event, defaultValues)
   })
 
   // Watch form values for conflict checking
@@ -144,29 +200,16 @@ export function TimetableEventForm({
     weekNumber: number,
     semesterId: string
   ) => {
-    setConflictCheck({ checking: true, hasConflict: false })
-
-    try {
-      const result = await checkTimetableConflictsAction(
-        classroomId,
-        teacherId,
-        dayOfWeek,
-        startTime,
-        weekNumber,
-        semesterId,
-        isEditing ? event?.id : undefined
-      )
-
-      if (result.success) {
-        setConflictCheck({
-          checking: false,
-          hasConflict: result.hasConflict,
-          conflictType: result.conflictType
-        })
-      }
-    } catch {
-      setConflictCheck({ checking: false, hasConflict: false })
-    }
+    await handleConflictCheck(
+      classroomId,
+      teacherId,
+      dayOfWeek,
+      startTime,
+      weekNumber,
+      semesterId,
+      isEditing ? event?.id : undefined,
+      setConflictCheck
+    );
   }, [isEditing, event?.id])
 
   // Auto-calculate end time when start time changes

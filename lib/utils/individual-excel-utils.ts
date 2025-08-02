@@ -31,72 +31,53 @@ export interface IndividualGradeData {
   notes?: string
 }
 
-// Create Excel template for individual student grades
-export function createIndividualGradeTemplate(data: IndividualGradeExportData): ArrayBuffer {
-  const workbook = XLSX.utils.book_new()
-  
-  // Create main worksheet
-  const worksheetData: (string | number)[][] = []
-  
-  // Header rows
-  worksheetData.push([
-    `BẢNG ĐIỂM CÁ NHÂN`,
-    '', '', '', ''
-  ])
-  worksheetData.push([
-    `Học sinh: ${data.student.full_name} (${data.student.student_id})`,
-    '', '', '', ''
-  ])
-  worksheetData.push([
-    `Lớp: ${data.className}`,
-    '', '', '', ''
-  ])
-  worksheetData.push([
-    `Năm học: ${data.academicYear} - ${data.semester}`,
-    '', '', '', ''
-  ])
-  worksheetData.push([]) // Empty row
-  
-  // Column headers
-  const headers = [
-    'STT',
-    'Môn học',
-    'Điểm giữa kì',
-    'Điểm cuối kì',
-    'Ghi chú'
+interface CellStyleConfig {
+  font?: { bold?: boolean; size?: number; italic?: boolean; color?: { rgb: string } }
+  alignment?: { horizontal?: string; vertical?: string }
+  fill?: { fgColor?: { rgb: string } }
+  border?: {
+    top?: { style: string }
+    bottom?: { style: string }
+    left?: { style: string }
+    right?: { style: string }
+  }
+}
+
+// Helper function to create header rows
+function createHeaderRows(data: IndividualGradeExportData): (string | number)[][] {
+  return [
+    [`BẢNG ĐIỂM CÁ NHÂN`, '', '', '', ''],
+    [`Học sinh: ${data.student.full_name} (${data.student.student_id})`, '', '', '', ''],
+    [`Lớp: ${data.className}`, '', '', '', ''],
+    [`Năm học: ${data.academicYear} - ${data.semester}`, '', '', '', ''],
+    [], // Empty row
+    ['STT', 'Môn học', 'Điểm giữa kì', 'Điểm cuối kì', 'Ghi chú'],
+    ['---', '--- NHẬP ĐIỂM TỪ DÒNG NÀY ---', '---', '---', '---']
   ]
+}
 
-  worksheetData.push(headers)
+// Helper function to create subject rows
+function createSubjectRows(subjects: SubjectInfo[]): (string | number)[][] {
+  return subjects.map((subject, index) => [
+    index + 1,
+    subject.name_vietnamese,
+    '', // Điểm giữa kì - để trống cho admin điền
+    '', // Điểm cuối kì - để trống cho admin điền
+    ''  // Ghi chú - để trống cho admin điền
+  ])
+}
 
-  // Add a separator row to make it clear where data starts
-  worksheetData.push(['---', '--- NHẬP ĐIỂM TỪ DÒNG NÀY ---', '---', '---', '---'])
-  
-  // Subject rows
-  data.subjects.forEach((subject, index) => {
-    const row = [
-      index + 1,
-      subject.name_vietnamese,
-      '', // Điểm giữa kì - để trống cho admin điền
-      '', // Điểm cuối kì - để trống cho admin điền
-      ''  // Ghi chú - để trống cho admin điền
-    ]
-    worksheetData.push(row)
-  })
-  
-  // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-  
+// Helper function to set column widths and merges
+function configureWorksheetLayout(worksheet: XLSX.WorkSheet): void {
   // Set column widths
-  const columnWidths = [
+  worksheet['!cols'] = [
     { wch: 5 },  // STT
     { wch: 30 }, // Môn học
     { wch: 15 }, // Điểm giữa kì
     { wch: 15 }, // Điểm cuối kì
     { wch: 25 }  // Ghi chú
   ]
-  
-  worksheet['!cols'] = columnWidths
-  
+
   // Merge header cells
   worksheet['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Title
@@ -104,54 +85,61 @@ export function createIndividualGradeTemplate(data: IndividualGradeExportData): 
     { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } }, // Class
     { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } }  // Academic year
   ]
-  
-  // Apply styles to make table more readable
+}
+
+// Helper function to get cell style based on row type
+function getCellStyle(rowIndex: number): CellStyleConfig | null {
+  if (rowIndex === 0) {
+    return {
+      font: { bold: true, size: 14 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      fill: { fgColor: { rgb: 'E3F2FD' } }
+    }
+  } else if (rowIndex >= 1 && rowIndex <= 3) {
+    return {
+      font: { bold: true },
+      alignment: { horizontal: 'left', vertical: 'center' },
+      fill: { fgColor: { rgb: 'F5F5F5' } }
+    }
+  } else if (rowIndex === 5) {
+    return {
+      font: { bold: true },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      fill: { fgColor: { rgb: 'BBDEFB' } },
+      border: {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' }
+      }
+    }
+  } else if (rowIndex === 6) {
+    return {
+      font: { italic: true, color: { rgb: '666666' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      fill: { fgColor: { rgb: 'FFFACD' } }
+    }
+  }
+  return null
+}
+
+// Helper function to apply worksheet styling
+function applyWorksheetStyling(worksheet: XLSX.WorkSheet): void {
   const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
-  
+
   // Style header rows (0-6)
   for (let R = 0; R <= 6; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
       const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
       if (!worksheet[cellAddress]) continue
 
-      if (R === 0) {
-        // Title row - bold and centered
-        worksheet[cellAddress].s = {
-          font: { bold: true, size: 14 },
-          alignment: { horizontal: 'center', vertical: 'center' },
-          fill: { fgColor: { rgb: 'E3F2FD' } }
-        }
-      } else if (R >= 1 && R <= 3) {
-        // Info rows - bold
-        worksheet[cellAddress].s = {
-          font: { bold: true },
-          alignment: { horizontal: 'left', vertical: 'center' },
-          fill: { fgColor: { rgb: 'F5F5F5' } }
-        }
-      } else if (R === 5) {
-        // Column headers - bold and centered
-        worksheet[cellAddress].s = {
-          font: { bold: true },
-          alignment: { horizontal: 'center', vertical: 'center' },
-          fill: { fgColor: { rgb: 'BBDEFB' } },
-          border: {
-            top: { style: 'thin' },
-            bottom: { style: 'thin' },
-            left: { style: 'thin' },
-            right: { style: 'thin' }
-          }
-        }
-      } else if (R === 6) {
-        // Separator row - italic and centered
-        worksheet[cellAddress].s = {
-          font: { italic: true, color: { rgb: '666666' } },
-          alignment: { horizontal: 'center', vertical: 'center' },
-          fill: { fgColor: { rgb: 'FFFACD' } }
-        }
+      const style = getCellStyle(R)
+      if (style) {
+        worksheet[cellAddress].s = style
       }
     }
   }
-  
+
   // Style data rows with borders
   for (let R = 7; R <= range.e.r; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
@@ -159,7 +147,7 @@ export function createIndividualGradeTemplate(data: IndividualGradeExportData): 
       if (!worksheet[cellAddress]) {
         worksheet[cellAddress] = { t: 's', v: '' }
       }
-      
+
       worksheet[cellAddress].s = {
         alignment: { horizontal: 'center', vertical: 'center' },
         border: {
@@ -169,18 +157,17 @@ export function createIndividualGradeTemplate(data: IndividualGradeExportData): 
           right: { style: 'thin' }
         }
       }
-      
+
       // Left align subject name column
       if (C === 1) {
         worksheet[cellAddress].s.alignment.horizontal = 'left'
       }
     }
   }
-  
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm')
-  
-  // Create instructions sheet
+}
+
+// Helper function to create instructions sheet
+function createInstructionsSheet(): XLSX.WorkSheet {
   const instructionsData = [
     ['HƯỚNG DẪN NHẬP ĐIỂM CÁ NHÂN'],
     [''],
@@ -198,13 +185,126 @@ export function createIndividualGradeTemplate(data: IndividualGradeExportData): 
     ['- Liên hệ admin nếu có vấn đề'],
     ['- Điểm trung bình sẽ được tự động tính toán']
   ]
-  
+
   const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData)
   instructionsSheet['!cols'] = [{ wch: 80 }]
+  return instructionsSheet
+}
+
+// Create Excel template for individual student grades
+export function createIndividualGradeTemplate(data: IndividualGradeExportData): ArrayBuffer {
+  const workbook = XLSX.utils.book_new()
+
+  // Create worksheet data
+  const worksheetData = [
+    ...createHeaderRows(data),
+    ...createSubjectRows(data.subjects)
+  ]
+  
+  // Create worksheet
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+
+  // Configure layout and styling
+  configureWorksheetLayout(worksheet)
+  applyWorksheetStyling(worksheet)
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm')
+
+  // Add instructions sheet
+  const instructionsSheet = createInstructionsSheet()
   XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Hướng dẫn')
   
   // Convert to array buffer
   return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+}
+
+// Helper function to validate if row should be skipped
+function shouldSkipRow(row: Record<string, string | number>, subjectName: string): boolean {
+  if (!row[1]) return true // Skip empty rows
+
+  // Skip header row, separator row, or invalid rows
+  if (subjectName === 'Môn học' ||
+      subjectName === 'STT' ||
+      subjectName === '' ||
+      subjectName.includes('---') ||
+      subjectName.includes('NHẬP ĐIỂM') ||
+      !isNaN(Number(subjectName))) {
+    return true
+  }
+
+  // Skip rows where column 1 is just a number (STT column)
+  if (!isNaN(Number(row[0])) && subjectName.length < 3) {
+    return true
+  }
+
+  return false
+}
+
+// Helper function to validate grades
+function validateGrades(
+  midtermGrade: number | undefined,
+  finalGrade: number | undefined,
+  subjectName: string,
+  rowNumber: number
+): string[] {
+  const errors: string[] = []
+
+  if (midtermGrade !== undefined && (midtermGrade < 0 || midtermGrade > 10)) {
+    errors.push(`Dòng ${rowNumber}, ${subjectName}: Điểm giữa kì phải từ 0 đến 10`)
+  }
+
+  if (finalGrade !== undefined && (finalGrade < 0 || finalGrade > 10)) {
+    errors.push(`Dòng ${rowNumber}, ${subjectName}: Điểm cuối kì phải từ 0 đến 10`)
+  }
+
+  return errors
+}
+
+// Helper function to process a single row
+function processGradeRow(
+  row: Record<string, string | number>,
+  rowIndex: number,
+  expectedSubjects: SubjectInfo[]
+): { gradeData?: IndividualGradeData; errors: string[] } {
+  const actualRowNumber = rowIndex + 9
+  const subjectName = String(row[1]).trim()
+  const errors: string[] = []
+
+  if (shouldSkipRow(row, subjectName)) {
+    return { errors }
+  }
+
+  const midtermGrade = parseFloat(String(row[2] || '')) || undefined
+  const finalGrade = parseFloat(String(row[3] || '')) || undefined
+  const notes = String(row[4] || '').trim() || undefined
+
+  // Find subject by name
+  const subject = expectedSubjects.find(s => s.name_vietnamese === subjectName)
+  if (!subject) {
+    const availableSubjects = expectedSubjects.map(s => s.name_vietnamese).join(', ')
+    errors.push(`Dòng ${actualRowNumber}: Không tìm thấy môn học "${subjectName}". Các môn học có sẵn: ${availableSubjects}`)
+    return { errors }
+  }
+
+  // Validate grades
+  errors.push(...validateGrades(midtermGrade, finalGrade, subjectName, actualRowNumber))
+
+  // Add grade data if any grade is provided
+  if (midtermGrade !== undefined || finalGrade !== undefined || notes) {
+    return {
+      gradeData: {
+        subject_id: subject.id,
+        subject_name: subjectName,
+        midterm_grade: midtermGrade,
+        final_grade: finalGrade,
+        notes: notes
+      },
+      errors
+    }
+  }
+
+  return { errors }
 }
 
 // Parse Excel file and extract individual grade data
@@ -216,21 +316,21 @@ export function parseIndividualGradeExcel(file: ArrayBuffer, expectedSubjects: S
   try {
     const workbook = XLSX.read(file, { type: 'array' })
     const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-    
+
     if (!worksheet) {
       return {
         success: false,
         errors: ['Không tìm thấy worksheet trong file Excel']
       }
     }
-    
+
     // Convert to JSON, starting from row 8 (after headers, column titles, and separator)
     const jsonData = XLSX.utils.sheet_to_json(worksheet, {
       range: 7, // Start from row 8 (0-indexed) to skip headers, column titles, and separator
       header: 1,
       defval: ''
     }) as Record<string, string | number>[]
-    
+
     const gradeData: IndividualGradeData[] = []
     const errors: string[] = []
 
@@ -240,70 +340,22 @@ export function parseIndividualGradeExcel(file: ArrayBuffer, expectedSubjects: S
 
     // Process each subject row
     jsonData.forEach((row, rowIndex) => {
-      const actualRowNumber = rowIndex + 9 // Adjust for header rows (now starting from row 8)
+      const result = processGradeRow(row, rowIndex, expectedSubjects)
 
-      if (!row[1]) { // Skip empty rows (no subject name)
-        return
-      }
-
-      const subjectName = String(row[1]).trim()
-
-      // Skip header row, separator row, or invalid rows
-      if (subjectName === 'Môn học' ||
-          subjectName === 'STT' ||
-          subjectName === '' ||
-          subjectName.includes('---') ||
-          subjectName.includes('NHẬP ĐIỂM') ||
-          !isNaN(Number(subjectName))) {
-        return
+      if (result.gradeData) {
+        gradeData.push(result.gradeData)
       }
 
-      // Skip rows where column 1 is just a number (STT column)
-      if (!isNaN(Number(row[0])) && subjectName.length < 3) {
-        return
-      }
-
-      const midtermGrade = parseFloat(String(row[2] || '')) || undefined
-      const finalGrade = parseFloat(String(row[3] || '')) || undefined
-      const notes = String(row[4] || '').trim() || undefined
-
-      // Find subject by name
-      const subject = expectedSubjects.find(s => s.name_vietnamese === subjectName)
-      if (!subject) {
-        // Add more detailed error message with available subjects for debugging
-        const availableSubjects = expectedSubjects.map(s => s.name_vietnamese).join(', ')
-        errors.push(`Dòng ${actualRowNumber}: Không tìm thấy môn học "${subjectName}". Các môn học có sẵn: ${availableSubjects}`)
-        return
-      }
-      
-      // Validate grades
-      if (midtermGrade !== undefined && (midtermGrade < 0 || midtermGrade > 10)) {
-        errors.push(`Dòng ${actualRowNumber}, ${subjectName}: Điểm giữa kì phải từ 0 đến 10`)
-      }
-      
-      if (finalGrade !== undefined && (finalGrade < 0 || finalGrade > 10)) {
-        errors.push(`Dòng ${actualRowNumber}, ${subjectName}: Điểm cuối kì phải từ 0 đến 10`)
-      }
-      
-      // Add grade data if any grade is provided
-      if (midtermGrade !== undefined || finalGrade !== undefined || notes) {
-        gradeData.push({
-          subject_id: subject.id,
-          subject_name: subjectName,
-          midterm_grade: midtermGrade,
-          final_grade: finalGrade,
-          notes: notes
-        })
-      }
+      errors.push(...result.errors)
     })
-    
+
     if (errors.length > 0) {
       return {
         success: false,
         errors
       }
     }
-    
+
     return {
       success: true,
       data: gradeData

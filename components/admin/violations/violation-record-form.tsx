@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Search, Users, AlertTriangle, Plus, CalendarIcon } from 'lucide-react'
+import { Search, AlertTriangle, Plus, CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -59,6 +59,62 @@ interface ViolationRecordFormProps {
   onSuccess?: () => void
 }
 
+// Helper function to create a generic data loader
+function createDataLoader<T>(
+  setData: (data: T) => void,
+  errorMessage: string
+) {
+  return async (apiCall: () => Promise<{ success: boolean; data?: T; error?: string }>) => {
+    try {
+      const result = await apiCall();
+      if (result.success && result.data) {
+        setData(result.data);
+      } else {
+        toast.error(result.error || errorMessage);
+      }
+    } catch {
+      toast.error(errorMessage);
+    }
+  };
+}
+
+// Helper function to get default form values
+function getDefaultFormValues(): BulkStudentViolationFormData {
+  return {
+    student_ids: [],
+    class_id: '',
+    violation_type_id: '',
+    severity: 'minor' as const,
+    description: '',
+    violation_date: format(new Date(), 'yyyy-MM-dd'),
+    academic_year_id: '',
+    semester_id: ''
+  };
+}
+
+// Helper function to handle class selection
+function handleClassSelection(
+  classId: string,
+  classes: Class[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: any,
+  setStudents: (students: Student[]) => void,
+  setSelectedStudents: (students: string[]) => void
+) {
+  if (classId) {
+    // Set academic year and semester from selected class
+    const selectedClass = classes.find(c => c.id === classId);
+    if (selectedClass) {
+      // Use actual current academic year and semester IDs
+      form.setValue('academic_year_id', 'f378e4a3-d0ea-4401-829b-7c841610ce8d'); // 2024-2025
+      form.setValue('semester_id', '62f2a9ae-8aeb-43c6-ba14-17f7b82ce609'); // Học kỳ 1
+    }
+  } else {
+    setStudents([]);
+    setSelectedStudents([]);
+  }
+}
+
 export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormProps) {
   const [categories, setCategories] = useState<ViolationCategory[]>([])
   const [violationTypes, setViolationTypes] = useState<ViolationTypeWithCategory[]>([])
@@ -71,16 +127,7 @@ export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormPr
 
   const form = useForm<BulkStudentViolationFormData>({
     resolver: zodResolver(bulkStudentViolationSchema),
-    defaultValues: {
-      student_ids: [],
-      class_id: undefined,
-      violation_type_id: undefined,
-      severity: 'minor' as const,
-      description: '',
-      violation_date: format(new Date(), 'yyyy-MM-dd'),
-      academic_year_id: undefined,
-      semester_id: undefined
-    }
+    defaultValues: getDefaultFormValues()
   })
 
   const watchedClassId = form.watch('class_id')
@@ -102,11 +149,23 @@ export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormPr
     }
   }, [watchedClassId])
 
+  // Create data loaders using helper function
+  const loadCategories = createDataLoader(setCategories, 'Failed to load violation categories');
+  const loadViolationTypes = createDataLoader(setViolationTypes, 'Failed to load violation types');
+  const loadClassBlocks = createDataLoader(setClassBlocks, 'Failed to load class blocks');
+  const loadClasses = createDataLoader(setClasses, 'Failed to load classes');
+
+  // Specific loader functions wrapped in useCallback
+  const loadCategoriesData = useCallback(() => loadCategories(getViolationCategoriesAction), [loadCategories]);
+  const loadViolationTypesData = useCallback((categoryId?: string) => loadViolationTypes(() => getViolationTypesAction(categoryId)), [loadViolationTypes]);
+  const loadClassBlocksData = useCallback(() => loadClassBlocks(getClassBlocksAction), [loadClassBlocks]);
+  const loadClassesData = useCallback((classBlockId: string) => loadClasses(() => getClassesByBlockAction(classBlockId)), [loadClasses]);
+
   // Load initial data
   useEffect(() => {
-    loadCategories()
-    loadClassBlocks()
-  }, [])
+    loadCategoriesData();
+    loadClassBlocksData();
+  }, [loadCategoriesData, loadClassBlocksData])
 
   // Load violation types when category changes
   useEffect(() => {
@@ -121,125 +180,201 @@ export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormPr
   // Load students when class changes and set academic year/semester
   useEffect(() => {
     if (watchedClassId) {
-      loadStudents()
-
-      // Set academic year and semester from selected class
-      const selectedClass = classes.find(c => c.id === watchedClassId)
-      if (selectedClass) {
-        // Use actual current academic year and semester IDs
-        form.setValue('academic_year_id', 'f378e4a3-d0ea-4401-829b-7c841610ce8d') // 2024-2025
-        form.setValue('semester_id', '62f2a9ae-8aeb-43c6-ba14-17f7b82ce609') // Học kỳ 1
-      }
-    } else {
-      setStudents([])
-      setSelectedStudents([])
+      loadStudents();
     }
+    handleClassSelection(watchedClassId, classes, form, setStudents, setSelectedStudents);
   }, [watchedClassId, classes, form, loadStudents])
 
-  const loadCategories = async () => {
-    try {
-      const result = await getViolationCategoriesAction()
-      if (result.success && result.data) {
-        setCategories(result.data)
-      }
-    } catch {
-      toast.error('Failed to load violation categories')
-    }
-  }
+// Student Selection Component
+function StudentSelectionSection({
+  classBlocks,
+  classes,
+  students,
+  selectedStudents,
+  studentSearch,
+  setStudentSearch,
+  setSelectedStudents,
+  loadClassesData,
+  form
+}: {
+  classBlocks: ClassBlock[];
+  classes: Class[];
+  students: Student[];
+  selectedStudents: string[];
+  studentSearch: string;
+  setStudentSearch: (search: string) => void;
+  setSelectedStudents: (students: string[]) => void;
+  loadClassesData: (classBlockId: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: any;
+}) {
+  const filteredStudents = students.filter(student =>
+    student?.full_name?.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    student?.student_id?.toLowerCase().includes(studentSearch.toLowerCase())
+  );
 
-  const loadViolationTypes = async (categoryId?: string) => {
-    try {
-      const result = await getViolationTypesAction(categoryId)
-      if (result.success && result.data) {
-        setViolationTypes(result.data)
-      }
-    } catch {
-      toast.error('Failed to load violation types')
-    }
-  }
+  const toggleStudentSelection = (studentId: string) => {
+    setSelectedStudents(
+      selectedStudents.includes(studentId)
+        ? selectedStudents.filter(id => id !== studentId)
+        : [...selectedStudents, studentId]
+    );
+  };
 
-  const loadClassBlocks = async () => {
-    try {
-      const result = await getClassBlocksAction()
-      if (result.success && result.data) {
-        setClassBlocks(result.data)
-      } else {
-        toast.error(result.error || 'Failed to load class blocks')
-      }
-    } catch {
-      toast.error('Failed to load class blocks')
-    }
-  }
+  const selectAllStudents = () => {
+    const allStudentIds = (filteredStudents || []).map(s => s.id).filter(Boolean);
+    setSelectedStudents(allStudentIds);
+  };
 
-  const loadClasses = async (classBlockId: string) => {
-    try {
-      const result = await getClassesByBlockAction(classBlockId)
-      if (result.success && result.data) {
-        setClasses(result.data)
-      } else {
-        toast.error(result.error || 'Failed to load classes')
-      }
-    } catch {
-      toast.error('Failed to load classes')
-    }
-  }
+  const clearAllStudents = () => {
+    setSelectedStudents([]);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Class Block Selection */}
+      <FormField
+        control={form.control}
+        name="class_block_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Class Block</FormLabel>
+            <Select onValueChange={(value) => {
+              field.onChange(value);
+              loadClassesData(value);
+            }}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class block" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {classBlocks?.filter(block => block && block.id && block.id.trim() !== '' && block.display_name && block.display_name.trim() !== '').map((block) => (
+                  <SelectItem key={block.id} value={block.id}>
+                    {block.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Class Selection */}
+      <FormField
+        control={form.control}
+        name="class_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Class</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {classes?.filter(cls => cls && cls.id && cls.id.trim() !== '' && cls.name && cls.name.trim() !== '').map((cls) => (
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} - {cls.academic_year?.name} ({cls.semester?.name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Student Selection */}
+      {students.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium">Select Students</h4>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={selectAllStudents}
+              >
+                Select All
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearAllStudents}
+              >
+                Clear All
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search students..."
+              value={studentSearch}
+              onChange={(e) => setStudentSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <div className="max-h-60 overflow-y-auto border rounded-md p-2 space-y-2">
+            {(filteredStudents || []).map((student) => {
+              if (!student || !student.id || !student.full_name) return null;
+
+              return (
+                <div key={student.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                  <Checkbox
+                    checked={selectedStudents.includes(student.id)}
+                    onCheckedChange={() => toggleStudentSelection(student.id)}
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium">{student.full_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ID: {student.student_id || 'N/A'} • Email: {student.email || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {(filteredStudents || []).length === 0 && (
+              <div className="text-center text-muted-foreground py-4">
+                No students found
+              </div>
+            )}
+          </div>
+
+          {selectedStudents?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {(selectedStudents || []).map((studentId) => {
+                if (!studentId) return null;
+
+                const student = (students || []).find(s => s?.id === studentId);
+                if (!student || !student.full_name) return null;
+
+                return (
+                  <Badge key={studentId} variant="secondary">
+                    {student.full_name} ({student.student_id || 'N/A'})
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 
-  const filteredStudents = students?.filter(student => {
-    if (!student || !student.full_name) return false
 
-    const searchTerm = studentSearch.toLowerCase()
-    const fullName = student.full_name?.toLowerCase() || ''
-    const studentId = student.student_id?.toLowerCase() || ''
-    const email = student.email?.toLowerCase() || ''
 
-    return (
-      fullName.includes(searchTerm) ||
-      studentId.includes(searchTerm) ||
-      email.includes(searchTerm)
-    )
-  }) || []
 
-  const handleStudentToggle = (studentId: string) => {
-    if (!studentId || typeof studentId !== 'string') return
-
-    // Ensure selectedStudents is always an array
-    const currentSelection = Array.isArray(selectedStudents) ? selectedStudents : []
-
-    const newSelection = currentSelection.includes(studentId)
-      ? currentSelection.filter(id => id !== studentId)
-      : [...currentSelection, studentId]
-
-    // Use setTimeout to avoid state updates during render
-    setTimeout(() => {
-      setSelectedStudents(newSelection)
-      form.setValue('student_ids', newSelection)
-    }, 0)
-  }
-
-  const handleSelectAllStudents = () => {
-    const safeFilteredStudents = Array.isArray(filteredStudents) ? filteredStudents : []
-    if (safeFilteredStudents.length === 0) return
-
-    const allStudentIds = safeFilteredStudents
-      .filter(s => s && s.id && typeof s.id === 'string' && s.id.trim() !== '')
-      .map(s => s.id)
-
-    // Use setTimeout to avoid state updates during render
-    setTimeout(() => {
-      setSelectedStudents(allStudentIds)
-      form.setValue('student_ids', allStudentIds)
-    }, 0)
-  }
-
-  const handleClearSelection = () => {
-    // Use setTimeout to avoid state updates during render
-    setTimeout(() => {
-      setSelectedStudents([])
-      form.setValue('student_ids', [])
-    }, 0)
-  }
 
   const onSubmit = async (data: BulkStudentViolationFormData) => {
     try {
@@ -286,145 +421,20 @@ export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormPr
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Class Block Selection */}
-            <FormField
-              control={form.control}
-              name="class_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Grade Block</FormLabel>
-                  <Select onValueChange={(value) => {
-                    loadClasses(value)
-                    field.onChange('')
-                  }}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select grade block" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {classBlocks?.filter(block => block && block.id && block.id.trim() !== '' && block.display_name && block.display_name.trim() !== '').map((block) => (
-                        <SelectItem key={block.id} value={block.id}>
-                          {block.display_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            {/* Student Selection Section */}
+            <StudentSelectionSection
+              classBlocks={classBlocks}
+              classes={classes}
+              students={students}
+              selectedStudents={selectedStudents}
+              studentSearch={studentSearch}
+              setStudentSearch={setStudentSearch}
+              setSelectedStudents={setSelectedStudents}
+              loadClassesData={loadClassesData}
+              form={form}
             />
 
-            {/* Class Selection */}
-            <FormField
-              control={form.control}
-              name="class_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {classes?.filter(cls => cls && cls.id && cls.id.trim() !== '' && cls.name && cls.name.trim() !== '' && cls.academic_year && cls.semester).map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name} - {cls.academic_year?.name || 'Unknown Year'} - {cls.semester?.name || 'Unknown Semester'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            {/* Student Selection */}
-            {watchedClassId && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <FormLabel>Select Students</FormLabel>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAllStudents}
-                      disabled={(filteredStudents || []).length === 0}
-                    >
-                      <Users className="h-4 w-4 mr-1" />
-                      Select All ({(filteredStudents || []).length})
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClearSelection}
-                      disabled={(selectedStudents || []).length === 0}
-                    >
-                      Clear ({(selectedStudents || []).length})
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search students by name or ID..."
-                    value={studentSearch}
-                    onChange={(e) => setStudentSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                <div className="max-h-60 overflow-y-auto border rounded-md p-4 space-y-2">
-                  {(filteredStudents || []).filter(student => student && student.id && student.full_name).map((student) => (
-                    <div
-                      key={student.id}
-                      className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md"
-                    >
-                      <Checkbox
-                        checked={selectedStudents?.includes(student.id) || false}
-                        onCheckedChange={() => handleStudentToggle(student.id)}
-                      />
-                      <div
-                        className="flex-1 cursor-pointer"
-                        onClick={() => handleStudentToggle(student.id)}
-                      >
-                        <div className="font-medium">{student.full_name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          ID: {student.student_id || 'N/A'} • {student.email || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {(filteredStudents || []).length === 0 && (
-                    <div className="text-center text-muted-foreground py-4">
-                      No students found
-                    </div>
-                  )}
-                </div>
-
-                {selectedStudents?.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedStudents || []).map((studentId) => {
-                      if (!studentId) return null
-
-                      const student = (students || []).find(s => s?.id === studentId)
-                      if (!student || !student.full_name) return null
-
-                      return (
-                        <Badge key={studentId} variant="secondary">
-                          {student.full_name} ({student.student_id || 'N/A'})
-                        </Badge>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Violation Category */}
             <FormField
@@ -434,7 +444,7 @@ export default function ViolationRecordForm({ onSuccess }: ViolationRecordFormPr
                 <FormItem>
                   <FormLabel>Violation Category</FormLabel>
                   <Select onValueChange={(value) => {
-                    loadViolationTypes(value)
+                    loadViolationTypesData(value)
                     field.onChange('')
                   }}>
                     <FormControl>

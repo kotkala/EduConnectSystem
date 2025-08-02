@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -68,27 +68,7 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
 
   const supabase = createClient()
 
-  const loadDashboardData = async () => {
-    setLoading(true)
-    try {
-      await Promise.all([
-        loadWeeklyStats(),
-        loadUpcomingClasses(),
-        loadRecentActivities()
-      ])
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
-      toast.error('Không thể tải dữ liệu dashboard')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadDashboardData()
-  }, [loadDashboardData]) // ✅ Include loadDashboardData dependency
-
-  const loadWeeklyStats = async () => {
+  const loadWeeklyStats = useCallback(async () => {
     try {
       // Get homeroom class info (currently simplified)
       // TODO: Implement homeroom class query when needed
@@ -125,14 +105,14 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
     } catch (error) {
       console.error('Error loading stats:', error)
     }
-  }
+  }, [profile.id, supabase])
 
-  const loadUpcomingClasses = async () => {
+  const loadUpcomingClasses = useCallback(async () => {
     try {
       // Get current week's schedule
       const today = new Date()
       const currentDay = today.getDay() // 0 = Sunday, 1 = Monday, etc.
-      
+
       const { data: schedule } = await supabase
         .from('timetable_slots')
         .select(`
@@ -164,9 +144,9 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
     } catch (error) {
       console.error('Error loading upcoming classes:', error)
     }
-  }
+  }, [profile.id, supabase])
 
-  const loadRecentActivities = async () => {
+  const loadRecentActivities = useCallback(async () => {
     try {
       const activities: RecentActivity[] = []
 
@@ -224,7 +204,27 @@ export default function TeacherWeeklyDashboard({ profile }: { profile: Profile }
     } catch (error) {
       console.error('Error loading recent activities:', error)
     }
-  }
+  }, [profile.id, supabase])
+
+  const loadDashboardData = useCallback(async () => {
+    setLoading(true)
+    try {
+      await Promise.all([
+        loadWeeklyStats(),
+        loadUpcomingClasses(),
+        loadRecentActivities()
+      ])
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+      toast.error('Không thể tải dữ liệu dashboard')
+    } finally {
+      setLoading(false)
+    }
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities])
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [loadDashboardData]) // ✅ Include loadDashboardData dependency
 
   const getDayName = (dayOfWeek: number) => {
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']

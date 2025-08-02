@@ -24,14 +24,12 @@ import {
   MessageSquare,
   Users,
   User,
-  Loader2,
-  CheckCircle
+  Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getClassStudentsAction,
   createStudentFeedbackAction,
-  getEventFeedbackAction,
   type StudentInfo,
   type FeedbackData,
   type CreateFeedbackRequest
@@ -50,6 +48,120 @@ interface TeacherFeedbackDialogProps {
 }
 
 type FeedbackMode = 'individual' | 'group' | 'class'
+
+// Helper function to reset form state
+function resetFormState(
+  setSelectedStudents: (students: Set<string>) => void,
+  setFeedbackText: (text: string) => void,
+  setRating: (rating: number | undefined) => void,
+  setFeedbackMode: (mode: FeedbackMode) => void,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setEditingFeedback: (feedback: any) => void
+) {
+  setSelectedStudents(new Set());
+  setFeedbackText('');
+  setRating(undefined);
+  setFeedbackMode('individual');
+  setEditingFeedback(null);
+}
+
+// Helper function to handle student selection
+function handleStudentSelection(
+  studentId: string,
+  checked: boolean,
+  selectedStudents: Set<string>,
+  setSelectedStudents: (students: Set<string>) => void
+) {
+  const newSelected = new Set(selectedStudents);
+  if (checked) {
+    newSelected.add(studentId);
+  } else {
+    newSelected.delete(studentId);
+  }
+  setSelectedStudents(newSelected);
+}
+
+// Helper function to handle select all students
+function handleSelectAllStudents(
+  students: StudentInfo[],
+  selectedStudents: Set<string>,
+  setSelectedStudents: (students: Set<string>) => void
+) {
+  if (selectedStudents.size === students.length) {
+    setSelectedStudents(new Set());
+  } else {
+    setSelectedStudents(new Set(students.map(s => s.id)));
+  }
+}
+
+// Student Selection Component
+function StudentSelectionSection({
+  students,
+  selectedStudents,
+  feedbackMode,
+  isLoading,
+  handleStudentSelect,
+  handleSelectAll
+}: {
+  students: StudentInfo[];
+  selectedStudents: Set<string>;
+  feedbackMode: FeedbackMode;
+  isLoading: boolean;
+  handleStudentSelect: (studentId: string, checked: boolean) => void;
+  handleSelectAll: () => void;
+}) {
+  if (feedbackMode === 'class') {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Feedback sẽ được gửi cho tất cả học sinh trong lớp
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        Đang tải danh sách học sinh...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">Chọn học sinh:</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleSelectAll}
+        >
+          {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+        </Button>
+      </div>
+
+      <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2">
+        {students.map((student) => (
+          <div key={student.id} className="flex items-center space-x-2">
+            <Checkbox
+              checked={selectedStudents.has(student.id)}
+              onCheckedChange={(checked) => handleStudentSelect(student.id, !!checked)}
+            />
+            <span className="text-sm">{student.full_name}</span>
+            <span className="text-xs text-muted-foreground">({student.student_id})</span>
+          </div>
+        ))}
+      </div>
+
+      {selectedStudents.size > 0 && (
+        <div className="text-sm text-muted-foreground">
+          Đã chọn {selectedStudents.size} học sinh
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function TeacherFeedbackDialog({
   open,
@@ -71,22 +183,10 @@ export function TeacherFeedbackDialog({
   } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [existingFeedback, setExistingFeedback] = useState<Array<{
-    id: string
-    student_id: string
-    student_name: string
-    feedback_text: string
-    rating?: number
-    feedback_type: string
-    group_id?: string
-    created_at: string
-  }>>([])
-
   // Load students when dialog opens
   useEffect(() => {
     if (open && timetableEvent) {
       loadStudents()
-      loadExistingFeedback()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, timetableEvent])
@@ -94,11 +194,7 @@ export function TeacherFeedbackDialog({
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
-      setSelectedStudents(new Set())
-      setFeedbackText('')
-      setRating(undefined)
-      setFeedbackMode('individual')
-      setEditingFeedback(null)
+      resetFormState(setSelectedStudents, setFeedbackText, setRating, setFeedbackMode, setEditingFeedback);
     }
   }, [open])
 
@@ -120,35 +216,14 @@ export function TeacherFeedbackDialog({
     }
   }, [timetableEvent])
 
-  const loadExistingFeedback = useCallback(async () => {
-    if (!timetableEvent) return
 
-    try {
-      const result = await getEventFeedbackAction(timetableEvent.id)
-      if (result.success && result.data) {
-        setExistingFeedback(result.data)
-      }
-    } catch {
-      console.error('Error loading existing feedback')
-    }
-  }, [timetableEvent])
 
   const handleStudentSelect = (studentId: string, checked: boolean) => {
-    const newSelected = new Set(selectedStudents)
-    if (checked) {
-      newSelected.add(studentId)
-    } else {
-      newSelected.delete(studentId)
-    }
-    setSelectedStudents(newSelected)
+    handleStudentSelection(studentId, checked, selectedStudents, setSelectedStudents);
   }
 
   const handleSelectAll = () => {
-    if (selectedStudents.size === students.length) {
-      setSelectedStudents(new Set())
-    } else {
-      setSelectedStudents(new Set(students.map(s => s.id)))
-    }
+    handleSelectAllStudents(students, selectedStudents, setSelectedStudents);
   }
 
   const handleSubmitFeedback = async () => {
@@ -198,7 +273,7 @@ export function TeacherFeedbackDialog({
         setRating(undefined)
         setSelectedStudents(new Set())
         setEditingFeedback(null)
-        loadExistingFeedback() // Reload to show new feedback
+        // Feedback created successfully
       } else {
         toast.error(result.error || 'Không thể tạo phản hồi')
       }
@@ -209,33 +284,7 @@ export function TeacherFeedbackDialog({
     }
   }
 
-  const getStudentFeedback = (studentId: string) => {
-    return existingFeedback.find(f => f.student_id === studentId)
-  }
 
-  const canEditFeedback = (createdAt: string) => {
-    const created = new Date(createdAt)
-    const now = new Date()
-    const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
-    return hoursDiff <= 24
-  }
-
-  const handleEditFeedback = (feedback: {
-    id: string
-    student_id: string
-    student_name: string
-    feedback_text: string
-    rating?: number
-    feedback_type: string
-    group_id?: string
-    created_at: string
-  }) => {
-    setEditingFeedback(feedback)
-    setFeedbackText(feedback.feedback_text)
-    setRating(feedback.rating)
-    setFeedbackMode('individual')
-    setSelectedStudents(new Set([feedback.student_id]))
-  }
 
   if (!timetableEvent) return null
 
@@ -287,68 +336,15 @@ export function TeacherFeedbackDialog({
             </div>
           </div>
 
-          {/* Student List */}
-          {feedbackMode !== 'class' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">
-                  Chọn học sinh ({selectedStudents.size}/{students.length}):
-                </label>
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-                </Button>
-              </div>
-              
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">Đang tải danh sách học sinh...</span>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto border rounded-md p-3">
-                  {students.map((student) => {
-                    const feedback = getStudentFeedback(student.id)
-                    return (
-                      <div key={student.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                        <Checkbox
-                          id={student.id}
-                          checked={selectedStudents.has(student.id)}
-                          onCheckedChange={(checked) => handleStudentSelect(student.id, checked as boolean)}
-                        />
-                        <label htmlFor={student.id} className="flex-1 text-sm cursor-pointer">
-                          {student.full_name}
-                          <span className="text-muted-foreground ml-1">({student.student_id})</span>
-                          {feedback && (
-                            <div className="text-xs text-gray-600 mt-1">
-                              Phản hồi: {feedback.feedback_text.substring(0, 50)}
-                              {feedback.feedback_text.length > 50 ? '...' : ''}
-                            </div>
-                          )}
-                        </label>
-                        <div className="flex items-center gap-1">
-                          {feedback && (
-                            <>
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              {canEditFeedback(feedback.created_at) && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditFeedback(feedback)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  ✏️
-                                </Button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+          {/* Student Selection */}
+          <StudentSelectionSection
+            students={students}
+            selectedStudents={selectedStudents}
+            feedbackMode={feedbackMode}
+            isLoading={isLoading}
+            handleStudentSelect={handleStudentSelect}
+            handleSelectAll={handleSelectAll}
+          />
 
           {/* Feedback Form */}
           <div className="space-y-4">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,6 +46,48 @@ interface FormData {
   teacherId: string
 }
 
+// Helper function to reset dependent fields
+function resetDependentFields(
+  setValue: (name: keyof FormData, value: string) => void,
+  fields: (keyof FormData)[],
+  setters: (() => void)[]
+) {
+  fields.forEach(field => setValue(field, ''))
+  setters.forEach(setter => setter())
+}
+
+// Helper function to handle API errors
+function handleApiError(error: unknown, defaultMessage: string): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+  return defaultMessage
+}
+
+// Helper function to create async loader
+function createAsyncLoader<T>(
+  setLoading: (loading: boolean) => void,
+  setData: (data: T) => void,
+  setError: (error: string | null) => void
+) {
+  return async (apiCall: () => Promise<{ success: boolean; data: T; error?: string }>, errorMessage: string) => {
+    setLoading(true)
+    try {
+      const result = await apiCall()
+      if (result.success) {
+        setData(result.data)
+        setError(null)
+      } else {
+        setError(result.error || errorMessage)
+      }
+    } catch (error) {
+      setError(handleApiError(error, errorMessage))
+    } finally {
+      setLoading(false)
+    }
+  }
+}
+
 export default function TeacherAssignmentForm({ onSuccess, currentUserId }: TeacherAssignmentFormProps) {
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
   const [classBlocks, setClassBlocks] = useState<ClassBlock[]>([])
@@ -81,91 +123,33 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
     'subjectId'
   ])
 
-  // Load academic years on component mount
-  useEffect(() => {
-    loadAcademicYears()
-  }, [])
+  // Create loaders using helper function
+  const loadAcademicYears = createAsyncLoader(
+    setLoadingAcademicYears,
+    setAcademicYears,
+    setError
+  )
 
-  // Load class blocks when academic year changes - Context7 dependent pattern
-  useEffect(() => {
-    if (watchAcademicYearId) {
-      loadClassBlocks()
-      // Reset dependent fields
-      setValue('classBlockId', '')
-      setValue('classId', '')
-      setValue('subjectId', '')
-      setValue('teacherId', '')
-      setClasses([])
-      setAvailableSubjects([])
-      setAvailableTeachers([])
-    }
-  }, [watchAcademicYearId, setValue])
+  const loadClassBlocks = createAsyncLoader(
+    setLoadingClassBlocks,
+    setClassBlocks,
+    setError
+  )
 
-  // Load classes when class block changes - Context7 dependent pattern
-  useEffect(() => {
-    if (watchAcademicYearId && watchClassBlockId) {
-      loadClasses(watchAcademicYearId, watchClassBlockId)
-      // Reset dependent fields
-      setValue('classId', '')
-      setValue('subjectId', '')
-      setValue('teacherId', '')
-      setAvailableSubjects([])
-      setAvailableTeachers([])
-    }
-  }, [watchAcademicYearId, watchClassBlockId, setValue])
+  const loadAvailableSubjects = createAsyncLoader(
+    setLoadingSubjects,
+    setAvailableSubjects,
+    setError
+  )
 
-  // Load available subjects when class changes - Context7 dependent pattern
-  useEffect(() => {
-    if (watchClassId) {
-      loadAvailableSubjects(watchClassId)
-      // Reset dependent fields
-      setValue('subjectId', '')
-      setValue('teacherId', '')
-      setAvailableTeachers([])
-    }
-  }, [watchClassId, setValue])
+  const loadAvailableTeachers = createAsyncLoader(
+    setLoadingTeachers,
+    setAvailableTeachers,
+    setError
+  )
 
-  // Load available teachers when subject changes - Context7 dependent pattern
-  useEffect(() => {
-    if (watchSubjectId) {
-      loadAvailableTeachers(watchSubjectId)
-      // Reset dependent field
-      setValue('teacherId', '')
-    }
-  }, [watchSubjectId, setValue])
-
-  const loadAcademicYears = async () => {
-    try {
-      const result = await getAcademicYearsAction()
-      if (result.success) {
-        setAcademicYears(result.data)
-      } else {
-        setError(result.error || 'Failed to load academic years')
-      }
-    } catch {
-      setError('Failed to load academic years')
-    } finally {
-      setLoadingAcademicYears(false)
-    }
-  }
-
-  const loadClassBlocks = async () => {
-    setLoadingClassBlocks(true)
-    try {
-      const result = await getClassBlocksAction()
-      if (result.success) {
-        setClassBlocks(result.data)
-      } else {
-        setError(result.error || 'Failed to load class blocks')
-      }
-    } catch {
-      setError('Failed to load class blocks')
-    } finally {
-      setLoadingClassBlocks(false)
-    }
-  }
-
-  const loadClasses = async (academicYearId: string, classBlockId: string) => {
+  // Load classes function
+  const loadClasses = useCallback(async (academicYearId: string, classBlockId: string) => {
     setLoadingClasses(true)
     try {
       const result = await getClassesAction({
@@ -177,49 +161,250 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
         // Filter classes by class block
         const filteredClasses = result.data.filter(cls => cls.class_block_id === classBlockId)
         setClasses(filteredClasses)
+        setError(null)
       } else {
         setError(result.error || 'Failed to load classes')
       }
-    } catch {
-      setError('Failed to load classes')
+    } catch (error) {
+      setError(handleApiError(error, 'Failed to load classes'))
     } finally {
       setLoadingClasses(false)
     }
-  }
+  }, [])
 
-  const loadAvailableSubjects = async (classId: string) => {
-    setLoadingSubjects(true)
-    try {
-      const result = await getAvailableSubjectsForClassAction(classId)
-      if (result.success) {
-        setAvailableSubjects(result.data)
-        setError(null)
-      } else {
-        setError(result.error || 'Failed to load available subjects')
-      }
-    } catch {
-      setError('Failed to load available subjects')
-    } finally {
-      setLoadingSubjects(false)
-    }
-  }
+  // Specific loader functions wrapped in useCallback
+  const loadAcademicYearsData = useCallback(() => loadAcademicYears(getAcademicYearsAction, 'Failed to load academic years'), [loadAcademicYears])
+  const loadClassBlocksData = useCallback(() => loadClassBlocks(getClassBlocksAction, 'Failed to load class blocks'), [loadClassBlocks])
+  const loadAvailableSubjectsData = useCallback((classId: string) => loadAvailableSubjects(() => getAvailableSubjectsForClassAction(classId), 'Failed to load available subjects'), [loadAvailableSubjects])
+  const loadAvailableTeachersData = useCallback((subjectId: string) => loadAvailableTeachers(() => getAvailableTeachersForSubjectAction(subjectId), 'Failed to load available teachers'), [loadAvailableTeachers])
 
-  const loadAvailableTeachers = async (subjectId: string) => {
-    setLoadingTeachers(true)
-    try {
-      const result = await getAvailableTeachersForSubjectAction(subjectId)
-      if (result.success) {
-        setAvailableTeachers(result.data)
-        setError(null)
-      } else {
-        setError(result.error || 'Failed to load available teachers')
-      }
-    } catch {
-      setError('Failed to load available teachers')
-    } finally {
-      setLoadingTeachers(false)
+  // Load academic years on component mount
+  useEffect(() => {
+    loadAcademicYearsData()
+  }, [loadAcademicYearsData])
+
+  // Load class blocks when academic year changes - Context7 dependent pattern
+  useEffect(() => {
+    if (watchAcademicYearId) {
+      loadClassBlocksData()
+      resetDependentFields(
+        setValue,
+        ['classBlockId', 'classId', 'subjectId', 'teacherId'],
+        [() => setClasses([]), () => setAvailableSubjects([]), () => setAvailableTeachers([])]
+      )
     }
-  }
+  }, [watchAcademicYearId, setValue, loadClassBlocksData])
+
+  // Load classes when class block changes - Context7 dependent pattern
+  useEffect(() => {
+    if (watchAcademicYearId && watchClassBlockId) {
+      loadClasses(watchAcademicYearId, watchClassBlockId)
+      resetDependentFields(
+        setValue,
+        ['classId', 'subjectId', 'teacherId'],
+        [() => setAvailableSubjects([]), () => setAvailableTeachers([])]
+      )
+    }
+  }, [watchAcademicYearId, watchClassBlockId, setValue, loadClasses])
+
+  // Load available subjects when class changes - Context7 dependent pattern
+  useEffect(() => {
+    if (watchClassId) {
+      loadAvailableSubjectsData(watchClassId)
+      resetDependentFields(
+        setValue,
+        ['subjectId', 'teacherId'],
+        [() => setAvailableTeachers([])]
+      )
+    }
+  }, [watchClassId, setValue, loadAvailableSubjectsData])
+
+  // Load available teachers when subject changes - Context7 dependent pattern
+  useEffect(() => {
+    if (watchSubjectId) {
+      loadAvailableTeachersData(watchSubjectId)
+      setValue('teacherId', '')
+    }
+  }, [watchSubjectId, setValue, loadAvailableTeachersData])
+
+// Form Fields Component
+function TeacherAssignmentFormFields({
+  academicYears,
+  classBlocks,
+  classes,
+  availableSubjects,
+  availableTeachers,
+  loadingAcademicYears,
+  loadingClassBlocks,
+  loadingClasses,
+  loadingSubjects,
+  loadingTeachers,
+  watchAcademicYearId,
+  watchClassBlockId,
+  watchClassId,
+  watchSubjectId,
+  watch,
+  setValue
+}: {
+  academicYears: AcademicYear[]
+  classBlocks: ClassBlock[]
+  classes: Class[]
+  availableSubjects: AvailableSubject[]
+  availableTeachers: AvailableTeacher[]
+  loadingAcademicYears: boolean
+  loadingClassBlocks: boolean
+  loadingClasses: boolean
+  loadingSubjects: boolean
+  loadingTeachers: boolean
+  watchAcademicYearId: string
+  watchClassBlockId: string
+  watchClassId: string
+  watchSubjectId: string
+  watch: (name: keyof FormData) => string
+  setValue: (name: keyof FormData, value: string) => void
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Academic Year Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Academic Year *</label>
+        <Select
+          value={watchAcademicYearId}
+          onValueChange={(value) => setValue('academicYearId', value)}
+          disabled={loadingAcademicYears}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={loadingAcademicYears ? "Loading..." : "Select academic year"} />
+          </SelectTrigger>
+          <SelectContent>
+            {academicYears.map((year) => (
+              <SelectItem key={year.id} value={year.id}>
+                {year.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Class Block Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Class Block (Grade Level) *</label>
+        <Select
+          value={watchClassBlockId}
+          onValueChange={(value) => setValue('classBlockId', value)}
+          disabled={!watchAcademicYearId || loadingClassBlocks}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={
+              !watchAcademicYearId
+                ? "Select academic year first"
+                : loadingClassBlocks
+                ? "Loading..."
+                : "Select class block"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {classBlocks.filter(block => block.id && block.id.trim() !== '').map((block) => (
+              <SelectItem key={block.id} value={block.id}>
+                {block.display_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Class Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Class *</label>
+        <Select
+          value={watchClassId}
+          onValueChange={(value) => setValue('classId', value)}
+          disabled={!watchClassBlockId || loadingClasses}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={
+              !watchClassBlockId
+                ? "Select class block first"
+                : loadingClasses
+                ? "Loading..."
+                : "Select class"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {classes.filter(cls => cls.id && cls.id.trim() !== '').map((cls) => (
+              <SelectItem key={cls.id} value={cls.id}>
+                {cls.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Subject Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Subject *</label>
+        <Select
+          value={watchSubjectId}
+          onValueChange={(value) => setValue('subjectId', value)}
+          disabled={!watchClassId || loadingSubjects}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={
+              !watchClassId
+                ? "Select class first"
+                : loadingSubjects
+                ? "Loading..."
+                : availableSubjects.length === 0
+                ? "No available subjects"
+                : "Select subject"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {availableSubjects.filter(subject => subject.id && subject.id.trim() !== '').map((subject) => (
+              <SelectItem key={subject.id} value={subject.id}>
+                {subject.code} - {subject.name_vietnamese}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {watchClassId && availableSubjects.length === 0 && !loadingSubjects && (
+          <p className="text-sm text-muted-foreground">
+            All subjects have been assigned to teachers for this class.
+          </p>
+        )}
+      </div>
+
+      {/* Teacher Selection */}
+      <div className="space-y-2 md:col-span-2">
+        <label className="text-sm font-medium">Teacher *</label>
+        <Select
+          value={watchSubjectId ? watch('teacherId') : ''}
+          onValueChange={(value) => setValue('teacherId', value)}
+          disabled={!watchSubjectId || loadingTeachers}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={
+              !watchSubjectId
+                ? "Select subject first"
+                : loadingTeachers
+                ? "Loading..."
+                : availableTeachers.length === 0
+                ? "No available teachers"
+                : "Select teacher"
+            } />
+          </SelectTrigger>
+          <SelectContent>
+            {availableTeachers.filter(teacher => teacher.teacher_id && teacher.teacher_id.trim() !== '').map((teacher) => (
+              <SelectItem key={teacher.teacher_id} value={teacher.teacher_id}>
+                {teacher.teacher_name} ({teacher.teacher_email})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  )
+}
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true)
@@ -279,143 +464,25 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
             </Alert>
           )}
 
-          {/* Academic Year Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Academic Year *</label>
-            <Select
-              value={watchAcademicYearId}
-              onValueChange={(value) => setValue('academicYearId', value)}
-              disabled={loadingAcademicYears}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={loadingAcademicYears ? "Loading..." : "Select academic year"} />
-              </SelectTrigger>
-              <SelectContent>
-                {academicYears.filter(year => year.id && year.id.trim() !== '').map((year) => (
-                  <SelectItem key={year.id} value={year.id}>
-                    {year.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Class Block Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Class Block (Grade Level) *</label>
-            <Select
-              value={watchClassBlockId}
-              onValueChange={(value) => setValue('classBlockId', value)}
-              disabled={!watchAcademicYearId || loadingClassBlocks}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  !watchAcademicYearId 
-                    ? "Select academic year first" 
-                    : loadingClassBlocks 
-                    ? "Loading..." 
-                    : "Select class block"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {classBlocks.filter(block => block.id && block.id.trim() !== '').map((block) => (
-                  <SelectItem key={block.id} value={block.id}>
-                    {block.display_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Class Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Class *</label>
-            <Select
-              value={watchClassId}
-              onValueChange={(value) => setValue('classId', value)}
-              disabled={!watchClassBlockId || loadingClasses}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  !watchClassBlockId 
-                    ? "Select class block first" 
-                    : loadingClasses 
-                    ? "Loading..." 
-                    : "Select class"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {classes.filter(cls => cls.id && cls.id.trim() !== '').map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Subject Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Subject *</label>
-            <Select
-              value={watchSubjectId}
-              onValueChange={(value) => setValue('subjectId', value)}
-              disabled={!watchClassId || loadingSubjects}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  !watchClassId 
-                    ? "Select class first" 
-                    : loadingSubjects 
-                    ? "Loading..." 
-                    : availableSubjects.length === 0
-                    ? "No available subjects"
-                    : "Select subject"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSubjects.filter(subject => subject.id && subject.id.trim() !== '').map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id}>
-                    {subject.code} - {subject.name_vietnamese}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {watchClassId && availableSubjects.length === 0 && !loadingSubjects && (
-              <p className="text-sm text-muted-foreground">
-                All subjects have been assigned to teachers for this class.
-              </p>
-            )}
-          </div>
-
-          {/* Teacher Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Teacher *</label>
-            <Select
-              value={watchSubjectId ? watch('teacherId') : ''}
-              onValueChange={(value) => setValue('teacherId', value)}
-              disabled={!watchSubjectId || loadingTeachers}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={
-                  !watchSubjectId 
-                    ? "Select subject first" 
-                    : loadingTeachers 
-                    ? "Loading..." 
-                    : availableTeachers.length === 0
-                    ? "No available teachers"
-                    : "Select teacher"
-                } />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTeachers.filter(teacher => teacher.teacher_id && teacher.teacher_id.trim() !== '').map((teacher) => (
-                  <SelectItem key={teacher.teacher_id} value={teacher.teacher_id}>
-                    {teacher.teacher_name} ({teacher.teacher_email})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Form Fields */}
+          <TeacherAssignmentFormFields
+            academicYears={academicYears}
+            classBlocks={classBlocks}
+            classes={classes}
+            availableSubjects={availableSubjects}
+            availableTeachers={availableTeachers}
+            loadingAcademicYears={loadingAcademicYears}
+            loadingClassBlocks={loadingClassBlocks}
+            loadingClasses={loadingClasses}
+            loadingSubjects={loadingSubjects}
+            loadingTeachers={loadingTeachers}
+            watchAcademicYearId={watchAcademicYearId}
+            watchClassBlockId={watchClassBlockId}
+            watchClassId={watchClassId}
+            watchSubjectId={watchSubjectId}
+            watch={watch}
+            setValue={setValue}
+          />
 
           {/* Submit Button */}
           <Button

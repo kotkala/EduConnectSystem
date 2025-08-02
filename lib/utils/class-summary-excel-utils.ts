@@ -55,7 +55,7 @@ function getAllSubjects(students: StudentGradeData[]): string[] {
       allSubjects.add(subject.subjectName);
     });
   });
-  return Array.from(allSubjects).sort();
+  return Array.from(allSubjects).sort((a, b) => a.localeCompare(b));
 }
 
 // Helper function to create column headers
@@ -82,7 +82,7 @@ function createStudentRows(students: StudentGradeData[], subjectList: string[]):
     // Add subject grades
     subjectList.forEach(subjectName => {
       const subjectGrade = student.subjects.find(s => s.subjectName === subjectName);
-      if (subjectGrade && subjectGrade.averageGrade !== undefined) {
+      if (subjectGrade?.averageGrade !== undefined) {
         row.push(subjectGrade.averageGrade);
       } else {
         row.push('');
@@ -162,11 +162,8 @@ function getCellStyle(rowIndex: number): {
   return null;
 }
 
-// Helper function to apply styles to worksheet
-function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-
-  // Style header rows (0-5)
+// Helper function to apply header row styles
+function applyHeaderRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): void {
   for (let R = 0; R <= 5; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
       const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
@@ -178,8 +175,34 @@ function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
       }
     }
   }
+}
 
-  // Style data rows
+// Helper function to get data row style
+function getDataRowStyle(columnIndex: number): {
+  alignment: { horizontal: string; vertical: string };
+  border: {
+    top: { style: string };
+    bottom: { style: string };
+    left: { style: string };
+    right: { style: string };
+  };
+} {
+  return {
+    alignment: {
+      horizontal: columnIndex === 2 ? 'left' : 'center',
+      vertical: 'center'
+    },
+    border: {
+      top: { style: 'thin' },
+      bottom: { style: 'thin' },
+      left: { style: 'thin' },
+      right: { style: 'thin' }
+    }
+  };
+}
+
+// Helper function to apply data row styles
+function applyDataRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): void {
   for (let R = 6; R <= range.e.r; R++) {
     for (let C = range.s.c; C <= range.e.c; C++) {
       const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
@@ -187,22 +210,20 @@ function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
         worksheet[cellAddress] = { t: 's', v: '' };
       }
 
-      worksheet[cellAddress].s = {
-        alignment: { horizontal: 'center', vertical: 'center' },
-        border: {
-          top: { style: 'thin' },
-          bottom: { style: 'thin' },
-          left: { style: 'thin' },
-          right: { style: 'thin' }
-        }
-      };
-
-      // Left align name column
-      if (C === 2) {
-        worksheet[cellAddress].s.alignment.horizontal = 'left';
-      }
+      worksheet[cellAddress].s = getDataRowStyle(C);
     }
   }
+}
+
+// Helper function to apply styles to worksheet
+function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+
+  // Apply header row styles
+  applyHeaderRowStyles(worksheet, range);
+
+  // Apply data row styles
+  applyDataRowStyles(worksheet, range);
 }
 
 // Helper function to create individual student worksheet data

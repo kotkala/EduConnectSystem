@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import TeacherGradeReportsClient from './teacher-grade-reports-client'
 
 export default async function TeacherGradeReportsPage() {
@@ -23,10 +23,10 @@ export default async function TeacherGradeReportsPage() {
   }
 
   return (
-    <SidebarLayout role="teacher" title="Quản Lý Bảng Điểm">
+    <div className="p-6">
       <Suspense fallback={<div>Loading...</div>}>
         <TeacherGradeReportsClient />
       </Suspense>
-    </SidebarLayout>
+    </div>
   )
 }

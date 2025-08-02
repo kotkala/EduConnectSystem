@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 
-export default function Error({
+export default function ClassesErrorPage({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  readonly error: Error & { digest?: string }
+  readonly reset: () => void
 }) {
   useEffect(() => {
     // Log the error to an error reporting service

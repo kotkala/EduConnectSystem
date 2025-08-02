@@ -44,14 +44,14 @@ import {
 } from "@/lib/validations/timetable-validations"
 
 interface ClassroomTableProps {
-  data: Classroom[]
-  total: number
-  currentPage: number
-  limit?: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: Partial<ClassroomFilters>) => void
-  onEdit: (classroom: Classroom) => void
-  onRefresh: () => void
+  readonly data: Classroom[]
+  readonly total: number
+  readonly currentPage: number
+  readonly limit?: number
+  readonly onPageChange: (page: number) => void
+  readonly onFiltersChange: (filters: Partial<ClassroomFilters>) => void
+  readonly onEdit: (classroom: Classroom) => void
+  readonly onRefresh: () => void
 }
 
 export function ClassroomTable({
@@ -141,6 +141,19 @@ export function ClassroomTable({
     if (equipment.length === 0) return "None"
     if (equipment.length <= 2) return equipment.join(", ")
     return `${equipment.slice(0, 2).join(", ")} +${equipment.length - 2} more`
+  }
+
+  // Extract location formatting logic to reduce complexity
+  const formatLocation = (building: string | null, floor: number | null) => {
+    if (building && floor) {
+      return `${building}, Floor ${floor}`
+    }
+    if (building || floor) {
+      const buildingPart = building || ''
+      const floorPart = floor ? ` Floor ${floor}` : ''
+      return buildingPart + floorPart
+    }
+    return 'Not specified'
   }
 
   return (
@@ -233,24 +246,14 @@ export function ClassroomTable({
                     </div>
                     {/* Mobile: Show location info */}
                     <div className="sm:hidden text-xs text-muted-foreground mt-1">
-                      {classroom.building && classroom.floor
-                        ? `${classroom.building}, Floor ${classroom.floor}`
-                        : classroom.building || classroom.floor
-                        ? `${classroom.building || ''}${classroom.floor ? ` Floor ${classroom.floor}` : ''}`
-                        : 'Not specified'
-                      }
+                      {formatLocation(classroom.building, classroom.floor)}
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                        {classroom.building && classroom.floor
-                          ? `${classroom.building}, Floor ${classroom.floor}`
-                          : classroom.building || classroom.floor
-                          ? `${classroom.building || ''}${classroom.floor ? ` Floor ${classroom.floor}` : ''}`
-                          : 'Not specified'
-                        }
+                        {formatLocation(classroom.building, classroom.floor)}
                       </span>
                     </div>
                   </TableCell>
@@ -281,8 +284,8 @@ export function ClassroomTable({
                           <div className="max-w-xs">
                             {classroom.equipment.length > 0 ? (
                               <ul className="list-disc list-inside">
-                                {classroom.equipment.map((eq, index) => (
-                                  <li key={index}>{eq}</li>
+                                {classroom.equipment.map((eq) => (
+                                  <li key={eq}>{eq}</li>
                                 ))}
                               </ul>
                             ) : (

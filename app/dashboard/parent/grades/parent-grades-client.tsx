@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -51,6 +51,104 @@ interface GradeStats {
   belowAverageCount: number
 }
 
+// Separate component for submission item to reduce nesting
+interface SubmissionItemProps {
+  readonly submission: GradeSubmission
+  readonly isSelected: boolean
+  readonly loading: boolean
+  readonly onSelect: (submission: GradeSubmission) => void
+  readonly onDownload: (submission: GradeSubmission) => void
+}
+
+function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload }: SubmissionItemProps) {
+  const handleClick = () => {
+    onSelect(submission)
+  }
+
+  const handleDownloadClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDownload(submission)
+  }
+
+  return (
+    <button
+      type="button"
+      className={`w-full text-left p-3 border rounded-lg cursor-pointer transition-colors ${
+        isSelected
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={handleClick}
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <h4 className="font-medium">{submission.semester.name} - {submission.academic_year.name}</h4>
+          <p className="text-sm text-gray-500">
+            Lớp: {submission.class.name} • GVCN: {submission.class.homeroom_teacher.full_name}
+          </p>
+          <p className="text-sm text-gray-500">
+            {submission.grades.length} môn học • {new Date(submission.created_at).toLocaleDateString('vi-VN')}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleDownloadClick}
+            disabled={loading}
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Tải Excel
+          </Button>
+          {isSelected && (
+            <Badge variant="default">Đang xem</Badge>
+          )}
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// Separate component for student group to reduce nesting
+interface StudentGroupProps {
+  readonly student: { id: string, full_name: string, student_id: string }
+  readonly submissions: GradeSubmission[]
+  readonly selectedSubmissionId: string | null
+  readonly loading: boolean
+  readonly onSelectSubmission: (submission: GradeSubmission) => void
+  readonly onDownloadSubmission: (submission: GradeSubmission) => void
+}
+
+function StudentGroup({ student, submissions, selectedSubmissionId, loading, onSelectSubmission, onDownloadSubmission }: StudentGroupProps) {
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold">{student.full_name}</h3>
+          <p className="text-sm text-gray-500">Mã học sinh: {student.student_id}</p>
+        </div>
+        <Badge variant="outline">
+          {submissions.length} bảng điểm
+        </Badge>
+      </div>
+
+      <div className="grid gap-3">
+        {submissions.map((submission) => (
+          <SubmissionItem
+            key={submission.id}
+            submission={submission}
+            isSelected={selectedSubmissionId === submission.id}
+            loading={loading}
+            onSelect={onSelectSubmission}
+            onDownload={onDownloadSubmission}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function ParentGradesClient() {
   const [loading, setLoading] = useState(false)
   const [submissions, setSubmissions] = useState<GradeSubmission[]>([])
@@ -62,11 +160,7 @@ export default function ParentGradesClient() {
     stats: false
   })
 
-  useEffect(() => {
-    loadGradeReports()
-  }, [])
-
-  const loadGradeReports = async () => {
+  const loadGradeReports = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, submissions: true }))
     try {
       const result = await getChildrenGradeReportsAction()
@@ -80,9 +174,13 @@ export default function ParentGradesClient() {
     } finally {
       setLoadingStates(prev => ({ ...prev, submissions: false }))
     }
-  }
+  }, [])
 
-  const loadSubmissionDetails = async (submission: GradeSubmission) => {
+  useEffect(() => {
+    loadGradeReports()
+  }, [loadGradeReports])
+
+  const loadSubmissionDetails = useCallback(async (submission: GradeSubmission) => {
     setLoadingStates(prev => ({ ...prev, details: true, stats: true }))
     try {
       // Load detailed submission
@@ -101,9 +199,9 @@ export default function ParentGradesClient() {
     } finally {
       setLoadingStates(prev => ({ ...prev, details: false, stats: false }))
     }
-  }
+  }, [])
 
-  const handleDownloadExcel = async (submission: GradeSubmission) => {
+  const handleDownloadExcel = useCallback(async (submission: GradeSubmission) => {
     setLoading(true)
     try {
       // Prepare data for Excel export
@@ -138,7 +236,7 @@ export default function ParentGradesClient() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const getGradeColor = (grade: number | null) => {
     if (!grade) return 'text-gray-400'
@@ -182,75 +280,37 @@ export default function ParentGradesClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingStates.submissions ? (
-            <div className="text-center py-8">Đang tải...</div>
-          ) : Object.keys(studentGroups).length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
-              <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
-            </div>
-          ) : (
+          {(() => {
+            if (loadingStates.submissions) {
+              return <div className="text-center py-8">Đang tải...</div>
+            }
+
+            if (Object.keys(studentGroups).length === 0) {
+              return (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
+                  <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
+                </div>
+              )
+            }
+
+            return (
             <div className="space-y-6">
               {Object.values(studentGroups).map(({ student, submissions: studentSubmissions }) => (
-                <div key={student.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{student.full_name}</h3>
-                      <p className="text-sm text-gray-500">Mã học sinh: {student.student_id}</p>
-                    </div>
-                    <Badge variant="outline">
-                      {studentSubmissions.length} bảng điểm
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {studentSubmissions.map((submission) => (
-                      <div
-                        key={submission.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          selectedSubmission?.id === submission.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => loadSubmissionDetails(submission)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{submission.semester.name} - {submission.academic_year.name}</h4>
-                            <p className="text-sm text-gray-500">
-                              Lớp: {submission.class.name} • GVCN: {submission.class.homeroom_teacher.full_name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {submission.grades.length} môn học • {new Date(submission.created_at).toLocaleDateString('vi-VN')}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDownloadExcel(submission)
-                              }}
-                              disabled={loading}
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-2"
-                            >
-                              <Download className="h-4 w-4" />
-                              Tải Excel
-                            </Button>
-                            {selectedSubmission?.id === submission.id && (
-                              <Badge variant="default">Đang xem</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <StudentGroup
+                  key={student.id}
+                  student={student}
+                  submissions={studentSubmissions}
+                  selectedSubmissionId={selectedSubmission?.id || null}
+                  loading={loading}
+                  onSelectSubmission={loadSubmissionDetails}
+                  onDownloadSubmission={handleDownloadExcel}
+                />
               ))}
             </div>
-          )}
+            )
+          })()}
         </CardContent>
       </Card>
 

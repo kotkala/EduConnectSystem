@@ -190,7 +190,7 @@ export async function getHomeroomAcademicYearsAction(): Promise<{ success: boole
 }
 
 // Get available semesters for homeroom teacher
-export async function getHomeroomSemestersAction(academic_year_id: string): Promise<{ success: boolean; data?: Array<{id: string, name: string}>; error?: string }> {
+export async function getHomeroomSemestersAction(academic_year_id: string): Promise<{ success: boolean; data?: Array<{id: string, name: string, start_date: string, end_date: string}>; error?: string }> {
   try {
     await checkHomeroomTeacherPermissions()
     const supabase = await createClient()
@@ -200,7 +200,9 @@ export async function getHomeroomSemestersAction(academic_year_id: string): Prom
       .from('semesters')
       .select(`
         id,
-        name
+        name,
+        start_date,
+        end_date
       `)
       .eq('academic_year_id', academic_year_id)
       .order('start_date', { ascending: true })

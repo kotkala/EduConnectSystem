@@ -31,9 +31,8 @@ interface SimpleTeacher {
   full_name: string
   employee_id: string
 }
-import { createClassAction, updateClassAction } from "@/lib/actions/class-actions"
+import { createClassAction, updateClassAction, getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
-import { getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
 interface ClassFormProps {
@@ -42,7 +41,149 @@ interface ClassFormProps {
   onCancel: () => void
 }
 
-export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormProps) {
+// Helper function to get initial form values
+function getInitialFormValues(isEditing: boolean, classData?: Class) {
+  if (isEditing && classData) {
+    return {
+      ...(classData.id && { id: classData.id }),
+      name: classData.name,
+      class_block_id: classData.class_block_id || undefined,
+      class_suffix: classData.class_suffix || undefined,
+      auto_generated_name: classData.auto_generated_name || false,
+      academic_year_id: classData.academic_year_id,
+      semester_id: classData.semester_id,
+      is_subject_combination: classData.is_subject_combination,
+      subject_combination_type: classData.subject_combination_type || undefined,
+      subject_combination_variant: classData.subject_combination_variant || undefined,
+      homeroom_teacher_id: classData.homeroom_teacher_id || undefined,
+      max_students: classData.max_students,
+      description: classData.description || undefined
+    };
+  }
+
+  return {
+    name: "",
+    class_block_id: "",
+    class_suffix: "",
+    auto_generated_name: false,
+    academic_year_id: "",
+    semester_id: "",
+    is_subject_combination: false,
+    max_students: 40,
+    description: ""
+  };
+}
+
+// Helper function to load all form data
+async function loadAllFormData() {
+  const [academicYearsResult, semestersResult, teachersResult, classBlocksResult] = await Promise.all([
+    getAcademicYearsAction({ page: 1, limit: 100 }),
+    getSemestersAction({ page: 1, limit: 100 }),
+    getHomeroomEnabledTeachersAction(),
+    getActiveClassBlocksAction()
+  ]);
+
+  return {
+    academicYears: academicYearsResult.success ? academicYearsResult.data : [],
+    semesters: semestersResult.success ? semestersResult.data : [],
+    teachers: teachersResult.success ? teachersResult.data : [],
+    classBlocks: classBlocksResult.success ? classBlocksResult.data as ClassBlockDropdownData[] : []
+  };
+}
+
+// Helper function to generate class name
+function generateClassName(
+  classBlocks: ClassBlockDropdownData[],
+  classBlockId: string,
+  classSuffix: string
+): string {
+  const selectedBlock = classBlocks.find(block => block.id === classBlockId);
+  if (selectedBlock) {
+    return `${selectedBlock.name}${classSuffix}`;
+  }
+  return '';
+}
+
+// Subject Combination Section Component
+function SubjectCombinationSection({
+  form,
+  watchIsSubjectCombination,
+  watchSubjectCombinationType
+}: Readonly<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: any;
+  watchIsSubjectCombination: boolean;
+  watchSubjectCombinationType: string | undefined
+}>) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="is_subject_combination"
+          checked={watchIsSubjectCombination}
+          onCheckedChange={(checked) => form.setValue("is_subject_combination", !!checked)}
+        />
+        <Label htmlFor="is_subject_combination">Lớp chuyên môn</Label>
+      </div>
+
+      {watchIsSubjectCombination && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
+          <div className="space-y-2">
+            <Label htmlFor="subject_combination_type">Loại chuyên môn *</Label>
+            <Select
+              value={(form.watch("subject_combination_type") as string) || ""}
+              onValueChange={(value) => form.setValue("subject_combination_type", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn loại chuyên môn" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(SUBJECT_COMBINATIONS).map(([key, combination]) => (
+                  <SelectItem key={key} value={key}>
+                    {combination.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.subject_combination_type && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.subject_combination_type.message as string}
+              </p>
+            )}
+          </div>
+
+          {watchSubjectCombinationType && (
+            <div className="space-y-2">
+              <Label htmlFor="subject_combination_variant">Biến thể *</Label>
+              <Select
+                value={(form.watch("subject_combination_variant") as string) || ""}
+                onValueChange={(value) => form.setValue("subject_combination_variant", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn biến thể" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUBJECT_COMBINATIONS[watchSubjectCombinationType as keyof typeof SUBJECT_COMBINATIONS]?.variants?.map((variant) => (
+                    <SelectItem key={variant.id} value={variant.id}>
+                      {variant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.subject_combination_variant && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.subject_combination_variant.message as string}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ClassForm({ class: classData, onSuccess, onCancel }: Readonly<ClassFormProps>) {
   const isEditing = !!classData
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -57,31 +198,7 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormPr
 
   const form = useForm({
     resolver: zodResolver(isEditing ? updateClassSchema : classSchema),
-    defaultValues: isEditing ? {
-      ...(classData.id && { id: classData.id }),
-      name: classData.name,
-      class_block_id: classData.class_block_id || undefined,
-      class_suffix: classData.class_suffix || undefined,
-      auto_generated_name: classData.auto_generated_name || false,
-      academic_year_id: classData.academic_year_id,
-      semester_id: classData.semester_id,
-      is_subject_combination: classData.is_subject_combination,
-      subject_combination_type: classData.subject_combination_type || undefined,
-      subject_combination_variant: classData.subject_combination_variant || undefined,
-      homeroom_teacher_id: classData.homeroom_teacher_id || undefined,
-      max_students: classData.max_students,
-      description: classData.description || undefined
-    } : {
-      name: "",
-      class_block_id: "",
-      class_suffix: "",
-      auto_generated_name: false,
-      academic_year_id: "",
-      semester_id: "",
-      is_subject_combination: false,
-      max_students: 40,
-      description: ""
-    }
+    defaultValues: getInitialFormValues(isEditing, classData)
   })
 
   // Watch for form changes using Context7 patterns
@@ -94,10 +211,9 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormPr
   // Auto-generate class name when using class blocks (Context7 pattern)
   useEffect(() => {
     if (watchAutoGeneratedName && watchClassBlockId && watchClassSuffix) {
-      const selectedBlock = classBlocks.find(block => block.id === watchClassBlockId)
-      if (selectedBlock) {
-        const generatedName = `${selectedBlock.name}${watchClassSuffix}`
-        form.setValue("name", generatedName)
+      const generatedName = generateClassName(classBlocks, watchClassBlockId, watchClassSuffix);
+      if (generatedName) {
+        form.setValue("name", generatedName);
       }
     }
   }, [watchAutoGeneratedName, watchClassBlockId, watchClassSuffix, classBlocks, form])
@@ -106,36 +222,19 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormPr
   useEffect(() => {
     const loadFormData = async () => {
       try {
-        const [academicYearsResult, semestersResult, teachersResult, classBlocksResult] = await Promise.all([
-          getAcademicYearsAction({ page: 1, limit: 100 }),
-          getSemestersAction({ page: 1, limit: 100 }),
-          getHomeroomEnabledTeachersAction(),
-          getActiveClassBlocksAction()
-        ])
-
-        if (academicYearsResult.success) {
-          setAcademicYears(academicYearsResult.data)
-        }
-
-        if (semestersResult.success) {
-          setSemesters(semestersResult.data)
-        }
-
-        if (teachersResult.success) {
-          setTeachers(teachersResult.data)
-        }
-
-        if (classBlocksResult.success) {
-          setClassBlocks(classBlocksResult.data as ClassBlockDropdownData[])
-        }
+        const data = await loadAllFormData();
+        setAcademicYears(data.academicYears);
+        setSemesters(data.semesters);
+        setTeachers(data.teachers);
+        setClassBlocks(data.classBlocks);
       } catch (error) {
-        console.error("Failed to load form data:", error)
+        console.error("Failed to load form data:", error);
       } finally {
-        setLoadingData(false)
+        setLoadingData(false);
       }
-    }
+    };
 
-    loadFormData()
+    loadFormData();
   }, [])
 
   // Reset subject combination fields when checkbox is unchecked
@@ -313,68 +412,12 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: ClassFormPr
           )}
         </div>
 
-        {/* Subject Combination Checkbox */}
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="is_subject_combination"
-            checked={form.watch("is_subject_combination")}
-            onCheckedChange={(checked) => form.setValue("is_subject_combination", !!checked)}
-            disabled={isSubmitting}
-          />
-          <Label htmlFor="is_subject_combination" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            This is a subject combination class
-          </Label>
-        </div>
-
-        {/* Subject Combination Type - Only show if checkbox is checked */}
-        {watchIsSubjectCombination && (
-          <div className="space-y-2">
-            <Label htmlFor="subject_combination_type">Subject Combination Type *</Label>
-            <Select
-              value={form.watch("subject_combination_type") || ""}
-              onValueChange={(value) => form.setValue("subject_combination_type", value)}
-            >
-              <SelectTrigger className={form.formState.errors.subject_combination_type ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select combination type" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(SUBJECT_COMBINATIONS).map(([key, combination]) => (
-                  <SelectItem key={key} value={key}>
-                    {combination.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.subject_combination_type && (
-              <p className="text-sm text-red-500">{form.formState.errors.subject_combination_type.message}</p>
-            )}
-          </div>
-        )}
-
-        {/* Subject Combination Variant - Only show if type is selected */}
-        {watchIsSubjectCombination && watchSubjectCombinationType && (
-          <div className="space-y-2">
-            <Label htmlFor="subject_combination_variant">Subject Combination Variant *</Label>
-            <Select
-              value={form.watch("subject_combination_variant") || ""}
-              onValueChange={(value) => form.setValue("subject_combination_variant", value)}
-            >
-              <SelectTrigger className={form.formState.errors.subject_combination_variant ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select combination variant" />
-              </SelectTrigger>
-              <SelectContent>
-                {SUBJECT_COMBINATIONS[watchSubjectCombinationType as keyof typeof SUBJECT_COMBINATIONS]?.variants.map((variant) => (
-                  <SelectItem key={variant.id} value={variant.id}>
-                    {variant.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.subject_combination_variant && (
-              <p className="text-sm text-red-500">{form.formState.errors.subject_combination_variant.message}</p>
-            )}
-          </div>
-        )}
+        {/* Subject Combination Section */}
+        <SubjectCombinationSection
+          form={form}
+          watchIsSubjectCombination={!!watchIsSubjectCombination}
+          watchSubjectCombinationType={watchSubjectCombinationType}
+        />
 
         {/* Homeroom Teacher - Only show for non-subject combination classes */}
         {!watchIsSubjectCombination && (

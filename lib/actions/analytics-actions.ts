@@ -1,28 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-
-// Helper function to check admin permissions
-async function checkAdminPermissions() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error("Authentication required")
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'admin') {
-    throw new Error("Admin access required")
-  }
-
-  return { user, profile }
-}
+import { checkAdminPermissions } from '@/lib/utils/permission-utils'
 
 // Get overall grade statistics
 export async function getOverallGradeStatsAction() {

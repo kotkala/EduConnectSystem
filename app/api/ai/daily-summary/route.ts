@@ -48,14 +48,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Helper function to get rating text
+    const getRatingText = (rating: number): string => {
+      if (rating === 5) return 'Xuất sắc'
+      if (rating === 4) return 'Tốt'
+      if (rating === 3) return 'Trung bình'
+      if (rating === 2) return 'Cần cải thiện'
+      return 'Kém'
+    }
+
     // Prepare feedback data for AI summarization
     const feedbackText = feedbacks.map(feedback => {
-      const ratingText = feedback.rating === 5 ? 'Xuất sắc' :
-                        feedback.rating === 4 ? 'Tốt' :
-                        feedback.rating === 3 ? 'Trung bình' :
-                        feedback.rating === 2 ? 'Cần cải thiện' : 'Kém'
-      
-      return `${feedback.subject_name} (${feedback.start_time}-${feedback.end_time}): ${ratingText} (${feedback.rating}/5)${feedback.comment ? ` - "${feedback.comment}"` : ''}`
+      const ratingText = getRatingText(feedback.rating)
+      const timeRange = `${feedback.start_time}-${feedback.end_time}`
+      const commentPart = feedback.comment ? ` - "${feedback.comment}"` : ''
+
+      return `${feedback.subject_name} (${timeRange}): ${ratingText} (${feedback.rating}/5)${commentPart}`
     }).join('\n')
 
     // Calculate average rating for context

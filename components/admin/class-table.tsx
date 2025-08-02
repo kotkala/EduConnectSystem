@@ -42,17 +42,17 @@ import { deleteClassAction } from "@/lib/actions/class-actions"
 import StudentAssignmentForm from "./student-assignment-form"
 
 interface ClassTableProps {
-  data: ClassWithDetails[]
-  total: number
-  currentPage: number
-  limit: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: Partial<ClassFilters>) => void
-  onEdit: (classData: ClassWithDetails) => void
-  onRefresh: () => void
-  academicYears?: Array<{ id: string; name: string }>
-  semesters?: Array<{ id: string; name: string }>
-  teachers?: Array<{ id: string; full_name: string; employee_id: string }>
+  readonly data: ClassWithDetails[]
+  readonly total: number
+  readonly currentPage: number
+  readonly limit: number
+  readonly onPageChange: (page: number) => void
+  readonly onFiltersChange: (filters: Partial<ClassFilters>) => void
+  readonly onEdit: (classData: ClassWithDetails) => void
+  readonly onRefresh: () => void
+  readonly academicYears?: Array<{ id: string; name: string }>
+  readonly semesters?: Array<{ id: string; name: string }>
+  readonly teachers?: Array<{ id: string; full_name: string; employee_id: string }>
 }
 
 export function ClassTable({
@@ -85,7 +85,11 @@ export function ClassTable({
       search: searchTerm || undefined,
       academic_year_id: selectedAcademicYear === "all" ? undefined : selectedAcademicYear || undefined,
       semester_id: selectedSemester === "all" ? undefined : selectedSemester || undefined,
-      is_subject_combination: selectedClassType === "combined" ? true : selectedClassType === "main" ? false : undefined,
+      is_subject_combination: (() => {
+        if (selectedClassType === "combined") return true
+        if (selectedClassType === "main") return false
+        return undefined
+      })(),
       homeroom_teacher_id: selectedTeacher === "all" ? undefined : selectedTeacher || undefined,
       page: 1
     })
@@ -169,8 +173,9 @@ export function ClassTable({
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Search */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Search</label>
+              <label htmlFor="class-search" className="text-sm font-medium">Search</label>
               <Input
+                id="class-search"
                 placeholder="Search by class name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -180,9 +185,9 @@ export function ClassTable({
 
             {/* Academic Year Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Academic Year</label>
+              <label htmlFor="academic-year-filter" className="text-sm font-medium">Academic Year</label>
               <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
-                <SelectTrigger>
+                <SelectTrigger id="academic-year-filter">
                   <SelectValue placeholder="All academic years" />
                 </SelectTrigger>
                 <SelectContent>
@@ -198,9 +203,9 @@ export function ClassTable({
 
             {/* Semester Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Semester</label>
+              <label htmlFor="semester-filter" className="text-sm font-medium">Semester</label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger>
+                <SelectTrigger id="semester-filter">
                   <SelectValue placeholder="All semesters" />
                 </SelectTrigger>
                 <SelectContent>
@@ -216,9 +221,9 @@ export function ClassTable({
 
             {/* Class Type Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Class Type</label>
+              <label htmlFor="class-type-filter" className="text-sm font-medium">Class Type</label>
               <Select value={selectedClassType} onValueChange={setSelectedClassType}>
-                <SelectTrigger>
+                <SelectTrigger id="class-type-filter">
                   <SelectValue placeholder="All class types" />
                 </SelectTrigger>
                 <SelectContent>
@@ -231,9 +236,9 @@ export function ClassTable({
 
             {/* Teacher Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Homeroom Teacher</label>
+              <label htmlFor="teacher-filter" className="text-sm font-medium">Homeroom Teacher</label>
               <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
-                <SelectTrigger>
+                <SelectTrigger id="teacher-filter">
                   <SelectValue placeholder="All teachers" />
                 </SelectTrigger>
                 <SelectContent>

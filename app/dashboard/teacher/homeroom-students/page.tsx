@@ -22,7 +22,8 @@ import {
   User
 } from "lucide-react"
 import { toast } from "sonner"
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
+import { SharedPaginationControls } from "@/components/shared/shared-pagination-controls"
+
 import {
   getHomeroomClassInfoAction,
   getHomeroomStudentsAction
@@ -49,6 +50,13 @@ export default function HomeroomStudentsPage() {
     sort_by: 'name',
     sort_order: 'asc'
   })
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [paginatedStudents, setPaginatedStudents] = useState<HomeroomStudent[]>([])
+  const pageSize = 10
 
   // Load homeroom class information and students
   const loadData = useCallback(async () => {
@@ -135,7 +143,16 @@ export default function HomeroomStudentsPage() {
     })
 
     setFilteredStudents(filtered)
-  }, [students, filters])
+
+    // Update pagination
+    setTotalCount(filtered.length)
+    setTotalPages(Math.ceil(filtered.length / pageSize))
+
+    // Get current page students
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    setPaginatedStudents(filtered.slice(startIndex, endIndex))
+  }, [students, filters, currentPage, pageSize])
 
   // Apply filters when students or filters change
   useEffect(() => {
@@ -145,7 +162,7 @@ export default function HomeroomStudentsPage() {
   // Load data on component mount
   useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [loadData]) // ✅ Include loadData dependency
 
   // Handle filter changes
   const handleFilterChange = (key: keyof HomeroomFilters, value: string | boolean | undefined) => {
@@ -179,7 +196,7 @@ export default function HomeroomStudentsPage() {
   }
 
   return (
-    <SidebarLayout role="teacher" title="Homeroom Students">
+    <div className="p-6">
       <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -320,7 +337,7 @@ export default function HomeroomStudentsPage() {
 
       {/* Students Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredStudents.map((student) => (
+        {paginatedStudents.map((student) => (
           <HomeroomStudentCard
             key={student.id}
             student={student}
@@ -329,6 +346,15 @@ export default function HomeroomStudentsPage() {
         ))}
       </div>
 
+      {/* Pagination Controls */}
+      <SharedPaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        onPageChange={setCurrentPage}
+        itemName="học sinh"
+      />
+
       {/* No Students Message */}
       {filteredStudents.length === 0 && !loading && (
         <Card>
@@ -336,7 +362,7 @@ export default function HomeroomStudentsPage() {
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
             <p className="text-muted-foreground">
-              {students.length === 0 
+              {students.length === 0
                 ? "No students are assigned to your homeroom class yet."
                 : "No students match your current filters."
               }
@@ -355,6 +381,6 @@ export default function HomeroomStudentsPage() {
         />
       )}
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

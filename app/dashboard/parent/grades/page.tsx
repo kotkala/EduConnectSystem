@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import ParentGradesClient from './parent-grades-client'
 
 export default async function ParentGradesPage() {
@@ -23,10 +23,10 @@ export default async function ParentGradesPage() {
   }
 
   return (
-    <SidebarLayout role="parent" title="Bảng Điểm Con Em">
+    <div className="p-6">
       <Suspense fallback={<div>Loading...</div>}>
         <ParentGradesClient />
       </Suspense>
-    </SidebarLayout>
+    </div>
   )
 }

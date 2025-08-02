@@ -22,6 +22,7 @@ import {
   ArrowLeftRight,
   ClipboardList,
   Bot,
+  AlertTriangle,
 } from "lucide-react"
 import {
   Sidebar,
@@ -48,8 +49,10 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 import { LogOut, Settings, MessageCircle } from 'lucide-react'
-import { useHomeroomTeacher } from '@/hooks/use-homeroom-teacher'
+// Note: ExtendedUserProfile import removed as no longer needed
+
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
+import { useNotificationCount } from '@/hooks/use-notification-count'
 import { Badge } from '@/components/ui/badge'
 import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
 
@@ -74,6 +77,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
@@ -87,6 +91,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Teacher Assignments", url: "/dashboard/admin/teacher-assignments", icon: UserCheck },
     { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
@@ -97,8 +102,6 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
-    { title: "My Courses", url: "/dashboard/teacher/courses", icon: BookOpen },
-    { title: "Students", url: "/dashboard/teacher/students", icon: GraduationCap },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },
@@ -114,6 +117,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Trợ Lý AI - Mở Rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
     { title: "Bảng Điểm Con Em", url: "/dashboard/parent/grades", icon: Award },
     { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
+    { title: "Vi Phạm Con Em", url: "/dashboard/parent/violations", icon: AlertTriangle },
     { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
     { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
@@ -132,18 +136,21 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const baseItems = platformItems[role] || []
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
-  const { isHomeroomTeacher } = useHomeroomTeacher()
   const { counts } = useExchangeRequestsCount(role, user?.id)
+  const { counts: notificationCounts } = useNotificationCount(role, user?.id)
 
   // Chatbot state for parent role
   const [isChatbotOpen, setIsChatbotOpen] = useState(false)
   const [isChatbotMinimized, setIsChatbotMinimized] = useState(false)
 
-  // Add feedback link for homeroom teachers
-  const items: PlatformItem[] = role === 'teacher' && isHomeroomTeacher
+  // Note: Previously checked homeroom teacher status, now showing feedback/violations for all teachers
+
+  // Add feedback and violations links for all teachers (always visible)
+  const items: PlatformItem[] = role === 'teacher'
     ? [
-        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Meetings)
+        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Grade Reports)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
+        { title: "Vi Phạm Học Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
         ...baseItems.slice(4) // Add remaining items
       ]
     : baseItems
@@ -217,6 +224,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
                         {(item.title === "Exchange Requests" && counts.pending > 0) && (
                           <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
                             {counts.pending}
+                          </Badge>
+                        )}
+                        {/* Show notification badge for notifications */}
+                        {(item.title === "Notifications" && notificationCounts.unread > 0) && (
+                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
+                            {notificationCounts.unread}
                           </Badge>
                         )}
                       </a>

@@ -34,11 +34,81 @@ interface Message {
 }
 
 interface ParentChatbotProps {
-  isOpen: boolean
-  onClose: () => void
-  onMinimize: () => void
-  isMinimized: boolean
-  mode?: 'floating' | 'page'
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onMinimize: () => void
+  readonly isMinimized: boolean
+  readonly mode?: 'floating' | 'page'
+}
+
+// Reusable ChatAvatar component to eliminate duplication
+interface ChatAvatarProps {
+  readonly role: 'user' | 'assistant' | 'system'
+  readonly size?: 'sm' | 'md' | 'lg'
+  readonly showOnlineStatus?: boolean
+}
+
+export function ChatAvatar({ role, size = 'md', showOnlineStatus = false }: ChatAvatarProps) {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12'
+  }
+
+  const bgColors = {
+    user: 'bg-blue-500 text-white',
+    assistant: 'bg-purple-500 text-white',
+    system: 'bg-blue-500 text-white'
+  }
+
+  return (
+    <div className="relative">
+      <Avatar className={sizeClasses[size]}>
+        <AvatarImage src={role === 'assistant' ? "/logo.png" : undefined} alt="Avatar" />
+        <AvatarFallback className={bgColors[role]}>
+          {role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-5 w-5" />}
+        </AvatarFallback>
+      </Avatar>
+      {showOnlineStatus && (
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+      )}
+    </div>
+  )
+}
+
+// Helper function to create messages and eliminate duplication
+export function createMessage(
+  role: 'user' | 'assistant',
+  content: string,
+  contextUsed?: Message['contextUsed']
+): Message {
+  return {
+    id: Date.now().toString(),
+    role,
+    content,
+    timestamp: new Date(),
+    ...(contextUsed && { contextUsed })
+  }
+}
+
+// Shared utility functions to eliminate duplication
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+export function copyMessage(content: string): void {
+  navigator.clipboard.writeText(content)
+  toast.success('Đã sao chép tin nhắn')
+}
+
+export function handleKeyPress(e: React.KeyboardEvent, sendMessage: () => void): void {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    sendMessage()
+  }
 }
 
 export default function ParentChatbot({
@@ -77,12 +147,7 @@ export default function ParentChatbot({
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputMessage.trim(),
-      timestamp: new Date()
-    }
+    const userMessage = createMessage('user', inputMessage.trim())
 
     setMessages(prev => [...prev, userMessage])
     setInputMessage('')
@@ -109,13 +174,7 @@ export default function ParentChatbot({
       const data = await response.json()
 
       if (data.success) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date(),
-          contextUsed: data.contextUsed
-        }
+        const assistantMessage = createMessage('assistant', data.response, data.contextUsed)
         setMessages(prev => [...prev, assistantMessage])
       } else {
         throw new Error(data.error || 'Failed to get response')
@@ -124,30 +183,15 @@ export default function ParentChatbot({
       console.error('Chat error:', error)
       toast.error('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.')
       
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.',
-        timestamp: new Date()
-      }
+      const errorMessage = createMessage('assistant', 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.')
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    handleKeyPress(e, sendMessage)
   }
 
   if (!isOpen) return null
@@ -162,16 +206,7 @@ export default function ParentChatbot({
           {showFloatingChat && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 mb-3 max-w-sm">
             <div className="flex items-start space-x-3">
-              <div className="relative">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src="/logo.png" alt="EduConnect AI" />
-                  <AvatarFallback className="bg-blue-500 text-white">
-                    <Bot className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
-                {/* Online status indicator */}
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-              </div>
+              <ChatAvatar role="assistant" size="md" showOnlineStatus={true} />
 
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
@@ -290,15 +325,7 @@ export default function ParentChatbot({
                   <div className={`flex items-start space-x-2 max-w-[80%] ${
                     message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                   }`}>
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarFallback className={`${
-                        message.role === 'user' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-purple-500 text-white'
-                      }`}>
-                        {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                      </AvatarFallback>
-                    </Avatar>
+                    <ChatAvatar role={message.role} size="sm" />
                     
                     <div className={`rounded-lg p-3 ${
                       message.role === 'user'
@@ -332,11 +359,7 @@ export default function ParentChatbot({
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-purple-500 text-white">
-                        <Bot className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                    <ChatAvatar role="assistant" size="sm" />
                     <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -358,7 +381,7 @@ export default function ParentChatbot({
                   ref={inputRef}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                   placeholder="Hỏi về tình hình học tập của con em..."
                   disabled={isLoading}
                   className="flex-1"

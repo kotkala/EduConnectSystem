@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
 import { ParentMeetingSchedules } from "@/components/parent-dashboard/parent-meeting-schedules";
 
 export const metadata: Metadata = {
@@ -9,10 +8,10 @@ export const metadata: Metadata = {
 
 export default function ParentMeetingSchedulesPage() {
   return (
-    <SidebarLayout role="parent" title="Meeting Schedules">
+    <div className="p-6">
       <div className="flex flex-1 flex-col gap-4">
         <ParentMeetingSchedules />
       </div>
-    </SidebarLayout>
+    </div>
   );
 }

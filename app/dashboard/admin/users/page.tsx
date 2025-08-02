@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
 import { useAuth } from "@/hooks/use-auth"
 import { Users, GraduationCap, UserPlus, Heart, ArrowRight, AlertCircle } from "lucide-react"
 
@@ -23,27 +22,23 @@ export default function UsersPage() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="admin" title="User Management">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </SidebarLayout>
+      <div className="flex items-center justify-center h-64 p-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
     )
   }
 
   // Show access denied if no permission
   if (!isAdmin) {
     return (
-      <SidebarLayout role="admin" title="Access Denied">
-        <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-          <p className="text-gray-600">You don&apos;t have permission to access user management.</p>
-          <Button onClick={() => router.push('/dashboard/admin')}>
-            Return to Dashboard
-          </Button>
-        </div>
-      </SidebarLayout>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
+        <AlertCircle className="h-16 w-16 text-red-500" />
+        <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
+        <p className="text-gray-600">You don&apos;t have permission to access user management.</p>
+        <Button onClick={() => router.push('/dashboard/admin')}>
+          Return to Dashboard
+        </Button>
+      </div>
     )
   }
 
@@ -79,8 +74,7 @@ export default function UsersPage() {
   ]
 
   return (
-    <SidebarLayout role="admin" title="User Management">
-      <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="space-y-2 sm:space-y-3">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">User Management</h1>
@@ -218,7 +212,6 @@ export default function UsersPage() {
           </div>
         </CardContent>
       </Card>
-      </div>
-    </SidebarLayout>
+    </div>
   )
 }

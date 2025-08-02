@@ -17,7 +17,7 @@ import { GoogleOAuthButton } from '@/components/auth/google-oauth-button'
 import type { AuthUser, UserProfile } from '@/lib/types'
 
 // Animated Counter Component
-function AnimatedCounter({ end, duration = 2000 }: { end: string; duration?: number }) {
+function AnimatedCounter({ end, duration = 2000 }: { readonly end: string; readonly duration?: number }) {
   const [count, setCount] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -42,7 +42,7 @@ function AnimatedCounter({ end, duration = 2000 }: { end: string; duration?: num
   useEffect(() => {
     if (!isVisible) return
 
-    const numericEnd = parseInt(end.replace(/[^0-9]/g, ''))
+    const numericEnd = parseInt(end.replace(/\D/g, ''))
     if (isNaN(numericEnd)) return
 
     let startTime: number
@@ -60,9 +60,13 @@ function AnimatedCounter({ end, duration = 2000 }: { end: string; duration?: num
     requestAnimationFrame(animate)
   }, [isVisible, end, duration])
 
-  const displayValue = end.includes('+') ? `${count}+` :
-                      end.includes('%') ? `${count}%` :
-                      count.toLocaleString()
+  const getDisplayValue = () => {
+    if (end.includes('+')) return `${count}+`
+    if (end.includes('%')) return `${count}%`
+    return count.toLocaleString()
+  }
+
+  const displayValue = getDisplayValue()
 
   return <div ref={ref}>{displayValue}</div>
 }
@@ -309,8 +313,8 @@ export default function Home() {
             {/* Trust Indicator */}
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-emerald-500 border-2 border-white flex items-center justify-center">
+                {[1, 2, 3, 4].map((num) => (
+                  <div key={`trust-indicator-${num}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-emerald-500 border-2 border-white flex items-center justify-center">
                     <GraduationCap className="w-4 h-4 text-white" />
                   </div>
                 ))}
@@ -506,8 +510,8 @@ export default function Home() {
                         "📅 Xem lịch học và lịch thi",
                         "📢 Nhận thông báo từ nhà trường",
                         "💬 Liên lạc với giáo viên"
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                      ].map((item) => (
+                        <div key={item} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                           <span>{item}</span>
                         </div>
                       ))}
@@ -577,8 +581,8 @@ export default function Home() {
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
                   <p className="text-gray-600 mb-4 leading-relaxed">{feature.description}</p>
                   <div className="space-y-2">
-                    {feature.benefits.map((benefit, i) => (
-                      <div key={i} className="flex items-center gap-2">
+                    {feature.benefits.map((benefit) => (
+                      <div key={benefit} className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
                         <span className="text-sm text-gray-700">{benefit}</span>
                       </div>
@@ -687,8 +691,8 @@ export default function Home() {
                   "Giảm 60% khối lượng công việc hành chính",
                   "Tăng sự hài lòng của phụ huynh lên 90%",
                   "Tiết kiệm chi phí vận hành 40%"
-                ].map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                ].map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                     <span className="text-lg text-gray-700">{benefit}</span>
                   </div>
@@ -700,8 +704,8 @@ export default function Home() {
                   { icon: BarChart3, title: "Báo cáo tổng quan" },
                   { icon: Settings, title: "Quản lý nhiều bot" },
                   { icon: TrendingUp, title: "ROI tracking" }
-                ].map((feature, i) => (
-                  <div key={i} className="text-center p-4 bg-gray-50 rounded-lg">
+                ].map((feature) => (
+                  <div key={feature.title} className="text-center p-4 bg-gray-50 rounded-lg">
                     <feature.icon className="w-6 h-6 text-red-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-900">{feature.title}</p>
                   </div>
@@ -722,8 +726,8 @@ export default function Home() {
                     { label: "Tin nhắn đã xử lý", value: "2,847", trend: "+12%" },
                     { label: "Độ hài lòng", value: "94%", trend: "+5%" },
                     { label: "Thời gian phản hồi", value: "< 30s", trend: "-40%" }
-                  ].map((stat, i) => (
-                    <div key={i} className="flex justify-between items-center p-3 bg-white rounded-lg">
+                  ].map((stat) => (
+                    <div key={stat.label} className="flex justify-between items-center p-3 bg-white rounded-lg">
                       <span className="text-sm text-gray-600">{stat.label}</span>
                       <div className="text-right">
                         <span className="font-bold text-gray-900">{stat.value}</span>
@@ -756,8 +760,8 @@ export default function Home() {
                   "Tập trung vào giảng dạy thay vì trả lời email",
                   "Tự động thông báo điểm số, bài tập",
                   "Quản lý lịch họp phụ huynh thông minh"
-                ].map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                ].map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                     <span className="text-lg text-gray-700">{benefit}</span>
                   </div>
@@ -769,8 +773,8 @@ export default function Home() {
                   { icon: MessageCircle, title: "Quick replies" },
                   { icon: Clock, title: "Schedule integration" },
                   { icon: TrendingUp, title: "Student progress tracking" }
-                ].map((feature, i) => (
-                  <div key={i} className="text-center p-4 bg-gray-50 rounded-lg">
+                ].map((feature) => (
+                  <div key={feature.title} className="text-center p-4 bg-gray-50 rounded-lg">
                     <feature.icon className="w-6 h-6 text-blue-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-900">{feature.title}</p>
                   </div>
@@ -792,8 +796,8 @@ export default function Home() {
                     "📝 5 bài tập chưa chấm",
                     "💬 12 tin nhắn từ phụ huynh",
                     "📅 Họp phụ huynh 15/12"
-                  ].map((item, i) => (
-                    <div key={i} className="p-3 bg-white rounded-lg text-sm text-gray-700">
+                  ].map((item) => (
+                    <div key={item} className="p-3 bg-white rounded-lg text-sm text-gray-700">
                       {item}
                     </div>
                   ))}
@@ -822,8 +826,8 @@ export default function Home() {
                   "Nhận thông tin con em 24/7",
                   "Không bỏ lỡ thông báo quan trọng",
                   "Giao tiếp thuận tiện qua kênh quen thuộc"
-                ].map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                ].map((benefit) => (
+                  <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                     <span className="text-lg text-gray-700">{benefit}</span>
                   </div>
@@ -835,8 +839,8 @@ export default function Home() {
                   { icon: AlertCircle, title: "Real-time notifications" },
                   { icon: Star, title: "Grade tracking" },
                   { icon: Clock, title: "Event reminders" }
-                ].map((feature, i) => (
-                  <div key={i} className="text-center p-4 bg-gray-50 rounded-lg">
+                ].map((feature) => (
+                  <div key={feature.title} className="text-center p-4 bg-gray-50 rounded-lg">
                     <feature.icon className="w-6 h-6 text-purple-500 mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-900">{feature.title}</p>
                   </div>
@@ -857,8 +861,8 @@ export default function Home() {
                     { icon: "📊", title: "Điểm số mới nhất", desc: "Toán: 8.5, Văn: 9.0" },
                     { icon: "📅", title: "Lịch học hôm nay", desc: "7 tiết, nghỉ tiết 4" },
                     { icon: "📢", title: "Thông báo", desc: "Họp phụ huynh 20/12" }
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-start gap-3 p-3 bg-white rounded-lg">
                       <span className="text-lg">{item.icon}</span>
                       <div>
                         <p className="font-medium text-gray-900 text-sm">{item.title}</p>
@@ -954,7 +958,7 @@ export default function Home() {
             >
               <div className="flex mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  <Star key={`star-${testimonial.name}-${i}`} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
 
@@ -1039,8 +1043,8 @@ export default function Home() {
               </div>
 
               <div className="space-y-3 mb-8">
-                {plan.features.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {plan.features.map((feature) => (
+                  <div key={feature} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                     <span className="text-gray-700">{feature}</span>
                   </div>
@@ -1097,7 +1101,7 @@ export default function Home() {
             }
           ].map((faq, index) => (
             <motion.div
-              key={index}
+              key={faq.question}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -1219,8 +1223,8 @@ export default function Home() {
                       "🚀 Đổi mới không ngừng",
                       "🤝 Hợp tác minh bạch",
                       "📚 Cam kết chất lượng giáo dục"
-                    ].map((value, i) => (
-                      <div key={i} className="flex items-center gap-3">
+                    ].map((value) => (
+                      <div key={value} className="flex items-center gap-3">
                         <span className="text-gray-700">{value}</span>
                       </div>
                     ))}
@@ -1312,9 +1316,9 @@ export default function Home() {
                     { icon: ExternalLink, label: "Facebook", color: "bg-blue-500" },
                     { icon: ExternalLink, label: "YouTube", color: "bg-red-600" },
                     { icon: MessageSquare, label: "Zalo", color: "bg-blue-400" }
-                  ].map((social, i) => (
+                  ].map((social) => (
                     <Link
-                      key={i}
+                      key={social.label}
                       href="#"
                       className={`w-10 h-10 ${social.color} rounded-lg flex items-center justify-center text-white hover:opacity-80 transition-opacity`}
                       title={social.label}
@@ -1337,20 +1341,22 @@ export default function Home() {
               <form className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-2">
                       Họ và tên *
                     </label>
                     <input
+                      id="contact-name"
                       type="text"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Nhập họ và tên"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email *
                     </label>
                     <input
+                      id="contact-email"
                       type="email"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Nhập email"
@@ -1360,20 +1366,22 @@ export default function Home() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700 mb-2">
                       Số điện thoại
                     </label>
                     <input
+                      id="contact-phone"
                       type="tel"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Nhập số điện thoại"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="contact-school" className="block text-sm font-medium text-gray-700 mb-2">
                       Tên trường
                     </label>
                     <input
+                      id="contact-school"
                       type="text"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Nhập tên trường"
@@ -1382,10 +1390,11 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-2">
                     Tin nhắn *
                   </label>
                   <textarea
+                    id="contact-message"
                     rows={4}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     placeholder="Nhập tin nhắn của bạn..."
@@ -1469,9 +1478,9 @@ export default function Home() {
                   { icon: ExternalLink, href: "#", label: "Facebook" },
                   { icon: ExternalLink, href: "#", label: "YouTube" },
                   { icon: MessageSquare, href: "#", label: "Zalo" }
-                ].map((social, i) => (
+                ].map((social) => (
                   <Link
-                    key={i}
+                    key={social.label}
                     href={social.href}
                     className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
                     title={social.label}
@@ -1502,8 +1511,8 @@ export default function Home() {
 
 // Authenticated user landing page
 interface AuthenticatedLandingPageProps {
-  user: AuthUser
-  profile: UserProfile
+  readonly user: AuthUser
+  readonly profile: UserProfile
 }
 
 function AuthenticatedLandingPage({ user, profile }: AuthenticatedLandingPageProps) {

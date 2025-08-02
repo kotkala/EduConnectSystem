@@ -1,37 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 import { createClient } from '@/utils/supabase/server'
+import { checkParentPermissions } from '@/lib/utils/permission-utils'
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 })
 
-// Check if user is a parent
-async function checkParentPermissions() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error("Authentication required")
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'parent') {
-    throw new Error("Access denied. Parent role required.")
-  }
-
-  return { user, profile }
-}
-
 export async function POST(request: NextRequest) {
   try {
     // Check parent permissions
-    const { user } = await checkParentPermissions()
+    const { userId } = await checkParentPermissions()
     
     const { message, conversationHistory = [] } = await request.json()
     
@@ -55,7 +34,7 @@ export async function POST(request: NextRequest) {
           student_id
         )
       `)
-      .eq('parent_id', user.id)
+      .eq('parent_id', userId)
 
     if (relError) {
       throw new Error(relError.message)

@@ -24,64 +24,391 @@ interface StudentParentFormProps {
   onCancel?: () => void
 }
 
-export function StudentParentForm({ editMode = false, initialData, onSuccess, onCancel }: StudentParentFormProps) {
+// Helper function to get initial form values
+function getInitialFormValues(editMode: boolean, initialData?: StudentWithParent): StudentParentFormData {
+  if (editMode && initialData) {
+    return {
+      student: {
+        student_id: initialData.student_id || "",
+        full_name: initialData.full_name || "",
+        email: initialData.email || "",
+        phone_number: initialData.phone_number || "",
+        gender: (initialData.gender as "male" | "female") || "male",
+        date_of_birth: initialData.date_of_birth || "",
+        address: initialData.address || ""
+      },
+      parent: {
+        full_name: initialData.parent_relationship?.parent?.full_name || "",
+        email: initialData.parent_relationship?.parent?.email || "",
+        phone_number: initialData.parent_relationship?.parent?.phone_number || "",
+        gender: "male", // Default since we don't have parent gender in relationship
+        date_of_birth: "",
+        address: "",
+        relationship_type: (initialData.parent_relationship?.relationship_type as "father" | "mother" | "guardian") || "father",
+        is_primary_contact: initialData.parent_relationship?.is_primary_contact ?? true
+      }
+    }
+  }
+
+  return {
+    student: {
+      student_id: "",
+      full_name: "",
+      email: "",
+      phone_number: "",
+      gender: "male",
+      date_of_birth: "",
+      address: ""
+    },
+    parent: {
+      full_name: "",
+      email: "",
+      phone_number: "",
+      gender: "male",
+      date_of_birth: "",
+      address: "",
+      relationship_type: "father",
+      is_primary_contact: true as boolean
+    }
+  }
+}
+
+// Helper function to handle parent email selection
+function handleParentEmailSelection(
+  user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string },
+  form: ReturnType<typeof useForm<StudentParentFormData>>
+) {
+  if (user) {
+    form.setValue("parent.full_name", user.full_name || "")
+    form.setValue("parent.phone_number", user.phone_number || "")
+    form.setValue("parent.address", user.address || "")
+    const validGender = user.gender === "male" || user.gender === "female" || user.gender === "other" ? user.gender : "male"
+    form.setValue("parent.gender", validGender)
+    form.setValue("parent.date_of_birth", user.date_of_birth || "")
+  }
+}
+
+// Student Information Section Component
+function StudentInfoSection({
+  form,
+  editMode,
+  generatingId,
+  generateStudentId
+}: Readonly<{
+  form: ReturnType<typeof useForm<StudentParentFormData>>;
+  editMode: boolean;
+  generatingId: boolean;
+  generateStudentId: () => void
+}>) {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-3 pb-4 border-b border-blue-100">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <User className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-blue-700">Student Information</h3>
+          <p className="text-sm text-blue-600">Enter the student&apos;s personal details</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Student ID */}
+        <div className="space-y-3">
+          <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
+            Student ID *
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="student_id"
+              {...form.register("student.student_id")}
+              placeholder="e.g., SU001"
+              readOnly={editMode}
+              className={`h-11 flex-1 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
+            />
+            {!editMode && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateStudentId}
+                disabled={generatingId}
+                className="h-11 px-3"
+              >
+                {generatingId ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+          {form.formState.errors.student?.student_id && (
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <span className="text-red-500">⚠</span>
+              {form.formState.errors.student.student_id.message}
+            </p>
+          )}
+          {!editMode && (
+            <p className="text-xs text-gray-500">
+              Student ID will be auto-generated (SU001, SU002, etc.)
+            </p>
+          )}
+        </div>
+
+        {/* Student Full Name */}
+        <div className="space-y-2">
+          <Label htmlFor="student_name">Full Name *</Label>
+          <Input
+            id="student_name"
+            {...form.register("student.full_name")}
+            placeholder="Enter student's full name"
+            className={form.formState.errors.student?.full_name ? "border-red-500" : ""}
+          />
+          {form.formState.errors.student?.full_name && (
+            <p className="text-sm text-red-500">{form.formState.errors.student.full_name.message}</p>
+          )}
+        </div>
+
+        {/* Student Email */}
+        <div className="space-y-2">
+          <Label htmlFor="student_email">Email *</Label>
+          <Input
+            id="student_email"
+            type="email"
+            {...form.register("student.email")}
+            placeholder="student@school.com"
+            className={form.formState.errors.student?.email ? "border-red-500" : ""}
+          />
+          {form.formState.errors.student?.email && (
+            <p className="text-sm text-red-500">{form.formState.errors.student.email.message}</p>
+          )}
+        </div>
+
+        {/* Student Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="student_phone">Phone Number *</Label>
+          <Input
+            id="student_phone"
+            {...form.register("student.phone_number")}
+            placeholder="Enter phone number"
+            className={form.formState.errors.student?.phone_number ? "border-red-500" : ""}
+          />
+          {form.formState.errors.student?.phone_number && (
+            <p className="text-sm text-red-500">{form.formState.errors.student.phone_number.message}</p>
+          )}
+        </div>
+
+        {/* Student Gender */}
+        <div className="space-y-2">
+          <Label htmlFor="student_gender">Gender *</Label>
+          <Select
+            value={form.watch("student.gender")}
+            onValueChange={(value) => form.setValue("student.gender", value as "male" | "female")}
+          >
+            <SelectTrigger className={form.formState.errors.student?.gender ? "border-red-500" : ""}>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.formState.errors.student?.gender && (
+            <p className="text-sm text-red-500">{form.formState.errors.student.gender.message}</p>
+          )}
+        </div>
+
+        {/* Student Date of Birth */}
+        <div className="space-y-2">
+          <Label htmlFor="student_dob">Date of Birth *</Label>
+          <Input
+            id="student_dob"
+            type="date"
+            {...form.register("student.date_of_birth")}
+            className={form.formState.errors.student?.date_of_birth ? "border-red-500" : ""}
+          />
+          {form.formState.errors.student?.date_of_birth && (
+            <p className="text-sm text-red-500">{form.formState.errors.student.date_of_birth.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Student Address */}
+      <div className="space-y-2">
+        <Label htmlFor="student_address">Address *</Label>
+        <Textarea
+          id="student_address"
+          {...form.register("student.address")}
+          placeholder="Enter student's full address"
+          rows={3}
+          className={form.formState.errors.student?.address ? "border-red-500" : ""}
+        />
+        {form.formState.errors.student?.address && (
+          <p className="text-sm text-red-500">{form.formState.errors.student.address.message}</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Parent Information Section Component
+function ParentInfoSection({
+  form,
+  handleParentEmailSelect
+}: Readonly<{
+  form: ReturnType<typeof useForm<StudentParentFormData>>;
+  handleParentEmailSelect: (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => void
+}>) {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center gap-3 pb-4 border-b border-green-100">
+        <div className="p-2 bg-green-100 rounded-lg">
+          <Users className="h-6 w-6 text-green-600" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-green-700">Parent Information</h3>
+          <p className="text-sm text-green-600">Enter the parent&apos;s contact details and relationship</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Parent Full Name */}
+        <div className="space-y-2">
+          <Label htmlFor="parent_name">Full Name *</Label>
+          <Input
+            id="parent_name"
+            {...form.register("parent.full_name")}
+            placeholder="Enter parent's full name"
+            className={form.formState.errors.parent?.full_name ? "border-red-500" : ""}
+          />
+          {form.formState.errors.parent?.full_name && (
+            <p className="text-sm text-red-500">{form.formState.errors.parent.full_name.message}</p>
+          )}
+        </div>
+
+        {/* Parent Email with Suggestion */}
+        <EmailSuggestionInput
+          id="parent_email"
+          label="Email *"
+          value={form.watch("parent.email")}
+          onChange={(value) => form.setValue("parent.email", value)}
+          onUserSelect={handleParentEmailSelect}
+          placeholder="parent@email.com"
+          error={form.formState.errors.parent?.email?.message}
+          className={form.formState.errors.parent?.email ? "border-red-500" : ""}
+        />
+
+        {/* Parent Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="parent_phone">Phone Number *</Label>
+          <Input
+            id="parent_phone"
+            {...form.register("parent.phone_number")}
+            placeholder="Enter phone number"
+            className={form.formState.errors.parent?.phone_number ? "border-red-500" : ""}
+          />
+          {form.formState.errors.parent?.phone_number && (
+            <p className="text-sm text-red-500">{form.formState.errors.parent.phone_number.message}</p>
+          )}
+        </div>
+
+        {/* Parent Gender */}
+        <div className="space-y-2">
+          <Label htmlFor="parent_gender">Gender *</Label>
+          <Select
+            value={form.watch("parent.gender")}
+            onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female" | "other")}
+          >
+            <SelectTrigger className={form.formState.errors.parent?.gender ? "border-red-500" : ""}>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.formState.errors.parent?.gender && (
+            <p className="text-sm text-red-500">{form.formState.errors.parent.gender.message}</p>
+          )}
+        </div>
+
+        {/* Parent Date of Birth */}
+        <div className="space-y-2">
+          <Label htmlFor="parent_dob">Date of Birth</Label>
+          <Input
+            id="parent_dob"
+            type="date"
+            {...form.register("parent.date_of_birth")}
+            className={form.formState.errors.parent?.date_of_birth ? "border-red-500" : ""}
+          />
+          {form.formState.errors.parent?.date_of_birth && (
+            <p className="text-sm text-red-500">{form.formState.errors.parent.date_of_birth.message}</p>
+          )}
+        </div>
+
+        {/* Relationship Type */}
+        <div className="space-y-2">
+          <Label htmlFor="relationship_type">Relationship *</Label>
+          <Select
+            value={form.watch("parent.relationship_type")}
+            onValueChange={(value) => form.setValue("parent.relationship_type", value as "father" | "mother" | "guardian")}
+          >
+            <SelectTrigger className={form.formState.errors.parent?.relationship_type ? "border-red-500" : ""}>
+              <SelectValue placeholder="Select relationship" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="father">Father</SelectItem>
+              <SelectItem value="mother">Mother</SelectItem>
+              <SelectItem value="guardian">Guardian</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.formState.errors.parent?.relationship_type && (
+            <p className="text-sm text-red-500">{form.formState.errors.parent.relationship_type.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Parent Address */}
+      <div className="space-y-2">
+        <Label htmlFor="parent_address">Address *</Label>
+        <Textarea
+          id="parent_address"
+          {...form.register("parent.address")}
+          placeholder="Enter parent's full address"
+          rows={3}
+          className={form.formState.errors.parent?.address ? "border-red-500" : ""}
+        />
+        {form.formState.errors.parent?.address && (
+          <p className="text-sm text-red-500">{form.formState.errors.parent.address.message}</p>
+        )}
+      </div>
+
+      {/* Primary Contact Checkbox */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="is_primary_contact"
+          checked={form.watch("parent.is_primary_contact")}
+          onCheckedChange={(checked) => form.setValue("parent.is_primary_contact", !!checked)}
+        />
+        <Label htmlFor="is_primary_contact" className="text-sm">
+          Set as primary contact for the student
+        </Label>
+      </div>
+    </div>
+  )
+}
+
+export function StudentParentForm({ editMode = false, initialData, onSuccess, onCancel }: Readonly<StudentParentFormProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
   const [generatingId, setGeneratingId] = useState(false)
 
-  // Prepare initial values based on edit mode
-  const getInitialValues = (): StudentParentFormData => {
-    if (editMode && initialData) {
-      return {
-        student: {
-          student_id: initialData.student_id || "",
-          full_name: initialData.full_name || "",
-          email: initialData.email || "",
-          phone_number: initialData.phone_number || "",
-          gender: (initialData.gender as "male" | "female") || "male",
-          date_of_birth: initialData.date_of_birth || "",
-          address: initialData.address || ""
-        },
-        parent: {
-          full_name: initialData.parent_relationship?.parent?.full_name || "",
-          email: initialData.parent_relationship?.parent?.email || "",
-          phone_number: initialData.parent_relationship?.parent?.phone_number || "",
-          gender: "male", // Default since we don't have parent gender in relationship
-          date_of_birth: "",
-          address: "",
-          relationship_type: (initialData.parent_relationship?.relationship_type as "father" | "mother" | "guardian") || "father",
-          is_primary_contact: initialData.parent_relationship?.is_primary_contact ?? true
-        }
-      }
-    }
-
-    return {
-      student: {
-        student_id: "",
-        full_name: "",
-        email: "",
-        phone_number: "",
-        gender: "male",
-        date_of_birth: "",
-        address: ""
-      },
-      parent: {
-        full_name: "",
-        email: "",
-        phone_number: "",
-        gender: "male",
-        date_of_birth: "",
-        address: "",
-        relationship_type: "father",
-        is_primary_contact: true as boolean
-      }
-    }
-  }
-
   const form = useForm<StudentParentFormData>({
     resolver: zodResolver(studentParentSchema),
-    defaultValues: getInitialValues()
+    defaultValues: getInitialFormValues(editMode, initialData)
   })
 
   const generateStudentId = useCallback(async () => {
@@ -131,14 +458,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
 
   // Handle parent email suggestion selection
   const handleParentEmailSelect = (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => {
-    if (user) {
-      form.setValue("parent.full_name", user.full_name || "")
-      form.setValue("parent.phone_number", user.phone_number || "")
-      form.setValue("parent.address", user.address || "")
-      const validGender = user.gender === "male" || user.gender === "female" || user.gender === "other" ? user.gender : "male"
-      form.setValue("parent.gender", validGender)
-      form.setValue("parent.date_of_birth", user.date_of_birth || "")
-    }
+    handleParentEmailSelection(user, form)
   }
 
   return (
@@ -158,295 +478,20 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
       <CardContent className="p-8">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
           {/* Student Information Section */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-3 pb-4 border-b border-blue-100">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-blue-700">Student Information</h3>
-                <p className="text-sm text-blue-600">Enter the student&apos;s personal details</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Student ID */}
-              <div className="space-y-3">
-                <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
-                  Student ID *
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="student_id"
-                    {...form.register("student.student_id")}
-                    placeholder="e.g., SU001"
-                    readOnly={editMode}
-                    className={`h-11 flex-1 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
-                  />
-                  {!editMode && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={generateStudentId}
-                      disabled={generatingId}
-                      className="h-11 px-3"
-                    >
-                      {generatingId ? (
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-                {form.formState.errors.student?.student_id && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="text-red-500">⚠</span>
-                    {form.formState.errors.student.student_id.message}
-                  </p>
-                )}
-                {!editMode && (
-                  <p className="text-xs text-gray-500">
-                    Student ID will be auto-generated (SU001, SU002, etc.)
-                  </p>
-                )}
-              </div>
-
-              {/* Student Full Name */}
-              <div className="space-y-2">
-                <Label htmlFor="student_name">Full Name *</Label>
-                <Input
-                  id="student_name"
-                  {...form.register("student.full_name")}
-                  placeholder="Enter student's full name"
-                  className={form.formState.errors.student?.full_name ? "border-red-500" : ""}
-                />
-                {form.formState.errors.student?.full_name && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.full_name.message}</p>
-                )}
-              </div>
-
-              {/* Student Email */}
-              <div className="space-y-2">
-                <Label htmlFor="student_email">Email *</Label>
-                <Input
-                  id="student_email"
-                  type="email"
-                  {...form.register("student.email")}
-                  placeholder="student@school.com"
-                  className={form.formState.errors.student?.email ? "border-red-500" : ""}
-                />
-                {form.formState.errors.student?.email && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.email.message}</p>
-                )}
-              </div>
-
-              {/* Student Phone */}
-              <div className="space-y-2">
-                <Label htmlFor="student_phone">Phone Number *</Label>
-                <Input
-                  id="student_phone"
-                  {...form.register("student.phone_number")}
-                  placeholder="0123456789"
-                  className={form.formState.errors.student?.phone_number ? "border-red-500" : ""}
-                />
-                {form.formState.errors.student?.phone_number && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.phone_number.message}</p>
-                )}
-              </div>
-
-              {/* Student Gender */}
-              <div className="space-y-2">
-                <Label htmlFor="student_gender">Gender *</Label>
-                <Select
-                  value={form.watch("student.gender")}
-                  onValueChange={(value) => form.setValue("student.gender", value as "male" | "female" | "other")}
-                >
-                  <SelectTrigger className={form.formState.errors.student?.gender ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.student?.gender && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.gender.message}</p>
-                )}
-              </div>
-
-              {/* Student Date of Birth */}
-              <div className="space-y-2">
-                <Label htmlFor="student_dob">Date of Birth *</Label>
-                <Input
-                  id="student_dob"
-                  type="date"
-                  {...form.register("student.date_of_birth")}
-                  className={form.formState.errors.student?.date_of_birth ? "border-red-500" : ""}
-                />
-                {form.formState.errors.student?.date_of_birth && (
-                  <p className="text-sm text-red-500">{form.formState.errors.student.date_of_birth.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Student Address */}
-            <div className="space-y-2">
-              <Label htmlFor="student_address">Address *</Label>
-              <Textarea
-                id="student_address"
-                {...form.register("student.address")}
-                placeholder="Enter student's full address"
-                rows={3}
-                className={form.formState.errors.student?.address ? "border-red-500" : ""}
-              />
-              {form.formState.errors.student?.address && (
-                <p className="text-sm text-red-500">{form.formState.errors.student.address.message}</p>
-              )}
-            </div>
-          </div>
+          <StudentInfoSection
+            form={form}
+            editMode={editMode}
+            generatingId={generatingId}
+            generateStudentId={generateStudentId}
+          />
 
           <Separator className="my-8" />
 
           {/* Parent Information Section */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-3 pb-4 border-b border-green-100">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <User className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-green-700">Parent Information</h3>
-                <p className="text-sm text-green-600">Enter the parent/guardian details (Required)</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Parent Full Name */}
-              <div className="space-y-2">
-                <Label htmlFor="parent_name">Full Name *</Label>
-                <Input
-                  id="parent_name"
-                  {...form.register("parent.full_name")}
-                  placeholder="Enter parent's full name"
-                  className={form.formState.errors.parent?.full_name ? "border-red-500" : ""}
-                />
-                {form.formState.errors.parent?.full_name && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.full_name.message}</p>
-                )}
-              </div>
-
-              {/* Parent Email with Suggestion */}
-              <EmailSuggestionInput
-                id="parent_email"
-                label="Email *"
-                placeholder="parent@email.com"
-                value={form.watch("parent.email")}
-                onChange={(value) => form.setValue("parent.email", value)}
-                onBlur={() => form.trigger("parent.email")}
-                error={form.formState.errors.parent?.email?.message}
-                onUserSelect={handleParentEmailSelect}
-              />
-
-              {/* Parent Phone */}
-              <div className="space-y-2">
-                <Label htmlFor="parent_phone">Phone Number *</Label>
-                <Input
-                  id="parent_phone"
-                  {...form.register("parent.phone_number")}
-                  placeholder="0123456789"
-                  className={form.formState.errors.parent?.phone_number ? "border-red-500" : ""}
-                />
-                {form.formState.errors.parent?.phone_number && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.phone_number.message}</p>
-                )}
-              </div>
-
-              {/* Parent Gender */}
-              <div className="space-y-2">
-                <Label htmlFor="parent_gender">Gender *</Label>
-                <Select
-                  value={form.watch("parent.gender")}
-                  onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female" | "other")}
-                >
-                  <SelectTrigger className={form.formState.errors.parent?.gender ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.parent?.gender && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.gender.message}</p>
-                )}
-              </div>
-
-              {/* Parent Date of Birth */}
-              <div className="space-y-2">
-                <Label htmlFor="parent_dob">Date of Birth *</Label>
-                <Input
-                  id="parent_dob"
-                  type="date"
-                  {...form.register("parent.date_of_birth")}
-                  className={form.formState.errors.parent?.date_of_birth ? "border-red-500" : ""}
-                />
-                {form.formState.errors.parent?.date_of_birth && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.date_of_birth.message}</p>
-                )}
-              </div>
-
-              {/* Relationship Type */}
-              <div className="space-y-2">
-                <Label htmlFor="relationship_type">Relationship *</Label>
-                <Select
-                  value={form.watch("parent.relationship_type")}
-                  onValueChange={(value) => form.setValue("parent.relationship_type", value as "father" | "mother" | "guardian")}
-                >
-                  <SelectTrigger className={form.formState.errors.parent?.relationship_type ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select relationship" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="father">Father</SelectItem>
-                    <SelectItem value="mother">Mother</SelectItem>
-                    <SelectItem value="guardian">Guardian</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.parent?.relationship_type && (
-                  <p className="text-sm text-red-500">{form.formState.errors.parent.relationship_type.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Parent Address */}
-            <div className="space-y-2">
-              <Label htmlFor="parent_address">Address *</Label>
-              <Textarea
-                id="parent_address"
-                {...form.register("parent.address")}
-                placeholder="Enter parent's full address"
-                rows={3}
-                className={form.formState.errors.parent?.address ? "border-red-500" : ""}
-              />
-              {form.formState.errors.parent?.address && (
-                <p className="text-sm text-red-500">{form.formState.errors.parent.address.message}</p>
-              )}
-            </div>
-
-            {/* Primary Contact Checkbox */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="is_primary_contact"
-                checked={form.watch("parent.is_primary_contact")}
-                onCheckedChange={(checked) => form.setValue("parent.is_primary_contact", !!checked)}
-              />
-              <Label htmlFor="is_primary_contact" className="text-sm">
-                Set as primary contact for the student
-              </Label>
-            </div>
-          </div>
+          <ParentInfoSection
+            form={form}
+            handleParentEmailSelect={handleParentEmailSelect}
+          />
 
           {/* Error/Success Messages */}
           {submitError && (

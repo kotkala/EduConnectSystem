@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -32,8 +32,15 @@ import {
 } from "@/lib/actions/parent-feedback-actions"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { format, endOfWeek } from 'date-fns'
+import { getWeekStartDate } from '@/components/timetable-calendar/data-mappers'
 
-
+interface WeekOption {
+  number: number
+  startDate: Date
+  endDate: Date
+  label: string
+}
 
 export default function ParentFeedbackDashboard() {
   const [filters, setFilters] = useState<ParentFeedbackFilters>({
@@ -41,23 +48,24 @@ export default function ParentFeedbackDashboard() {
     week_number: 1,
     student_id: "" // Empty means show all children
   })
-  const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string}>>([])
+  const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string, start_date: string, end_date: string}>>([])
   const [children, setChildren] = useState<Array<{id: string, name: string, student_code: string, avatar_url: string | null, class_name: string}>>([])
   const [studentFeedback, setStudentFeedback] = useState<StudentFeedbackForParent[]>([])
+  const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showAiSummary] = useState(true)
   const [showDailyAiSummary] = useState(true)
 
   // Day names
-  const dayNames: Record<number, string> = {
+  const dayNames = useMemo(() => ({
     1: "Thứ Hai",
     2: "Thứ Ba",
     3: "Thứ Tư",
     4: "Thứ Năm",
     5: "Thứ Sáu",
     6: "Thứ Bảy"
-  }
+  } as Record<number, string>), [])
 
   // Get initials for avatar
   const getInitials = (name: string): string => {
@@ -94,6 +102,8 @@ export default function ParentFeedbackDashboard() {
     return time.slice(0, 5) // Remove seconds
   }
 
+
+
   // Load academic years and children
   useEffect(() => {
     const loadInitialData = async () => {
@@ -129,6 +139,48 @@ export default function ParentFeedbackDashboard() {
     loadInitialData()
   }, [])
 
+  // Generate week options when academic year changes - Context7 pattern for synchronized week calculation
+  useEffect(() => {
+    const generateWeekOptions = () => {
+      const academicYear = academicYears.find(ay => ay.id === filters.academic_year_id)
+      if (!academicYear) {
+        setWeekOptions([])
+        return
+      }
+
+      // For parent feedback, we'll use the academic year dates to generate weeks
+      // This assumes the academic year spans the full year with semesters
+      const academicYearStartDate = new Date(academicYear.start_date)
+      const academicYearEndDate = new Date(academicYear.end_date)
+
+      const weeks: WeekOption[] = []
+      let weekNumber = 1
+
+      while (weekNumber <= 52) { // Max 52 weeks per academic year
+        // Use the same calculation as timetable and violations systems
+        const weekStartDate = getWeekStartDate(academicYearStartDate, weekNumber)
+        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 1 })
+
+        // Stop if week starts after academic year ends
+        if (weekStartDate > academicYearEndDate) {
+          break
+        }
+
+        weeks.push({
+          number: weekNumber,
+          startDate: weekStartDate,
+          endDate: weekEndDate,
+          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+        })
+        weekNumber++
+      }
+
+      setWeekOptions(weeks)
+    }
+
+    generateWeekOptions()
+  }, [filters.academic_year_id, academicYears])
+
   // Load student feedback when filters change
   useEffect(() => {
     if (!filters.academic_year_id || children.length === 0) return
@@ -162,25 +214,24 @@ export default function ParentFeedbackDashboard() {
 
 
 
+  // Helper function to update feedback read status
+  const updateFeedbackReadStatus = useCallback((student: StudentFeedbackForParent, feedbackId: string): StudentFeedbackForParent => {
+    const updatedDailyFeedback = Object.fromEntries(
+      Object.entries(student.daily_feedback).map(([day, feedback]) => [
+        day,
+        feedback.map(f => f.feedback_id === feedbackId ? { ...f, is_read: true } : f)
+      ])
+    )
+    return { ...student, daily_feedback: updatedDailyFeedback }
+  }, [])
+
   // Mark feedback as read
-  const handleMarkAsRead = async (feedbackId: string) => {
+  const handleMarkAsRead = useCallback(async (feedbackId: string) => {
     try {
       const result = await markFeedbackAsReadAction(feedbackId)
       if (result.success) {
-        // Update local state
-        setStudentFeedback(prev => 
-          prev.map(student => ({
-            ...student,
-            daily_feedback: Object.fromEntries(
-              Object.entries(student.daily_feedback).map(([day, feedback]) => [
-                day,
-                feedback.map(f => 
-                  f.feedback_id === feedbackId ? { ...f, is_read: true } : f
-                )
-              ])
-            )
-          }))
-        )
+        // Update local state using helper function
+        setStudentFeedback(prev => prev.map(student => updateFeedbackReadStatus(student, feedbackId)))
         toast.success("Marked as read")
       } else {
         toast.error(result.error || "Failed to mark as read")
@@ -189,7 +240,71 @@ export default function ParentFeedbackDashboard() {
       console.error("Mark as read error:", error)
       toast.error("An unexpected error occurred")
     }
-  }
+  }, [updateFeedbackReadStatus])
+
+
+
+  // Helper function to create mark as read click handler
+  const createMarkAsReadHandler = useCallback((feedbackId: string) => {
+    return () => handleMarkAsRead(feedbackId)
+  }, [handleMarkAsRead])
+
+  // Helper function to render teacher AI summary
+  const renderTeacherAiSummary = useCallback((dayFeedback: StudentFeedbackForParent['daily_feedback'][string], dayOfWeek: number) => {
+    // Find teacher's AI summary for this day
+    const teacherAiSummary = dayFeedback.find(f => f.ai_summary && f.use_ai_summary)
+
+    return teacherAiSummary ? (
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-3 border border-green-200/50 dark:border-green-800/50 mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            <Sparkles className="h-4 w-4 text-green-600" />
+            <span className="text-xs font-medium text-green-800 dark:text-green-200">
+              Tóm tắt từ Giáo viên - {dayNames[dayOfWeek]}
+            </span>
+          </div>
+          <div className="text-xs text-green-600 dark:text-green-400">
+            {new Date(teacherAiSummary.ai_generated_at!).toLocaleDateString('vi-VN')}
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
+          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed italic">
+            &ldquo;{teacherAiSummary.ai_summary}&rdquo;
+          </p>
+        </div>
+        <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-between">
+          <div className="flex items-center space-x-1">
+            <Sparkles className="h-3 w-3" />
+            <span>Tóm tắt AI từ giáo viên</span>
+          </div>
+          <span className="text-gray-400">
+            {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
+          </span>
+        </div>
+      </div>
+    ) : (
+      // Show message when no teacher AI summary available
+      <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20 rounded-lg p-3 border border-gray-200/50 dark:border-gray-800/50 mb-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <MessageSquare className="h-4 w-4 text-gray-500" />
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            Tóm tắt AI - {dayNames[dayOfWeek]}
+          </span>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
+          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">
+            Giáo viên chưa tạo tóm tắt AI cho ngày này.
+          </p>
+        </div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-between">
+          <span>Có {dayFeedback.length} phản hồi chi tiết</span>
+          <span className="text-gray-400">
+            {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
+          </span>
+        </div>
+      </div>
+    )
+  }, [dayNames])
 
   return (
     <div className="space-y-6">
@@ -213,12 +328,12 @@ export default function ParentFeedbackDashboard() {
             {/* Student Selection - Only show if parent has multiple children */}
             {children.length > 1 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Con Em</label>
+                <label htmlFor="student-select" className="text-sm font-medium">Con Em</label>
                 <Select
                   value={filters.student_id || "ALL_CHILDREN"}
                   onValueChange={(value) => handleFiltersChange('student_id', value === "ALL_CHILDREN" ? "" : value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="student-select">
                     <SelectValue placeholder="Tất cả con em" />
                   </SelectTrigger>
                   <SelectContent>
@@ -238,12 +353,12 @@ export default function ParentFeedbackDashboard() {
 
             {/* Academic Year */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Năm Học</label>
+              <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
               <Select
                 value={filters.academic_year_id}
                 onValueChange={(value) => handleFiltersChange('academic_year_id', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="academic-year-select">
                   <SelectValue placeholder="Chọn năm học" />
                 </SelectTrigger>
                 <SelectContent>
@@ -258,18 +373,19 @@ export default function ParentFeedbackDashboard() {
 
             {/* Week */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tuần Học</label>
+              <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
               <Select
                 value={filters.week_number.toString()}
                 onValueChange={(value) => handleFiltersChange('week_number', parseInt(value))}
+                disabled={weekOptions.length === 0}
               >
-                <SelectTrigger>
+                <SelectTrigger id="week-select">
                   <SelectValue placeholder="Chọn tuần" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
-                    <SelectItem key={week} value={week.toString()}>
-                      Tuần {week}
+                  {weekOptions.map((week) => (
+                    <SelectItem key={week.number} value={week.number.toString()}>
+                      {week.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -413,61 +529,7 @@ export default function ParentFeedbackDashboard() {
                         {dayFeedback.length > 0 ? (
                           <div className="space-y-4">
                             {/* Teacher's Daily AI Summary */}
-                            {showDailyAiSummary && dayFeedback.length > 0 && (() => {
-                              // Find teacher's AI summary for this day
-                              const teacherAiSummary = dayFeedback.find(f => f.ai_summary && f.use_ai_summary)
-
-                              return teacherAiSummary ? (
-                                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-3 border border-green-200/50 dark:border-green-800/50 mb-4">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center space-x-2">
-                                      <Sparkles className="h-4 w-4 text-green-600" />
-                                      <span className="text-xs font-medium text-green-800 dark:text-green-200">
-                                        Tóm tắt từ Giáo viên - {dayNames[dayOfWeek]}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs text-green-600 dark:text-green-400">
-                                      {new Date(teacherAiSummary.ai_generated_at!).toLocaleDateString('vi-VN')}
-                                    </div>
-                                  </div>
-                                  <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
-                                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed italic">
-                                      &ldquo;{teacherAiSummary.ai_summary}&rdquo;
-                                    </p>
-                                  </div>
-                                  <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-between">
-                                    <div className="flex items-center space-x-1">
-                                      <Sparkles className="h-3 w-3" />
-                                      <span>Tóm tắt AI từ giáo viên</span>
-                                    </div>
-                                    <span className="text-gray-400">
-                                      {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
-                                    </span>
-                                  </div>
-                                </div>
-                              ) : (
-                                // Show message when no teacher AI summary available
-                                <div className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20 rounded-lg p-3 border border-gray-200/50 dark:border-gray-800/50 mb-4">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <MessageSquare className="h-4 w-4 text-gray-500" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Tóm tắt AI - {dayNames[dayOfWeek]}
-                                    </span>
-                                  </div>
-                                  <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">
-                                      Giáo viên chưa tạo tóm tắt AI cho ngày này.
-                                    </p>
-                                  </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-between">
-                                    <span>Có {dayFeedback.length} phản hồi chi tiết</span>
-                                    <span className="text-gray-400">
-                                      {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 ⭐
-                                    </span>
-                                  </div>
-                                </div>
-                              )
-                            })()}
+                            {showDailyAiSummary && dayFeedback.length > 0 && renderTeacherAiSummary(dayFeedback, dayOfWeek)}
 
                             {/* Individual Feedback Items */}
                             {dayFeedback.map((feedback) => (
@@ -515,7 +577,7 @@ export default function ParentFeedbackDashboard() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleMarkAsRead(feedback.feedback_id)}
+                                      onClick={createMarkAsReadHandler(feedback.feedback_id)}
                                       className="h-6 text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
                                     >
                                       <Eye className="h-3 w-3 mr-1" />

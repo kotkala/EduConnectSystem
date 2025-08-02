@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { CalendarProvider } from "@/components/event-calendar/calendar-context";
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
 import TeacherScheduleBigCalendar from "@/components/teacher-schedule-big-calendar";
 
 export const metadata: Metadata = {
@@ -10,13 +9,13 @@ export const metadata: Metadata = {
 
 export default function TeacherSchedulePage() {
   return (
-    <SidebarLayout role="teacher" title="Lịch Giảng Dạy Của Tôi">
+    <div className="p-6">
       <CalendarProvider>
         <div className="flex flex-1 flex-col gap-4">
           <TeacherScheduleBigCalendar />
         </div>
       </CalendarProvider>
-    </SidebarLayout>
+    </div>
   );
 }
 

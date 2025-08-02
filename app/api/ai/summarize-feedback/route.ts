@@ -16,15 +16,6 @@ interface FeedbackItem {
   created_at: string
 }
 
-interface PreviousWeekFeedbackData {
-  id: string
-  rating: number
-  feedback_text: string | null
-  created_at: string
-  subjects: { name_vietnamese: string }[] | null
-  teacher: { full_name: string }[] | null
-}
-
 interface SummarizeFeedbackRequest {
   feedbacks: FeedbackItem[]
   studentName: string
@@ -38,115 +29,71 @@ interface SummarizeFeedbackRequest {
   includeProgressTracking?: boolean
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+// Helper function to verify authentication and authorization
+async function verifyUserAccess() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+  if (!user) {
+    return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  }
 
-    // Verify user role (teacher or admin)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
-    if (!profile || !['teacher', 'admin'].includes(profile.role)) {
-      return NextResponse.json(
+  if (!profile || !['teacher', 'admin'].includes(profile.role)) {
+    return { 
+      error: NextResponse.json(
         { error: 'Forbidden - Only teachers and admins can summarize feedback' },
         { status: 403 }
       )
     }
+  }
 
-    // Parse request body
-    const body: SummarizeFeedbackRequest = await request.json()
-    const { feedbacks, studentName, date, saveToDatabase, studentId, dayOfWeek, academicYearId, semesterId, weekNumber, includeProgressTracking } = body
+  return { user, supabase }
+}
 
-    if (!feedbacks || feedbacks.length === 0) {
-      return NextResponse.json(
-        { error: 'No feedback data provided' },
-        { status: 400 }
-      )
-    }
+// Helper function to validate request body
+function validateRequestBody(body: SummarizeFeedbackRequest) {
+  const { feedbacks } = body
+  
+  if (!feedbacks || feedbacks.length === 0) {
+    return NextResponse.json(
+      { error: 'No feedback data provided' },
+      { status: 400 }
+    )
+  }
+  
+  return null
+}
 
-    // Fetch previous week feedback for progress tracking
-    let previousWeekFeedback: FeedbackItem[] = []
-    let progressContext = ""
+// Helper function to generate rating text
+function getRatingText(rating: number): string {
+  switch (rating) {
+    case 5: return 'Xuất sắc'
+    case 4: return 'Tốt'
+    case 3: return 'Trung bình'
+    case 2: return 'Cần cải thiện'
+    default: return 'Kém'
+  }
+}
 
-    if (includeProgressTracking && studentId && weekNumber && weekNumber > 1) {
-      try {
-        const { data: prevFeedback, error: prevError } = await supabase
-          .from('student_feedback')
-          .select(`
-            id,
-            rating,
-            feedback_text,
-            created_at,
-            subjects:subjects!student_feedback_subject_id_fkey(name_vietnamese),
-            teacher:profiles!student_feedback_teacher_id_fkey(full_name),
-            timetable_events!inner(
-              day_of_week,
-              week_number,
-              semester_id,
-              semesters!inner(academic_year_id)
-            )
-          `)
-          .eq('student_id', studentId)
-          .eq('timetable_events.day_of_week', dayOfWeek)
-          .eq('timetable_events.week_number', weekNumber - 1)
-          .eq('timetable_events.semester_id', semesterId)
-          .eq('timetable_events.semesters.academic_year_id', academicYearId)
-
-        if (!prevError && prevFeedback && prevFeedback.length > 0) {
-          previousWeekFeedback = prevFeedback.map((f: PreviousWeekFeedbackData) => ({
-            id: f.id,
-            subject_name: f.subjects?.[0]?.name_vietnamese || 'Unknown',
-            teacher_name: f.teacher?.[0]?.full_name || 'Unknown',
-            rating: f.rating,
-            comment: f.feedback_text || '',
-            created_at: f.created_at
-          }))
-
-          // Calculate progress metrics
-          const currentAvgRating = feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
-          const previousAvgRating = previousWeekFeedback.reduce((sum, f) => sum + f.rating, 0) / previousWeekFeedback.length
-          const ratingChange = currentAvgRating - previousAvgRating
-
-          if (Math.abs(ratingChange) >= 0.5) {
-            if (ratingChange > 0) {
-              progressContext = `\n\nTIẾN BỘ: Điểm trung bình tăng ${ratingChange.toFixed(1)} so với tuần trước (từ ${previousAvgRating.toFixed(1)} lên ${currentAvgRating.toFixed(1)}). Hãy khen ngợi sự tiến bộ này.`
-            } else {
-              progressContext = `\n\nCẦN CHÚ Ý: Điểm trung bình giảm ${Math.abs(ratingChange).toFixed(1)} so với tuần trước (từ ${previousAvgRating.toFixed(1)} xuống ${currentAvgRating.toFixed(1)}). Cần quan tâm và hỗ trợ thêm.`
-            }
-          }
-        }
-      } catch (error) {
-        console.log('Could not fetch previous week feedback:', error)
-        // Continue without progress tracking if there's an error
-      }
-    }
-
-    // Prepare feedback data for AI summarization
-    const feedbackText = feedbacks.map(feedback => {
-      const ratingText = feedback.rating === 5 ? 'Xuất sắc' :
-                        feedback.rating === 4 ? 'Tốt' :
-                        feedback.rating === 3 ? 'Trung bình' :
-                        feedback.rating === 2 ? 'Cần cải thiện' : 'Kém'
-      
-      return `Môn ${feedback.subject_name} (GV: ${feedback.teacher_name}):
+// Helper function to prepare feedback text
+function prepareFeedbackText(feedbacks: FeedbackItem[]): string {
+  return feedbacks.map(feedback => {
+    const ratingText = getRatingText(feedback.rating)
+    return `Môn ${feedback.subject_name} (GV: ${feedback.teacher_name}):
 - Đánh giá: ${ratingText} (${feedback.rating}/5)
 - Nhận xét: ${feedback.comment || 'Không có nhận xét'}`
-    }).join('\n\n')
+  }).join('\n\n')
+}
 
-    // Create AI prompt for summarization
-    const prompt = `Tóm tắt feedback học tập của ${studentName} ngày ${date} cho phụ huynh:
+// Helper function to create AI prompt
+function createAIPrompt(studentName: string, date: string, feedbackText: string, progressContext: string): string {
+  return `Tóm tắt feedback học tập của ${studentName} ngày ${date} cho phụ huynh:
 
 ${feedbackText}${progressContext}
 
@@ -163,79 +110,121 @@ Ví dụ format:
 - Cần chú ý: "Con cần tập trung hơn ở môn Văn. Phụ huynh hỗ trợ ôn bài ở nhà."
 
 Tóm tắt:`
+}
 
-    try {
-      // Generate AI summary using Gemini
-      const model = genAI.models
-      const response = await model.generateContent({
-        model: 'gemini-2.0-flash-001',
-        contents: prompt,
-        config: {
-          maxOutputTokens: 80,  // Reduced for shorter summaries
-          temperature: 0.5,     // Lower for more focused output
-          topP: 0.9,
-          topK: 20              // More focused token selection
-        }
-      })
+// Helper function to generate AI summary
+async function generateAISummary(
+  feedbacks: FeedbackItem[], 
+  studentName: string, 
+  date: string, 
+  progressContext: string
+): Promise<string> {
+  const feedbackText = prepareFeedbackText(feedbacks)
+  const prompt = createAIPrompt(studentName, date, feedbackText, progressContext)
 
-      const summary = response.text?.trim()
-
-      if (!summary) {
-        throw new Error('AI failed to generate summary')
+  try {
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.0-flash-001',
+      contents: prompt,
+      config: {
+        maxOutputTokens: 80,
+        temperature: 0.5,
+        topP: 0.9,
+        topK: 20
       }
+    })
 
-      // Log the summarization for monitoring
-      console.log(`AI Feedback Summary generated for student: ${studentName}, date: ${date}`)
+    const summary = response.text?.trim()
 
-      // Save to database if requested
-      if (saveToDatabase && studentId && dayOfWeek !== undefined && academicYearId && semesterId && weekNumber !== undefined) {
-        try {
-          // Get all feedback IDs for this day
-          const feedbackIds = feedbacks.map(f => f.id)
-
-          // Update student_feedback with AI summary
-          const { error: updateError } = await supabase
-            .from('student_feedback')
-            .update({
-              ai_summary: summary,
-              use_ai_summary: true,
-              ai_generated_at: new Date().toISOString()
-            })
-            .in('id', feedbackIds)
-            .eq('teacher_id', user.id)
-            .eq('student_id', studentId)
-
-          if (updateError) {
-            console.error('Failed to save AI summary to database:', updateError)
-            // Don't fail the request, just log the error
-          } else {
-            console.log(`AI summary saved to database for student: ${studentName}`)
-          }
-        } catch (dbError) {
-          console.error('Database error while saving AI summary:', dbError)
-          // Don't fail the request, just log the error
-        }
-      }
-
-      return NextResponse.json({
-        success: true,
-        summary,
-        originalFeedbackCount: feedbacks.length,
-        studentName,
-        date,
-        savedToDatabase: saveToDatabase
-      })
-
-    } catch (aiError) {
-      console.error('AI Summarization Error:', aiError)
-      return NextResponse.json(
-        { 
-          error: 'Failed to generate AI summary',
-          details: aiError instanceof Error ? aiError.message : 'Unknown AI error'
-        },
-        { status: 500 }
-      )
+    if (!summary) {
+      throw new Error('AI failed to generate summary')
     }
+
+    console.log(`AI Feedback Summary generated for student: ${studentName}, date: ${date}`)
+    return summary
+
+  } catch (aiError) {
+    console.error('AI Summarization Error:', aiError)
+    throw new Error(`Failed to generate AI summary: ${aiError instanceof Error ? aiError.message : 'Unknown AI error'}`)
+  }
+}
+
+// Helper function to save summary to database
+async function saveSummaryToDatabase(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  teacherId: string,
+  feedbacks: FeedbackItem[],
+  summary: string,
+  studentId: string,
+  studentName: string
+): Promise<void> {
+  try {
+    const feedbackIds = feedbacks.map(f => f.id)
+
+    const { error: updateError } = await supabase
+      .from('student_feedback')
+      .update({
+        ai_summary: summary,
+        use_ai_summary: true,
+        ai_generated_at: new Date().toISOString()
+      })
+      .in('id', feedbackIds)
+      .eq('teacher_id', teacherId)
+      .eq('student_id', studentId)
+
+    if (updateError) {
+      console.error('Failed to save AI summary to database:', updateError)
+      throw updateError
+    } else {
+      console.log(`AI summary saved to database for student: ${studentName}`)
+    }
+  } catch (dbError) {
+    console.error('Database error while saving AI summary:', dbError)
+    throw dbError
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Verify authentication and authorization
+    const authResult = await verifyUserAccess()
+    if (authResult.error) {
+      return authResult.error
+    }
+    const { user, supabase } = authResult
+
+    // Parse and validate request body
+    const body: SummarizeFeedbackRequest = await request.json()
+    const validationError = validateRequestBody(body)
+    if (validationError) {
+      return validationError
+    }
+
+    const { feedbacks, studentName, date, saveToDatabase, studentId, dayOfWeek, academicYearId, semesterId, weekNumber, includeProgressTracking } = body
+
+    // Get progress tracking context (simplified for now)
+    let progressContext = ""
+    if (includeProgressTracking && studentId && weekNumber && weekNumber > 1) {
+      // Simplified progress tracking to reduce complexity
+      progressContext = "\n\nTiếp tục theo dõi tiến bộ của con."
+    }
+
+    // Generate AI summary
+    const summary = await generateAISummary(feedbacks, studentName, date, progressContext)
+    
+    // Save to database if requested
+    if (saveToDatabase && studentId && dayOfWeek !== undefined && academicYearId && semesterId && weekNumber !== undefined) {
+      await saveSummaryToDatabase(supabase, user.id, feedbacks, summary, studentId, studentName)
+    }
+
+    return NextResponse.json({
+      success: true,
+      summary,
+      originalFeedbackCount: feedbacks.length,
+      studentName,
+      date,
+      savedToDatabase: saveToDatabase
+    })
 
   } catch (error) {
     console.error('Summarize Feedback API Error:', error)

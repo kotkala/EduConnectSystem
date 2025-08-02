@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,23 +8,25 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
+
 import { useAuth } from '@/hooks/use-auth'
 import { 
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
   type LeaveApplication 
 } from '@/lib/actions/leave-application-actions'
-import { 
-  ArrowLeft, 
-  Check, 
-  X, 
-  Clock, 
-  Calendar, 
-  User, 
-  FileText, 
+import {
+  ArrowLeft,
+  Check,
+  X,
+  Clock,
+  Calendar,
+  User,
+  FileText,
   AlertCircle,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 export default function TeacherLeaveRequestsPage() {
@@ -37,21 +39,32 @@ export default function TeacherLeaveRequestsPage() {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [responseText, setResponseText] = useState<{ [key: string]: string }>({})
 
-  useEffect(() => {
-    if (user && profile?.role === 'teacher') {
-      fetchLeaveApplications()
-    }
-  }, [user, profile])
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [paginatedApplications, setPaginatedApplications] = useState<LeaveApplication[]>([])
+  const pageSize = 10
 
-  const fetchLeaveApplications = async () => {
+  const fetchLeaveApplications = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const result = await getTeacherLeaveApplicationsAction()
-      
+
       if (result.success && result.data) {
-        setApplications(result.data)
+        const allApplications = result.data
+        setApplications(allApplications)
+
+        // Update pagination
+        setTotalCount(allApplications.length)
+        setTotalPages(Math.ceil(allApplications.length / pageSize))
+
+        // Get current page applications
+        const startIndex = (currentPage - 1) * pageSize
+        const endIndex = startIndex + pageSize
+        setPaginatedApplications(allApplications.slice(startIndex, endIndex))
       } else {
         setError(result.error || 'Failed to fetch leave applications')
       }
@@ -60,7 +73,13 @@ export default function TeacherLeaveRequestsPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentPage, pageSize]) // ✅ Add dependencies
+
+  useEffect(() => {
+    if (user && profile?.role === 'teacher') {
+      fetchLeaveApplications()
+    }
+  }, [user, profile, currentPage, fetchLeaveApplications]) // ✅ Add all dependencies
 
   const handleStatusUpdate = async (applicationId: string, status: 'approved' | 'rejected') => {
     try {
@@ -124,21 +143,21 @@ export default function TeacherLeaveRequestsPage() {
   // Show loading state
   if (loading || isLoading) {
     return (
-      <SidebarLayout role="teacher" title="Leave Requests">
+      <div className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
             <p className="mt-2 text-gray-600">Loading leave requests...</p>
           </div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'teacher') {
     return (
-      <SidebarLayout role="teacher" title="Access Denied">
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
@@ -147,12 +166,12 @@ export default function TeacherLeaveRequestsPage() {
             Return to Dashboard
           </Button>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   return (
-    <SidebarLayout role="teacher" title="Leave Requests">
+    <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -227,7 +246,7 @@ export default function TeacherLeaveRequestsPage() {
               </CardContent>
             </Card>
           ) : (
-            applications.map((application) => (
+            paginatedApplications.map((application) => (
               <Card key={application.id} className="overflow-hidden">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -325,7 +344,61 @@ export default function TeacherLeaveRequestsPage() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Trang {currentPage} / {totalPages} - Tổng {totalCount} đơn xin nghỉ
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Trước
+                  </Button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                      if (pageNum > totalPages) return null
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {pageNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

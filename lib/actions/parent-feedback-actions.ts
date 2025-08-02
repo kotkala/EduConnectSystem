@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
+import { checkParentPermissions } from "@/lib/utils/permission-utils"
 
 export interface ParentFeedbackFilters {
   academic_year_id: string
@@ -54,28 +55,6 @@ interface ParentFeedbackViewData {
   ai_summary: string | null
   use_ai_summary: boolean | null
   ai_generated_at: string | null
-}
-
-// Check if user is a parent
-async function checkParentPermissions() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error("Authentication required")
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'parent') {
-    throw new Error("Access denied. Parent role required.")
-  }
-
-  return { userId: user.id }
 }
 
 // Get list of children for parent dropdown
@@ -162,7 +141,7 @@ export async function getParentChildrenAction(): Promise<{
 }
 
 // Get available academic years for parent
-export async function getParentAcademicYearsAction(): Promise<{ success: boolean; data?: Array<{id: string, name: string}>; error?: string }> {
+export async function getParentAcademicYearsAction(): Promise<{ success: boolean; data?: Array<{id: string, name: string, start_date: string, end_date: string}>; error?: string }> {
   try {
     await checkParentPermissions()
     const supabase = await createClient()
@@ -172,7 +151,9 @@ export async function getParentAcademicYearsAction(): Promise<{ success: boolean
       .from('academic_years')
       .select(`
         id,
-        name
+        name,
+        start_date,
+        end_date
       `)
       .order('start_date', { ascending: false })
 
@@ -226,8 +207,6 @@ export async function getStudentFeedbackForParentAction(
         data: []
       }
     }
-
-
 
     // Get student IDs for filtering
     const studentIds = studentRelationships.map(rel => rel.student_id)

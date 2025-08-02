@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout";
 import ParentFeedbackDashboard from "@/components/parent-feedback/parent-feedback-dashboard";
 
 export const metadata: Metadata = {
@@ -9,10 +8,10 @@ export const metadata: Metadata = {
 
 export default function ParentFeedbackPage() {
   return (
-    <SidebarLayout role="parent" title="Phản Hồi Học Tập">
+    <div className="p-6">
       <div className="flex flex-1 flex-col gap-4">
         <ParentFeedbackDashboard />
       </div>
-    </SidebarLayout>
+    </div>
   );
 }

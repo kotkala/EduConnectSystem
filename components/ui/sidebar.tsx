@@ -170,9 +170,11 @@ function Sidebar({
       <>
         {/* Mobile overlay */}
         {openMobile && (
-          <div
-            className="fixed inset-0 z-50 bg-black/50 md:hidden"
+          <button
+            type="button"
+            className="fixed inset-0 z-50 bg-black/50 md:hidden border-0 p-0 cursor-default"
             onClick={() => setOpenMobile(false)}
+            aria-label="Close sidebar"
           />
         )}
         {/* Mobile sidebar */}
@@ -183,7 +185,10 @@ function Sidebar({
           className={cn(
             "bg-sidebar text-sidebar-foreground fixed inset-y-0 z-50 flex h-full w-[--sidebar-width] flex-col transition-transform duration-200 ease-in-out md:hidden",
             side === "left" ? "left-0" : "right-0",
-            openMobile ? "translate-x-0" : side === "left" ? "-translate-x-full" : "translate-x-full"
+            (() => {
+              if (openMobile) return "translate-x-0"
+              return side === "left" ? "-translate-x-full" : "translate-x-full"
+            })()
           )}
           style={
             {

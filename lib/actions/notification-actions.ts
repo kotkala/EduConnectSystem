@@ -59,81 +59,109 @@ async function checkNotificationPermissions() {
   return { userId: user.id, profile }
 }
 
+// Helper function to get admin target options
+async function getAdminTargetOptions(supabase: Awaited<ReturnType<typeof createClient>>): Promise<{ roles: string[]; classes: { id: string; name: string; grade: string }[] }> {
+  const options = {
+    roles: ['teacher', 'student', 'parent'] as string[],
+    classes: [] as { id: string; name: string; grade: string }[]
+  }
+
+  // Get all classes for potential targeting
+  const { data: classes } = await supabase
+    .from('classes')
+    .select('id, name, grade')
+    .eq('is_active', true)
+    .order('grade', { ascending: true })
+    .order('name', { ascending: true })
+
+  options.classes = classes || []
+  return options
+}
+
+// Helper function to get teacher's class assignments
+async function getTeacherClassAssignments(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data: assignments } = await supabase
+    .from('teacher_class_assignments')
+    .select(`
+      class_id,
+      classes!inner(id, name, homeroom_teacher_id)
+    `)
+    .eq('teacher_id', userId)
+    .eq('is_active', true)
+
+  return assignments || []
+}
+
+// Helper function to get teacher's homeroom classes
+async function getTeacherHomeroomClasses(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data: homeroomClasses } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('homeroom_teacher_id', userId)
+
+  return homeroomClasses || []
+}
+
+// Helper function to build teacher target options
+function buildTeacherTargetOptions(
+  assignments: Array<{ class_id: string; classes: unknown }>,
+  homeroomClasses: Array<{ id: string; name: string }>
+): { roles: string[]; classes: { id: string; name: string; grade: string }[] } {
+  const allClasses = new Map<string, { id: string; name: string; grade: string }>()
+
+  // Add assigned classes (subject teacher)
+  assignments.forEach((assignment) => {
+    const classes = assignment.classes as { id: string; name: string; homeroom_teacher_id: string | null }
+    allClasses.set(classes.id, {
+      id: classes.id,
+      name: classes.name,
+      grade: classes.name // Use class name as grade for now
+    })
+  })
+
+  // Add homeroom classes
+  homeroomClasses.forEach((cls) => {
+    allClasses.set(cls.id, {
+      id: cls.id,
+      name: cls.name,
+      grade: cls.name // Use class name as grade for now
+    })
+  })
+
+  const options = {
+    classes: Array.from(allClasses.values()),
+    roles: ['student'] as string[] // All teachers can notify students
+  }
+
+  // If teacher is a homeroom teacher, they can also notify parents
+  if (homeroomClasses.length > 0) {
+    options.roles.push('parent')
+  }
+
+  return options
+}
+
 // Get available target options based on user role
 export async function getNotificationTargetOptions(): Promise<{ success: boolean; data?: { roles: string[]; classes: { id: string; name: string; grade: string }[] }; error?: string }> {
   try {
     const { userId, profile } = await checkNotificationPermissions()
     const supabase = await createClient()
 
-    const options = {
-      roles: [] as string[],
-      classes: [] as { id: string; name: string; grade: string }[]
-    }
+    let options: { roles: string[]; classes: { id: string; name: string; grade: string }[] }
 
     if (profile.role === 'admin') {
-      // Admins can target all roles
-      options.roles = ['teacher', 'student', 'parent']
-      
-      // Get all classes for potential targeting
-      const { data: classes } = await supabase
-        .from('classes')
-        .select('id, name, grade')
-        .eq('is_active', true)
-        .order('grade', { ascending: true })
-        .order('name', { ascending: true })
-      
-      options.classes = classes || []
+      options = await getAdminTargetOptions(supabase)
     } else if (profile.role === 'teacher') {
-      // Get teacher's class assignments to determine what they can target
-      const { data: assignments } = await supabase
-        .from('teacher_class_assignments')
-        .select(`
-          class_id,
-          classes!inner(id, name, homeroom_teacher_id)
-        `)
-        .eq('teacher_id', userId)
-        .eq('is_active', true)
+      const assignments = await getTeacherClassAssignments(supabase, userId)
+      const homeroomClasses = await getTeacherHomeroomClasses(supabase, userId)
 
-      // Also check if teacher is a homeroom teacher for any class
-      const { data: homeroomClasses } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('homeroom_teacher_id', userId)
-
-      if (assignments || homeroomClasses) {
-        const allClasses = new Map<string, { id: string; name: string; grade: string }>()
-
-        // Add assigned classes (subject teacher)
-        if (assignments) {
-          assignments.forEach((a: unknown) => {
-            const assignment = a as { class_id: string; classes: { id: string; name: string; homeroom_teacher_id: string | null } }
-            allClasses.set(assignment.classes.id, {
-              id: assignment.classes.id,
-              name: assignment.classes.name,
-              grade: assignment.classes.name // Use class name as grade for now
-            })
-          })
-        }
-
-        // Add homeroom classes
-        if (homeroomClasses) {
-          homeroomClasses.forEach((cls: { id: string; name: string }) => {
-            allClasses.set(cls.id, {
-              id: cls.id,
-              name: cls.name,
-              grade: cls.name // Use class name as grade for now
-            })
-          })
-        }
-
-        options.classes = Array.from(allClasses.values())
-        options.roles = ['student'] // All teachers can notify students
-
-        // If teacher is a homeroom teacher, they can also notify parents
-        if (homeroomClasses && homeroomClasses.length > 0) {
-          options.roles.push('parent')
-        }
+      if (assignments.length > 0 || homeroomClasses.length > 0) {
+        options = buildTeacherTargetOptions(assignments, homeroomClasses)
+      } else {
+        options = { roles: [], classes: [] }
       }
+    } else {
+      options = { roles: [], classes: [] }
     }
 
     return { success: true, data: options }

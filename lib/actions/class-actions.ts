@@ -330,7 +330,7 @@ export async function getClassesAction(filters?: ClassFilters) {
       .select("id")
       .limit(1)
 
-    if (tableCheckError && tableCheckError.message.includes('relation "classes" does not exist')) {
+    if (tableCheckError?.message?.includes('relation "classes" does not exist')) {
       return {
         success: false,
         error: "Classes table does not exist. Please contact your administrator to set up the database.",

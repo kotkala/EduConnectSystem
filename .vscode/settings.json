@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "educonnect",
+        "projectKey": "kotkala_EduConnectSystem"
+    }
+}

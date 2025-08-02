@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addDays,
   eachDayOfInterval,
@@ -35,10 +35,10 @@ import {
 import { DefaultStartHour } from "@/components/event-calendar/constants";
 
 interface MonthViewProps {
-  currentDate: Date;
-  events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  readonly currentDate: Date;
+  readonly events: CalendarEvent[];
+  readonly onEventSelect: (event: CalendarEvent) => void;
+  readonly onEventCreate: (startTime: Date) => void;
 }
 
 export function MonthView({
@@ -78,10 +78,15 @@ export function MonthView({
     return result;
   }, [days]);
 
-  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEventClick = useCallback((event: CalendarEvent, e: React.MouseEvent) => {
     e.stopPropagation();
     onEventSelect(event);
-  };
+  }, [onEventSelect]);
+
+  // Helper function to create event click handler to avoid nested functions
+  const createEventClickHandler = useCallback((event: CalendarEvent) => {
+    return (e: React.MouseEvent) => handleEventClick(event, e);
+  }, [handleEventClick]);
 
   const [isMounted, setIsMounted] = useState(false);
   const { contentRef, getVisibleEventCount } = useEventVisibility({
@@ -106,9 +111,11 @@ export function MonthView({
         ))}
       </div>
       <div className="grid flex-1 auto-rows-fr">
-        {weeks.map((week, weekIndex) => (
+        {weeks.map((week, weekIndex) => {
+          const weekKey = week.find(day => day)?.toISOString().slice(0, 10) || `week-${weekIndex}`;
+          return (
           <div
-            key={`week-${weekIndex}`}
+            key={weekKey}
             className="grid grid-cols-7 [&:last-child>*]:border-b-0"
           >
             {week.map((day, dayIndex) => {
@@ -174,7 +181,7 @@ export function MonthView({
                               aria-hidden={isHidden ? "true" : undefined}
                             >
                               <EventItem
-                                onClick={(e) => handleEventClick(event, e)}
+                                onClick={createEventClickHandler(event)}
                                 event={event}
                                 view="month"
                                 isFirstDay={isFirstDay}
@@ -205,7 +212,7 @@ export function MonthView({
                             <DraggableEvent
                               event={event}
                               view="month"
-                              onClick={(e) => handleEventClick(event, e)}
+                              onClick={createEventClickHandler(event)}
                               isFirstDay={isFirstDay}
                               isLastDay={isLastDay}
                             />
@@ -249,9 +256,7 @@ export function MonthView({
                                   return (
                                     <EventItem
                                       key={event.id}
-                                      onClick={(e) =>
-                                        handleEventClick(event, e)
-                                      }
+                                      onClick={createEventClickHandler(event)}
                                       event={event}
                                       view="month"
                                       isFirstDay={isFirstDay}
@@ -270,7 +275,8 @@ export function MonthView({
               );
             })}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

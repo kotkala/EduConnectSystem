@@ -3,18 +3,20 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import {
   Bot,
   Send,
-  User,
   Sparkles,
   Copy,
   Share
 } from "lucide-react"
 import { toast } from "sonner"
+
+// Import shared components and utilities to eliminate duplication
+import { ChatAvatar, createMessage, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
 
 interface Message {
   id: string
@@ -29,7 +31,7 @@ interface Message {
 }
 
 interface FullPageChatbotProps {
-  className?: string
+  readonly className?: string
 }
 
 export default function FullPageChatbot({ className }: FullPageChatbotProps) {
@@ -61,12 +63,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputMessage.trim(),
-      timestamp: new Date()
-    }
+    const userMessage = createMessage('user', inputMessage.trim())
 
     setMessages(prev => [...prev, userMessage])
     setInputMessage('')
@@ -93,13 +90,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
       const data = await response.json()
 
       if (data.success) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date(),
-          contextUsed: data.contextUsed
-        }
+        const assistantMessage = createMessage('assistant', data.response, data.contextUsed)
         setMessages(prev => [...prev, assistantMessage])
       } else {
         throw new Error(data.error || 'Failed to get response')
@@ -107,37 +98,15 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
     } catch (error) {
       console.error('Chat error:', error)
       toast.error('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.')
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.',
-        timestamp: new Date()
-      }
+
+      const errorMessage = createMessage('assistant', 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.')
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
-  }
-
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content)
-    toast.success('Đã sao chép tin nhắn')
-  }
 
   // Suggested prompts for parents
   const suggestedPrompts = [
@@ -202,15 +171,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
             {messages.map((message) => (
               <div key={message.id} className="group">
                 <div className="flex items-start space-x-4">
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback className={`${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-green-500 text-white'
-                    }`}>
-                      {message.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ChatAvatar role={message.role} size="sm" />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
@@ -261,11 +222,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
             {/* Loading indicator */}
             {isLoading && (
               <div className="flex items-start space-x-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-green-500 text-white">
-                    <Bot className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
+                <ChatAvatar role="assistant" size="sm" />
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="text-sm font-medium text-gray-900">EduConnect AI</span>
@@ -290,7 +247,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                   ref={inputRef}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyPress={(e) => handleKeyPress(e, sendMessage)}
                   placeholder="Hỏi về tình hình học tập của con em..."
                   disabled={isLoading}
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"

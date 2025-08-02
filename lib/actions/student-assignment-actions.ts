@@ -83,7 +83,8 @@ export async function getAvailableStudentsAction(classId: string, assignmentType
 
     // Apply exclusion filter only if there are assigned students
     if (assignedStudentIds.length > 0) {
-      query = query.not("id", "in", `(${assignedStudentIds.map(id => `"${id}"`).join(',')})`)
+      const quotedIds = assignedStudentIds.map(id => `"${id}"`).join(',')
+      query = query.not("id", "in", `(${quotedIds})`)
     }
 
     const { data: availableStudents, error } = await query

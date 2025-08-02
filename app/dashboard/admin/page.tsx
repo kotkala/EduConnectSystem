@@ -1,7 +1,6 @@
 import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -11,12 +10,12 @@ import {
   Users, Calendar, BarChart3, CheckCircle
 } from 'lucide-react'
 // Animated Counter Component (Simple version without motion)
-function AnimatedCounter({ end }: { end: number }) {
+function AnimatedCounter({ end }: { readonly end: number }) {
   return <span className="transition-all duration-500">{end}</span>
 }
 
 // Trend Indicator Component
-function TrendIndicator({ value, isPositive }: { value: number; isPositive: boolean }) {
+function TrendIndicator({ value, isPositive }: { readonly value: number; readonly isPositive: boolean }) {
   const Icon = isPositive ? TrendingUp : TrendingDown
   const colorClass = isPositive ? 'text-emerald-600' : 'text-red-600'
 
@@ -35,14 +34,15 @@ function QuickActionCard({
   description,
   onClick
 }: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-  onClick?: () => void
+  readonly icon: React.ComponentType<{ className?: string }>;
+  readonly title: string;
+  readonly description: string;
+  readonly onClick?: () => void
 }) {
   return (
-    <div
-      className="cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+    <button
+      type="button"
+      className="cursor-pointer hover:scale-[1.02] transition-transform duration-200 w-full text-left"
       onClick={onClick}
     >
       <Card className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
@@ -56,7 +56,7 @@ function QuickActionCard({
           </div>
         </div>
       </Card>
-    </div>
+    </button>
   )
 }
 
@@ -220,11 +220,15 @@ export default async function AdminDashboard() {
 
   // Get current time for greeting
   const currentHour = new Date().getHours()
-  const greeting = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening'
+  let greeting = 'Good evening'
+  if (currentHour < 12) {
+    greeting = 'Good morning'
+  } else if (currentHour < 18) {
+    greeting = 'Good afternoon'
+  }
 
   return (
-    <SidebarLayout role="admin" title="Admin Dashboard">
-      <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-6 lg:space-y-8 p-6">
         {/* Enhanced Header */}
         <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
@@ -424,7 +428,7 @@ export default async function AdminDashboard() {
 
                   return (
                     <div
-                      key={index}
+                      key={`${activity.full_name}-${activity.updated_at}-${index}`}
                       className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-left-4 duration-500"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
@@ -470,7 +474,7 @@ export default async function AdminDashboard() {
 
                   return (
                     <div
-                      key={index}
+                      key={`${meeting.title}-${meeting.meeting_date}-${index}`}
                       className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-right-4 duration-500"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
@@ -495,6 +499,5 @@ export default async function AdminDashboard() {
           </Card>
         </div>
       </div>
-    </SidebarLayout>
   )
 }

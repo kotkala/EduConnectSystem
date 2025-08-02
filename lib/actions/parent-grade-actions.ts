@@ -1,33 +1,12 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-
-// Helper function to check parent permissions
-async function checkParentPermissions() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    throw new Error("Authentication required")
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'parent') {
-    throw new Error("Parent access required")
-  }
-
-  return { user, profile }
-}
+import { checkParentPermissions, checkParentStudentAccess } from '@/lib/utils/permission-utils'
 
 // Get children's grade reports for parent
 export async function getChildrenGradeReportsAction() {
   try {
-    const { user } = await checkParentPermissions()
+    const { userId } = await checkParentPermissions()
     const supabase = await createClient()
 
     // Get all children of this parent
@@ -41,7 +20,7 @@ export async function getChildrenGradeReportsAction() {
           email
         )
       `)
-      .eq('parent_id', user.id)
+      .eq('parent_id', userId)
 
     if (childrenError) {
       return {
@@ -112,7 +91,7 @@ export async function getChildrenGradeReportsAction() {
 // Get detailed grades for a specific submission
 export async function getStudentGradeDetailAction(submissionId: string) {
   try {
-    const { user } = await checkParentPermissions()
+    const { userId } = await checkParentPermissions()
     const supabase = await createClient()
 
     // First verify parent has access to this submission
@@ -137,14 +116,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     }
 
     // Check if parent has access to this student
-    const { data: relationship, error: relationshipError } = await supabase
-      .from('parent_student_relationships')
-      .select('id')
-      .eq('parent_id', user.id)
-      .eq('student_id', submission.student_id)
-      .single()
-
-    if (relationshipError || !relationship) {
+    try {
+      await checkParentStudentAccess(userId, submission.student_id)
+    } catch {
       return {
         success: false,
         error: "Bạn không có quyền xem bảng điểm này"

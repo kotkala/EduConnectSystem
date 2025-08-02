@@ -205,11 +205,98 @@ function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
   }
 }
 
-// Create Excel file for class grade summary
-export function createClassSummaryExcel(data: ClassSummaryData): ArrayBuffer {
-  const workbook = XLSX.utils.book_new();
+// Helper function to create individual student worksheet data
+function createStudentWorksheetData(student: StudentGradeData, classData: ClassSummaryData): (string | number)[][] {
+  const studentWorksheetData: (string | number)[][] = [];
 
-  // Create main worksheet data
+  // Student header
+  studentWorksheetData.push([
+    `BẢNG ĐIỂM CÁ NHÂN`,
+    '', '', '', ''
+  ]);
+  studentWorksheetData.push([
+    `Học sinh: ${student.studentName} (${student.studentCode})`,
+    '', '', '', ''
+  ]);
+  studentWorksheetData.push([
+    `Lớp: ${classData.className}`,
+    '', '', '', ''
+  ]);
+  studentWorksheetData.push([
+    `Năm học: ${classData.academicYear} - ${classData.semester}`,
+    '', '', '', ''
+  ]);
+  studentWorksheetData.push([]); // Empty row
+
+  // Subject headers
+  studentWorksheetData.push([
+    'STT',
+    'Môn học',
+    'Điểm giữa kì',
+    'Điểm cuối kì',
+    'Điểm trung bình'
+  ]);
+
+  // Subject rows
+  student.subjects.forEach((subject, subjectIndex) => {
+    studentWorksheetData.push([
+      subjectIndex + 1,
+      subject.subjectName,
+      subject.midtermGrade || '',
+      subject.finalGrade || '',
+      subject.averageGrade || ''
+    ]);
+  });
+
+  // Overall average and rank
+  studentWorksheetData.push([]);
+  studentWorksheetData.push([
+    '',
+    'ĐIỂM TRUNG BÌNH TỔNG KẾT',
+    '',
+    '',
+    student.averageGrade || ''
+  ]);
+  studentWorksheetData.push([
+    '',
+    'XẾP HẠNG LỚP',
+    '',
+    '',
+    student.rank || ''
+  ]);
+
+  return studentWorksheetData;
+}
+
+// Helper function to create individual student worksheet
+function createStudentWorksheet(student: StudentGradeData, classData: ClassSummaryData): XLSX.WorkSheet {
+  const studentWorksheetData = createStudentWorksheetData(student, classData);
+  const studentWorksheet = XLSX.utils.aoa_to_sheet(studentWorksheetData);
+
+  studentWorksheet['!cols'] = [
+    { wch: 5 },  // STT
+    { wch: 25 }, // Môn học
+    { wch: 15 }, // Điểm giữa kì
+    { wch: 15 }, // Điểm cuối kì
+    { wch: 18 }  // Điểm trung bình
+  ];
+
+  return studentWorksheet;
+}
+
+// Helper function to add individual student sheets to workbook
+function addStudentSheetsToWorkbook(workbook: XLSX.WorkBook, data: ClassSummaryData): void {
+  const maxStudentSheets = 10; // Limit to avoid too many sheets
+
+  data.students.slice(0, maxStudentSheets).forEach((student) => {
+    const studentWorksheet = createStudentWorksheet(student, data);
+    const sheetName = `${student.studentCode}_${student.studentName}`.substring(0, 31); // Excel sheet name limit
+    XLSX.utils.book_append_sheet(workbook, studentWorksheet, sheetName);
+  });
+}
+
+// Helper function to create main summary worksheet
+function createMainSummaryWorksheet(data: ClassSummaryData): XLSX.WorkSheet {
   const worksheetData: (string | number)[][] = [];
 
   // Add header rows
@@ -223,7 +310,7 @@ export function createClassSummaryExcel(data: ClassSummaryData): ArrayBuffer {
   // Add student rows
   const studentRows = createStudentRows(data.students, subjectList);
   worksheetData.push(...studentRows);
-  
+
   // Create worksheet
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
@@ -235,87 +322,23 @@ export function createClassSummaryExcel(data: ClassSummaryData): ArrayBuffer {
 
   // Apply styles
   applyWorksheetStyles(worksheet);
-  
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm tổng hợp')
-  
-  // Create individual sheets for each student
-  data.students.forEach((student, index) => {
-    if (index >= 10) return // Limit to first 10 students to avoid too many sheets
-    
-    const studentWorksheetData: (string | number)[][] = []
-    
-    // Student header
-    studentWorksheetData.push([
-      `BẢNG ĐIỂM CÁ NHÂN`,
-      '', '', '', ''
-    ])
-    studentWorksheetData.push([
-      `Học sinh: ${student.studentName} (${student.studentCode})`,
-      '', '', '', ''
-    ])
-    studentWorksheetData.push([
-      `Lớp: ${data.className}`,
-      '', '', '', ''
-    ])
-    studentWorksheetData.push([
-      `Năm học: ${data.academicYear} - ${data.semester}`,
-      '', '', '', ''
-    ])
-    studentWorksheetData.push([]) // Empty row
-    
-    // Subject headers
-    studentWorksheetData.push([
-      'STT',
-      'Môn học',
-      'Điểm giữa kì',
-      'Điểm cuối kì',
-      'Điểm trung bình'
-    ])
-    
-    // Subject rows
-    student.subjects.forEach((subject, subjectIndex) => {
-      studentWorksheetData.push([
-        subjectIndex + 1,
-        subject.subjectName,
-        subject.midtermGrade || '',
-        subject.finalGrade || '',
-        subject.averageGrade || ''
-      ])
-    })
-    
-    // Overall average
-    studentWorksheetData.push([])
-    studentWorksheetData.push([
-      '',
-      'ĐIỂM TRUNG BÌNH TỔNG KẾT',
-      '',
-      '',
-      student.averageGrade || ''
-    ])
-    studentWorksheetData.push([
-      '',
-      'XẾP HẠNG LỚP',
-      '',
-      '',
-      student.rank || ''
-    ])
-    
-    const studentWorksheet = XLSX.utils.aoa_to_sheet(studentWorksheetData)
-    studentWorksheet['!cols'] = [
-      { wch: 5 },  // STT
-      { wch: 25 }, // Môn học
-      { wch: 15 }, // Điểm giữa kì
-      { wch: 15 }, // Điểm cuối kì
-      { wch: 18 }  // Điểm trung bình
-    ]
-    
-    const sheetName = `${student.studentCode}_${student.studentName}`.substring(0, 31) // Excel sheet name limit
-    XLSX.utils.book_append_sheet(workbook, studentWorksheet, sheetName)
-  })
-  
+
+  return worksheet;
+}
+
+// Create Excel file for class grade summary
+export function createClassSummaryExcel(data: ClassSummaryData): ArrayBuffer {
+  const workbook = XLSX.utils.book_new();
+
+  // Create and add main summary worksheet
+  const mainWorksheet = createMainSummaryWorksheet(data);
+  XLSX.utils.book_append_sheet(workbook, mainWorksheet, 'Bảng điểm tổng hợp');
+
+  // Add individual student sheets
+  addStudentSheetsToWorkbook(workbook, data);
+
   // Convert to array buffer
-  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
 }
 
 // Download file helper

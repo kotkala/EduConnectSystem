@@ -334,11 +334,18 @@ export function parseIndividualGradeExcel(file: ArrayBuffer, expectedSubjects: S
     }
 
     // Convert to JSON, starting from row 8 (after headers, column titles, and separator)
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+    const rawData = XLSX.utils.sheet_to_json(worksheet, {
       range: 7, // Start from row 8 (0-indexed) to skip headers, column titles, and separator
       header: 1,
       defval: ''
-    }) as Record<string, string | number>[]
+    })
+
+    // Type guard to ensure proper typing
+    const jsonData: Record<string, string | number>[] = Array.isArray(rawData)
+      ? rawData.filter((row): row is Record<string, string | number> =>
+          typeof row === 'object' && row !== null
+        )
+      : []
 
     const gradeData: IndividualGradeData[] = []
     const errors: string[] = []

@@ -50,7 +50,135 @@ const statusConfig = {
   }
 }
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+// Extracted RequestCard component
+const RequestCard = ({
+  request,
+  onApprove,
+  onReject
+}: {
+  request: ScheduleExchangeRequestDetailed
+  onApprove: (request: ScheduleExchangeRequestDetailed) => void
+  onReject: (request: ScheduleExchangeRequestDetailed) => void
+}) => {
+  const config = statusConfig[request.status]
+  const StatusIcon = config.icon
+
+  const dayNames: Record<number, string> = {
+    1: "Monday", 2: "Tuesday", 3: "Wednesday",
+    4: "Thursday", 5: "Friday", 6: "Saturday", 7: "Sunday"
+  }
+
+  return (
+    <Card key={request.id}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant={config.variant} className="flex items-center gap-1">
+                <StatusIcon className="h-3 w-3" />
+                {config.label}
+              </Badge>
+              <span className="text-sm font-medium">
+                {request.requester_name} → {request.target_name}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Submitted {format(new Date(request.created_at), 'PPp')}
+            </p>
+          </div>
+          {request.status === 'pending' && (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onApprove(request)}
+                className="text-green-600 hover:text-green-700"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onReject(request)}
+                className="text-red-600 hover:text-red-700"
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Reject
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Teaching Slot Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <strong>Subject:</strong> {request.subject_code} - {request.subject_name}
+          </div>
+          <div>
+            <strong>Class:</strong> {request.class_name}
+          </div>
+          <div>
+            <strong>Time:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
+          </div>
+          <div>
+            <strong>Classroom:</strong> {request.classroom_name}
+          </div>
+          <div>
+            <strong>Week:</strong> {request.week_number}
+          </div>
+          <div>
+            <strong>Exchange Date:</strong> {format(new Date(request.exchange_date), 'PPP')}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Teacher Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <strong>Requesting Teacher:</strong>
+            <p className="text-muted-foreground">{request.requester_name} ({request.requester_email})</p>
+          </div>
+          <div>
+            <strong>Substitute Teacher:</strong>
+            <p className="text-muted-foreground">{request.target_name} ({request.target_email})</p>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Reason */}
+        <div>
+          <strong className="text-sm">Reason:</strong>
+          <p className="text-sm text-muted-foreground mt-1">{request.reason}</p>
+        </div>
+
+        {/* Admin Response */}
+        {request.admin_response && (
+          <>
+            <Separator />
+            <div>
+              <strong className="text-sm">Admin Response:</strong>
+              <p className="text-sm text-muted-foreground mt-1">{request.admin_response}</p>
+            </div>
+          </>
+        )}
+
+        {/* Status Info */}
+        {request.approved_at && (
+          <div className="text-xs text-muted-foreground pt-2">
+            {request.status === 'approved' ? 'Approved' : 'Rejected'} on {format(new Date(request.approved_at), 'PPp')}
+            {request.approved_by_name && ` by ${request.approved_by_name}`}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+
 
 export function ExchangeRequestsManagement() {
   const [requests, setRequests] = useState<ScheduleExchangeRequestDetailed[]>([])
@@ -144,119 +272,7 @@ export function ExchangeRequestsManagement() {
     return requests.filter(req => req.status === status)
   }
 
-  const RequestCard = ({ request }: { request: ScheduleExchangeRequestDetailed }) => {
-    const config = statusConfig[request.status]
-    const StatusIcon = config.icon
 
-    return (
-      <Card key={request.id}>
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Badge variant={config.variant} className="flex items-center gap-1">
-                  <StatusIcon className="h-3 w-3" />
-                  {config.label}
-                </Badge>
-                <span className="text-sm font-medium">
-                  {request.requester_name} → {request.target_name}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Submitted {format(new Date(request.created_at), 'PPp')}
-              </p>
-            </div>
-            {request.status === 'pending' && (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openActionDialog(request, 'approve')}
-                  className="text-green-600 hover:text-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => openActionDialog(request, 'reject')}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Reject
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Teaching Slot Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>Subject:</strong> {request.subject_code} - {request.subject_name}
-            </div>
-            <div>
-              <strong>Class:</strong> {request.class_name}
-            </div>
-            <div>
-              <strong>Time:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
-            </div>
-            <div>
-              <strong>Classroom:</strong> {request.classroom_name}
-            </div>
-            <div>
-              <strong>Week:</strong> {request.week_number}
-            </div>
-            <div>
-              <strong>Exchange Date:</strong> {format(new Date(request.exchange_date), 'PPP')}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Teacher Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>Requesting Teacher:</strong>
-              <p className="text-muted-foreground">{request.requester_name} ({request.requester_email})</p>
-            </div>
-            <div>
-              <strong>Substitute Teacher:</strong>
-              <p className="text-muted-foreground">{request.target_name} ({request.target_email})</p>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Reason */}
-          <div>
-            <strong className="text-sm">Reason:</strong>
-            <p className="text-sm text-muted-foreground mt-1">{request.reason}</p>
-          </div>
-
-          {/* Admin Response */}
-          {request.admin_response && (
-            <>
-              <Separator />
-              <div>
-                <strong className="text-sm">Admin Response:</strong>
-                <p className="text-sm text-muted-foreground mt-1">{request.admin_response}</p>
-              </div>
-            </>
-          )}
-
-          {/* Status Info */}
-          {request.approved_at && (
-            <div className="text-xs text-muted-foreground pt-2">
-              {request.status === 'approved' ? 'Approved' : 'Rejected'} on {format(new Date(request.approved_at), 'PPp')}
-              {request.approved_by_name && ` by ${request.approved_by_name}`}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    )
-  }
 
   if (loading) {
     return (
@@ -323,7 +339,12 @@ export function ExchangeRequestsManagement() {
                 </Alert>
               ) : (
                 pendingRequests.map(request => (
-                  <RequestCard key={request.id} request={request} />
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    onApprove={(req) => openActionDialog(req, 'approve')}
+                    onReject={(req) => openActionDialog(req, 'reject')}
+                  />
                 ))
               )}
             </TabsContent>
@@ -337,7 +358,12 @@ export function ExchangeRequestsManagement() {
                 </Alert>
               ) : (
                 approvedRequests.map(request => (
-                  <RequestCard key={request.id} request={request} />
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    onApprove={(req) => openActionDialog(req, 'approve')}
+                    onReject={(req) => openActionDialog(req, 'reject')}
+                  />
                 ))
               )}
             </TabsContent>
@@ -351,7 +377,12 @@ export function ExchangeRequestsManagement() {
                 </Alert>
               ) : (
                 rejectedRequests.map(request => (
-                  <RequestCard key={request.id} request={request} />
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    onApprove={(req) => openActionDialog(req, 'approve')}
+                    onReject={(req) => openActionDialog(req, 'reject')}
+                  />
                 ))
               )}
             </TabsContent>
@@ -392,7 +423,9 @@ export function ExchangeRequestsManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Response Message {actionType === 'reject' ? '(Required)' : '(Optional)'}
+                          Response Message {(() => {
+                            return actionType === 'reject' ? '(Required)' : '(Optional)'
+                          })()}
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -424,7 +457,10 @@ export function ExchangeRequestsManagement() {
                       variant={actionType === 'approve' ? 'default' : 'destructive'}
                       disabled={processing}
                     >
-                      {processing ? 'Processing...' : (actionType === 'approve' ? 'Approve' : 'Reject')}
+                      {(() => {
+                        if (processing) return 'Processing...'
+                        return actionType === 'approve' ? 'Approve' : 'Reject'
+                      })()}
                     </Button>
                   </DialogFooter>
                 </form>

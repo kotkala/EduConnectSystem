@@ -61,7 +61,12 @@ function studySlotToCalendarEvent(slot: StudySlot & {
   return {
     id: slot.id || `temp-${Date.now()}`,
     title: `${slot.subject_code || 'Subject'} - ${slot.subject_name || ''}`,
-    description: `Teacher: ${slot.teacher_name || 'TBD'}\nRoom: ${slot.classroom_name || 'TBD'}${slot.notes ? `\nNotes: ${slot.notes}` : ''}`,
+    description: (() => {
+      const teacherInfo = `Teacher: ${slot.teacher_name || 'TBD'}`
+      const roomInfo = `Room: ${slot.classroom_name || 'TBD'}`
+      const notesInfo = slot.notes ? `\nNotes: ${slot.notes}` : ''
+      return `${teacherInfo}\n${roomInfo}${notesInfo}`
+    })(),
     start: startDate,
     end: endDate,
     allDay: false,
@@ -74,7 +79,7 @@ function studySlotToCalendarEvent(slot: StudySlot & {
 const isValidUUID = (value: string): boolean => {
   if (!value || value === "") return false; // Empty string is not valid
   try {
-    z.string().uuid().parse(value);
+    z.string().uuid("Invalid UUID format").parse(value);
     return true;
   } catch {
     return false;
@@ -227,7 +232,7 @@ export default function TimetableCalendar() {
   const handleEventUpdate = async (event: CalendarEvent) => {
     // This is handled through drag and drop
     const slot = calendarEventToStudySlot(event);
-    if (!slot || !slot.id) return;
+    if (!slot?.id) return;
 
     const updatedSlot = {
       id: slot.id,

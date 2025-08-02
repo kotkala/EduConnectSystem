@@ -6,12 +6,12 @@ import { cn } from "@/lib/utils";
 import { useCalendarDnd } from "@/components/event-calendar";
 
 interface DroppableCellProps {
-  id: string;
-  date: Date;
-  time?: number; // For week/day views, represents hours (e.g., 9.25 for 9:15)
-  children?: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
+  readonly id: string;
+  readonly date: Date;
+  readonly time?: number; // For week/day views, represents hours (e.g., 9.25 for 9:15)
+  readonly children?: React.ReactNode;
+  readonly className?: string;
+  readonly onClick?: () => void;
 }
 
 export function DroppableCell({
@@ -40,10 +40,32 @@ export function DroppableCell({
           .padStart(2, "0")}`
       : null;
 
+  if (onClick) {
+    return (
+      <button
+        ref={setNodeRef}
+        onClick={onClick}
+        type="button"
+        className={cn(
+          "data-dragging:bg-accent flex h-full w-full flex-col px-0.5 py-1 sm:px-1 border-0 bg-transparent text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1",
+          className,
+        )}
+        title={formattedTime ? `${formattedTime}` : undefined}
+        data-dragging={isOver && activeEvent ? true : undefined}
+        aria-label={(() => {
+          const baseLabel = 'Calendar cell'
+          const timeLabel = formattedTime ? ` at ${formattedTime}` : ''
+          return `${baseLabel}${timeLabel}`
+        })()}
+      >
+        {children}
+      </button>
+    );
+  }
+
   return (
     <div
       ref={setNodeRef}
-      onClick={onClick}
       className={cn(
         "data-dragging:bg-accent flex h-full flex-col px-0.5 py-1 sm:px-1",
         className,

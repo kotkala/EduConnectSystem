@@ -25,10 +25,10 @@ import { StartHour, EndHour } from "@/components/event-calendar/constants";
 import { cn } from "@/lib/utils";
 
 interface WeekViewProps {
-  currentDate: Date;
-  events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  readonly currentDate: Date;
+  readonly events: CalendarEvent[];
+  readonly onEventSelect: (event: CalendarEvent) => void;
+  readonly onEventCreate: (startTime: Date) => void;
 }
 
 interface PositionedEvent {
@@ -175,9 +175,9 @@ export function WeekView({
                   style={{ height: WeekCellsHeight }}
                 />
               ))}
-              {weekDays.map((_, index) => (
+              {weekDays.map((day, index) => (
                 <div
-                  key={index}
+                  key={`divider-${day.toISOString()}`}
                   className="absolute top-0 bottom-0 border-r border-border/50"
                   style={{ left: `${(index / 7) * 100}%` }}
                 />
@@ -190,20 +190,20 @@ export function WeekView({
                 hours.map((hour) => (
                   <div
                     key={`${day.toISOString()}-${hour.getTime()}`}
-                    className="absolute border border-transparent hover:bg-muted/50 cursor-pointer"
+                    className="absolute border border-transparent"
                     style={{
                       left: `${(dayIndex / 7) * 100}%`,
                       top: (getHours(hour) - StartHour) * WeekCellsHeight,
                       width: `${100 / 7}%`,
                       height: WeekCellsHeight,
                     }}
-                    onClick={() => handleCellClick(new Date(day.getFullYear(), day.getMonth(), day.getDate(), getHours(hour)), getHours(hour))}
                   >
                     <DroppableCell
                       id={`${day.toISOString()}-${hour.getTime()}`}
                       date={new Date(day.getFullYear(), day.getMonth(), day.getDate(), getHours(hour))}
                       time={getHours(hour) + getMinutes(hour) / 60}
-                      className="h-full w-full"
+                      className="h-full w-full hover:bg-muted/50"
+                      onClick={() => handleCellClick(new Date(day.getFullYear(), day.getMonth(), day.getDate(), getHours(hour)), getHours(hour))}
                     />
                   </div>
                 ))

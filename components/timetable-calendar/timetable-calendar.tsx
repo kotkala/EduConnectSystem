@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { format, addMinutes } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { z } from "zod";
+
 
 import {
   type CalendarEvent,
@@ -78,12 +78,9 @@ function studySlotToCalendarEvent(slot: StudySlot & {
 // UUID validation function using Zod
 const isValidUUID = (value: string): boolean => {
   if (!value || value === "") return false; // Empty string is not valid
-  try {
-    z.string().uuid("Invalid UUID format").parse(value);
-    return true;
-  } catch {
-    return false;
-  }
+  // UUID v4 regex pattern
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
 };
 
 // Check if filter has valid values for creating study slots

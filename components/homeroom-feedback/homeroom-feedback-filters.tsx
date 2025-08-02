@@ -40,8 +40,8 @@ interface WeekOption {
 }
 
 interface HomeroomFeedbackFiltersProps {
-  filters: FiltersType
-  onFiltersChange: (filters: FiltersType) => void
+  readonly filters: FiltersType
+  readonly onFiltersChange: (filters: FiltersType) => void
 }
 
 export function HomeroomFeedbackFilters({
@@ -177,13 +177,14 @@ export function HomeroomFeedbackFilters({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Academic Year Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Năm Học</label>
+            <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
             <Select
               value={filters.academic_year_id || ""}
               onValueChange={(value) => handleFilterChange('academic_year_id', value)}
               disabled={isLoadingData}
+              name="academic-year-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="academic-year-select">
                 <SelectValue placeholder="Chọn năm học" />
               </SelectTrigger>
               <SelectContent>
@@ -198,13 +199,14 @@ export function HomeroomFeedbackFilters({
 
           {/* Semester Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Học Kỳ</label>
+            <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
             <Select
               value={filters.semester_id || ""}
               onValueChange={(value) => handleFilterChange('semester_id', value)}
               disabled={!filters.academic_year_id || semesters.length === 0}
+              name="semester-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="semester-select">
                 <SelectValue placeholder="Chọn học kỳ" />
               </SelectTrigger>
               <SelectContent>
@@ -219,13 +221,14 @@ export function HomeroomFeedbackFilters({
 
           {/* Study Week Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Tuần Học</label>
+            <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
             <Select
               value={filters.week_number?.toString() || ""}
               onValueChange={(value) => handleFilterChange('week_number', parseInt(value))}
               disabled={!filters.semester_id || weekOptions.length === 0}
+              name="week-select"
             >
-              <SelectTrigger>
+              <SelectTrigger id="week-select">
                 <SelectValue placeholder="Chọn tuần" />
               </SelectTrigger>
               <SelectContent>

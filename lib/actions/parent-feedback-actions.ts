@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
+import { checkParentPermissions } from "@/lib/utils/permission-utils"
 
 export interface ParentFeedbackFilters {
   academic_year_id: string
@@ -56,27 +57,7 @@ interface ParentFeedbackViewData {
   ai_generated_at: string | null
 }
 
-// Check if user is a parent
-async function checkParentPermissions() {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error("Authentication required")
-  }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'parent') {
-    throw new Error("Access denied. Parent role required.")
-  }
-
-  return { userId: user.id }
-}
 
 // Get list of children for parent dropdown
 export async function getParentChildrenAction(): Promise<{

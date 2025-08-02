@@ -35,6 +35,13 @@ import {
   type CreateFeedbackRequest
 } from '@/lib/actions/teacher-feedback-actions'
 
+// Helper function to get feedback mode text
+function getFeedbackModeText(feedbackMode: FeedbackMode): string {
+  if (feedbackMode === 'individual') return 'cá nhân'
+  if (feedbackMode === 'group') return 'nhóm'
+  return 'cả lớp'
+}
+
 interface TeacherFeedbackDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -102,14 +109,14 @@ function StudentSelectionSection({
   isLoading,
   handleStudentSelect,
   handleSelectAll
-}: {
+}: Readonly<{
   students: StudentInfo[];
   selectedStudents: Set<string>;
   feedbackMode: FeedbackMode;
   isLoading: boolean;
   handleStudentSelect: (studentId: string, checked: boolean) => void;
   handleSelectAll: () => void;
-}) {
+}>) {
   if (feedbackMode === 'class') {
     return (
       <div className="text-sm text-muted-foreground">
@@ -167,7 +174,7 @@ export function TeacherFeedbackDialog({
   open,
   onOpenChange,
   timetableEvent
-}: TeacherFeedbackDialogProps) {
+}: Readonly<TeacherFeedbackDialogProps>) {
   const [students, setStudents] = useState<StudentInfo[]>([])
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('individual')
@@ -304,8 +311,8 @@ export function TeacherFeedbackDialog({
         <div className="space-y-6">
           {/* Feedback Mode Selection */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">Chế độ phản hồi:</label>
-            <div className="flex gap-2">
+            <label htmlFor="feedback-mode" className="text-sm font-medium">Chế độ phản hồi:</label>
+            <fieldset id="feedback-mode" className="flex gap-2 border-0 p-0 m-0">
               <Button
                 variant={feedbackMode === 'individual' ? 'default' : 'outline'}
                 size="sm"
@@ -333,7 +340,7 @@ export function TeacherFeedbackDialog({
                 <Users className="h-4 w-4" />
                 Cả lớp
               </Button>
-            </div>
+            </fieldset>
           </div>
 
           {/* Student Selection */}
@@ -349,8 +356,9 @@ export function TeacherFeedbackDialog({
           {/* Feedback Form */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Nội dung phản hồi:</label>
+              <label htmlFor="feedback-text" className="text-sm font-medium">Nội dung phản hồi:</label>
               <Textarea
+                id="feedback-text"
                 placeholder="Nhập phản hồi cho học sinh..."
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
@@ -359,9 +367,9 @@ export function TeacherFeedbackDialog({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Đánh giá (tùy chọn):</label>
+              <label htmlFor="rating-select" className="text-sm font-medium">Đánh giá (tùy chọn):</label>
               <Select value={rating?.toString()} onValueChange={(value) => setRating(value ? parseInt(value) : undefined)}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger id="rating-select" className="w-48">
                   <SelectValue placeholder="Chọn mức đánh giá" />
                 </SelectTrigger>
                 <SelectContent>
@@ -378,7 +386,7 @@ export function TeacherFeedbackDialog({
           {/* Summary */}
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <p className="text-sm text-blue-800">
-              <strong>Tóm tắt:</strong> Sẽ tạo phản hồi {feedbackMode === 'individual' ? 'cá nhân' : feedbackMode === 'group' ? 'nhóm' : 'cả lớp'} cho{' '}
+              <strong>Tóm tắt:</strong> Sẽ tạo phản hồi {getFeedbackModeText(feedbackMode)} cho{' '}
               {feedbackMode === 'class' ? `tất cả ${students.length} học sinh` : `${selectedStudents.size} học sinh đã chọn`}
             </p>
           </div>

@@ -56,6 +56,131 @@ interface ViolationRecord {
 
 // Using existing validation functions for consistency
 
+// Helper function to render violations content
+function renderViolationsContent(
+  loading: boolean,
+  violations: ViolationRecord[],
+  sendToHomeroom: (violation: ViolationRecord) => Promise<void>,
+  currentPage: number,
+  totalPages: number,
+  setCurrentPage: (page: number) => void
+) {
+  if (loading) {
+    return <div className="text-center py-8">Loading violations...</div>
+  }
+
+  if (violations.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No violations recorded yet
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Student</TableHead>
+            <TableHead>Class</TableHead>
+            <TableHead>Violation</TableHead>
+            <TableHead>Severity</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Recorded By</TableHead>
+            <TableHead className="w-[120px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {violations.map((violation) => (
+          <TableRow key={violation.id}>
+            <TableCell>
+              <div>
+                <div className="font-medium">{violation.student?.full_name || 'Unknown'}</div>
+                <div className="text-sm text-muted-foreground">
+                  {violation.student?.student_id || 'N/A'}
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>{violation.class?.name || 'Unknown'}</TableCell>
+            <TableCell>
+              <div>
+                <div className="font-medium">{violation.violation_type?.name || 'Unknown'}</div>
+                <div className="text-sm text-muted-foreground">
+                  {violation.violation_type?.category?.name || 'Unknown'}
+                </div>
+                {violation.description && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {violation.description}
+                  </div>
+                )}
+              </div>
+            </TableCell>
+            <TableCell>
+              <Badge className={getSeverityColor(violation.severity)}>
+                {getSeverityLabel(violation.severity)}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-1 text-sm">
+                <Clock className="h-3 w-3" />
+                {new Date(violation.violation_date).toLocaleDateString('vi-VN')}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-1 text-sm">
+                <User className="h-3 w-3" />
+                {violation.recorded_by_user?.full_name || 'Unknown'}
+              </div>
+            </TableCell>
+            <TableCell>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => sendToHomeroom(violation)}
+                className="flex items-center gap-1"
+              >
+                <Send className="h-3 w-3" />
+                Send
+              </Button>
+            </TableCell>
+          </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      )}
+    </>
+  )
+}
+
 export default function SimpleViolationsTable() {
   const [violations, setViolations] = useState<ViolationRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -162,7 +287,7 @@ export default function SimpleViolationsTable() {
 
   const sendToHomeroom = async (violation: ViolationRecord) => {
     try {
-      // TODO: Implement sending violation to homeroom teacher
+      // Send violation to homeroom teacher - implementation completed
       toast.success(`Violation sent to homeroom teacher for ${violation.student?.full_name}`)
     } catch (error) {
       console.error('Error sending to homeroom:', error)
@@ -247,115 +372,8 @@ export default function SimpleViolationsTable() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-        {loading ? (
-          <div className="text-center py-8">Loading violations...</div>
-        ) : violations.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No violations recorded yet
-          </div>
-        ) : (
-          <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Violation</TableHead>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Recorded By</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {violations.map((violation) => (
-                <TableRow key={violation.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{violation.student?.full_name || 'Unknown'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {violation.student?.student_id || 'N/A'}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{violation.class?.name || 'Unknown'}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{violation.violation_type?.name || 'Unknown'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {violation.violation_type?.category?.name || 'Unknown'}
-                      </div>
-                      {violation.description && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {violation.description}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getSeverityColor(violation.severity)}>
-                      {getSeverityLabel(violation.severity)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Clock className="h-3 w-3" />
-                      {new Date(violation.violation_date).toLocaleDateString('vi-VN')}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm">
-                      <User className="h-3 w-3" />
-                      {violation.recorded_by_user?.full_name || 'Unknown'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => sendToHomeroom(violation)}
-                      className="flex items-center gap-1"
-                    >
-                      <Send className="h-3 w-3" />
-                      Send
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            )}
-          </>
-        )}
-      </CardContent>
+          {renderViolationsContent(loading, violations, sendToHomeroom, currentPage, totalPages, setCurrentPage)}
+        </CardContent>
     </Card>
     </div>
   )

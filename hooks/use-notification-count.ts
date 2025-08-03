@@ -17,29 +17,8 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
   const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  // Helper function to check if notification targets the user
-  const isNotificationForUser = (notification: any, profile: any, userId: string) => {
-    // Direct notification: check recipient_id
-    if (notification.recipient_id === userId) {
-      return true
-    }
 
-    // Broadcast notification: check target_roles and target_classes
-    if (notification.target_roles?.includes(profile.role)) {
-      // If no target_classes specified, or user's class is included
-      if (!notification.target_classes?.length ||
-          (profile.class_id && notification.target_classes.includes(profile.class_id))) {
-        return true
-      }
-    }
 
-    return false
-  }
-
-  // Helper function to check if notification is unread for the user
-  const isNotificationUnread = (notification: any, userId: string) => {
-    return !notification.notification_reads.some((read: { user_id: string }) => read.user_id === userId)
-  }
 
   useEffect(() => {
     if (!userId) {

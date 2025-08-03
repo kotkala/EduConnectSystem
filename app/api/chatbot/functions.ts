@@ -752,6 +752,76 @@ async function getAcademicAnalysis(supabase: Awaited<ReturnType<typeof createCli
   }
 }
 
+// Helper functions for getProgressTrends to reduce cognitive complexity
+async function processMetricData(
+  metric: string,
+  studentId: string,
+  range: { start: Date; end: Date; label: string },
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<Record<string, unknown>> {
+  const periodData: Record<string, unknown> = {
+    period: range.label,
+    start_date: range.start.toISOString(),
+    end_date: range.end.toISOString()
+  }
+
+  if (metric === 'grades' || metric === 'overall') {
+    periodData.grades = await fetchGradesForPeriod(supabase, studentId, range)
+  }
+
+  if (metric === 'behavior' || metric === 'overall') {
+    periodData.behavior = await fetchBehaviorForPeriod(supabase, studentId, range)
+  }
+
+  if (metric === 'attendance' || metric === 'overall') {
+    periodData.attendance = processAttendanceForPeriod()
+  }
+
+  return periodData
+}
+
+function buildTrendAnalysis(metric: string, trends: Record<string, unknown>[]): Record<string, unknown> {
+  const trendAnalysis: Record<string, unknown> = {}
+
+  if (metric === 'grades' || metric === 'overall') {
+    const gradeTrends = calculateGradeTrends(trends)
+    if (gradeTrends) {
+      trendAnalysis.grades = gradeTrends
+    }
+  }
+
+  if (metric === 'behavior' || metric === 'overall') {
+    const behaviorTrends = calculateBehaviorTrends(trends)
+    if (behaviorTrends) {
+      trendAnalysis.behavior = behaviorTrends
+    }
+  }
+
+  return trendAnalysis
+}
+
+function formatProgressResponse(
+  student: any,
+  studentName: string,
+  metric: string,
+  period: string,
+  trends: Record<string, unknown>[],
+  analysis: Record<string, unknown>,
+  timeRanges: { start: Date; end: Date; label: string }[]
+): Record<string, unknown> {
+  return {
+    studentName: student.profiles?.full_name || studentName,
+    metric,
+    period,
+    trends,
+    analysis,
+    summary: {
+      periods_analyzed: trends.length,
+      timeframe: `${timeRanges[0]?.label} to ${timeRanges[timeRanges.length - 1]?.label}`
+    }
+  }
+}
+
 async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>, parentId: string): Promise<FunctionResponse> {
   const { studentName, metric = 'overall', period = 'monthly' } = args
 
@@ -776,56 +846,17 @@ async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClien
 
     const trends: Record<string, unknown>[] = []
 
+    // Process data for each time range using helper function
     for (const range of timeRanges) {
-      const periodData: Record<string, unknown> = {
-        period: range.label,
-        start_date: range.start.toISOString(),
-        end_date: range.end.toISOString()
-      }
-
-      if (metric === 'grades' || metric === 'overall') {
-        periodData.grades = await fetchGradesForPeriod(supabase, student.student_id, range)
-      }
-
-      if (metric === 'behavior' || metric === 'overall') {
-        periodData.behavior = await fetchBehaviorForPeriod(supabase, student.student_id, range)
-      }
-
-      if (metric === 'attendance' || metric === 'overall') {
-        periodData.attendance = processAttendanceForPeriod()
-      }
-
+      const periodData = await processMetricData(metric as string, student.student_id, range, supabase)
       trends.push(periodData)
     }
 
-    // Calculate trend direction
-    const trendAnalysis: Record<string, unknown> = {}
+    // Build trend analysis using helper function
+    const trendAnalysis = buildTrendAnalysis(metric as string, trends)
 
-    if (metric === 'grades' || metric === 'overall') {
-      const gradeTrends = calculateGradeTrends(trends)
-      if (gradeTrends) {
-        trendAnalysis.grades = gradeTrends
-      }
-    }
-
-    if (metric === 'behavior' || metric === 'overall') {
-      const behaviorTrends = calculateBehaviorTrends(trends)
-      if (behaviorTrends) {
-        trendAnalysis.behavior = behaviorTrends
-      }
-    }
-
-    return {
-      studentName: (student as any).profiles?.full_name || studentName,
-      metric,
-      period,
-      trends,
-      analysis: trendAnalysis,
-      summary: {
-        periods_analyzed: trends.length,
-        timeframe: `${timeRanges[0]?.label} to ${timeRanges[timeRanges.length - 1]?.label}`
-      }
-    }
+    // Format and return response using helper function
+    return formatProgressResponse(student, studentName as string, metric as string, period as string, trends, trendAnalysis, timeRanges)
 
   } catch (error) {
     console.error('Progress trends error:', error)
@@ -850,7 +881,7 @@ function buildFeedbackQuery(supabase: Awaited<ReturnType<typeof createClient>>, 
   // Apply subject filter if specified
   if (subjectName) {
     const matchingSubjects = subjects.filter((s: any) =>
-      s.name_vietnamese?.toLowerCase().includes((subjectName as string).toLowerCase())
+      s.name_vietnamese?.toLowerCase().includes(subjectName.toLowerCase())
     )
     if (matchingSubjects.length > 0) {
       query = query.in('subject_id', matchingSubjects.map((s: any) => s.id))
@@ -1271,7 +1302,7 @@ async function processSubjectTeachers(supabase: Awaited<ReturnType<typeof create
 function buildContactSummary(homeroomTeacher: any, subjectTeachers: any[]) {
   const allTeachers = []
 
-  if (homeroomTeacher && homeroomTeacher.name) {
+  if (homeroomTeacher?.name) {
     allTeachers.push({
       name: homeroomTeacher.name,
       email: homeroomTeacher.email,
@@ -1644,7 +1675,7 @@ async function fetchTimetableEvents(supabase: Awaited<ReturnType<typeof createCl
     .eq('parent_id', parentId)
 
   const student = relationships?.find((rel: any) =>
-    rel.profiles?.full_name?.toLowerCase().includes((studentName as string).toLowerCase())
+    rel.profiles?.full_name?.toLowerCase().includes(studentName.toLowerCase())
   )
 
   if (!student) {

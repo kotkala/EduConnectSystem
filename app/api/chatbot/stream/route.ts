@@ -322,6 +322,86 @@ Hãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông 
       history: convertedHistory
     })
 
+    // Helper functions to reduce cognitive complexity
+    async function processFunctionCalls(
+      functionCalls: Array<{ name?: string; args?: Record<string, unknown> }>,
+      userId: string,
+      functionResults: Array<{ name: string; result: unknown }>,
+      controller: ReadableStreamDefaultController<Uint8Array>,
+      encoder: TextEncoder,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      chat: any
+    ): Promise<void> {
+      // Execute function calls
+      for (const functionCall of functionCalls) {
+        if (functionCall.name && functionCall.args) {
+          const result = await handleFunctionCall(functionCall.name, functionCall.args, userId)
+          functionResults.push({
+            name: functionCall.name,
+            result: result
+          })
+        }
+      }
+
+      // Send function results as a chunk
+      if (functionResults.length > 0) {
+        const functionChunk = {
+          type: 'function_results',
+          data: functionResults
+        }
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(functionChunk)}\n\n`))
+
+        // Get final response with function results
+        const finalResponse = await chat.sendMessageStream({
+          message: `Based on the function results: ${JSON.stringify(functionResults.map(fr => fr.result))}`
+        })
+
+        for await (const finalChunk of finalResponse) {
+          if (finalChunk.text) {
+            const textChunk = {
+              type: 'text',
+              data: finalChunk.text
+            }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`))
+          }
+        }
+      }
+    }
+
+    function processTextChunk(
+      chunk: { text?: string },
+      controller: ReadableStreamDefaultController<Uint8Array>,
+      encoder: TextEncoder
+    ): void {
+      const textChunk = {
+        type: 'text',
+        data: chunk.text
+      }
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`))
+    }
+
+    function sendCompletionSignal(
+      controller: ReadableStreamDefaultController<Uint8Array>,
+      encoder: TextEncoder,
+      studentNames: string[],
+      contextData: { recentFeedback: unknown[]; recentGrades: unknown[]; recentViolations: unknown[] },
+      functionResults: Array<{ name: string; result: unknown }>
+    ): void {
+      const completionChunk = {
+        type: 'complete',
+        data: {
+          contextUsed: {
+            studentsCount: studentNames.length,
+            feedbackCount: contextData.recentFeedback.length,
+            gradesCount: contextData.recentGrades.length,
+            violationsCount: contextData.recentViolations.length
+          },
+          functionCalls: functionResults.length
+        }
+      }
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify(completionChunk)}\n\n`))
+    }
+
     // Create streaming response
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
@@ -334,68 +414,18 @@ Hãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông 
 
           // Handle function calls if present
           const functionResults: Array<{ name: string; result: unknown }> = []
-          
-          // Process the stream
+
+          // Process the stream using helper functions
           for await (const chunk of response) {
             if (chunk.functionCalls && chunk.functionCalls.length > 0) {
-              // Execute function calls
-              for (const functionCall of chunk.functionCalls) {
-                if (functionCall.name && functionCall.args) {
-                  const result = await handleFunctionCall(functionCall.name, functionCall.args, userId)
-                  functionResults.push({
-                    name: functionCall.name,
-                    result: result
-                  })
-                }
-              }
-              
-              // Send function results as a chunk
-              if (functionResults.length > 0) {
-                const functionChunk = {
-                  type: 'function_results',
-                  data: functionResults
-                }
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(functionChunk)}\n\n`))
-                
-                // Get final response with function results
-                const finalResponse = await chat.sendMessageStream({
-                  message: `Based on the function results: ${JSON.stringify(functionResults.map(fr => fr.result))}`
-                })
-                
-                for await (const finalChunk of finalResponse) {
-                  if (finalChunk.text) {
-                    const textChunk = {
-                      type: 'text',
-                      data: finalChunk.text
-                    }
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`))
-                  }
-                }
-              }
+              await processFunctionCalls(chunk.functionCalls, userId, functionResults, controller, encoder, chat)
             } else if (chunk.text) {
-              // Send text chunk
-              const textChunk = {
-                type: 'text',
-                data: chunk.text
-              }
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(textChunk)}\n\n`))
+              processTextChunk(chunk, controller, encoder)
             }
           }
 
-          // Send completion signal
-          const completionChunk = {
-            type: 'complete',
-            data: {
-              contextUsed: {
-                studentsCount: studentNames.length,
-                feedbackCount: contextData.recentFeedback.length,
-                gradesCount: contextData.recentGrades.length,
-                violationsCount: contextData.recentViolations.length
-              },
-              functionCalls: functionResults.length
-            }
-          }
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(completionChunk)}\n\n`))
+          // Send completion signal using helper function
+          sendCompletionSignal(controller, encoder, studentNames, contextData, functionResults)
           
         } catch (error) {
           console.error('Streaming error:', error)

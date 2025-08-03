@@ -12,8 +12,8 @@ import { Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import { OtpInput } from '@/components/ui/otp-input'
 
 interface AuthModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
@@ -154,8 +154,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
 // Optimized Email Step
 interface EmailStepProps {
-  onSubmit: (email: string) => void
-  loading: boolean
+  readonly onSubmit: (email: string) => void
+  readonly loading: boolean
 }
 
 function EmailStep({ onSubmit, loading }: EmailStepProps) {
@@ -209,10 +209,10 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
 
 // Optimized OTP Step with beautiful OTP Input
 interface OtpStepProps {
-  email: string
-  onSubmit: (token: string) => void
-  onBack: () => void
-  loading: boolean
+  readonly email: string
+  readonly onSubmit: (token: string) => void
+  readonly onBack: () => void
+  readonly loading: boolean
 }
 
 function OtpStep({ email, onSubmit, onBack, loading }: OtpStepProps) {

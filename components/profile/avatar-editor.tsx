@@ -12,12 +12,12 @@ import { Camera, Upload, Trash2, Loader2, ZoomIn, ZoomOut } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 
 interface AvatarEditorProps {
-  uid: string
-  url: string | null
-  size?: number
-  onUpload: (filePath: string) => void
-  onRemove?: () => void
-  fallback?: string
+  readonly uid: string
+  readonly url: string | null
+  readonly size?: number
+  readonly onUpload: (filePath: string) => void
+  readonly onRemove?: () => void
+  readonly fallback?: string
 }
 
 interface CropData {

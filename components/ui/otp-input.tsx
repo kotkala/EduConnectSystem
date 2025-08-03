@@ -10,12 +10,12 @@ interface OtpInputProps {
   className?: string
 }
 
-export function OtpInput({ 
-  length = 6, 
-  onComplete, 
+export function OtpInput({
+  length = 6,
+  onComplete,
   disabled = false,
-  className 
-}: OtpInputProps) {
+  className
+}: Readonly<OtpInputProps>) {
   const [otp, setOtp] = useState<string[]>(new Array(length).fill(''))
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -92,15 +92,15 @@ export function OtpInput({
 
   return (
     <div className={cn("flex gap-3 justify-center", className)}>
-      {otp.map((digit, index) => (
+      {Array.from({ length }, (_, index) => (
         <input
-          key={index}
+          key={`otp-${length}-${index}`}
           ref={(el) => {
             inputRefs.current[index] = el
           }}
           type="text"
           inputMode="numeric"
-          value={digit}
+          value={otp[index]}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
@@ -111,7 +111,7 @@ export function OtpInput({
             "focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none",
             "transition-all duration-200",
             "bg-background",
-            digit ? "border-primary" : "border-border",
+            otp[index] ? "border-primary" : "border-border",
             disabled && "opacity-50 cursor-not-allowed",
             "hover:border-primary/50"
           )}

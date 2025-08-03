@@ -26,7 +26,7 @@ async function checkUserProfile(supabase: Awaited<ReturnType<typeof createClient
     .single()
 
   // If profile exists and is complete, go to dashboard
-  if (profile && profile.role && profile.full_name) {
+  if (profile?.role && profile?.full_name) {
     return '/dashboard'
   } else {
     // Otherwise go to profile setup

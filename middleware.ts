@@ -18,6 +18,5 @@ export const config = {
      */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
   ],
-  // Explicitly specify Edge Runtime for middleware - Context7 best practice
-  runtime: 'experimental-edge',
+  // Note: Middleware runs on Edge Runtime by default in Next.js 15 - no explicit runtime config needed
 }

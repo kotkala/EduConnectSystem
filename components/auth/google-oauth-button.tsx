@@ -12,11 +12,11 @@ interface GoogleOAuthButtonProps {
   size?: 'default' | 'sm' | 'lg' | 'icon'
 }
 
-export function GoogleOAuthButton({ 
-  className, 
+export function GoogleOAuthButton({
+  className,
   variant = 'outline',
   size = 'default'
-}: GoogleOAuthButtonProps) {
+}: Readonly<GoogleOAuthButtonProps>) {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleGoogleSignIn = async () => {

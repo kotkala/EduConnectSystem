@@ -17,6 +17,30 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
   const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
+  // Helper function to check if notification targets the user
+  const isNotificationForUser = (notification: any, profile: any, userId: string) => {
+    // Direct notification: check recipient_id
+    if (notification.recipient_id === userId) {
+      return true
+    }
+
+    // Broadcast notification: check target_roles and target_classes
+    if (notification.target_roles?.includes(profile.role)) {
+      // If no target_classes specified, or user's class is included
+      if (!notification.target_classes?.length ||
+          (profile.class_id && notification.target_classes.includes(profile.class_id))) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  // Helper function to check if notification is unread for the user
+  const isNotificationUnread = (notification: any, userId: string) => {
+    return !notification.notification_reads.some((read: { user_id: string }) => read.user_id === userId)
+  }
+
   useEffect(() => {
     if (!userId) {
       setLoading(false)
@@ -27,34 +51,33 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
     const fetchNotificationCounts = async () => {
       try {
         const supabase = createClient()
-
-        // Get all active notifications with read status
-        const { data: notifications, error } = await supabase
+        
+        // Query unread notifications for the current user
+        const { data: unreadData, error: unreadError } = await supabase
           .from('notifications')
-          .select(`
-            id,
-            notification_reads!left(user_id, read_at)
-          `)
-          .eq('is_active', true)
+          .select('id')
+          .eq('recipient_id', userId)
+          .eq('is_read', false)
 
-        if (error) {
-          console.error('Error fetching notifications:', error)
+        if (unreadError) {
+          console.error('Error fetching unread notifications:', unreadError)
           return
         }
 
-        if (!notifications) {
-          setCounts({ unread: 0, total: 0 })
+        // Query total notifications for the current user
+        const { data: totalData, error: totalError } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('recipient_id', userId)
+
+        if (totalError) {
+          console.error('Error fetching total notifications:', totalError)
           return
         }
-
-        // Count unread notifications (those without a read record for this user)
-        const unreadCount = notifications.filter(notification =>
-          !notification.notification_reads.some((read: { user_id: string }) => read.user_id === userId)
-        ).length
 
         setCounts({
-          unread: unreadCount,
-          total: notifications.length
+          unread: unreadData?.length || 0,
+          total: totalData?.length || 0
         })
       } catch (error) {
         console.error('Error in fetchNotificationCounts:', error)

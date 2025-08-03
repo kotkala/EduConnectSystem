@@ -23,6 +23,9 @@ import {
   ClipboardList,
   Bot,
   AlertTriangle,
+  LogOut,
+  Settings,
+  MessageCircle,
 } from "lucide-react"
 import {
   Sidebar,
@@ -48,7 +51,6 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
-import { LogOut, Settings, MessageCircle } from 'lucide-react'
 // Note: ExtendedUserProfile import removed as no longer needed
 
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
@@ -129,7 +131,7 @@ const platformItems: Record<string, PlatformItem[]> = {
 
 
 interface AppSidebarProps {
-  role: UserRole
+  readonly role: UserRole
 }
 
 export function AppSidebar({ role }: AppSidebarProps) {

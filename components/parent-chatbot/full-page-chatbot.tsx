@@ -27,6 +27,7 @@ interface Message {
     studentsCount: number
     feedbackCount: number
     gradesCount: number
+    violationsCount: number
   }
 }
 
@@ -45,6 +46,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const [fontSize, setFontSize] = useState([14]) // Font size setting
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -61,13 +63,15 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
   }, [])
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return
+    if (!inputMessage.trim() || isLoading || isStreaming) return
 
     const userMessage = createMessage('user', inputMessage.trim())
+    const messageText = inputMessage.trim()
 
     setMessages(prev => [...prev, userMessage])
     setInputMessage('')
     setIsLoading(true)
+    setIsStreaming(true)
 
     try {
       // Prepare conversation history for API
@@ -76,25 +80,80 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
         content: msg.content
       }))
 
-      const response = await fetch('/api/chatbot', {
+      const response = await fetch('/api/chatbot/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputMessage.trim(),
-          conversationHistory
+          message: messageText,
+          history: conversationHistory
         })
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        const assistantMessage = createMessage('assistant', data.response, data.contextUsed)
-        setMessages(prev => [...prev, assistantMessage])
-      } else {
-        throw new Error(data.error || 'Failed to get response')
+      if (!response.ok) {
+        throw new Error('Failed to get response')
       }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('No response stream')
+      }
+
+      let accumulatedText = ''
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let contextUsed: any = null
+      let functionCalls = 0
+
+      // Create initial assistant message
+      const assistantMessageId = Date.now().toString()
+      setMessages(prev => [...prev, createMessage('assistant', '', undefined, assistantMessageId)])
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = new TextDecoder().decode(value)
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+
+              if (data.type === 'text') {
+                accumulatedText += data.data
+
+                // Update the assistant message in real-time
+                setMessages(prev => prev.map(msg =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: accumulatedText }
+                    : msg
+                ))
+              } else if (data.type === 'function_results') {
+                functionCalls = data.data.length
+              } else if (data.type === 'complete') {
+                contextUsed = data.data.contextUsed
+                functionCalls = data.data.functionCalls || functionCalls
+              } else if (data.type === 'error') {
+                throw new Error(data.data.message)
+              }
+            } catch (parseError) {
+              console.error('Error parsing chunk:', parseError)
+            }
+          }
+        }
+      }
+
+      // Final update with context information
+      if (contextUsed) {
+        setMessages(prev => prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: accumulatedText, contextUsed }
+            : msg
+        ))
+      }
+
     } catch (error) {
       console.error('Chat error:', error)
       toast.error('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.')
@@ -103,6 +162,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
+      setIsStreaming(false)
     }
   }
 
@@ -220,7 +280,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
             ))}
             
             {/* Loading indicator */}
-            {isLoading && (
+            {(isLoading && !isStreaming) && (
               <div className="flex items-start space-x-4">
                 <ChatAvatar role="assistant" size="sm" />
                 <div className="flex-1">
@@ -231,6 +291,22 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Streaming indicator */}
+            {isStreaming && (
+              <div className="flex items-start space-x-4">
+                <ChatAvatar role="assistant" size="sm" />
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">EduConnect AI</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-600">Đang trả lời...</span>
                   </div>
                 </div>
               </div>
@@ -249,13 +325,13 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => handleKeyPress(e, sendMessage)}
                   placeholder="Hỏi về tình hình học tập của con em..."
-                  disabled={isLoading}
+                  disabled={isLoading || isStreaming}
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               <Button
                 onClick={sendMessage}
-                disabled={!inputMessage.trim() || isLoading}
+                disabled={!inputMessage.trim() || isLoading || isStreaming}
                 className="bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <Send className="h-4 w-4" />

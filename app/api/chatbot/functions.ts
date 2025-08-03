@@ -433,6 +433,135 @@ async function getViolationHistory(supabase: Awaited<ReturnType<typeof createCli
   }
 }
 
+// Helper functions for getProgressTrends to reduce cognitive complexity
+function calculateTimeRanges(period: string, now: Date): { start: Date; end: Date; label: string }[] {
+  const timeRanges: { start: Date; end: Date; label: string }[] = []
+
+  if (period === 'monthly') {
+    // Last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+      timeRanges.push({
+        start,
+        end,
+        label: start.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
+      })
+    }
+  } else if (period === 'quarterly') {
+    // Last 4 quarters
+    for (let i = 3; i >= 0; i--) {
+      const quarterStart = Math.floor((now.getMonth() - i * 3) / 3) * 3
+      const start = new Date(now.getFullYear(), quarterStart, 1)
+      const end = new Date(now.getFullYear(), quarterStart + 3, 0)
+      timeRanges.push({
+        start,
+        end,
+        label: `Q${Math.floor(quarterStart / 3) + 1} ${start.getFullYear()}`
+      })
+    }
+  }
+
+  return timeRanges
+}
+
+async function fetchGradesForPeriod(supabase: Awaited<ReturnType<typeof createClient>>, studentId: string, range: { start: Date; end: Date }) {
+  const { data: grades } = await supabase
+    .from('submission_grades')
+    .select('grade, submission_date, subjects(name_vietnamese)')
+    .eq('student_id', studentId)
+    .gte('submission_date', range.start.toISOString())
+    .lte('submission_date', range.end.toISOString())
+
+  const gradeAverage = grades && grades.length > 0
+    ? (grades.reduce((sum: number, g: any) => sum + g.grade, 0) / grades.length).toFixed(2)
+    : null
+
+  return {
+    average: gradeAverage,
+    count: grades?.length || 0,
+    highest: grades && grades.length > 0 ? Math.max(...grades.map((g: any) => g.grade)) : null,
+    lowest: grades && grades.length > 0 ? Math.min(...grades.map((g: any) => g.grade)) : null
+  }
+}
+
+async function fetchBehaviorForPeriod(supabase: Awaited<ReturnType<typeof createClient>>, studentId: string, range: { start: Date; end: Date }) {
+  const { data: violations } = await supabase
+    .from('student_violations')
+    .select('severity, recorded_at')
+    .eq('student_id', studentId)
+    .gte('recorded_at', range.start.toISOString())
+    .lte('recorded_at', range.end.toISOString())
+
+  const violationsBySeverity = violations?.reduce((acc: Record<string, number>, v: any) => {
+    acc[v.severity] = (acc[v.severity] || 0) + 1
+    return acc
+  }, {}) || {}
+
+  return {
+    total_violations: violations?.length || 0,
+    severity_breakdown: violationsBySeverity
+  }
+}
+
+function processAttendanceForPeriod() {
+  return {
+    note: 'Attendance tracking not yet implemented'
+  }
+}
+
+function calculateGradeTrends(trends: Record<string, unknown>[]) {
+  const gradeAverages = trends
+    .map((t: any) => parseFloat(t.grades?.average))
+    .filter(avg => !isNaN(avg))
+
+  if (gradeAverages.length < 2) {
+    return null
+  }
+
+  const recent = gradeAverages.slice(-2)
+  let direction: string
+  if (recent[1] > recent[0]) {
+    direction = 'improving'
+  } else if (recent[1] < recent[0]) {
+    direction = 'declining'
+  } else {
+    direction = 'stable'
+  }
+  const change = (recent[1] - recent[0]).toFixed(2)
+
+  return {
+    direction,
+    change: parseFloat(change),
+    trend: gradeAverages
+  }
+}
+
+function calculateBehaviorTrends(trends: Record<string, unknown>[]) {
+  const violationCounts = trends.map((t: any) => t.behavior?.total_violations || 0)
+
+  if (violationCounts.length < 2) {
+    return null
+  }
+
+  const recent = violationCounts.slice(-2)
+  let direction: string
+  if (recent[1] < recent[0]) {
+    direction = 'improving'
+  } else if (recent[1] > recent[0]) {
+    direction = 'declining'
+  } else {
+    direction = 'stable'
+  }
+  const change = recent[1] - recent[0]
+
+  return {
+    direction,
+    change,
+    trend: violationCounts
+  }
+}
+
 // Academic analysis implementation
 async function getAcademicAnalysis(supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>, parentId: string): Promise<FunctionResponse> {
   const { studentName, analysisType = 'overall' } = args
@@ -643,32 +772,7 @@ async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClien
   try {
     // Calculate time periods based on period parameter
     const now = new Date()
-    const timeRanges: { start: Date; end: Date; label: string }[] = []
-
-    if (period === 'monthly') {
-      // Last 6 months
-      for (let i = 5; i >= 0; i--) {
-        const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
-        timeRanges.push({
-          start,
-          end,
-          label: start.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })
-        })
-      }
-    } else if (period === 'quarterly') {
-      // Last 4 quarters
-      for (let i = 3; i >= 0; i--) {
-        const quarterStart = Math.floor((now.getMonth() - i * 3) / 3) * 3
-        const start = new Date(now.getFullYear(), quarterStart, 1)
-        const end = new Date(now.getFullYear(), quarterStart + 3, 0)
-        timeRanges.push({
-          start,
-          end,
-          label: `Q${Math.floor(quarterStart / 3) + 1} ${start.getFullYear()}`
-        })
-      }
-    }
+    const timeRanges = calculateTimeRanges(period as string, now)
 
     const trends: Record<string, unknown>[] = []
 
@@ -680,51 +784,15 @@ async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClien
       }
 
       if (metric === 'grades' || metric === 'overall') {
-        // Get grades for this period
-        const { data: grades } = await supabase
-          .from('submission_grades')
-          .select('grade, submission_date, subjects(name_vietnamese)')
-          .eq('student_id', student.student_id)
-          .gte('submission_date', range.start.toISOString())
-          .lte('submission_date', range.end.toISOString())
-
-        const gradeAverage = grades && grades.length > 0
-          ? (grades.reduce((sum: number, g: any) => sum + g.grade, 0) / grades.length).toFixed(2)
-          : null
-
-        periodData.grades = {
-          average: gradeAverage,
-          count: grades?.length || 0,
-          highest: grades && grades.length > 0 ? Math.max(...grades.map((g: any) => g.grade)) : null,
-          lowest: grades && grades.length > 0 ? Math.min(...grades.map((g: any) => g.grade)) : null
-        }
+        periodData.grades = await fetchGradesForPeriod(supabase, student.student_id, range)
       }
 
       if (metric === 'behavior' || metric === 'overall') {
-        // Get violations for this period
-        const { data: violations } = await supabase
-          .from('student_violations')
-          .select('severity, recorded_at')
-          .eq('student_id', student.student_id)
-          .gte('recorded_at', range.start.toISOString())
-          .lte('recorded_at', range.end.toISOString())
-
-        const violationsBySeverity = violations?.reduce((acc: Record<string, number>, v: any) => {
-          acc[v.severity] = (acc[v.severity] || 0) + 1
-          return acc
-        }, {}) || {}
-
-        periodData.behavior = {
-          total_violations: violations?.length || 0,
-          severity_breakdown: violationsBySeverity
-        }
+        periodData.behavior = await fetchBehaviorForPeriod(supabase, student.student_id, range)
       }
 
       if (metric === 'attendance' || metric === 'overall') {
-        // Note: Attendance data would need to be implemented based on your attendance tracking system
-        periodData.attendance = {
-          note: 'Attendance tracking not yet implemented'
-        }
+        periodData.attendance = processAttendanceForPeriod()
       }
 
       trends.push(periodData)
@@ -734,50 +802,16 @@ async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClien
     const trendAnalysis: Record<string, unknown> = {}
 
     if (metric === 'grades' || metric === 'overall') {
-      const gradeAverages = trends
-        .map((t: any) => parseFloat(t.grades?.average))
-        .filter(avg => !isNaN(avg))
-
-      if (gradeAverages.length >= 2) {
-        const recent = gradeAverages.slice(-2)
-        let direction: string
-        if (recent[1] > recent[0]) {
-          direction = 'improving'
-        } else if (recent[1] < recent[0]) {
-          direction = 'declining'
-        } else {
-          direction = 'stable'
-        }
-        const change = (recent[1] - recent[0]).toFixed(2)
-
-        trendAnalysis.grades = {
-          direction,
-          change: parseFloat(change),
-          trend: gradeAverages
-        }
+      const gradeTrends = calculateGradeTrends(trends)
+      if (gradeTrends) {
+        trendAnalysis.grades = gradeTrends
       }
     }
 
     if (metric === 'behavior' || metric === 'overall') {
-      const violationCounts = trends.map((t: any) => t.behavior?.total_violations || 0)
-
-      if (violationCounts.length >= 2) {
-        const recent = violationCounts.slice(-2)
-        let direction: string
-        if (recent[1] < recent[0]) {
-          direction = 'improving'
-        } else if (recent[1] > recent[0]) {
-          direction = 'declining'
-        } else {
-          direction = 'stable'
-        }
-        const change = recent[1] - recent[0]
-
-        trendAnalysis.behavior = {
-          direction,
-          change,
-          trend: violationCounts
-        }
+      const behaviorTrends = calculateBehaviorTrends(trends)
+      if (behaviorTrends) {
+        trendAnalysis.behavior = behaviorTrends
       }
     }
 
@@ -796,6 +830,131 @@ async function getProgressTrends(supabase: Awaited<ReturnType<typeof createClien
   } catch (error) {
     console.error('Progress trends error:', error)
     return { error: `Failed to analyze progress trends: ${error instanceof Error ? error.message : 'Unknown error'}` }
+  }
+}
+
+// Helper functions for getTeacherFeedback to reduce cognitive complexity
+function buildFeedbackQuery(supabase: Awaited<ReturnType<typeof createClient>>, studentId: string, subjectName: string | undefined, feedbackType: string, subjects: any[]) {
+  let query = supabase
+    .from('student_feedback')
+    .select(`
+      rating,
+      feedback_text,
+      created_at,
+      teacher_id,
+      subject_id
+    `)
+    .eq('student_id', studentId)
+    .order('created_at', { ascending: false })
+
+  // Apply subject filter if specified
+  if (subjectName) {
+    const matchingSubjects = subjects.filter((s: any) =>
+      s.name_vietnamese?.toLowerCase().includes((subjectName as string).toLowerCase())
+    )
+    if (matchingSubjects.length > 0) {
+      query = query.in('subject_id', matchingSubjects.map((s: any) => s.id))
+    }
+  }
+
+  // Apply time filter based on feedback type
+  if (feedbackType === 'recent') {
+    query = query.gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()).limit(10)
+  } else if (feedbackType === 'summary') {
+    query = query.gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+  } else if (feedbackType === 'recommendations') {
+    query = query.gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
+  }
+
+  return query
+}
+
+function processRecentFeedback(feedback: any[], subjectMap: Map<any, any>, teacherMap: Map<any, any>) {
+  return feedback?.map((f: any) => {
+    const subject = subjectMap.get(f.subject_id)
+    const teacher = teacherMap.get(f.teacher_id)
+    return {
+      subject: subject?.name_vietnamese || 'Unknown Subject',
+      teacher: teacher?.full_name || 'Unknown Teacher',
+      rating: f.rating,
+      comment: f.feedback_text || 'No comment',
+      date: new Date(f.created_at).toLocaleDateString('vi-VN')
+    }
+  }) || []
+}
+
+function processSummaryFeedback(feedback: any[]) {
+  const feedbackBySubject = feedback?.reduce((acc: Record<string, any[]>, f: any) => {
+    const subjectName = f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject'
+    if (!acc[subjectName]) acc[subjectName] = []
+    acc[subjectName].push(f)
+    return acc
+  }, {}) || {}
+
+  const subjectSummaries = Object.entries(feedbackBySubject).map(([subject, feedbackList]) => {
+    const averageRating = (feedbackList.reduce((sum, f) => sum + f.rating, 0) / feedbackList.length).toFixed(2)
+    const ratingDistribution = feedbackList.reduce((acc: Record<number, number>, f) => {
+      acc[f.rating] = (acc[f.rating] || 0) + 1
+      return acc
+    }, {})
+
+    return {
+      subject,
+      teacher: feedbackList[0]?.timetable_events?.profiles?.full_name || 'Unknown Teacher',
+      averageRating: parseFloat(averageRating),
+      totalFeedback: feedbackList.length,
+      ratingDistribution,
+      recentComments: feedbackList.slice(0, 3).map(f => ({
+        rating: f.rating,
+        comment: f.feedback_text || 'No comment',
+        date: new Date(f.created_at).toLocaleDateString('vi-VN')
+      }))
+    }
+  })
+
+  const overallStats = {
+    averageRating: feedback && feedback.length > 0
+      ? (feedback.reduce((sum: number, f: any) => sum + f.rating, 0) / feedback.length).toFixed(2)
+      : 'N/A',
+    ratingDistribution: feedback?.reduce((acc: Record<number, number>, f: any) => {
+      acc[f.rating] = (acc[f.rating] || 0) + 1
+      return acc
+    }, {}) || {}
+  }
+
+  return { subjectSummaries, overallStats }
+}
+
+function processRecommendationsFeedback(feedback: any[]) {
+  const lowRatingFeedback = feedback?.filter((f: any) => f.rating <= 3) || []
+  const highRatingFeedback = feedback?.filter((f: any) => f.rating >= 4) || []
+
+  const areasForImprovement = lowRatingFeedback.map((f: any) => ({
+    subject: f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject',
+    teacher: f.timetable_events?.profiles?.full_name || 'Unknown Teacher',
+    rating: f.rating,
+    feedback: f.feedback_text || 'No comment',
+    date: new Date(f.created_at).toLocaleDateString('vi-VN')
+  }))
+
+  const strengths = highRatingFeedback.map((f: any) => ({
+    subject: f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject',
+    teacher: f.timetable_events?.profiles?.full_name || 'Unknown Teacher',
+    rating: f.rating,
+    feedback: f.feedback_text || 'No comment',
+    date: new Date(f.created_at).toLocaleDateString('vi-VN')
+  }))
+
+  return {
+    areasForImprovement,
+    strengths,
+    summary: {
+      needsAttention: areasForImprovement.length,
+      performingWell: strengths.length,
+      averageRating: feedback && feedback.length > 0
+        ? (feedback.reduce((sum: number, f: any) => sum + f.rating, 0) / feedback.length).toFixed(2)
+        : 'N/A'
+    }
   }
 }
 
@@ -829,37 +988,7 @@ async function getTeacherFeedback(supabase: Awaited<ReturnType<typeof createClie
     const teacherMap = new Map(teachers.map(t => [t.id, t]))
 
     // Build query based on feedback type
-    let query = supabase
-      .from('student_feedback')
-      .select(`
-        rating,
-        feedback_text,
-        created_at,
-        teacher_id,
-        subject_id
-      `)
-      .eq('student_id', student.student_id)
-      .order('created_at', { ascending: false })
-
-    // Apply subject filter if specified
-    if (subjectName) {
-      const matchingSubjects = subjects.filter((s: any) =>
-        s.name_vietnamese?.toLowerCase().includes((subjectName as string).toLowerCase())
-      )
-      if (matchingSubjects.length > 0) {
-        query = query.in('subject_id', matchingSubjects.map((s: any) => s.id))
-      }
-    }
-
-    // Apply time filter based on feedback type
-    if (feedbackType === 'recent') {
-      query = query.gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()).limit(10)
-    } else if (feedbackType === 'summary') {
-      query = query.gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
-    } else if (feedbackType === 'recommendations') {
-      query = query.gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
-    }
-
+    const query = buildFeedbackQuery(supabase, student.student_id, subjectName as string, feedbackType as string, subjects)
     const { data: feedback, error } = await query
 
     if (error) {
@@ -875,91 +1004,13 @@ async function getTeacherFeedback(supabase: Awaited<ReturnType<typeof createClie
     }
 
     if (feedbackType === 'recent') {
-      result.recentFeedback = feedback?.map((f: any) => {
-        const subject = subjectMap.get(f.subject_id)
-        const teacher = teacherMap.get(f.teacher_id)
-        return {
-          subject: subject?.name_vietnamese || 'Unknown Subject',
-          teacher: teacher?.full_name || 'Unknown Teacher',
-          rating: f.rating,
-          comment: f.feedback_text || 'No comment',
-          date: new Date(f.created_at).toLocaleDateString('vi-VN')
-        }
-      }) || []
-
+      result.recentFeedback = processRecentFeedback(feedback, subjectMap, teacherMap)
     } else if (feedbackType === 'summary') {
-      // Aggregate feedback by subject
-      const feedbackBySubject = feedback?.reduce((acc: Record<string, any[]>, f: any) => {
-        const subjectName = f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject'
-        if (!acc[subjectName]) acc[subjectName] = []
-        acc[subjectName].push(f)
-        return acc
-      }, {}) || {}
-
-      const subjectSummaries = Object.entries(feedbackBySubject).map(([subject, feedbackList]) => {
-        const averageRating = (feedbackList.reduce((sum, f) => sum + f.rating, 0) / feedbackList.length).toFixed(2)
-        const ratingDistribution = feedbackList.reduce((acc: Record<number, number>, f) => {
-          acc[f.rating] = (acc[f.rating] || 0) + 1
-          return acc
-        }, {})
-
-        return {
-          subject,
-          teacher: feedbackList[0]?.timetable_events?.profiles?.full_name || 'Unknown Teacher',
-          averageRating: parseFloat(averageRating),
-          totalFeedback: feedbackList.length,
-          ratingDistribution,
-          recentComments: feedbackList.slice(0, 3).map(f => ({
-            rating: f.rating,
-            comment: f.feedback_text || 'No comment',
-            date: new Date(f.created_at).toLocaleDateString('vi-VN')
-          }))
-        }
-      })
-
-      result.subjectSummaries = subjectSummaries
-      result.overallStats = {
-        averageRating: feedback && feedback.length > 0
-          ? (feedback.reduce((sum: number, f: any) => sum + f.rating, 0) / feedback.length).toFixed(2)
-          : 'N/A',
-        ratingDistribution: feedback?.reduce((acc: Record<number, number>, f: any) => {
-          acc[f.rating] = (acc[f.rating] || 0) + 1
-          return acc
-        }, {}) || {}
-      }
-
+      const summaryData = processSummaryFeedback(feedback)
+      result.subjectSummaries = summaryData.subjectSummaries
+      result.overallStats = summaryData.overallStats
     } else if (feedbackType === 'recommendations') {
-      // Extract actionable recommendations from feedback
-      const lowRatingFeedback = feedback?.filter((f: any) => f.rating <= 3) || []
-      const highRatingFeedback = feedback?.filter((f: any) => f.rating >= 4) || []
-
-      const areasForImprovement = lowRatingFeedback.map((f: any) => ({
-        subject: f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject',
-        teacher: f.timetable_events?.profiles?.full_name || 'Unknown Teacher',
-        rating: f.rating,
-        feedback: f.feedback_text || 'No comment',
-        date: new Date(f.created_at).toLocaleDateString('vi-VN')
-      }))
-
-      const strengths = highRatingFeedback.map((f: any) => ({
-        subject: f.timetable_events?.subjects?.name_vietnamese || 'Unknown Subject',
-        teacher: f.timetable_events?.profiles?.full_name || 'Unknown Teacher',
-        rating: f.rating,
-        feedback: f.feedback_text || 'No comment',
-        date: new Date(f.created_at).toLocaleDateString('vi-VN')
-      }))
-
-      result.recommendations = {
-        areasForImprovement,
-        strengths,
-        summary: {
-          needsAttention: areasForImprovement.length,
-          performingWell: strengths.length,
-          averageRating: feedback && feedback.length > 0
-            ? (feedback.reduce((sum: number, f: any) => sum + f.rating, 0) / feedback.length).toFixed(2)
-            : 'N/A'
-        }
-      }
+      result.recommendations = processRecommendationsFeedback(feedback)
     }
 
     return result
@@ -1131,6 +1182,122 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
   }
 }
 
+// Helper functions for getTeacherInformation to reduce cognitive complexity
+function processHomeroomTeacher(classAssignment: any, teacherType: string) {
+  if (teacherType !== 'homeroom' && teacherType !== 'all') {
+    return null
+  }
+
+  if (classAssignment?.classes?.[0]?.homeroom_teacher?.[0]) {
+    return {
+      name: classAssignment.classes[0].homeroom_teacher[0].full_name,
+      email: classAssignment.classes[0].homeroom_teacher[0].email,
+      employeeId: classAssignment.classes[0].homeroom_teacher[0].employee_id,
+      className: classAssignment.classes[0].name,
+      academicYear: classAssignment.classes[0].academic_year?.[0]?.name,
+      semester: classAssignment.classes[0].semester?.[0]?.name,
+      role: 'Giáo viên chủ nhiệm'
+    }
+  } else {
+    return {
+      message: 'Chưa có thông tin giáo viên chủ nhiệm'
+    }
+  }
+}
+
+async function processSubjectTeachers(supabase: Awaited<ReturnType<typeof createClient>>, classId: string, teacherType: string) {
+  if (teacherType !== 'subject_teachers' && teacherType !== 'all') {
+    return { subjectTeachers: [], teachersByCategory: {}, totalSubjectTeachers: 0 }
+  }
+
+  const { data: teacherAssignments } = await supabase
+    .from('teacher_class_assignments')
+    .select(`
+      teacher_id,
+      subject_id,
+      class_id,
+      teacher:profiles!teacher_class_assignments_teacher_id_fkey(
+        full_name,
+        email,
+        employee_id
+      ),
+      subject:subjects(
+        code,
+        name_vietnamese,
+        category
+      ),
+      class:classes(name)
+    `)
+    .eq('class_id', classId)
+    .eq('is_active', true)
+
+  if (!teacherAssignments || teacherAssignments.length === 0) {
+    return {
+      subjectTeachers: [],
+      message: 'Chưa có thông tin phân công giáo viên bộ môn'
+    }
+  }
+
+  const subjectTeachers = teacherAssignments.map((assignment: any) => ({
+    teacherName: assignment.teacher?.full_name,
+    teacherEmail: assignment.teacher?.email,
+    employeeId: assignment.teacher?.employee_id,
+    subjectCode: assignment.subject?.code,
+    subjectName: assignment.subject?.name_vietnamese,
+    subjectCategory: assignment.subject?.category,
+    className: assignment.class?.name,
+    role: 'Giáo viên bộ môn'
+  }))
+
+  // Group by subject category for better organization
+  const teachersByCategory = teacherAssignments.reduce((acc: Record<string, any[]>, assignment: any) => {
+    const category = assignment.subject?.category || 'Khác'
+    if (!acc[category]) acc[category] = []
+    acc[category].push({
+      teacherName: assignment.teacher?.full_name,
+      subjectName: assignment.subject?.name_vietnamese,
+      subjectCode: assignment.subject?.code
+    })
+    return acc
+  }, {})
+
+  return {
+    subjectTeachers,
+    teachersByCategory,
+    totalSubjectTeachers: teacherAssignments.length
+  }
+}
+
+function buildContactSummary(homeroomTeacher: any, subjectTeachers: any[]) {
+  const allTeachers = []
+
+  if (homeroomTeacher && homeroomTeacher.name) {
+    allTeachers.push({
+      name: homeroomTeacher.name,
+      email: homeroomTeacher.email,
+      role: 'Giáo viên chủ nhiệm',
+      priority: 'high'
+    })
+  }
+
+  if (subjectTeachers && Array.isArray(subjectTeachers)) {
+    subjectTeachers.forEach((teacher: any) => {
+      allTeachers.push({
+        name: teacher.teacherName,
+        email: teacher.teacherEmail,
+        role: `Giáo viên ${teacher.subjectName}`,
+        priority: 'normal'
+      })
+    })
+  }
+
+  return {
+    totalTeachers: allTeachers.length,
+    teachers: allTeachers,
+    note: 'Liên hệ giáo viên chủ nhiệm cho các vấn đề chung, giáo viên bộ môn cho các vấn đề cụ thể về môn học'
+  }
+}
+
 // Get teacher information for a student
 async function getTeacherInformation(supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>, parentId: string): Promise<FunctionResponse> {
   const { studentName, teacherType = 'all' } = args
@@ -1176,108 +1343,19 @@ async function getTeacherInformation(supabase: Awaited<ReturnType<typeof createC
       .eq('is_active', true)
       .single()
 
-    if (teacherType === 'homeroom' || teacherType === 'all') {
-      if (classAssignment?.classes?.[0]?.homeroom_teacher?.[0]) {
-        result.homeroomTeacher = {
-          name: classAssignment.classes[0].homeroom_teacher[0].full_name,
-          email: classAssignment.classes[0].homeroom_teacher[0].email,
-          employeeId: classAssignment.classes[0].homeroom_teacher[0].employee_id,
-          className: classAssignment.classes[0].name,
-          academicYear: classAssignment.classes[0].academic_year?.[0]?.name,
-          semester: classAssignment.classes[0].semester?.[0]?.name,
-          role: 'Giáo viên chủ nhiệm'
-        }
-      } else {
-        result.homeroomTeacher = {
-          message: 'Chưa có thông tin giáo viên chủ nhiệm'
-        }
-      }
+    // Process homeroom teacher
+    const homeroomTeacher = processHomeroomTeacher(classAssignment, teacherType as string)
+    if (homeroomTeacher) {
+      result.homeroomTeacher = homeroomTeacher
     }
 
-    if (teacherType === 'subject_teachers' || teacherType === 'all') {
-      // Get subject teachers from teacher assignments
-      const { data: teacherAssignments } = await supabase
-        .from('teacher_class_assignments')
-        .select(`
-          teacher_id,
-          subject_id,
-          class_id,
-          teacher:profiles!teacher_class_assignments_teacher_id_fkey(
-            full_name,
-            email,
-            employee_id
-          ),
-          subject:subjects(
-            code,
-            name_vietnamese,
-            category
-          ),
-          class:classes(name)
-        `)
-        .eq('class_id', classAssignment?.class_id)
-        .eq('is_active', true)
-
-      if (teacherAssignments && teacherAssignments.length > 0) {
-        result.subjectTeachers = teacherAssignments.map((assignment: any) => ({
-          teacherName: assignment.teacher?.full_name,
-          teacherEmail: assignment.teacher?.email,
-          employeeId: assignment.teacher?.employee_id,
-          subjectCode: assignment.subject?.code,
-          subjectName: assignment.subject?.name_vietnamese,
-          subjectCategory: assignment.subject?.category,
-          className: assignment.class?.name,
-          role: 'Giáo viên bộ môn'
-        }))
-
-        // Group by subject category for better organization
-        const teachersByCategory = teacherAssignments.reduce((acc: Record<string, any[]>, assignment: any) => {
-          const category = assignment.subject?.category || 'Khác'
-          if (!acc[category]) acc[category] = []
-          acc[category].push({
-            teacherName: assignment.teacher?.full_name,
-            subjectName: assignment.subject?.name_vietnamese,
-            subjectCode: assignment.subject?.code
-          })
-          return acc
-        }, {})
-
-        result.teachersByCategory = teachersByCategory
-        result.totalSubjectTeachers = teacherAssignments.length
-      } else {
-        result.subjectTeachers = []
-        result.message = 'Chưa có thông tin phân công giáo viên bộ môn'
-      }
-    }
+    // Process subject teachers
+    const subjectTeachersData = await processSubjectTeachers(supabase, classAssignment?.class_id, teacherType as string)
+    Object.assign(result, subjectTeachersData)
 
     // Add contact information summary
     if (teacherType === 'all') {
-      const allTeachers = []
-
-      if (result.homeroomTeacher && (result.homeroomTeacher as any).name) {
-        allTeachers.push({
-          name: (result.homeroomTeacher as any).name,
-          email: (result.homeroomTeacher as any).email,
-          role: 'Giáo viên chủ nhiệm',
-          priority: 'high'
-        })
-      }
-
-      if (result.subjectTeachers && Array.isArray(result.subjectTeachers)) {
-        result.subjectTeachers.forEach((teacher: any) => {
-          allTeachers.push({
-            name: teacher.teacherName,
-            email: teacher.teacherEmail,
-            role: `Giáo viên ${teacher.subjectName}`,
-            priority: 'normal'
-          })
-        })
-      }
-
-      result.contactSummary = {
-        totalTeachers: allTeachers.length,
-        teachers: allTeachers,
-        note: 'Liên hệ giáo viên chủ nhiệm cho các vấn đề chung, giáo viên bộ môn cho các vấn đề cụ thể về môn học'
-      }
+      result.contactSummary = buildContactSummary(result.homeroomTeacher, result.subjectTeachers as any[])
     }
 
     return result
@@ -1289,7 +1367,7 @@ async function getTeacherInformation(supabase: Awaited<ReturnType<typeof createC
 }
 
 // Get website usage guide for parents
-async function getWebsiteUsageGuide(supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>): Promise<FunctionResponse> {
+async function getWebsiteUsageGuide(_supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>): Promise<FunctionResponse> {
   const { feature, stepByStep = true } = args
 
   const guides = {
@@ -1459,6 +1537,168 @@ async function getWebsiteUsageGuide(supabase: Awaited<ReturnType<typeof createCl
   return result
 }
 
+// Helper functions for getNotifications to reduce cognitive complexity
+function calculateTimeFilter(timeframe: string): Date {
+  const timeFilter = new Date()
+  switch (timeframe) {
+    case 'week':
+      timeFilter.setDate(timeFilter.getDate() - 7)
+      break
+    case 'month':
+      timeFilter.setMonth(timeFilter.getMonth() - 1)
+      break
+    case 'semester':
+      timeFilter.setMonth(timeFilter.getMonth() - 4)
+      break
+    case 'upcoming':
+      // For upcoming events, we want future dates
+      return new Date()
+    default:
+      timeFilter.setMonth(timeFilter.getMonth() - 1)
+  }
+  return timeFilter
+}
+
+async function fetchNotifications(supabase: Awaited<ReturnType<typeof createClient>>, notificationType: string, timeFilter: Date) {
+  if (notificationType !== 'all' && notificationType !== 'announcements' && notificationType !== 'recent') {
+    return []
+  }
+
+  const { data: notifications } = await supabase
+    .from('notifications')
+    .select(`
+      id,
+      title,
+      content,
+      image_url,
+      created_at,
+      target_roles,
+      target_classes,
+      sender:profiles!notifications_sender_id_fkey(full_name, role)
+    `)
+    .eq('is_active', true)
+    .gte('created_at', timeFilter.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(20)
+
+  return notifications?.map((notif: any) => ({
+    title: notif.title,
+    content: notif.content,
+    imageUrl: notif.image_url,
+    date: new Date(notif.created_at).toLocaleDateString('vi-VN'),
+    sender: notif.sender?.full_name || 'Nhà trường',
+    senderRole: notif.sender?.role || 'admin',
+    targetRoles: notif.target_roles,
+    targetClasses: notif.target_classes
+  })) || []
+}
+
+async function fetchMeetings(supabase: Awaited<ReturnType<typeof createClient>>, notificationType: string, timeFilter: Date, timeframe: string) {
+  if (notificationType !== 'all' && notificationType !== 'meetings') {
+    return []
+  }
+
+  const { data: meetings } = await supabase
+    .from('meeting_schedules')
+    .select(`
+      id,
+      title,
+      description,
+      meeting_date,
+      meeting_location,
+      duration_minutes,
+      meeting_type,
+      teacher:profiles!meeting_schedules_teacher_id_fkey(full_name),
+      class:classes(name)
+    `)
+    .gte('meeting_date', timeframe === 'upcoming' ? new Date().toISOString() : timeFilter.toISOString())
+    .order('meeting_date', { ascending: timeframe === 'upcoming' })
+    .limit(10)
+
+  return meetings?.map((meeting: any) => ({
+    title: meeting.title,
+    description: meeting.description,
+    date: new Date(meeting.meeting_date).toLocaleDateString('vi-VN'),
+    time: new Date(meeting.meeting_date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    location: meeting.meeting_location,
+    duration: meeting.duration_minutes,
+    type: meeting.meeting_type,
+    teacher: meeting.teacher?.full_name,
+    className: meeting.class?.name
+  })) || []
+}
+
+async function fetchTimetableEvents(supabase: Awaited<ReturnType<typeof createClient>>, notificationType: string, studentName: string | undefined, parentId: string) {
+  if (notificationType !== 'all' && notificationType !== 'exams' && notificationType !== 'schedule') {
+    return []
+  }
+
+  if (!studentName) {
+    return []
+  }
+
+  // Get student info
+  const { data: relationships } = await supabase
+    .from('parent_student_relationships')
+    .select('student_id, profiles!parent_student_relationships_student_id_fkey(full_name)')
+    .eq('parent_id', parentId)
+
+  const student = relationships?.find((rel: any) =>
+    rel.profiles?.full_name?.toLowerCase().includes((studentName as string).toLowerCase())
+  )
+
+  if (!student) {
+    return []
+  }
+
+  // Get student's class assignments
+  const { data: classAssignments } = await supabase
+    .from('student_class_assignments')
+    .select('class_id')
+    .eq('student_id', student.student_id)
+    .eq('is_active', true)
+
+  if (!classAssignments || classAssignments.length === 0) {
+    return []
+  }
+
+  const classIds = classAssignments.map(ca => ca.class_id)
+
+  // Get timetable events for the student's classes
+  const { data: timetableEvents } = await supabase
+    .from('timetable_events')
+    .select(`
+      id,
+      day_of_week,
+      start_time,
+      end_time,
+      week_number,
+      notes,
+      class:classes(name),
+      subject:subjects(code, name_vietnamese),
+      teacher:profiles!timetable_events_teacher_id_fkey(full_name),
+      classroom:classrooms(name, building, floor)
+    `)
+    .in('class_id', classIds)
+    .order('day_of_week')
+    .order('start_time')
+
+  return timetableEvents?.map((event: any) => ({
+    dayOfWeek: event.day_of_week,
+    startTime: event.start_time,
+    endTime: event.end_time,
+    weekNumber: event.week_number,
+    notes: event.notes,
+    className: event.class?.name,
+    subjectCode: event.subject?.code,
+    subjectName: event.subject?.name_vietnamese,
+    teacher: event.teacher?.full_name,
+    classroom: event.classroom?.name,
+    building: event.classroom?.building,
+    floor: event.classroom?.floor
+  })) || []
+}
+
 // Get notifications from the school system
 async function getNotifications(supabase: Awaited<ReturnType<typeof createClient>>, args: Record<string, unknown>, parentId: string): Promise<FunctionResponse> {
   const { studentName, notificationType = 'all', timeframe = 'month' } = args
@@ -1470,151 +1710,16 @@ async function getNotifications(supabase: Awaited<ReturnType<typeof createClient
     }
 
     // Get time filter
-    let timeFilter = new Date()
-    switch (timeframe) {
-      case 'week':
-        timeFilter.setDate(timeFilter.getDate() - 7)
-        break
-      case 'month':
-        timeFilter.setMonth(timeFilter.getMonth() - 1)
-        break
-      case 'semester':
-        timeFilter.setMonth(timeFilter.getMonth() - 4)
-        break
-      case 'upcoming':
-        // For upcoming events, we want future dates
-        timeFilter = new Date()
-        break
-      default:
-        timeFilter.setMonth(timeFilter.getMonth() - 1)
-    }
+    const timeFilter = calculateTimeFilter(timeframe as string)
 
     // Get general notifications
-    if (notificationType === 'all' || notificationType === 'announcements' || notificationType === 'recent') {
-      const { data: notifications } = await supabase
-        .from('notifications')
-        .select(`
-          id,
-          title,
-          content,
-          image_url,
-          created_at,
-          target_roles,
-          target_classes,
-          sender:profiles!notifications_sender_id_fkey(full_name, role)
-        `)
-        .eq('is_active', true)
-        .gte('created_at', timeFilter.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      result.notifications = notifications?.map((notif: any) => ({
-        title: notif.title,
-        content: notif.content,
-        imageUrl: notif.image_url,
-        date: new Date(notif.created_at).toLocaleDateString('vi-VN'),
-        sender: notif.sender?.full_name || 'Nhà trường',
-        senderRole: notif.sender?.role || 'admin',
-        targetRoles: notif.target_roles,
-        targetClasses: notif.target_classes
-      })) || []
-    }
+    result.notifications = await fetchNotifications(supabase, notificationType as string, timeFilter)
 
     // Get meeting schedules
-    if (notificationType === 'all' || notificationType === 'meetings') {
-      const { data: meetings } = await supabase
-        .from('meeting_schedules')
-        .select(`
-          id,
-          title,
-          description,
-          meeting_date,
-          meeting_location,
-          duration_minutes,
-          meeting_type,
-          teacher:profiles!meeting_schedules_teacher_id_fkey(full_name),
-          class:classes(name)
-        `)
-        .gte('meeting_date', timeframe === 'upcoming' ? new Date().toISOString() : timeFilter.toISOString())
-        .order('meeting_date', { ascending: timeframe === 'upcoming' })
-        .limit(10)
-
-      result.meetings = meetings?.map((meeting: any) => ({
-        title: meeting.title,
-        description: meeting.description,
-        date: new Date(meeting.meeting_date).toLocaleDateString('vi-VN'),
-        time: new Date(meeting.meeting_date).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        location: meeting.meeting_location,
-        duration: meeting.duration_minutes,
-        type: meeting.meeting_type,
-        teacher: meeting.teacher?.full_name,
-        className: meeting.class?.name
-      })) || []
-    }
+    result.meetings = await fetchMeetings(supabase, notificationType as string, timeFilter, timeframe as string)
 
     // Get timetable events (for exam schedules)
-    if (notificationType === 'all' || notificationType === 'exams' || notificationType === 'schedule') {
-      // Get student info if studentName provided
-      let studentId = null
-      if (studentName) {
-        const { data: relationships } = await supabase
-          .from('parent_student_relationships')
-          .select('student_id, profiles!parent_student_relationships_student_id_fkey(full_name)')
-          .eq('parent_id', parentId)
-
-        const student = relationships?.find((rel: any) =>
-          rel.profiles?.full_name?.toLowerCase().includes((studentName as string).toLowerCase())
-        )
-        studentId = student?.student_id
-      }
-
-      if (studentId) {
-        // Get student's class assignments
-        const { data: classAssignments } = await supabase
-          .from('student_class_assignments')
-          .select('class_id')
-          .eq('student_id', studentId)
-          .eq('is_active', true)
-
-        if (classAssignments && classAssignments.length > 0) {
-          const classIds = classAssignments.map(ca => ca.class_id)
-
-          // Get timetable events for the student's classes
-          const { data: timetableEvents } = await supabase
-            .from('timetable_events')
-            .select(`
-              id,
-              day_of_week,
-              start_time,
-              end_time,
-              week_number,
-              notes,
-              class:classes(name),
-              subject:subjects(code, name_vietnamese),
-              teacher:profiles!timetable_events_teacher_id_fkey(full_name),
-              classroom:classrooms(name, building, floor)
-            `)
-            .in('class_id', classIds)
-            .order('day_of_week')
-            .order('start_time')
-
-          result.timetableEvents = timetableEvents?.map((event: any) => ({
-            dayOfWeek: event.day_of_week,
-            startTime: event.start_time,
-            endTime: event.end_time,
-            weekNumber: event.week_number,
-            notes: event.notes,
-            className: event.class?.name,
-            subjectCode: event.subject?.code,
-            subjectName: event.subject?.name_vietnamese,
-            teacher: event.teacher?.full_name,
-            classroom: event.classroom?.name,
-            building: event.classroom?.building,
-            floor: event.classroom?.floor
-          })) || []
-        }
-      }
-    }
+    result.timetableEvents = await fetchTimetableEvents(supabase, notificationType as string, studentName as string, parentId)
 
     // Add summary
     const totalNotifications = (result.notifications as any[])?.length || 0
@@ -1627,7 +1732,20 @@ async function getNotifications(supabase: Awaited<ReturnType<typeof createClient
       totalEvents,
       totalItems: totalNotifications + totalMeetings + totalEvents,
       timeframe,
-      message: `Tìm thấy ${totalNotifications + totalMeetings + totalEvents} thông báo và sự kiện trong ${timeframe === 'week' ? 'tuần' : timeframe === 'month' ? 'tháng' : timeframe === 'semester' ? 'học kỳ' : 'thời gian'} qua`
+      message: (() => {
+        const totalItems = totalNotifications + totalMeetings + totalEvents
+        let timeframeName: string
+        if (timeframe === 'week') {
+          timeframeName = 'tuần'
+        } else if (timeframe === 'month') {
+          timeframeName = 'tháng'
+        } else if (timeframe === 'semester') {
+          timeframeName = 'học kỳ'
+        } else {
+          timeframeName = 'thời gian'
+        }
+        return `Tìm thấy ${totalItems} thông báo và sự kiện trong ${timeframeName} qua`
+      })()
     }
 
     return result
@@ -1635,6 +1753,165 @@ async function getNotifications(supabase: Awaited<ReturnType<typeof createClient
   } catch (error) {
     console.error('Notifications error:', error)
     return { error: `Failed to get notifications: ${error instanceof Error ? error.message : 'Unknown error'}` }
+  }
+}
+
+// Helper functions for getAcademicInfo to reduce cognitive complexity
+async function fetchCurrentAcademicInfo(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: currentAcademicYear } = await supabase
+    .from('academic_years')
+    .select('*')
+    .eq('is_current', true)
+    .single()
+
+  if (!currentAcademicYear) {
+    return { currentAcademicYear: null, currentSemester: null }
+  }
+
+  const currentAcademicYearData = {
+    id: currentAcademicYear.id,
+    name: currentAcademicYear.name,
+    startDate: new Date(currentAcademicYear.start_date).toLocaleDateString('vi-VN'),
+    endDate: new Date(currentAcademicYear.end_date).toLocaleDateString('vi-VN'),
+    isCurrent: currentAcademicYear.is_current,
+    createdAt: new Date(currentAcademicYear.created_at).toLocaleDateString('vi-VN')
+  }
+
+  // Get current semester
+  const { data: currentSemester } = await supabase
+    .from('semesters')
+    .select('*')
+    .eq('academic_year_id', currentAcademicYear.id)
+    .eq('is_current', true)
+    .single()
+
+  const currentSemesterData = currentSemester ? {
+    id: currentSemester.id,
+    name: currentSemester.name,
+    semesterNumber: currentSemester.semester_number,
+    startDate: new Date(currentSemester.start_date).toLocaleDateString('vi-VN'),
+    endDate: new Date(currentSemester.end_date).toLocaleDateString('vi-VN'),
+    weeksCount: currentSemester.weeks_count,
+    isCurrent: currentSemester.is_current
+  } : null
+
+  return {
+    currentAcademicYear: currentAcademicYearData,
+    currentSemester: currentSemesterData
+  }
+}
+
+async function fetchAllAcademicYears(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: allAcademicYears } = await supabase
+    .from('academic_years')
+    .select('*')
+    .order('start_date', { ascending: false })
+
+  return allAcademicYears?.map((year: any) => ({
+    id: year.id,
+    name: year.name,
+    startDate: new Date(year.start_date).toLocaleDateString('vi-VN'),
+    endDate: new Date(year.end_date).toLocaleDateString('vi-VN'),
+    isCurrent: year.is_current,
+    createdAt: new Date(year.created_at).toLocaleDateString('vi-VN')
+  })) || []
+}
+
+async function fetchSemesters(supabase: Awaited<ReturnType<typeof createClient>>, academicYear: string | undefined) {
+  let targetAcademicYearId = null
+
+  if (academicYear) {
+    const { data: specifiedYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .ilike('name', `%${academicYear}%`)
+      .single()
+    targetAcademicYearId = specifiedYear?.id
+  } else {
+    const { data: currentYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('is_current', true)
+      .single()
+    targetAcademicYearId = currentYear?.id
+  }
+
+  if (!targetAcademicYearId) {
+    return []
+  }
+
+  const { data: semesters } = await supabase
+    .from('semesters')
+    .select('*')
+    .eq('academic_year_id', targetAcademicYearId)
+    .order('semester_number')
+
+  return semesters?.map((semester: any) => ({
+    id: semester.id,
+    name: semester.name,
+    semesterNumber: semester.semester_number,
+    startDate: new Date(semester.start_date).toLocaleDateString('vi-VN'),
+    endDate: new Date(semester.end_date).toLocaleDateString('vi-VN'),
+    weeksCount: semester.weeks_count,
+    isCurrent: semester.is_current
+  })) || []
+}
+
+async function buildAcademicSchedule(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data: currentYear } = await supabase
+    .from('academic_years')
+    .select('*')
+    .eq('is_current', true)
+    .single()
+
+  if (!currentYear) {
+    return null
+  }
+
+  const { data: semesters } = await supabase
+    .from('semesters')
+    .select('*')
+    .eq('academic_year_id', currentYear.id)
+    .order('semester_number')
+
+  const now = new Date()
+  const currentDate = now.toISOString().split('T')[0]
+
+  return {
+    academicYear: {
+      name: currentYear.name,
+      startDate: new Date(currentYear.start_date).toLocaleDateString('vi-VN'),
+      endDate: new Date(currentYear.end_date).toLocaleDateString('vi-VN')
+    },
+    semesters: semesters?.map((semester: any) => {
+      const semesterStart = new Date(semester.start_date)
+      const semesterEnd = new Date(semester.end_date)
+      const isActive = currentDate >= semester.start_date && currentDate <= semester.end_date
+
+      return {
+        name: semester.name,
+        semesterNumber: semester.semester_number,
+        startDate: semesterStart.toLocaleDateString('vi-VN'),
+        endDate: semesterEnd.toLocaleDateString('vi-VN'),
+        weeksCount: semester.weeks_count,
+        isCurrent: semester.is_current,
+        isActive,
+        status: (() => {
+          if (isActive) {
+            return 'Đang diễn ra'
+          } else if (semesterStart > now) {
+            return 'Sắp tới'
+          } else {
+            return 'Đã kết thúc'
+          }
+        })()
+      }
+    }) || [],
+    currentStatus: {
+      date: now.toLocaleDateString('vi-VN'),
+      academicYear: currentYear.name,
+      currentSemester: semesters?.find((s: any) => s.is_current)?.name || 'Chưa xác định'
+    }
   }
 }
 
@@ -1649,148 +1926,20 @@ async function getAcademicInfo(supabase: Awaited<ReturnType<typeof createClient>
     }
 
     if (infoType === 'current' || infoType === 'all_years') {
-      // Get current academic year
-      const { data: currentAcademicYear } = await supabase
-        .from('academic_years')
-        .select('*')
-        .eq('is_current', true)
-        .single()
-
-      if (currentAcademicYear) {
-        result.currentAcademicYear = {
-          id: currentAcademicYear.id,
-          name: currentAcademicYear.name,
-          startDate: new Date(currentAcademicYear.start_date).toLocaleDateString('vi-VN'),
-          endDate: new Date(currentAcademicYear.end_date).toLocaleDateString('vi-VN'),
-          isCurrent: currentAcademicYear.is_current,
-          createdAt: new Date(currentAcademicYear.created_at).toLocaleDateString('vi-VN')
-        }
-
-        // Get current semester
-        const { data: currentSemester } = await supabase
-          .from('semesters')
-          .select('*')
-          .eq('academic_year_id', currentAcademicYear.id)
-          .eq('is_current', true)
-          .single()
-
-        if (currentSemester) {
-          result.currentSemester = {
-            id: currentSemester.id,
-            name: currentSemester.name,
-            semesterNumber: currentSemester.semester_number,
-            startDate: new Date(currentSemester.start_date).toLocaleDateString('vi-VN'),
-            endDate: new Date(currentSemester.end_date).toLocaleDateString('vi-VN'),
-            weeksCount: currentSemester.weeks_count,
-            isCurrent: currentSemester.is_current
-          }
-        }
-      }
+      const currentInfo = await fetchCurrentAcademicInfo(supabase)
+      Object.assign(result, currentInfo)
     }
 
     if (infoType === 'all_years') {
-      // Get all academic years
-      const { data: allAcademicYears } = await supabase
-        .from('academic_years')
-        .select('*')
-        .order('start_date', { ascending: false })
-
-      result.allAcademicYears = allAcademicYears?.map((year: any) => ({
-        id: year.id,
-        name: year.name,
-        startDate: new Date(year.start_date).toLocaleDateString('vi-VN'),
-        endDate: new Date(year.end_date).toLocaleDateString('vi-VN'),
-        isCurrent: year.is_current,
-        createdAt: new Date(year.created_at).toLocaleDateString('vi-VN')
-      })) || []
+      result.allAcademicYears = await fetchAllAcademicYears(supabase)
     }
 
     if (infoType === 'semesters' || infoType === 'current') {
-      // Get semesters for current or specified academic year
-      let targetAcademicYearId = null
-
-      if (academicYear) {
-        const { data: specifiedYear } = await supabase
-          .from('academic_years')
-          .select('id')
-          .ilike('name', `%${academicYear}%`)
-          .single()
-        targetAcademicYearId = specifiedYear?.id
-      } else {
-        const { data: currentYear } = await supabase
-          .from('academic_years')
-          .select('id')
-          .eq('is_current', true)
-          .single()
-        targetAcademicYearId = currentYear?.id
-      }
-
-      if (targetAcademicYearId) {
-        const { data: semesters } = await supabase
-          .from('semesters')
-          .select('*')
-          .eq('academic_year_id', targetAcademicYearId)
-          .order('semester_number')
-
-        result.semesters = semesters?.map((semester: any) => ({
-          id: semester.id,
-          name: semester.name,
-          semesterNumber: semester.semester_number,
-          startDate: new Date(semester.start_date).toLocaleDateString('vi-VN'),
-          endDate: new Date(semester.end_date).toLocaleDateString('vi-VN'),
-          weeksCount: semester.weeks_count,
-          isCurrent: semester.is_current
-        })) || []
-      }
+      result.semesters = await fetchSemesters(supabase, academicYear as string)
     }
 
     if (infoType === 'schedule') {
-      // Get academic schedule information
-      const { data: currentYear } = await supabase
-        .from('academic_years')
-        .select('*')
-        .eq('is_current', true)
-        .single()
-
-      if (currentYear) {
-        const { data: semesters } = await supabase
-          .from('semesters')
-          .select('*')
-          .eq('academic_year_id', currentYear.id)
-          .order('semester_number')
-
-        const now = new Date()
-        const currentDate = now.toISOString().split('T')[0]
-
-        result.academicSchedule = {
-          academicYear: {
-            name: currentYear.name,
-            startDate: new Date(currentYear.start_date).toLocaleDateString('vi-VN'),
-            endDate: new Date(currentYear.end_date).toLocaleDateString('vi-VN')
-          },
-          semesters: semesters?.map((semester: any) => {
-            const semesterStart = new Date(semester.start_date)
-            const semesterEnd = new Date(semester.end_date)
-            const isActive = currentDate >= semester.start_date && currentDate <= semester.end_date
-
-            return {
-              name: semester.name,
-              semesterNumber: semester.semester_number,
-              startDate: semesterStart.toLocaleDateString('vi-VN'),
-              endDate: semesterEnd.toLocaleDateString('vi-VN'),
-              weeksCount: semester.weeks_count,
-              isCurrent: semester.is_current,
-              isActive,
-              status: isActive ? 'Đang diễn ra' : semesterStart > now ? 'Sắp tới' : 'Đã kết thúc'
-            }
-          }) || [],
-          currentStatus: {
-            date: now.toLocaleDateString('vi-VN'),
-            academicYear: currentYear.name,
-            currentSemester: semesters?.find((s: any) => s.is_current)?.name || 'Chưa xác định'
-          }
-        }
-      }
+      result.academicSchedule = await buildAcademicSchedule(supabase)
     }
 
     return result

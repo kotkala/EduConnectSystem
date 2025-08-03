@@ -13,10 +13,9 @@ import {
   Copy,
   Share
 } from "lucide-react"
-import { toast } from "sonner"
-
 // Import shared components and utilities to eliminate duplication
-import { ChatAvatar, createMessage, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
+import { ChatAvatar, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
+import { useChatStreaming } from "./useChatStreaming"
 
 interface Message {
   id: string
@@ -62,108 +61,18 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
     }
   }, [])
 
+  // Use custom hook for chat streaming
+  const { sendMessage: sendStreamingMessage } = useChatStreaming({
+    messages,
+    setMessages,
+    setInputMessage,
+    setIsLoading,
+    setIsStreaming
+  })
+
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return
-
-    const userMessage = createMessage('user', inputMessage.trim())
-    const messageText = inputMessage.trim()
-
-    setMessages(prev => [...prev, userMessage])
-    setInputMessage('')
-    setIsLoading(true)
-    setIsStreaming(true)
-
-    try {
-      // Prepare conversation history for API
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        content: msg.content
-      }))
-
-      const response = await fetch('/api/chatbot/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: messageText,
-          history: conversationHistory
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to get response')
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response stream')
-      }
-
-      let accumulatedText = ''
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let contextUsed: any = null
-      let functionCalls = 0
-
-      // Create initial assistant message
-      const assistantMessageId = Date.now().toString()
-      setMessages(prev => [...prev, createMessage('assistant', '', undefined, assistantMessageId)])
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = new TextDecoder().decode(value)
-        const lines = chunk.split('\n')
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6))
-
-              if (data.type === 'text') {
-                accumulatedText += data.data
-
-                // Update the assistant message in real-time
-                setMessages(prev => prev.map(msg =>
-                  msg.id === assistantMessageId
-                    ? { ...msg, content: accumulatedText }
-                    : msg
-                ))
-              } else if (data.type === 'function_results') {
-                functionCalls = data.data.length
-              } else if (data.type === 'complete') {
-                contextUsed = data.data.contextUsed
-                functionCalls = data.data.functionCalls || functionCalls
-              } else if (data.type === 'error') {
-                throw new Error(data.data.message)
-              }
-            } catch (parseError) {
-              console.error('Error parsing chunk:', parseError)
-            }
-          }
-        }
-      }
-
-      // Final update with context information
-      if (contextUsed) {
-        setMessages(prev => prev.map(msg =>
-          msg.id === assistantMessageId
-            ? { ...msg, content: accumulatedText, contextUsed }
-            : msg
-        ))
-      }
-
-    } catch (error) {
-      console.error('Chat error:', error)
-      toast.error('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.')
-
-      const errorMessage = createMessage('assistant', 'Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau ít phút.')
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-      setIsStreaming(false)
-    }
+    await sendStreamingMessage(inputMessage.trim())
   }
 
 

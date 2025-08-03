@@ -75,20 +75,39 @@ export async function POST(request: NextRequest) {
 
     // Get feedback data for context
     const { data: feedbackData } = await supabase
-      .from('teacher_feedback')
+      .from('student_feedback')
       .select(`
         rating,
-        comment,
-        ai_summary,
-        week_number,
-        student_name,
-        subject_name,
-        teacher_name
+        feedback_text,
+        created_at,
+        teacher_id,
+        student_id,
+        timetable_event_id,
+        subject_id
       `)
       .in('student_id', studentIds)
       .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order('created_at', { ascending: false })
       .limit(20)
+
+    // Get comprehensive data for context building
+    const [subjectsResult, teachersResult, studentsResult, notificationsResult, academicYearResult, semesterResult] = await Promise.all([
+      // Get subjects
+      supabase.from('subjects').select('id, name_vietnamese, name_english, category'),
+      // Get teacher profiles
+      supabase.from('profiles').select('id, full_name').eq('role', 'teacher'),
+      // Get student profiles
+      supabase.from('profiles').select('id, full_name, student_id').in('id', studentIds),
+      // Get recent notifications
+      supabase.from('notifications').select(`
+        id, title, content, created_at, target_roles, target_classes,
+        sender:profiles!notifications_sender_id_fkey(full_name, role)
+      `).eq('is_active', true).gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()).order('created_at', { ascending: false }).limit(10),
+      // Get current academic year
+      supabase.from('academic_years').select('id, name, start_date, end_date, is_current').eq('is_current', true).single(),
+      // Get current semester
+      supabase.from('semesters').select('id, name, semester_number, start_date, end_date, is_current').eq('is_current', true).single()
+    ])
 
     // Get grade data for context
     const { data: gradeData } = await supabase
@@ -96,13 +115,37 @@ export async function POST(request: NextRequest) {
       .select(`
         grade,
         submission_date,
-        subjects(name_vietnamese),
-        profiles!submission_grades_student_id_fkey(full_name)
+        subject_id,
+        student_id
       `)
       .in('student_id', studentIds)
       .gte('submission_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       .order('submission_date', { ascending: false })
       .limit(30)
+
+    // Get official grade submissions (semester reports)
+    const { data: gradeSubmissions } = await supabase
+      .from('student_grade_submissions')
+      .select(`
+        id,
+        submission_name,
+        status,
+        created_at,
+        student_id,
+        academic_year:academic_years(name),
+        semester:semesters(name),
+        grades:individual_subject_grades(
+          subject_id,
+          midterm_grade,
+          final_grade,
+          average_grade,
+          notes
+        )
+      `)
+      .in('student_id', studentIds)
+      .eq('status', 'sent_to_teacher')
+      .order('created_at', { ascending: false })
+      .limit(10)
 
     // Get violations data for context
     const { data: violationsData } = await supabase
@@ -125,36 +168,107 @@ export async function POST(request: NextRequest) {
       .order('recorded_at', { ascending: false })
       .limit(20)
 
+    // Build lookup maps for context
+    const subjects = subjectsResult.data || []
+    const teachers = teachersResult.data || []
+    const students = studentsResult.data || []
+    const notifications = notificationsResult.data || []
+    const currentAcademicYear = academicYearResult.data
+    const currentSemester = semesterResult.data
+
+    const subjectMap = new Map(subjects.map(s => [s.id, s]))
+    const teacherMap = new Map(teachers.map(t => [t.id, t]))
+    const studentMap = new Map(students.map(s => [s.id, s]))
+
     // Prepare context for AI
     const studentNames = relationships?.map(rel => (rel as { profiles?: { full_name?: string } }).profiles?.full_name).filter(Boolean) as string[] || []
     const contextData = {
       students: studentNames,
       recentFeedback: feedbackData || [],
       recentGrades: gradeData || [],
-      recentViolations: violationsData || []
+      gradeSubmissions: gradeSubmissions || [],
+      recentViolations: violationsData || [],
+      notifications: notifications || [],
+      currentAcademicYear,
+      currentSemester,
+      subjectMap,
+      teacherMap,
+      studentMap
     }
 
     // Create system instruction for the chatbot
     const systemInstruction = `Bạn là trợ lý AI thông minh cho phụ huynh học sinh tại trường học. Nhiệm vụ của bạn là:
 
 1. Trả lời các câu hỏi về tình hình học tập và hành vi của con em họ
-2. Cung cấp thông tin dựa trên dữ liệu phản hồi, điểm số và vi phạm thực tế
-3. Phân tích xu hướng học tập và đưa ra nhận xét, đánh giá tổng quan
-4. Đưa ra lời khuyên giáo dục tích cực và xây dựng
-5. Luôn lịch sự, thân thiện và hỗ trợ
+2. Cung cấp thông tin dựa trên dữ liệu phản hồi, điểm số và bảng điểm chính thức
+3. Phân tích xu hướng học tập qua các học kỳ và đưa ra nhận xét chi tiết
+4. Cung cấp thông tin về giáo viên chủ nhiệm và giáo viên bộ môn
+5. Trả lời về thông báo, lịch thi, sự kiện và hoạt động của trường
+6. Cung cấp thông tin về năm học, học kỳ và lịch học
+7. Hướng dẫn sử dụng các tính năng của cổng thông tin phụ huynh
+8. Đưa ra lời khuyên giáo dục tích cực và xây dựng
+9. Luôn lịch sự, thân thiện và hỗ trợ
 
 THÔNG TIN VỀ CON EM:
 - Tên học sinh: ${studentNames.join(', ')}
 
 DỮ LIỆU PHẢN HỒI GẦN ĐÂY (30 ngày):
-${contextData.recentFeedback.map(f => 
-  `- ${f.student_name} - ${f.subject_name}: ${f.rating}/5 sao, "${f.comment || f.ai_summary || 'Không có nhận xét'}" (${f.teacher_name}, tuần ${f.week_number})`
-).join('\n')}
+${contextData.recentFeedback.map((f: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const student = contextData.studentMap.get(f.student_id)
+  const teacher = contextData.teacherMap.get(f.teacher_id)
+  const subject = contextData.subjectMap.get(f.subject_id)
+
+  const studentName = student?.full_name || 'Unknown Student'
+  const subjectName = subject?.name_vietnamese || 'Unknown Subject'
+  const teacherName = teacher?.full_name || 'Unknown Teacher'
+  const rating = f.rating || 'N/A'
+  const comment = f.feedback_text || 'Không có nhận xét'
+  const date = new Date(f.created_at).toLocaleDateString('vi-VN')
+  return `- ${studentName} - ${subjectName}: ${rating}/5 sao, "${comment}" (${teacherName}, ${date})`
+}).join('\n')}
+
+THÔNG BÁO GẦN ĐÂY (7 ngày):
+${contextData.notifications.map((notif: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const title = notif.title || 'Thông báo'
+  const content = notif.content || 'Không có nội dung'
+  const sender = notif.sender?.full_name || 'Nhà trường'
+  const date = new Date(notif.created_at).toLocaleDateString('vi-VN')
+  return `- ${title}: ${content.substring(0, 100)}... (${sender}, ${date})`
+}).join('\n')}
+
+THÔNG TIN NĂM HỌC VÀ HỌC KỲ:
+- Năm học hiện tại: ${contextData.currentAcademicYear?.name || 'Chưa xác định'} (${contextData.currentAcademicYear ? new Date(contextData.currentAcademicYear.start_date).toLocaleDateString('vi-VN') + ' - ' + new Date(contextData.currentAcademicYear.end_date).toLocaleDateString('vi-VN') : 'N/A'})
+- Học kỳ hiện tại: ${contextData.currentSemester?.name || 'Chưa xác định'} (Học kỳ ${contextData.currentSemester?.semester_number || 'N/A'})
 
 DỮ LIỆU ĐIỂM SỐ GẦN ĐÂY (30 ngày):
-${contextData.recentGrades.map(g =>
-  `- ${(g as { profiles?: { full_name?: string }; subjects?: { name_vietnamese?: string }; grade?: number; submission_date?: string }).profiles?.full_name} - ${(g as { subjects?: { name_vietnamese?: string } }).subjects?.name_vietnamese}: ${(g as { grade?: number }).grade} điểm (${new Date((g as { submission_date?: string }).submission_date || '').toLocaleDateString('vi-VN')})`
-).join('\n')}
+${contextData.recentGrades.map((g: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const student = contextData.studentMap.get(g.student_id)
+  const subject = contextData.subjectMap.get(g.subject_id)
+
+  const studentName = student?.full_name || 'Unknown Student'
+  const subjectName = subject?.name_vietnamese || 'Unknown Subject'
+  const grade = g.grade || 'N/A'
+  const date = new Date(g.submission_date || '').toLocaleDateString('vi-VN')
+  return `- ${studentName} - ${subjectName}: ${grade} điểm (${date})`
+}).join('\n')}
+
+BẢNG ĐIỂM CHÍNH THỨC (Học kỳ):
+${contextData.gradeSubmissions.map((submission: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const student = contextData.studentMap.get(submission.student_id)
+  const studentName = student?.full_name || 'Unknown Student'
+  const academicYear = submission.academic_year?.name || 'N/A'
+  const semester = submission.semester?.name || 'N/A'
+  const submissionName = submission.submission_name || 'Bảng điểm'
+  const date = new Date(submission.created_at).toLocaleDateString('vi-VN')
+
+  const gradesSummary = submission.grades?.map((grade: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const subject = contextData.subjectMap.get(grade.subject_id)
+    const subjectName = subject?.name_vietnamese || 'Unknown Subject'
+    return `${subjectName}: TB=${grade.average_grade || 'N/A'} (GK=${grade.midterm_grade || 'N/A'}, CK=${grade.final_grade || 'N/A'})`
+  }).join(', ') || 'Chưa có điểm'
+
+  return `- ${studentName} - ${submissionName} (${semester} ${academicYear}, ${date}): ${gradesSummary}`
+}).join('\n')}
 
 DỮ LIỆU VI PHẠM GẦN ĐÂY (60 ngày):
 ${contextData.recentViolations.map(v => {
@@ -184,6 +298,13 @@ HƯỚNG DẪN PHÂN TÍCH:
 
 Hãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông tin. Nếu không có dữ liệu về câu hỏi cụ thể, hãy thông báo và đề xuất cách khác để phụ huynh có thể theo dõi.`
 
+    // Convert history format for Google GenAI (assistant -> model)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const convertedHistory = history.map((msg: any) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }))
+
     // Create chat session with function calling
     const chat = ai.chats.create({
       model: 'gemini-2.0-flash',
@@ -198,7 +319,7 @@ Hãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông 
           }
         }
       },
-      history: history
+      history: convertedHistory
     })
 
     // Create streaming response

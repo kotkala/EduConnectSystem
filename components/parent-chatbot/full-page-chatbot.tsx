@@ -76,7 +76,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
     try {
       // Prepare conversation history for API
       const conversationHistory = messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        role: msg.role === 'assistant' ? 'model' : 'user',
         content: msg.content
       }))
 

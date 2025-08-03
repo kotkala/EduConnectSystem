@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { CalendarNavigationButtons } from "@/components/shared/calendar-navigation";
 
 import {
   type CalendarEvent,
@@ -40,6 +40,35 @@ export default function TeacherTimetableCalendar() {
   const { user } = useAuth();
   const { currentDate, setCurrentDate } = useCalendarContext();
   const [view, setView] = useState<CalendarView>("week");
+
+  // Navigation functions using the original logic but extracted for reusability
+  const navigatePrevious = useCallback(() => {
+    const newDate = new Date(currentDate);
+    if (view === "day") {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (view === "week") {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
+    setCurrentDate(newDate);
+  }, [currentDate, view, setCurrentDate]);
+
+  const navigateNext = useCallback(() => {
+    const newDate = new Date(currentDate);
+    if (view === "day") {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (view === "week") {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  }, [currentDate, view, setCurrentDate]);
+
+  const navigateToday = useCallback(() => {
+    setCurrentDate(new Date());
+  }, [setCurrentDate]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [timetableEventsMap, setTimetableEventsMap] = useState<Map<string, TeacherTimetableEvent>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
@@ -201,76 +230,47 @@ export default function TeacherTimetableCalendar() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                   {/* View Toggle */}
                   <div className="flex rounded-md border w-full sm:w-auto">
-                    <Button
-                      variant={view === "day" ? "default" : "ghost"}
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => setView("day")}
-                      className="rounded-r-none flex-1 sm:flex-none text-xs sm:text-sm"
+                      className={`inline-flex items-center justify-center font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 flex-1 sm:flex-none text-xs sm:text-sm rounded-r-none ${
+                        view === "day"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-transparent hover:bg-accent hover:text-accent-foreground"
+                      }`}
                     >
                       Ngày
-                    </Button>
-                    <Button
-                      variant={view === "week" ? "default" : "ghost"}
-                      size="sm"
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setView("week")}
-                      className="rounded-none flex-1 sm:flex-none text-xs sm:text-sm"
+                      className={`inline-flex items-center justify-center font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 flex-1 sm:flex-none text-xs sm:text-sm rounded-none ${
+                        view === "week"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-transparent hover:bg-accent hover:text-accent-foreground"
+                      }`}
                     >
                       Tuần
-                    </Button>
-                    <Button
-                      variant={view === "month" ? "default" : "ghost"}
-                      size="sm"
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setView("month")}
-                      className="rounded-l-none flex-1 sm:flex-none text-xs sm:text-sm"
+                      className={`inline-flex items-center justify-center font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 flex-1 sm:flex-none text-xs sm:text-sm rounded-l-none ${
+                        view === "month"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-transparent hover:bg-accent hover:text-accent-foreground"
+                      }`}
                     >
                       Tháng
-                    </Button>
+                    </button>
                   </div>
 
                   {/* Navigation */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newDate = new Date(currentDate);
-                        if (view === "day") {
-                          newDate.setDate(newDate.getDate() - 1);
-                        } else if (view === "week") {
-                          newDate.setDate(newDate.getDate() - 7);
-                        } else {
-                          newDate.setMonth(newDate.getMonth() - 1);
-                        }
-                        setCurrentDate(newDate);
-                      }}
-                    >
-                      ←
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentDate(new Date())}
-                    >
-                      Hôm nay
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newDate = new Date(currentDate);
-                        if (view === "day") {
-                          newDate.setDate(newDate.getDate() + 1);
-                        } else if (view === "week") {
-                          newDate.setDate(newDate.getDate() + 7);
-                        } else {
-                          newDate.setMonth(newDate.getMonth() + 1);
-                        }
-                        setCurrentDate(newDate);
-                      }}
-                    >
-                      →
-                    </Button>
-                  </div>
+                  <CalendarNavigationButtons
+                    onPrevious={navigatePrevious}
+                    onNext={navigateNext}
+                    onToday={navigateToday}
+                  />
                 </div>
               </div>
 

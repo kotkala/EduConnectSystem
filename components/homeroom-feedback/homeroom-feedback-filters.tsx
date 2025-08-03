@@ -1,43 +1,16 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { CalendarDays } from "lucide-react"
+import { useCallback } from "react"
 import {
   getHomeroomAcademicYearsAction,
   getHomeroomSemestersAction,
   type HomeroomFeedbackFilters as FiltersType
 } from "@/lib/actions/homeroom-feedback-actions"
-import { format, endOfWeek } from 'date-fns'
-import { getWeekStartDate } from '@/components/timetable-calendar/data-mappers'
-
-// Types for filter data
-interface AcademicYear {
-  id: string
-  name: string
-}
-
-interface Semester {
-  id: string
-  name: string
-  start_date: string
-  end_date: string
-}
-
-interface WeekOption {
-  number: number
-  startDate: Date
-  endDate: Date
-  label: string
-}
+import {
+  AcademicFilters,
+  type AcademicYear,
+  type Semester
+} from "@/components/shared/academic-filters"
 
 interface HomeroomFeedbackFiltersProps {
   readonly filters: FiltersType
@@ -48,213 +21,42 @@ export function HomeroomFeedbackFilters({
   filters,
   onFiltersChange,
 }: HomeroomFeedbackFiltersProps) {
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
-  const [semesters, setSemesters] = useState<Semester[]>([])
-  const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
-  const [isLoadingData, setIsLoadingData] = useState(false)
 
-  // Load academic years - Context7 pattern for initial data loading
-  useEffect(() => {
-    const loadAcademicYears = async () => {
-      setIsLoadingData(true)
-      try {
-        const result = await getHomeroomAcademicYearsAction()
-        if (result.success && result.data) {
-          setAcademicYears(result.data)
-        } else {
-          console.error("Failed to load academic years:", result.error)
-          setAcademicYears([])
-        }
-      } catch (error) {
-        console.error("Error loading academic years:", error)
-        setAcademicYears([])
-      } finally {
-        setIsLoadingData(false)
-      }
+  // Load academic years function
+  const loadAcademicYears = useCallback(async (): Promise<AcademicYear[]> => {
+    const result = await getHomeroomAcademicYearsAction()
+    if (result.success && result.data) {
+      return result.data
+    } else {
+      console.error("Failed to load academic years:", result.error)
+      return []
     }
-
-    loadAcademicYears()
   }, [])
 
-  // Load semesters when academic year changes - Context7 pattern for dependent dropdowns
-  useEffect(() => {
-    const loadSemesters = async () => {
-      if (!filters.academic_year_id) {
-        setSemesters([])
-        return
-      }
-
-      try {
-        const result = await getHomeroomSemestersAction(filters.academic_year_id)
-        if (result.success && result.data) {
-          setSemesters(result.data)
-        } else {
-          console.error("Failed to load semesters:", result.error)
-          setSemesters([])
-        }
-      } catch (error) {
-        console.error("Error loading semesters:", error)
-        setSemesters([])
-      }
+  // Load semesters function
+  const loadSemesters = useCallback(async (academicYearId: string): Promise<Semester[]> => {
+    const result = await getHomeroomSemestersAction(academicYearId)
+    if (result.success && result.data) {
+      return result.data
+    } else {
+      console.error("Failed to load semesters:", result.error)
+      return []
     }
-
-    loadSemesters()
-  }, [filters.academic_year_id])
-
-  // Generate week options when semester changes - Context7 pattern for synchronized week calculation
-  useEffect(() => {
-    const generateWeekOptions = () => {
-      const semester = semesters.find(s => s.id === filters.semester_id)
-      if (!semester) {
-        setWeekOptions([])
-        return
-      }
-
-      const semesterStartDate = new Date(semester.start_date)
-      const semesterEndDate = new Date(semester.end_date)
-
-      const weeks: WeekOption[] = []
-      let weekNumber = 1
-
-      while (weekNumber <= 20) { // Max 20 weeks per semester
-        // Use the same calculation as timetable and violations systems
-        const weekStartDate = getWeekStartDate(semesterStartDate, weekNumber)
-        const weekEndDate = endOfWeek(weekStartDate, { weekStartsOn: 1 })
-
-        // Stop if week starts after semester ends
-        if (weekStartDate > semesterEndDate) {
-          break
-        }
-
-        weeks.push({
-          number: weekNumber,
-          startDate: weekStartDate,
-          endDate: weekEndDate,
-          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
-        })
-        weekNumber++
-      }
-
-      setWeekOptions(weeks)
-    }
-
-    generateWeekOptions()
-  }, [filters.semester_id, semesters])
-
-  const handleFilterChange = useCallback((key: keyof FiltersType, value: string | number) => {
-    const newFilters = { ...filters, [key]: value }
-
-    // Reset dependent filters when parent changes - Context7 pattern for cascading dropdowns
-    if (key === 'academic_year_id') {
-      newFilters.semester_id = ''
-      newFilters.week_number = 1
-      // Clear semesters and weeks immediately when academic year changes
-      setSemesters([])
-      setWeekOptions([])
-    } else if (key === 'semester_id') {
-      newFilters.week_number = 1
-      // Clear weeks immediately when semester changes
-      setWeekOptions([])
-    }
-
-    onFiltersChange(newFilters)
-  }, [filters, onFiltersChange])
-
-
+  }, [])
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2">
-            <CalendarDays className="h-5 w-5" />
-            <span>Bộ Lọc Phản Hồi</span>
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Academic Year, Semester, and Week Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Academic Year Selection */}
-          <div className="space-y-2">
-            <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
-            <Select
-              value={filters.academic_year_id || ""}
-              onValueChange={(value) => handleFilterChange('academic_year_id', value)}
-              disabled={isLoadingData}
-              name="academic-year-select"
-            >
-              <SelectTrigger id="academic-year-select">
-                <SelectValue placeholder="Chọn năm học" />
-              </SelectTrigger>
-              <SelectContent>
-                {academicYears.map((year) => (
-                  <SelectItem key={year.id} value={year.id}>
-                    {year.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Semester Selection */}
-          <div className="space-y-2">
-            <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
-            <Select
-              value={filters.semester_id || ""}
-              onValueChange={(value) => handleFilterChange('semester_id', value)}
-              disabled={!filters.academic_year_id || semesters.length === 0}
-              name="semester-select"
-            >
-              <SelectTrigger id="semester-select">
-                <SelectValue placeholder="Chọn học kỳ" />
-              </SelectTrigger>
-              <SelectContent>
-                {semesters.map((semester) => (
-                  <SelectItem key={semester.id} value={semester.id}>
-                    {semester.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Study Week Selection */}
-          <div className="space-y-2">
-            <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
-            <Select
-              value={filters.week_number?.toString() || ""}
-              onValueChange={(value) => handleFilterChange('week_number', parseInt(value))}
-              disabled={!filters.semester_id || weekOptions.length === 0}
-              name="week-select"
-            >
-              <SelectTrigger id="week-select">
-                <SelectValue placeholder="Chọn tuần" />
-              </SelectTrigger>
-              <SelectContent>
-                {weekOptions.map((week) => (
-                  <SelectItem key={week.number} value={week.number.toString()}>
-                    {week.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Filter Status */}
-        <div className="text-sm text-muted-foreground">
-          {filters.academic_year_id && filters.semester_id && filters.week_number ? (
-            <span className="text-green-600">
-              ✓ Sẵn sàng xem phản hồi học sinh cho Tuần {filters.week_number}
-            </span>
-          ) : (
-            <span>
-              Vui lòng chọn năm học, học kỳ và tuần để xem phản hồi học sinh
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <AcademicFilters
+      filters={filters}
+      onFiltersChange={onFiltersChange}
+      title="Bộ Lọc Phản Hồi"
+      loadAcademicYears={loadAcademicYears}
+      loadSemesters={loadSemesters}
+      weekCalculationMode="semester-based"
+      maxWeeks={20}
+      statusMessage={{
+        ready: "✓ Sẵn sàng xem phản hồi học sinh",
+        instruction: "Vui lòng chọn năm học, học kỳ và tuần để xem phản hồi học sinh"
+      }}
+    />
   )
 }

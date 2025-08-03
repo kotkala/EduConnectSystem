@@ -328,7 +328,7 @@ async function getDetailedGrades(supabase: Awaited<ReturnType<typeof createClien
     .gte('submission_date', startDate.toISOString())
     .order('submission_date', { ascending: false })
   
-  if (subjectName) {
+  if (subjectName && typeof subjectName === 'string') {
     query = query.or(`subjects.name_vietnamese.ilike.%${subjectName}%,subjects.name_english.ilike.%${subjectName}%`)
   }
   

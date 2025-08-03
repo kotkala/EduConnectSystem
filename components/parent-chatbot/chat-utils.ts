@@ -87,7 +87,7 @@ export function processStreamChunk(line: string): StreamData | null {
 
 // Helper functions to reduce complexity in handleStreamData
 function handleTextData(data: StreamData, accumulatedText: string, assistantMessageId: string, setMessages: (updater: (prev: Message[]) => Message[]) => void): string {
-  const newAccumulatedText = accumulatedText + (typeof data.data === 'string' ? data.data : String(data.data))
+  const newAccumulatedText = accumulatedText + (typeof data.data === 'string' ? data.data : '')
 
   // Update the assistant message in real-time
   setMessages(prev => prev.map(msg =>

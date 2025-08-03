@@ -1547,7 +1547,7 @@ async function getWebsiteUsageGuide(_supabase: Awaited<ReturnType<typeof createC
   } else if (guides[feature as keyof typeof guides]) {
     result.guide = guides[feature as keyof typeof guides]
   } else {
-    result.error = `Tính năng "${feature}" không tồn tại. Các tính năng có sẵn: ${Object.keys(guides).join(', ')}`
+    result.error = `Tính năng "${typeof feature === 'string' ? feature : String(feature)}" không tồn tại. Các tính năng có sẵn: ${Object.keys(guides).join(', ')}`
   }
 
   // Add general tips for all features

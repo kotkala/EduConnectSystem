@@ -23,54 +23,6 @@ interface IndividualGradeForm {
   class_id: string
 }
 
-// Helper function to create a generic data loader with loading state
-function createDataLoader<T>(
-  setData: (data: T) => void,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setLoadingStates: (updater: (prev: any) => any) => void,
-  loadingKey: string
-) {
-  return async (apiCall: () => Promise<{ success: boolean; data?: T; error?: string }>) => {
-    setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
-    try {
-      const result = await apiCall();
-      if (result.success && result.data) {
-        setData(result.data);
-      }
-    } catch (error) {
-      console.error(`Error loading ${loadingKey}:`, error);
-    } finally {
-      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
-    }
-  };
-}
-
-// Helper function to handle form field changes
-function handleFormFieldChange(
-  field: keyof IndividualGradeForm,
-  value: string,
-  form: IndividualGradeForm,
-  setForm: (form: IndividualGradeForm) => void,
-  callbacks?: { [key: string]: (value: string) => void }
-) {
-  const newForm = { ...form, [field]: value };
-
-  // Reset dependent fields
-  if (field === 'academic_year_id') {
-    newForm.semester_id = '';
-    newForm.class_id = '';
-  } else if (field === 'semester_id') {
-    newForm.class_id = '';
-  }
-
-  setForm(newForm);
-
-  // Execute callbacks
-  if (callbacks?.[field]) {
-    callbacks[field](value);
-  }
-}
-
 interface StudentInfo {
   id: string
   full_name: string
@@ -84,27 +36,6 @@ interface SubjectInfo {
   name_vietnamese: string
   name_english: string
   category: string
-}
-
-// Helper function to get semester placeholder text
-function getSemesterPlaceholder(academicYearId: string, loadingSemesters: boolean): string {
-  if (!academicYearId) return "Chọn năm học trước"
-  if (loadingSemesters) return "Đang tải..."
-  return "Chọn học kì"
-}
-
-// Helper function to get class placeholder text
-function getClassPlaceholder(semesterId: string, loadingClasses: boolean): string {
-  if (!semesterId) return "Chọn học kì trước"
-  if (loadingClasses) return "Đang tải..."
-  return "Chọn lớp"
-}
-
-// Helper function to get status badge variant
-function getStatusBadgeVariant(status: string): 'default' | 'secondary' | 'outline' {
-  if (status === 'submitted') return 'default'
-  if (status === 'draft') return 'secondary'
-  return 'outline'
 }
 
 export default function IndividualGradesClient() {
@@ -130,40 +61,82 @@ export default function IndividualGradesClient() {
     submissions: false
   })
 
-  // Create data loaders using helper function
-  const loadAcademicYearsData = createDataLoader(setAcademicYears, setLoadingStates, 'academicYears');
-  const loadSemestersData = createDataLoader(setSemesters, setLoadingStates, 'semesters');
-  const loadClassesData = createDataLoader(setClasses, setLoadingStates, 'classes');
-
   const loadAcademicYears = useCallback(async () => {
-    await loadAcademicYearsData(() => getAcademicYearsAction({ page: 1, limit: 50 }));
-  }, [loadAcademicYearsData]);
+    setLoadingStates(prev => ({ ...prev, academicYears: true }))
+    try {
+      const result = await getAcademicYearsAction({ page: 1, limit: 50 })
+      if (result.success) {
+        setAcademicYears(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error loading academic years:', error)
+    } finally {
+      setLoadingStates(prev => ({ ...prev, academicYears: false }))
+    }
+  }, [])
 
   const loadSemesters = useCallback(async (academicYearId: string) => {
-    const result = await getSemestersAction({ page: 1, limit: 20 });
-    if (result.success) {
-      const filteredSemesters = result.data?.filter(
-        s => s.academic_year_id === academicYearId
-      ) || [];
-      await loadSemestersData(() => Promise.resolve({ success: true, data: filteredSemesters }));
+    setLoadingStates(prev => ({ ...prev, semesters: true }))
+    try {
+      const result = await getSemestersAction({ page: 1, limit: 20 })
+      if (result.success) {
+        const filteredSemesters = result.data?.filter(
+          s => s.academic_year_id === academicYearId
+        ) || []
+        setSemesters(filteredSemesters)
+      }
+    } catch (error) {
+      console.error('Error loading semesters:', error)
+    } finally {
+      setLoadingStates(prev => ({ ...prev, semesters: false }))
     }
-  }, [loadSemestersData]);
+  }, [])
 
   const loadClasses = useCallback(async (semesterId: string) => {
-    await loadClassesData(() => getClassesAction({
-      page: 1,
-      limit: 100,
-      semester_id: semesterId
-    }));
-  }, [loadClassesData]);
+    setLoadingStates(prev => ({ ...prev, classes: true }))
+    try {
+      const result = await getClassesAction({ 
+        page: 1, 
+        limit: 100, 
+        semester_id: semesterId 
+      })
+      if (result.success) {
+        setClasses(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error loading classes:', error)
+    } finally {
+      setLoadingStates(prev => ({ ...prev, classes: false }))
+    }
+  }, [])
 
   const loadStudentsAndSubjects = useCallback(async (classId: string) => {
     setLoadingStates(prev => ({ ...prev, students: true }))
     try {
       const result = await getStudentsForGradeSubmissionAction(classId)
       if (result.success && result.data) {
-        setStudents(result.data.students as unknown as StudentInfo[])
-        setSubjects(result.data.subjects as unknown as SubjectInfo[])
+        // Type guard for students
+        const validStudents = Array.isArray(result.data.students)
+          ? (result.data.students as StudentInfo[]).filter(student =>
+              student && typeof student === 'object' &&
+              typeof student.id === 'string' &&
+              typeof student.full_name === 'string' &&
+              typeof student.student_id === 'string' &&
+              typeof student.email === 'string'
+            )
+          : []
+
+        // Type guard for subjects
+        const validSubjects = Array.isArray(result.data.subjects)
+          ? (result.data.subjects as SubjectInfo[]).filter(subject =>
+              subject && typeof subject === 'object' &&
+              typeof subject.id === 'string' &&
+              typeof subject.name_vietnamese === 'string'
+            )
+          : []
+
+        setStudents(validStudents)
+        setSubjects(validSubjects)
       }
     } catch (error) {
       console.error('Error loading students and subjects:', error)
@@ -182,8 +155,18 @@ export default function IndividualGradesClient() {
         form.academic_year_id,
         form.semester_id
       )
-      if (result.success) {
-        setSubmissions((result.data as StudentGradeSubmissionWithDetails[]) || [])
+      if (result.success && result.data) {
+        // Type guard to ensure we have valid submissions
+        const validSubmissions = Array.isArray(result.data)
+          ? (result.data as StudentGradeSubmissionWithDetails[]).filter(submission =>
+              submission && typeof submission === 'object' &&
+              typeof submission.id === 'string' &&
+              typeof submission.student_id === 'string'
+            )
+          : []
+        setSubmissions(validSubmissions)
+      } else {
+        setSubmissions([])
       }
     } catch (error) {
       console.error('Error loading submissions:', error)
@@ -228,18 +211,43 @@ export default function IndividualGradesClient() {
   }, [form.class_id, form.academic_year_id, form.semester_id, loadStudentsAndSubjects, loadSubmissions])
 
   const handleFormChange = useCallback((field: keyof IndividualGradeForm, value: string) => {
-    const callbacks = {
-      academic_year_id: loadSemesters,
-      semester_id: loadClasses,
-      class_id: loadStudentsAndSubjects
-    };
-
-    handleFormFieldChange(field, value, form, setForm, callbacks);
-    setSelectedSubmissionId(null);
-  }, [form, loadSemesters, loadClasses, loadStudentsAndSubjects]);
+    setForm(prev => {
+      const newForm = { ...prev, [field]: value }
+      
+      // Reset dependent fields
+      if (field === 'academic_year_id') {
+        newForm.semester_id = ''
+        newForm.class_id = ''
+      } else if (field === 'semester_id') {
+        newForm.class_id = ''
+      }
+      
+      return newForm
+    })
+    setSelectedSubmissionId(null)
+  }, [])
 
   const canShowStudents = () => {
     return form.academic_year_id && form.semester_id && form.class_id
+  }
+
+  // Helper functions for placeholders and variants
+  const getSemesterPlaceholder = () => {
+    if (!form.academic_year_id) return "Chọn năm học trước"
+    if (loadingStates.semesters) return "Đang tải..."
+    return "Chọn học kì"
+  }
+
+  const getClassPlaceholder = () => {
+    if (!form.semester_id) return "Chọn học kì trước"
+    if (loadingStates.classes) return "Đang tải..."
+    return "Chọn lớp"
+  }
+
+  const getStatusBadgeVariant = (status: string): 'default' | 'secondary' | 'outline' => {
+    if (status === 'submitted') return 'default'
+    if (status === 'draft') return 'secondary'
+    return 'outline'
   }
 
   const handleDownloadStudentExcel = async (student: StudentInfo) => {
@@ -301,8 +309,10 @@ export default function IndividualGradesClient() {
       })
 
       let submissionId: string
-      if (createResult.success) {
-        submissionId = (createResult.data as { id: string })?.id || ''
+      if (createResult.success && createResult.data) {
+        // Type guard for submission data
+        const submissionData = createResult.data as { id?: string }
+        submissionId = submissionData.id || ''
       } else {
         // If submission exists, find it
         const existingSubmission = submissions.find(s => s.student_id === student.id)
@@ -431,7 +441,7 @@ export default function IndividualGradesClient() {
                 disabled={!form.academic_year_id || loadingStates.semesters}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={getSemesterPlaceholder(form.academic_year_id, loadingStates.semesters)} />
+                  <SelectValue placeholder={getSemesterPlaceholder()} />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map((semester) => (
@@ -452,7 +462,7 @@ export default function IndividualGradesClient() {
                 disabled={!form.semester_id || loadingStates.classes}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={getClassPlaceholder(form.semester_id, loadingStates.classes)} />
+                  <SelectValue placeholder={getClassPlaceholder()} />
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map((cls) => (

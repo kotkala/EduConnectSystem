@@ -40,13 +40,16 @@ function studySlotToCalendarEvent(slot: StudySlot & {
   classroom_name?: string;
 }): CalendarEvent {
   // Create a date for the slot based on day_of_week and week_number
+  // Get the current date from the calendar context instead of today
   const today = new Date();
   const currentWeekStart = new Date(today);
-  currentWeekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-  
-  // Calculate the target date based on day_of_week
+  const dayOfWeek = currentWeekStart.getDay();
+  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday (0), go back 6 days to Monday
+  currentWeekStart.setDate(currentWeekStart.getDate() + daysToMonday);
+
+  // Calculate the target date based on day_of_week (1 = Monday, 7 = Sunday)
   const targetDate = new Date(currentWeekStart);
-  targetDate.setDate(currentWeekStart.getDate() + slot.day_of_week);
+  targetDate.setDate(currentWeekStart.getDate() + (slot.day_of_week - 1));
   
   // Parse start and end times
   const [startHours, startMinutes] = slot.start_time.split(':').map(Number);

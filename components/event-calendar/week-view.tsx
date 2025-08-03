@@ -186,7 +186,7 @@ export function WeekView({
 
             {/* Clickable cells */}
             <div className="absolute inset-0">
-              {weekDays.map((day, dayIndex) =>
+              {weekDays.flatMap((day, dayIndex) =>
                 hours.map((hour) => (
                   <div
                     key={`${day.toISOString()}-${hour.getTime()}`}

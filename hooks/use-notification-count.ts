@@ -9,7 +9,7 @@ interface NotificationCounts {
   total: number
 }
 
-export function useNotificationCount(role: UserRole, userId?: string) {
+export function useNotificationCount(_role: UserRole, userId?: string) {
   const [counts, setCounts] = useState<NotificationCounts>({
     unread: 0,
     total: 0
@@ -27,33 +27,34 @@ export function useNotificationCount(role: UserRole, userId?: string) {
     const fetchNotificationCounts = async () => {
       try {
         const supabase = createClient()
-        
-        // Query unread notifications for the current user
-        const { data: unreadData, error: unreadError } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('recipient_id', userId)
-          .eq('is_read', false)
 
-        if (unreadError) {
-          console.error('Error fetching unread notifications:', unreadError)
+        // Get all active notifications with read status
+        const { data: notifications, error } = await supabase
+          .from('notifications')
+          .select(`
+            id,
+            notification_reads!left(user_id, read_at)
+          `)
+          .eq('is_active', true)
+
+        if (error) {
+          console.error('Error fetching notifications:', error)
           return
         }
 
-        // Query total notifications for the current user
-        const { data: totalData, error: totalError } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('recipient_id', userId)
-
-        if (totalError) {
-          console.error('Error fetching total notifications:', totalError)
+        if (!notifications) {
+          setCounts({ unread: 0, total: 0 })
           return
         }
+
+        // Count unread notifications (those without a read record for this user)
+        const unreadCount = notifications.filter(notification =>
+          !notification.notification_reads.some((read: { user_id: string }) => read.user_id === userId)
+        ).length
 
         setCounts({
-          unread: unreadData?.length || 0,
-          total: totalData?.length || 0
+          unread: unreadCount,
+          total: notifications.length
         })
       } catch (error) {
         console.error('Error in fetchNotificationCounts:', error)
@@ -73,11 +74,22 @@ export function useNotificationCount(role: UserRole, userId?: string) {
         {
           event: '*',
           schema: 'public',
-          table: 'notifications',
-          filter: `recipient_id=eq.${userId}`
+          table: 'notifications'
         },
         () => {
           // Refetch counts when notifications change
+          fetchNotificationCounts()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_reads'
+        },
+        () => {
+          // Refetch counts when read status changes
           fetchNotificationCounts()
         }
       )

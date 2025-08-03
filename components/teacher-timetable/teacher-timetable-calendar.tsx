@@ -55,8 +55,15 @@ export default function TeacherTimetableCalendar() {
 
   // Convert timetable event to calendar event
   const timetableEventToCalendarEvent = useCallback((event: TeacherTimetableEvent): CalendarEvent => {
-    const eventDate = new Date(currentDate);
-    eventDate.setDate(eventDate.getDate() - eventDate.getDay() + event.day_of_week);
+    // Get the start of the current week (Monday = 1, Sunday = 0)
+    const weekStart = new Date(currentDate);
+    const dayOfWeek = weekStart.getDay();
+    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday (0), go back 6 days to Monday
+    weekStart.setDate(weekStart.getDate() + daysToMonday);
+
+    // Calculate the event date based on day_of_week (1 = Monday, 7 = Sunday)
+    const eventDate = new Date(weekStart);
+    eventDate.setDate(weekStart.getDate() + (event.day_of_week - 1));
 
     const [startHour, startMinute] = event.start_time.split(':').map(Number);
     const [endHour, endMinute] = event.end_time.split(':').map(Number);
@@ -105,7 +112,7 @@ export default function TeacherTimetableCalendar() {
         // Store events in map for easy access
         const eventsMap = new Map<string, TeacherTimetableEvent>();
         timetableEvents.forEach(event => {
-          if (event && event.id) {
+          if (event?.id) {
             eventsMap.set(event.id, event);
           }
         });
@@ -115,7 +122,7 @@ export default function TeacherTimetableCalendar() {
 
         // Convert to calendar events for display with additional safety checks
         const calendarEvents = timetableEvents
-          .filter(event => event && event.id && event.subject_name && event.class_name)
+          .filter(event => event?.id && event?.subject_name && event?.class_name)
           .map(event => {
             try {
               return timetableEventToCalendarEvent(event);

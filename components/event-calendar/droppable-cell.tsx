@@ -52,11 +52,7 @@ export function DroppableCell({
         )}
         title={formattedTime ? `${formattedTime}` : undefined}
         data-dragging={isOver && activeEvent ? true : undefined}
-        aria-label={(() => {
-          const baseLabel = 'Calendar cell'
-          const timeLabel = formattedTime ? ` at ${formattedTime}` : ''
-          return `${baseLabel}${timeLabel}`
-        })()}
+        aria-label={formattedTime ? `Calendar cell at ${formattedTime}` : 'Calendar cell'}
       >
         {children}
       </button>

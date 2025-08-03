@@ -195,7 +195,16 @@ export async function getStudentGradeSubmissionsAction(classId: string, academic
       return handleDatabaseError(error, "Failed to fetch grade submissions")
     }
 
-    return createSuccessResponse(submissions || [])
+    // Filter out invalid submissions and ensure data integrity
+    const validSubmissions = (submissions || []).filter(submission =>
+      submission?.id &&
+      submission?.student_id &&
+      submission?.class_id &&
+      submission?.academic_year_id &&
+      submission?.semester_id
+    )
+
+    return createSuccessResponse(validSubmissions)
   } catch (error) {
     console.error('Error fetching grade submissions:', error)
     return createErrorResponse(error, "Failed to fetch grade submissions")

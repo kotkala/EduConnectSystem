@@ -15,6 +15,7 @@ import {
   type CalendarView,
 } from "@/components/event-calendar";
 import { useCalendarContext } from "@/components/event-calendar/calendar-context";
+import { CalendarNavigationButtons } from "@/components/shared/calendar-navigation";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-filters";
 import {
   StudySlotDialog,
@@ -63,12 +64,13 @@ function studySlotToCalendarEvent(slot: StudySlot & {
 
   return {
     id: slot.id || `temp-${Date.now()}`,
-    title: `${slot.subject_code || 'Subject'} - ${slot.subject_name || ''}`,
+    title: slot.subject_name || 'Môn học',
     description: (() => {
-      const teacherInfo = `Teacher: ${slot.teacher_name || 'TBD'}`
-      const roomInfo = `Room: ${slot.classroom_name || 'TBD'}`
-      const notesInfo = slot.notes ? `\nNotes: ${slot.notes}` : ''
-      return `${teacherInfo}\n${roomInfo}${notesInfo}`
+      const timeInfo = `${slot.start_time} - ${slot.end_time}`
+      const teacherInfo = `Giáo viên: ${slot.teacher_name || 'TBD'}`
+      const roomInfo = `Phòng: ${slot.classroom_name || 'TBD'}`
+      const notesInfo = slot.notes ? `\nGhi chú: ${slot.notes}` : ''
+      return `${timeInfo}\n${teacherInfo}\n${roomInfo}${notesInfo}`
     })(),
     start: startDate,
     end: endDate,
@@ -185,6 +187,34 @@ export default function TimetableCalendar() {
 
     loadTimetableEvents();
   }, [filters.classId, filters.semesterId, filters.studyWeek]);
+
+  // Navigation functions to sync with study week filter
+  const navigatePrevious = () => {
+    if (!filters.studyWeek) return;
+
+    const newWeek = Math.max(1, filters.studyWeek - 1);
+    if (newWeek !== filters.studyWeek) {
+      setFilters(prev => ({ ...prev, studyWeek: newWeek }));
+    }
+  };
+
+  const navigateNext = () => {
+    if (!filters.studyWeek) return;
+
+    // Calculate max weeks based on semester (default to 18 for semester 1, 17 for semester 2)
+    const maxWeeks = 18; // Default fallback
+    const newWeek = Math.min(maxWeeks, filters.studyWeek + 1);
+    if (newWeek !== filters.studyWeek) {
+      setFilters(prev => ({ ...prev, studyWeek: newWeek }));
+    }
+  };
+
+  const navigateToday = () => {
+    // For timetable, "today" means go to current week (week 1)
+    if (filters.studyWeek !== 1) {
+      setFilters(prev => ({ ...prev, studyWeek: 1 }));
+    }
+  };
 
   // Convert CalendarEvent back to StudySlot for editing
   const calendarEventToStudySlot = (event: CalendarEvent): StudySlot | null => {
@@ -376,6 +406,12 @@ export default function TimetableCalendar() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b">
                 <h2 className="text-base sm:text-lg font-semibold">Timetable</h2>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                  {/* Navigation Buttons */}
+                  <CalendarNavigationButtons
+                    onPrevious={navigatePrevious}
+                    onNext={navigateNext}
+                    onToday={navigateToday}
+                  />
                   <Button
                     variant="outline"
                     onClick={() => {

@@ -81,12 +81,13 @@ function studySlotToCalendarEvent(slot: StudySlot & {
 
   return {
     id: slot.id || `temp-${Date.now()}`,
-    title: `${slot.subject_code || 'Subject'} - ${slot.subject_name || ''}`,
+    title: slot.subject_name || 'Môn học',
     description: (() => {
-      const teacherInfo = `Teacher: ${slot.teacher_name || 'TBD'}`
-      const roomInfo = `Room: ${slot.classroom_name || 'TBD'}`
-      const notesInfo = slot.notes ? `\nNotes: ${slot.notes}` : ''
-      return `${teacherInfo}\n${roomInfo}${notesInfo}`
+      const timeInfo = `${slot.start_time} - ${slot.end_time}`
+      const teacherInfo = `Giáo viên: ${slot.teacher_name || 'TBD'}`
+      const roomInfo = `Phòng: ${slot.classroom_name || 'TBD'}`
+      const notesInfo = slot.notes ? `\nGhi chú: ${slot.notes}` : ''
+      return `${timeInfo}\n${teacherInfo}\n${roomInfo}${notesInfo}`
     })(),
     start: startDate,
     end: endDate,

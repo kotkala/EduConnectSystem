@@ -1006,10 +1006,6 @@ export default function Home() {
               answer: "AI được huấn luyện với dữ liệu cụ thể của từng trường, đảm bảo độ chính xác 95%+ cho các câu hỏi thường gặp."
             },
             {
-              question: "Chi phí triển khai EduConnect như thế nào?",
-              answer: "Chúng tôi có gói miễn phí cho trường nhỏ và các gói trả phí linh hoạt theo quy mô. Liên hệ để được tư vấn chi tiết."
-            },
-            {
               question: "EduConnect có tích hợp được với hệ thống hiện tại không?",
               answer: "Có, EduConnect được thiết kế để tích hợp dễ dàng với hầu hết các hệ thống quản lý học sinh hiện có."
             }

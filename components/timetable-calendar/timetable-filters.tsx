@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -52,10 +52,10 @@ export interface TimetableFilters {
 }
 
 interface TimetableFiltersProps {
-  filters: TimetableFilters;
-  onFiltersChange: (filters: TimetableFilters) => void;
-  onRefresh: () => void;
-  loading?: boolean;
+  readonly filters: TimetableFilters;
+  readonly onFiltersChange: (filters: TimetableFilters) => void;
+  readonly onRefresh: () => void;
+  readonly loading?: boolean;
 }
 
 export function TimetableFilters({
@@ -64,6 +64,9 @@ export function TimetableFilters({
   onRefresh,
   loading = false,
 }: TimetableFiltersProps) {
+  // Generate unique IDs for form labels
+  const formId = useId();
+
   // Filter data state
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -208,7 +211,8 @@ export function TimetableFilters({
           const filteredClasses = result.data
             .filter(classItem => {
               // Extract grade level from class name (e.g., "10A1" -> "10")
-              const gradeMatch = classItem.name.match(/^(\d+)/);
+              const gradeRegex = /^(\d+)/;
+              const gradeMatch = gradeRegex.exec(classItem.name);
               return gradeMatch && gradeMatch[1] === filters.gradeLevel;
             })
             .map(classItem => ({
@@ -310,13 +314,13 @@ export function TimetableFilters({
         {/* Academic Year Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Academic Year</label>
+            <label htmlFor={formId + '-academicYear'} className="text-sm font-medium">Academic Year</label>
             <Select
               value={filters.academicYearId || ""}
               onValueChange={(value) => handleFilterChange('academicYearId', value)}
               disabled={loadingData}
             >
-              <SelectTrigger>
+              <SelectTrigger id={formId + '-academicYear'}>
                 <SelectValue placeholder={loadingData ? "Loading..." : "Select year"} />
               </SelectTrigger>
               <SelectContent>
@@ -331,13 +335,13 @@ export function TimetableFilters({
 
           {/* Semester Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Semester</label>
+            <label htmlFor={formId + '-semester'} className="text-sm font-medium">Semester</label>
             <Select
               value={filters.semesterId || ""}
               onValueChange={(value) => handleFilterChange('semesterId', value)}
               disabled={!filters.academicYearId || semesters.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger id={formId + '-semester'}>
                 <SelectValue placeholder="Select semester" />
               </SelectTrigger>
               <SelectContent>
@@ -352,13 +356,13 @@ export function TimetableFilters({
 
           {/* Grade Level Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Grade Level</label>
+            <label htmlFor={formId + '-gradeLevel'} className="text-sm font-medium">Grade Level</label>
             <Select
               value={filters.gradeLevel || ""}
               onValueChange={(value) => handleFilterChange('gradeLevel', value)}
               disabled={!filters.semesterId || gradeLevels.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger id={formId + '-gradeLevel'}>
                 <SelectValue placeholder="Select grade" />
               </SelectTrigger>
               <SelectContent>
@@ -373,13 +377,13 @@ export function TimetableFilters({
 
           {/* Class Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Class</label>
+            <label htmlFor={formId + '-class'} className="text-sm font-medium">Class</label>
             <Select
               value={filters.classId || ""}
               onValueChange={(value) => handleFilterChange('classId', value)}
               disabled={!filters.gradeLevel || classes.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger id={formId + '-class'}>
                 <SelectValue placeholder="Select class" />
               </SelectTrigger>
               <SelectContent>
@@ -394,13 +398,13 @@ export function TimetableFilters({
 
           {/* Study Week Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Study Week</label>
+            <label htmlFor={formId + '-studyWeek'} className="text-sm font-medium">Study Week</label>
             <Select
               value={filters.studyWeek?.toString() || ""}
               onValueChange={(value) => handleFilterChange('studyWeek', parseInt(value))}
               disabled={!filters.classId || semesterWeeks.length === 0}
             >
-              <SelectTrigger>
+              <SelectTrigger id={formId + '-studyWeek'}>
                 <SelectValue placeholder="Select week" />
               </SelectTrigger>
               <SelectContent>

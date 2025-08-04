@@ -14,13 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+
 import {
   Calendar,
   Loader2,
@@ -36,8 +30,8 @@ import {
 } from '@/lib/actions/meeting-schedule-actions'
 
 interface HomeroomMeetingDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 interface HomeroomClass {
@@ -63,7 +57,7 @@ export function HomeroomMeetingDialog({
   open,
   onOpenChange
 }: HomeroomMeetingDialogProps) {
-  const [homeroomClasses, setHomeroomClasses] = useState<HomeroomClass[]>([])
+  const [homeroomClass, setHomeroomClass] = useState<HomeroomClass | null>(null)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [students, setStudents] = useState<StudentWithParents[]>([])
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
@@ -102,6 +96,7 @@ export function HomeroomMeetingDialog({
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
+      setHomeroomClass(null)
       setSelectedClassId('')
       setStudents([])
       setSelectedStudents(new Set())
@@ -121,12 +116,23 @@ export function HomeroomMeetingDialog({
     try {
       const result = await getTeacherHomeroomClassesAction()
       if (result.success && result.data) {
-        setHomeroomClasses(result.data)
+        if (result.data.length === 1) {
+          // Auto-select the single homeroom class
+          const singleClass = result.data[0]
+          setHomeroomClass(singleClass)
+          setSelectedClassId(singleClass.id)
+        } else if (result.data.length === 0) {
+          toast.error('Bạn không được phân công làm giáo viên chủ nhiệm cho lớp nào')
+        } else {
+          // Multiple classes - shouldn't happen for homeroom teachers but handle gracefully
+          setHomeroomClass(result.data[0])
+          setSelectedClassId(result.data[0].id)
+        }
       } else {
-        toast.error(result.error || 'Không thể tải danh sách lớp chủ nhiệm')
+        toast.error(result.error || 'Không thể tải thông tin lớp chủ nhiệm')
       }
     } catch {
-      toast.error('Lỗi khi tải danh sách lớp chủ nhiệm')
+      toast.error('Lỗi khi tải thông tin lớp chủ nhiệm')
     } finally {
       setIsLoading(false)
     }
@@ -223,22 +229,27 @@ export function HomeroomMeetingDialog({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Class Selection */}
-          <div className="space-y-2">
-            <Label>Lớp chủ nhiệm:</Label>
-            <Select value={selectedClassId} onValueChange={setSelectedClassId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn lớp chủ nhiệm" />
-              </SelectTrigger>
-              <SelectContent>
-                {homeroomClasses.map((cls) => (
-                  <SelectItem key={cls.id} value={cls.id}>
-                    {cls.name} - {cls.academic_year_name} ({cls.student_count} học sinh)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Class Information */}
+          {homeroomClass ? (
+            <div className="space-y-2">
+              <Label>Lớp chủ nhiệm:</Label>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="font-medium text-blue-900">
+                  {homeroomClass.name} - {homeroomClass.academic_year_name}
+                </p>
+                <p className="text-sm text-blue-700">
+                  {homeroomClass.student_count} học sinh
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Lớp chủ nhiệm:</Label>
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                <p className="text-gray-500">Đang tải thông tin lớp chủ nhiệm...</p>
+              </div>
+            </div>
+          )}
 
           {/* Meeting Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -140,8 +140,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
           name,
           homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
             full_name,
-            email,
-            phone
+            email
           )
         ),
         academic_year:academic_years(name),
@@ -167,9 +166,29 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
+    // Get AI feedback for this submission
+    const { data: aiFeedback } = await supabase
+      .from('student_feedback')
+      .select('feedback_text, created_at, rating')
+      .eq('student_id', submission.student_id)
+      .like('feedback_text', `[AI_GENERATED:${submissionId}]%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    // Add AI feedback to the response
+    const responseData = {
+      ...detailedSubmission,
+      ai_feedback: aiFeedback ? {
+        text: aiFeedback.feedback_text.replace(/^\[AI_GENERATED:[^\]]+\]\s*/, ''),
+        created_at: aiFeedback.created_at,
+        rating: aiFeedback.rating
+      } : null
+    }
+
     return {
       success: true,
-      data: detailedSubmission
+      data: responseData
     }
   } catch (error) {
     console.error('Error fetching student grade detail:', error)

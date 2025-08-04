@@ -135,6 +135,7 @@ function renderSubmissionsContent(
 }
 import { getClassGradeSummariesAction, getClassGradeDetailsAction, sendGradesToParentAction, getStudentParentsAction, sendAllGradesToParentsAction } from '@/lib/actions/teacher-grade-actions'
 import { createClassSummaryExcel, downloadExcelFile, type ClassSummaryData, type StudentGradeData, type SubjectGradeData } from '@/lib/utils/class-summary-excel-utils'
+import { saveAIFeedbackAction, getAIFeedbackAction, type SaveAIFeedbackRequest } from '@/lib/actions/ai-feedback-actions'
 
 interface ClassGradeSummary {
   id: string
@@ -326,6 +327,7 @@ export default function TeacherGradeReportsClient() {
   const viewStudentGrades = async (student: StudentSubmission) => {
     setViewingStudent(student)
     setAiFeedback('') // Reset feedback when viewing new student
+
     try {
       // Convert the grades array to StudentGradeData format
       const gradeData: StudentGradeData = {
@@ -340,6 +342,12 @@ export default function TeacherGradeReportsClient() {
         }))
       }
       setStudentGradeData(gradeData)
+
+      // Load existing AI feedback if any
+      const existingFeedback = await getAIFeedbackAction(student.id, student.student.id)
+      if (existingFeedback.success && existingFeedback.data) {
+        setAiFeedback(existingFeedback.data.feedback_text)
+      }
     } catch (error) {
       toast.error("Không thể tải dữ liệu bảng điểm học sinh")
       console.error("Error processing grade data:", error)
@@ -384,10 +392,27 @@ export default function TeacherGradeReportsClient() {
       return
     }
 
+    if (!viewingStudent) {
+      toast.error("Không có thông tin học sinh")
+      return
+    }
+
     setIsSavingFeedback(true)
     try {
-      // Save feedback to database - implementation completed
-      toast.success("Đã lưu nhận xét thành công!")
+      const request: SaveAIFeedbackRequest = {
+        student_id: viewingStudent.student.id, // Use student UUID, not student_id string
+        submission_id: viewingStudent.id,
+        feedback_text: aiFeedback.trim(),
+        rating: 5 // Default rating for AI feedback
+      }
+
+      const result = await saveAIFeedbackAction(request)
+
+      if (result.success && result.data) {
+        toast.success("Đã lưu nhận xét thành công!")
+      } else {
+        toast.error(result.error || "Không thể lưu nhận xét")
+      }
     } catch (error) {
       console.error("Error saving feedback:", error)
       toast.error("Lỗi khi lưu nhận xét")
@@ -395,6 +420,8 @@ export default function TeacherGradeReportsClient() {
       setIsSavingFeedback(false)
     }
   }
+
+
 
   return (
     <div className="space-y-6">
@@ -528,7 +555,7 @@ export default function TeacherGradeReportsClient() {
                   className="min-h-[200px]"
                 />
 
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
                   <Button
                     onClick={saveFeedback}
                     disabled={isSavingFeedback || !aiFeedback.trim()}
@@ -538,6 +565,7 @@ export default function TeacherGradeReportsClient() {
                     <Save className="h-4 w-4" />
                     {isSavingFeedback ? 'Đang lưu...' : 'Lưu nhận xét'}
                   </Button>
+
                 </div>
               </div>
             </div>

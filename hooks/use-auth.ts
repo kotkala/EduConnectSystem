@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
-import { clientAuth, authUtils } from '@/lib/auth'
+import { clientAuth } from '@/lib/auth'
 import { UserProfile, AuthUser } from '@/lib/types'
 
 export function useAuth() {

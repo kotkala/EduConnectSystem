@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -95,7 +95,8 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
     }
   }
 
-  const formatDateTime = (dateTimeString: string) => {
+  // Memoized helper functions for better performance
+  const formatDateTime = useCallback((dateTimeString: string) => {
     const date = new Date(dateTimeString)
     return date.toLocaleString('vi-VN', {
       weekday: 'long',
@@ -105,29 +106,40 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       hour: '2-digit',
       minute: '2-digit'
     })
-  }
+  }, [])
 
-  const formatDuration = (minutes: number) => {
+  const formatDuration = useCallback((minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     if (hours > 0) {
       return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
     }
     return `${mins}m`
-  }
+  }, [])
 
-  const getMeetingTypeLabel = (type: string) => {
+  const getMeetingTypeLabel = useCallback((type: string) => {
     switch (type) {
       case 'parent_meeting': return 'Họp Phụ Huynh'
       case 'class_meeting': return 'Họp Lớp'
       case 'individual_meeting': return 'Họp Cá Nhân'
       default: return 'Cuộc Họp'
     }
-  }
+  }, [])
 
-  const isUpcoming = (dateString: string) => {
+  const isUpcoming = useCallback((dateString: string) => {
     return new Date(dateString) > new Date()
-  }
+  }, [])
+
+  // Memoized meeting data processing
+  const processedMeetings = useMemo(() => {
+    return meetingSchedules.map(meeting => ({
+      ...meeting,
+      formattedDate: formatDateTime(meeting.meeting_date),
+      formattedDuration: formatDuration(meeting.duration_minutes),
+      typeLabel: getMeetingTypeLabel(meeting.meeting_type),
+      isUpcoming: isUpcoming(meeting.meeting_date)
+    }))
+  }, [meetingSchedules, formatDateTime, formatDuration, getMeetingTypeLabel, isUpcoming])
 
   const renderMeetingSchedulesList = () => {
     if (isLoading) {
@@ -155,7 +167,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
 
     return (
       <div className="space-y-4">
-        {meetingSchedules.map((meeting) => (
+        {processedMeetings.map((meeting) => (
           <Card key={meeting.id} className={`cursor-pointer transition-colors hover:bg-gray-50 ${!meeting.is_read ? 'border-blue-200 bg-blue-50' : ''}`}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
@@ -167,7 +179,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                         Mới
                       </Badge>
                     )}
-                    {isUpcoming(meeting.meeting_date) && (
+                    {meeting.isUpcoming && (
                       <Badge variant="secondary" className="text-xs">
                         Sắp diễn ra
                       </Badge>
@@ -177,11 +189,11 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      {formatDateTime(meeting.meeting_date)}
+                      {meeting.formattedDate}
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      {formatDuration(meeting.duration_minutes)}
+                      {meeting.formattedDuration}
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />

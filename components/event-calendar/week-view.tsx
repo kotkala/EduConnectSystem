@@ -228,7 +228,7 @@ export function WeekView({
                     event={event}
                     view="week"
                     onClick={() => onEventSelect(event)}
-                    showTime={false}
+                    showTime={true}
                   />
                 </div>
               ))}

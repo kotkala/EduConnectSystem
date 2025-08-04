@@ -121,7 +121,7 @@ export default async function AdminDashboard() {
     redirect('/dashboard')
   }
 
-  // Get comprehensive statistics
+  // Get comprehensive statistics with optimized queries
   const [
     { data: userStats },
     { data: subjectStats },
@@ -130,23 +130,23 @@ export default async function AdminDashboard() {
     { data: upcomingMeetings },
     { data: systemHealth }
   ] = await Promise.all([
-    // User statistics by role
-    supabase.from('profiles').select('role'),
+    // User statistics by role - only count, not full data
+    supabase.from('profiles').select('role', { count: 'exact', head: false }),
 
-    // Subject statistics
-    supabase.from('subjects').select('category, is_active'),
+    // Subject statistics - only essential fields
+    supabase.from('subjects').select('category, is_active', { count: 'exact', head: false }),
 
-    // Class statistics
-    supabase.from('classes').select('current_students, max_students'),
+    // Class statistics - only essential fields
+    supabase.from('classes').select('current_students, max_students', { count: 'exact', head: false }),
 
-    // Recent activity (last 10 profile updates)
+    // Recent activity (last 5 profile updates) - reduced from 10
     supabase
       .from('profiles')
       .select('full_name, role, created_at, updated_at')
       .order('updated_at', { ascending: false })
-      .limit(10),
+      .limit(5),
 
-    // Upcoming meetings
+    // Upcoming meetings (next 3) - reduced from 5
     supabase
       .from('meeting_schedules')
       .select(`
@@ -158,10 +158,10 @@ export default async function AdminDashboard() {
       `)
       .gte('meeting_date', new Date().toISOString())
       .order('meeting_date', { ascending: true })
-      .limit(5),
+      .limit(3),
 
-    // System health indicators
-    supabase.from('notifications').select('id, created_at').limit(1)
+    // System health indicators - minimal query
+    supabase.from('notifications').select('id', { count: 'exact', head: true }).limit(1)
   ])
 
   const stats = userStats?.reduce((acc, user) => {

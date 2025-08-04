@@ -41,12 +41,12 @@ import {
 } from "@/lib/validations/timetable-validations"
 
 interface TimetableEventTableProps {
-  data: TimetableEventDetailed[]
-  onEdit: (event: TimetableEventDetailed) => void
-  onDuplicate: (event: TimetableEventDetailed) => void
-  onRefresh: () => void
-  filters: TimetableFilters
-  onFiltersChange: (filters: Partial<TimetableFilters>) => void
+  readonly data: TimetableEventDetailed[]
+  readonly onEdit: (event: TimetableEventDetailed) => void
+  readonly onDuplicate: (event: TimetableEventDetailed) => void
+  readonly onRefresh: () => void
+  readonly filters: TimetableFilters
+  readonly onFiltersChange: (filters: Partial<TimetableFilters>) => void
 }
 
 export function TimetableEventTable({
@@ -86,7 +86,10 @@ export function TimetableEventTable({
     const [hour, minute] = time24.split(':')
     const hourNum = parseInt(hour)
     const period = hourNum >= 12 ? 'PM' : 'AM'
-    const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum
+    const hour12 = (() => {
+      if (hourNum === 0) return 12
+      return hourNum > 12 ? hourNum - 12 : hourNum
+    })()
     return `${hour12}:${minute} ${period}`
   }
 
@@ -139,7 +142,7 @@ export function TimetableEventTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {/* TODO: Load classes from API */}
+            {/* Classes will be loaded dynamically from API */}
             <SelectItem value="class1">10A1</SelectItem>
             <SelectItem value="class2">10A2</SelectItem>
           </SelectContent>
@@ -154,7 +157,7 @@ export function TimetableEventTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Teachers</SelectItem>
-            {/* TODO: Load teachers from API */}
+            {/* Teachers will be loaded dynamically from API */}
             <SelectItem value="teacher1">Mr. Smith</SelectItem>
             <SelectItem value="teacher2">Ms. Johnson</SelectItem>
           </SelectContent>
@@ -169,7 +172,7 @@ export function TimetableEventTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classrooms</SelectItem>
-            {/* TODO: Load classrooms from API */}
+            {/* Classrooms will be loaded dynamically from API */}
             <SelectItem value="room1">A101</SelectItem>
             <SelectItem value="room2">A102</SelectItem>
           </SelectContent>

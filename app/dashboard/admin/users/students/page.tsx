@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import StudentsPageClient from './students-page-client'
 
 export default async function StudentsPage() {
@@ -23,11 +22,20 @@ export default async function StudentsPage() {
   }
 
   return (
-    <SidebarLayout role="admin" title="Student & Parent Management">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Student & Parent Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Manage student accounts and parent relationships
+          </p>
+        </div>
+      </div>
+
       <Suspense fallback={<div>Loading...</div>}>
         <StudentsPageClient />
       </Suspense>
-    </SidebarLayout>
+    </div>
   )
 }
 

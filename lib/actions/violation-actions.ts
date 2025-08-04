@@ -775,6 +775,80 @@ export async function getClassesByBlockAction(classBlockId: string): Promise<{ s
   }
 }
 
+// Get violation statistics for admin dashboard
+export async function getViolationStatsAction(): Promise<{
+  success: boolean;
+  data?: {
+    totalViolations: number;
+    thisWeekViolations: number;
+    totalCategories: number;
+    notificationsSent: number;
+  };
+  error?: string;
+}> {
+  try {
+    const { supabase } = await checkAdminPermissions()
+
+    // Get current date for week calculation
+    const now = new Date()
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
+    weekStart.setHours(0, 0, 0, 0)
+
+    // Execute all queries in parallel for better performance
+    const [
+      totalViolationsResult,
+      thisWeekViolationsResult,
+      totalCategoriesResult,
+      notificationsSentResult
+    ] = await Promise.all([
+      // Total violations
+      supabase
+        .from('student_violations')
+        .select('id', { count: 'exact', head: true }),
+
+      // This week violations
+      supabase
+        .from('student_violations')
+        .select('id', { count: 'exact', head: true })
+        .gte('recorded_at', weekStart.toISOString()),
+
+      // Total active categories
+      supabase
+        .from('violation_categories')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true),
+
+      // Notifications sent this month
+      supabase
+        .from('violation_notifications')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', new Date(now.getFullYear(), now.getMonth(), 1).toISOString())
+    ])
+
+    // Check for errors
+    if (totalViolationsResult.error) throw new Error(totalViolationsResult.error.message)
+    if (thisWeekViolationsResult.error) throw new Error(thisWeekViolationsResult.error.message)
+    if (totalCategoriesResult.error) throw new Error(totalCategoriesResult.error.message)
+    if (notificationsSentResult.error) throw new Error(notificationsSentResult.error.message)
+
+    return {
+      success: true,
+      data: {
+        totalViolations: totalViolationsResult.count || 0,
+        thisWeekViolations: thisWeekViolationsResult.count || 0,
+        totalCategories: totalCategoriesResult.count || 0,
+        notificationsSent: notificationsSentResult.count || 0
+      }
+    }
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An error occurred'
+    }
+  }
+}
+
 export async function getStudentsByClassAction(classId?: string): Promise<{ success: boolean; data?: Array<{id: string; full_name: string; student_id: string; email: string}>; error?: string }> {
   try {
     const supabase = await createClient()

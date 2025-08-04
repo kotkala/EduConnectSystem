@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from "react";
 
 interface CalendarContextType {
   // Date management
@@ -28,7 +28,7 @@ export function useCalendarContext() {
 }
 
 interface CalendarProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export function CalendarProvider({ children }: CalendarProviderProps) {
@@ -41,29 +41,29 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     "emerald"
   ]);
 
-  const toggleColorVisibility = (color: string) => {
-    setVisibleColors(prev => 
+  const toggleColorVisibility = useCallback((color: string) => {
+    setVisibleColors(prev =>
       prev.includes(color)
         ? prev.filter(c => c !== color)
         : [...prev, color]
     );
-  };
+  }, []);
 
-  const isColorVisible = (color: string | undefined) => {
+  const isColorVisible = useCallback((color: string | undefined) => {
     if (!color) return true;
     return visibleColors.includes(color);
-  };
+  }, [visibleColors]);
+
+  const contextValue = useMemo(() => ({
+    currentDate,
+    setCurrentDate,
+    visibleColors,
+    toggleColorVisibility,
+    isColorVisible,
+  }), [currentDate, visibleColors, toggleColorVisibility, isColorVisible]);
 
   return (
-    <CalendarContext.Provider
-      value={{
-        currentDate,
-        setCurrentDate,
-        visibleColors,
-        toggleColorVisibility,
-        isColorVisible,
-      }}
-    >
+    <CalendarContext.Provider value={contextValue}>
       {children}
     </CalendarContext.Provider>
   );

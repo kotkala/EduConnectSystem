@@ -24,12 +24,13 @@ export default async function AdminSubjectsPage() {
     redirect('/dashboard')
   }
 
-  // Fetch all subjects
+  // Fetch subjects with optimized query - get all fields but with limit
   const { data: subjects, error } = await supabase
     .from('subjects')
     .select('*')
     .order('category', { ascending: true })
     .order('name_vietnamese', { ascending: true })
+    .limit(100) // Add reasonable limit for performance
 
   if (error) {
     console.error('Error fetching subjects:', error)

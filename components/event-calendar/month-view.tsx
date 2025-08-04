@@ -162,7 +162,12 @@ export function MonthView({
                       ref={isReferenceCell ? contentRef : null}
                       className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
                     >
-                      {sortEvents(allDayEvents).map((event, index) => {
+                      {sortEvents(allDayEvents)
+                        .filter((event) => {
+                          // Filter out events that would return null
+                          return visibleCount && event?.id;
+                        })
+                        .map((event, index) => {
                         const eventStart = new Date(event.start);
                         const eventEnd = new Date(event.end);
                         const isFirstDay = isSameDay(day, eventStart);
@@ -170,8 +175,6 @@ export function MonthView({
 
                         const isHidden =
                           isMounted && visibleCount && index >= visibleCount;
-
-                        if (!visibleCount) return null;
 
                         if (!isFirstDay) {
                           return (

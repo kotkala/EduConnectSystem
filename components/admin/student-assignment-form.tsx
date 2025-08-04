@@ -34,11 +34,11 @@ import {
 } from "@/lib/actions/student-assignment-actions"
 
 interface StudentAssignmentFormProps {
-  classId: string
-  className: string
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
+  readonly classId: string
+  readonly className: string
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onSuccess: () => void
 }
 
 export default function StudentAssignmentForm({
@@ -221,40 +221,46 @@ export default function StudentAssignmentForm({
                 <Loader2 className="h-6 w-6 animate-spin" />
                 <span className="ml-2">Loading available students...</span>
               </div>
-            ) : availableStudents.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No available students for {watchAssignmentType} class assignment</p>
-                <p className="text-sm">All students may already be assigned to a {watchAssignmentType} class this academic year</p>
-              </div>
-            ) : (
-              <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
-                <div className="space-y-3">
-                  {availableStudents.map((student) => (
-                    <div key={student.id} className="flex items-center space-x-3">
-                      <Checkbox
-                        id={student.id}
-                        checked={watchSelectedStudents.includes(student.id)}
-                        onCheckedChange={(checked) => 
-                          handleStudentSelection(student.id, !!checked)
-                        }
-                      />
-                      <Label 
-                        htmlFor={student.id} 
-                        className="flex-1 cursor-pointer"
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium">{student.full_name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {student.student_id} • {student.email}
-                          </span>
-                        </div>
-                      </Label>
-                    </div>
-                  ))}
+            ) : (() => {
+              if (availableStudents.length === 0) {
+                return (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No available students for {watchAssignmentType} class assignment</p>
+                    <p className="text-sm">All students may already be assigned to a {watchAssignmentType} class this academic year</p>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <div className="space-y-3">
+                    {availableStudents.map((student) => (
+                      <div key={student.id} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={student.id}
+                          checked={watchSelectedStudents.includes(student.id)}
+                          onCheckedChange={(checked) =>
+                            handleStudentSelection(student.id, !!checked)
+                          }
+                        />
+                        <Label
+                          htmlFor={student.id}
+                          className="flex-1 cursor-pointer"
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium">{student.full_name}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {student.student_id} • {student.email}
+                            </span>
+                          </div>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* Selected Count */}
             {watchSelectedStudents.length > 0 && (
@@ -287,7 +293,11 @@ export default function StudentAssignmentForm({
                   Assigning...
                 </>
               ) : (
-                `Assign ${watchSelectedStudents.length} Student${watchSelectedStudents.length !== 1 ? 's' : ''}`
+                (() => {
+                  const count = watchSelectedStudents.length
+                  const studentText = count !== 1 ? 'Students' : 'Student'
+                  return `Assign ${count} ${studentText}`
+                })()
               )}
             </Button>
           </DialogFooter>

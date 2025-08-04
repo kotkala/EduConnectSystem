@@ -7,7 +7,7 @@ const adminConfig: NotificationPageConfig = {
   emptyStateMessage: 'Send your first notification to get started',
   dashboardPath: '/dashboard/admin',
   canSendNotifications: true,
-  useSidebarLayout: true
+  useSidebarLayout: false
 }
 
 export default function AdminNotificationsPage() {

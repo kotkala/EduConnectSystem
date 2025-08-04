@@ -14,10 +14,10 @@ import { Clock } from 'lucide-react'
 import { calculateEndTime } from '@/lib/validations/timetable-validations'
 
 interface TimeSlotPickerProps {
-  value?: string
-  onChange: (time: string) => void
-  disabled?: boolean
-  error?: string
+  readonly value?: string
+  readonly onChange: (time: string) => void
+  readonly disabled?: boolean
+  readonly error?: string
 }
 
 export function TimeSlotPicker({ value, onChange, disabled, error }: TimeSlotPickerProps) {
@@ -73,7 +73,10 @@ export function TimeSlotPicker({ value, onChange, disabled, error }: TimeSlotPic
     const [hour, minute] = time24.split(':')
     const hourNum = parseInt(hour)
     const period = hourNum >= 12 ? 'PM' : 'AM'
-    const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum
+    const hour12 = (() => {
+      if (hourNum === 0) return 12
+      return hourNum > 12 ? hourNum - 12 : hourNum
+    })()
     return `${hour12}:${minute} ${period}`
   }
 
@@ -148,9 +151,9 @@ export function TimeSlotPicker({ value, onChange, disabled, error }: TimeSlotPic
 }
 
 // Predefined time slots for quick selection
-export function QuickTimeSlots({ onSelect, disabled }: { 
-  onSelect: (time: string) => void
-  disabled?: boolean 
+export function QuickTimeSlots({ onSelect, disabled }: {
+  readonly onSelect: (time: string) => void
+  readonly disabled?: boolean
 }) {
   const commonSlots = [
     { time: '07:00', label: '7:00 AM - 7:45 AM' },

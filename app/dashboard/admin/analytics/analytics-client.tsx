@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -172,6 +172,10 @@ export default function AnalyticsClient() {
     subjects: false,
     trends: false
   })
+  const [lastFetch, setLastFetch] = useState<number>(0)
+
+  // Cache duration: 5 minutes
+  const CACHE_DURATION = 5 * 60 * 1000
 
   // Create loading state updater
   const updateLoadingState = createLoadingStateUpdater(setLoadingStates)
@@ -212,17 +216,37 @@ export default function AnalyticsClient() {
     'Không thể tải xu hướng điểm'
   )
 
-  const loadAllAnalytics = useCallback(async () => {
+  const loadAllAnalytics = useCallback(async (forceRefresh = false) => {
+    // Check cache validity
+    const now = Date.now()
+    const isCacheValid = !forceRefresh && (now - lastFetch) < CACHE_DURATION && overallStats !== null
+
+    if (isCacheValid) {
+      return // Use cached data
+    }
+
     setLoading(true)
-    await Promise.all([
-      loadOverallStats(getOverallGradeStatsAction),
-      loadGradeDistribution(getGradeDistributionAction),
-      loadClassPerformance(getClassPerformanceAction),
-      loadSubjectAnalysis(getSubjectAnalysisAction),
-      loadTrendAnalysis(getTrendAnalysisAction)
-    ])
-    setLoading(false)
-  }, [loadOverallStats, loadGradeDistribution, loadClassPerformance, loadSubjectAnalysis, loadTrendAnalysis])
+    try {
+      // Load critical data first (overall stats and distribution)
+      await Promise.all([
+        loadOverallStats(getOverallGradeStatsAction),
+        loadGradeDistribution(getGradeDistributionAction)
+      ])
+
+      // Load secondary data with slight delay to improve perceived performance
+      setTimeout(async () => {
+        await Promise.all([
+          loadClassPerformance(getClassPerformanceAction),
+          loadSubjectAnalysis(getSubjectAnalysisAction),
+          loadTrendAnalysis(getTrendAnalysisAction)
+        ])
+      }, 100)
+
+      setLastFetch(now)
+    } finally {
+      setLoading(false)
+    }
+  }, [loadOverallStats, loadGradeDistribution, loadClassPerformance, loadSubjectAnalysis, loadTrendAnalysis, lastFetch, overallStats, CACHE_DURATION])
 
   useEffect(() => {
     loadAllAnalytics()
@@ -231,6 +255,14 @@ export default function AnalyticsClient() {
   const handleExportReport = async () => {
     toast.info("Chức năng xuất báo cáo đang được phát triển")
   }
+
+  // Memoize chart data to prevent unnecessary re-renders
+  const chartData = useMemo(() => ({
+    gradeDistribution: gradeDistribution.slice(0, 4), // Limit data for performance
+    classPerformance: classPerformance.slice(0, 10), // Top 10 classes only
+    subjectAnalysis: subjectAnalysis.slice(0, 10), // Top 10 subjects only
+    trendData: trendData.slice(-12) // Last 12 periods only
+  }), [gradeDistribution, classPerformance, subjectAnalysis, trendData])
 
   return (
     <div className="space-y-6">
@@ -242,7 +274,7 @@ export default function AnalyticsClient() {
         </div>
         <div className="flex gap-2">
           <Button
-            onClick={loadAllAnalytics}
+            onClick={() => loadAllAnalytics(true)}
             disabled={loading}
             variant="outline"
             className="flex items-center gap-2"
@@ -277,7 +309,7 @@ export default function AnalyticsClient() {
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={gradeDistribution}>
+                <BarChart data={chartData.gradeDistribution}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -302,7 +334,7 @@ export default function AnalyticsClient() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={gradeDistribution}
+                    data={chartData.gradeDistribution}
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
@@ -310,7 +342,7 @@ export default function AnalyticsClient() {
                     dataKey="percentage"
                     nameKey="name"
                   >
-                    {gradeDistribution.map((entry, index) => (
+                    {chartData.gradeDistribution.map((entry, index) => (
                       <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -333,7 +365,7 @@ export default function AnalyticsClient() {
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={classPerformance.slice(0, 10)}>
+                <BarChart data={chartData.classPerformance}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="className" />
                   <YAxis domain={[0, 10]} />
@@ -356,7 +388,7 @@ export default function AnalyticsClient() {
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={trendData}>
+                <ComposedChart data={chartData.trendData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="period" />
                   <YAxis domain={[0, 10]} />
@@ -381,7 +413,7 @@ export default function AnalyticsClient() {
             <div className="text-center py-8">Đang tải...</div>
           ) : (
             <div className="space-y-3">
-              {subjectAnalysis.slice(0, 10).map((subject) => (
+              {chartData.subjectAnalysis.map((subject) => (
                 <div
                   key={subject.subjectName}
                   className="flex items-center justify-between p-3 border rounded-lg"

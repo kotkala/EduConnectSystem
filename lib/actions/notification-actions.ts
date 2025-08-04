@@ -204,13 +204,25 @@ export async function createNotificationAction(data: NotificationFormData) {
 export async function getUserNotificationsAction(): Promise<{ success: boolean; data?: Notification[]; error?: string }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Authentication required")
     }
 
-    const { data: notifications, error } = await supabase
+    // Get user profile to check role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, class_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      throw new Error("User profile not found")
+    }
+
+    // Build query with role-based filtering
+    let query = supabase
       .from('notifications')
       .select(`
         *,
@@ -218,7 +230,20 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
         notification_reads!left(user_id, read_at)
       `)
       .eq('is_active', true)
-      .order('created_at', { ascending: false })
+
+    // Filter by target roles - notifications must include user's role in target_roles array
+    query = query.contains('target_roles', [profile.role])
+
+    // For students and parents, also filter by class if target_classes is specified
+    if ((profile.role === 'student' || profile.role === 'parent') && profile.class_id) {
+      // Get notifications that either have no class restriction (empty target_classes)
+      // or include the user's class
+      query = query.or(`target_classes.is.null,target_classes.cs.{${profile.class_id}}`)
+    }
+
+    query = query.order('created_at', { ascending: false })
+
+    const { data: notifications, error } = await query
 
     if (error) {
       throw new Error(error.message)
@@ -240,14 +265,25 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
 export async function getUnreadNotificationCountAction(): Promise<{ success: boolean; data?: number; error?: string }> {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return { success: true, data: 0 }
     }
 
-    // Get all notifications for user
-    const { data: notifications, error } = await supabase
+    // Get user profile to check role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, class_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return { success: true, data: 0 }
+    }
+
+    // Build query with role-based filtering
+    let query = supabase
       .from('notifications')
       .select(`
         id,
@@ -255,12 +291,24 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
       `)
       .eq('is_active', true)
 
+    // Filter by target roles - notifications must include user's role in target_roles array
+    query = query.contains('target_roles', [profile.role])
+
+    // For students and parents, also filter by class if target_classes is specified
+    if ((profile.role === 'student' || profile.role === 'parent') && profile.class_id) {
+      // Get notifications that either have no class restriction (empty target_classes)
+      // or include the user's class
+      query = query.or(`target_classes.is.null,target_classes.cs.{${profile.class_id}}`)
+    }
+
+    const { data: notifications, error } = await query
+
     if (error) {
       throw new Error(error.message)
     }
 
     // Count unread notifications
-    const unreadCount = notifications?.filter(notification => 
+    const unreadCount = notifications?.filter(notification =>
       !notification.notification_reads.some((read: { user_id: string }) => read.user_id === user.id)
     ).length || 0
 

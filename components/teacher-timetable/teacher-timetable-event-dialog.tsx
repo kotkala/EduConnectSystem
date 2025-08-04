@@ -52,10 +52,10 @@ export interface TeacherTimetableEvent {
 }
 
 interface TeacherTimetableEventDialogProps {
-  event: TeacherTimetableEvent | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onClose: () => void
+  readonly event: TeacherTimetableEvent | null
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly onClose: () => void
 }
 
 export function TeacherTimetableEventDialog({
@@ -113,7 +113,7 @@ export function TeacherTimetableEventDialog({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Môn Học</label>
+                <div className="text-sm font-medium text-muted-foreground">Môn Học</div>
                 <div className="flex items-center gap-2 mt-1">
                   <BookOpen className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">{event.subject_name}</span>
@@ -122,7 +122,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Lớp</label>
+                <div className="text-sm font-medium text-muted-foreground">Lớp</div>
                 <div className="flex items-center gap-2 mt-1">
                   <Users className="h-4 w-4 text-green-600" />
                   <span className="font-medium">{event.class_name}</span>
@@ -130,7 +130,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Giáo Viên</label>
+                <div className="text-sm font-medium text-muted-foreground">Giáo Viên</div>
                 <div className="flex items-center gap-2 mt-1">
                   <User className="h-4 w-4 text-purple-600" />
                   <span className="font-medium">{event.teacher_name}</span>
@@ -140,7 +140,7 @@ export function TeacherTimetableEventDialog({
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Ngày & Giờ</label>
+                <div className="text-sm font-medium text-muted-foreground">Ngày & Giờ</div>
                 <div className="flex items-center gap-2 mt-1">
                   <Clock className="h-4 w-4 text-orange-600" />
                   <span className="font-medium">
@@ -151,7 +151,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Phòng Học</label>
+                <div className="text-sm font-medium text-muted-foreground">Phòng Học</div>
                 <div className="flex items-center gap-2 mt-1">
                   <MapPin className="h-4 w-4 text-red-600" />
                   <span className="font-medium">
@@ -166,7 +166,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Thời Gian Học</label>
+                <div className="text-sm font-medium text-muted-foreground">Thời Gian Học</div>
                 <div className="flex items-center gap-2 mt-1">
                   <Calendar className="h-4 w-4 text-indigo-600" />
                   <span className="font-medium">

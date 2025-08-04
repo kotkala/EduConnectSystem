@@ -186,12 +186,22 @@ export default function SimpleViolationsTable() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [pageSize] = useState(20) // Increased page size for better performance
   const [searchTerm, setSearchTerm] = useState('')
   const [severityFilter, setSeverityFilter] = useState<string>('all')
   const [classFilter, setClassFilter] = useState<string>('all')
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const supabase = createClient()
+
+  // Debounce search term for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   useEffect(() => {
     loadClasses()
@@ -200,7 +210,7 @@ export default function SimpleViolationsTable() {
 
   useEffect(() => {
     loadViolations()
-  }, [currentPage, searchTerm, severityFilter, classFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchTerm, severityFilter, classFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadClasses = async () => {
     try {
@@ -224,7 +234,7 @@ export default function SimpleViolationsTable() {
     try {
       setLoading(true)
 
-      // Build query with Context7 performance patterns
+      // Build optimized query with all required fields
       let query = supabase
         .from('student_violations')
         .select(`
@@ -239,9 +249,9 @@ export default function SimpleViolationsTable() {
           recorded_by_user:profiles!recorded_by(id, full_name)
         `, { count: 'exact' })
 
-      // Apply filters using Context7 patterns
-      if (searchTerm) {
-        query = query.or(`student.full_name.ilike.%${searchTerm}%,student.student_id.ilike.%${searchTerm}%`)
+      // Apply filters with optimized search
+      if (debouncedSearchTerm) {
+        query = query.or(`student.full_name.ilike.%${debouncedSearchTerm}%,student.student_id.ilike.%${debouncedSearchTerm}%`)
       }
 
       if (severityFilter !== 'all') {

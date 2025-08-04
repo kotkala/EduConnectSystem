@@ -187,13 +187,35 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
       }
     }
 
+    // Check for existing AI feedback for this submission
+    let aiFeedbackText = ''
+    const { data: aiFeedback } = await supabase
+      .from('student_feedback')
+      .select('feedback_text')
+      .eq('student_id', submission.student_id)
+      .eq('teacher_id', user.id)
+      .like('feedback_text', `[AI_GENERATED:${submissionId}]%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (aiFeedback) {
+      // Remove the AI marker from feedback text
+      aiFeedbackText = aiFeedback.feedback_text.replace(/^\[AI_GENERATED:[^\]]+\]\s*/, '')
+    }
+
     // Create notifications for parents
+    const baseMessage = `Bảng điểm ${submission.semester?.name} của con bạn ${submission.student?.full_name} (${submission.student?.student_id}) đã sẵn sàng. Vui lòng kiểm tra chi tiết.`
+    const fullMessage = aiFeedbackText
+      ? `${baseMessage}\n\nNhận xét của giáo viên chủ nhiệm:\n${aiFeedbackText}`
+      : baseMessage
+
     const notifications = parentIds.map(parentId => ({
       recipient_id: parentId,
       sender_id: user.id,
       title: `Bảng điểm ${submission.semester?.name} của ${submission.student?.full_name}`,
-      content: `Bảng điểm ${submission.semester?.name} của con bạn ${submission.student?.full_name} (${submission.student?.student_id}) đã sẵn sàng. Vui lòng kiểm tra chi tiết.`,
-      message: `Bảng điểm ${submission.semester?.name} của con bạn ${submission.student?.full_name} (${submission.student?.student_id}) đã sẵn sàng. Vui lòng kiểm tra chi tiết.`,
+      content: fullMessage,
+      message: fullMessage,
       type: 'student_grade',
       target_roles: ['parent'],
       metadata: {
@@ -201,7 +223,8 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
         student_id: submission.student_id,
         class_id: submission.class_id,
         academic_year_id: submission.academic_year_id,
-        semester_id: submission.semester_id
+        semester_id: submission.semester_id,
+        has_ai_feedback: Boolean(aiFeedbackText)
       }
     }))
 

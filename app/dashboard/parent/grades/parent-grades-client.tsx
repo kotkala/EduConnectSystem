@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Users } from 'lucide-react'
+import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Users, Eye, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { getChildrenGradeReportsAction, getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
 import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
+import { ParentGradeViewDialog } from '@/components/parent-dashboard/parent-grade-view-dialog'
 
 interface GradeSubmission {
   id: string
@@ -37,6 +38,11 @@ interface GradeSubmission {
       category: string
     }
   }>
+  ai_feedback?: {
+    text: string
+    created_at: string
+    rating: number | null
+  } | null
 }
 
 interface GradeStats {
@@ -58,11 +64,17 @@ interface SubmissionItemProps {
   readonly loading: boolean
   readonly onSelect: (submission: GradeSubmission) => void
   readonly onDownload: (submission: GradeSubmission) => void
+  readonly onView: (submission: GradeSubmission) => void
 }
 
-function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload }: SubmissionItemProps) {
+function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload, onView }: SubmissionItemProps) {
   const handleClick = () => {
     onSelect(submission)
+  }
+
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onView(submission)
   }
 
   const handleDownloadClick = (e: React.MouseEvent) => {
@@ -92,6 +104,16 @@ function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload 
         </div>
         <div className="flex items-center gap-2">
           <Button
+            onClick={handleViewClick}
+            disabled={loading}
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Xem nhanh
+          </Button>
+          <Button
             onClick={handleDownloadClick}
             disabled={loading}
             size="sm"
@@ -118,9 +140,10 @@ interface StudentGroupProps {
   readonly loading: boolean
   readonly onSelectSubmission: (submission: GradeSubmission) => void
   readonly onDownloadSubmission: (submission: GradeSubmission) => void
+  readonly onViewSubmission: (submission: GradeSubmission) => void
 }
 
-function StudentGroup({ student, submissions, selectedSubmissionId, loading, onSelectSubmission, onDownloadSubmission }: StudentGroupProps) {
+function StudentGroup({ student, submissions, selectedSubmissionId, loading, onSelectSubmission, onDownloadSubmission, onViewSubmission }: StudentGroupProps) {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
@@ -142,6 +165,7 @@ function StudentGroup({ student, submissions, selectedSubmissionId, loading, onS
             loading={loading}
             onSelect={onSelectSubmission}
             onDownload={onDownloadSubmission}
+            onView={onViewSubmission}
           />
         ))}
       </div>
@@ -159,6 +183,8 @@ export default function ParentGradesClient() {
     details: false,
     stats: false
   })
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+  const [viewingSubmission, setViewingSubmission] = useState<GradeSubmission | null>(null)
 
   const loadGradeReports = useCallback(async () => {
     setLoadingStates(prev => ({ ...prev, submissions: true }))
@@ -199,6 +225,16 @@ export default function ParentGradesClient() {
     } finally {
       setLoadingStates(prev => ({ ...prev, details: false, stats: false }))
     }
+  }, [])
+
+  const handleViewSubmission = useCallback((submission: GradeSubmission) => {
+    setViewingSubmission(submission)
+    setViewDialogOpen(true)
+  }, [])
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedSubmission(null)
+    setGradeStats(null)
   }, [])
 
   const handleDownloadExcel = useCallback(async (submission: GradeSubmission) => {
@@ -306,6 +342,7 @@ export default function ParentGradesClient() {
                   loading={loading}
                   onSelectSubmission={loadSubmissionDetails}
                   onDownloadSubmission={handleDownloadExcel}
+                  onViewSubmission={handleViewSubmission}
                 />
               ))}
             </div>
@@ -321,13 +358,26 @@ export default function ParentGradesClient() {
           {gradeStats && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Thống Kê Điểm Số
-                </CardTitle>
-                <CardDescription>
-                  {selectedSubmission.student.full_name} - {selectedSubmission.semester.name}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Thống Kê Điểm Số
+                    </CardTitle>
+                    <CardDescription>
+                      {selectedSubmission.student.full_name} - {selectedSubmission.semester.name}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={handleCloseDetails}
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Đóng
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -430,8 +480,45 @@ export default function ParentGradesClient() {
               )}
             </CardContent>
           </Card>
+
+          {/* AI Feedback Card */}
+          {selectedSubmission.ai_feedback && (
+            <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-purple-800">
+                  <Sparkles className="h-5 w-5" />
+                  Nhận Xét Từ Giáo Viên Chủ Nhiệm
+                </CardTitle>
+                <CardDescription>
+                  {selectedSubmission.class.homeroom_teacher.full_name} • {new Date(selectedSubmission.ai_feedback.created_at).toLocaleDateString('vi-VN')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white rounded-lg p-4 border border-purple-200/50">
+                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {selectedSubmission.ai_feedback.text}
+                  </div>
+                  {selectedSubmission.ai_feedback.rating && (
+                    <div className="mt-3 pt-3 border-t border-purple-200/50">
+                      <div className="flex items-center gap-2 text-sm text-purple-600">
+                        <Award className="h-4 w-4" />
+                        <span>Đánh giá: {selectedSubmission.ai_feedback.rating}/5</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
+
+      {/* Grade View Dialog */}
+      <ParentGradeViewDialog
+        submission={viewingSubmission}
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+      />
     </div>
   )
 }

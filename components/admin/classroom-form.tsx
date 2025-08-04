@@ -41,9 +41,9 @@ import {
 } from '@/lib/validations/timetable-validations'
 
 interface ClassroomFormProps {
-  classroom?: Classroom
-  onSuccess: () => void
-  onCancel: () => void
+  readonly classroom?: Classroom
+  readonly onSuccess: () => void
+  readonly onCancel: () => void
 }
 
 export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormProps) {
@@ -292,7 +292,10 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : isEditing ? 'Update Classroom' : 'Create Classroom'}
+              {(() => {
+                if (loading) return 'Saving...'
+                return isEditing ? 'Update Classroom' : 'Create Classroom'
+              })()}
             </Button>
           </div>
         </form>

@@ -6,28 +6,28 @@ import { z } from 'zod'
 
 // Validation schemas
 const timetableEventSchema = z.object({
-  class_id: z.string().uuid(),
-  subject_id: z.string().uuid(),
-  teacher_id: z.string().uuid(),
-  classroom_id: z.string().uuid(),
-  semester_id: z.string().uuid(),
+  class_id: z.string().min(1),
+  subject_id: z.string().min(1),
+  teacher_id: z.string().min(1),
+  classroom_id: z.string().min(1),
+  semester_id: z.string().min(1),
   day_of_week: z.number().int().min(0).max(6),
-  start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  start_time: z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/),
+  end_time: z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/),
   week_number: z.number().int().min(1).max(52),
   notes: z.string().optional()
 })
 
 const updateTimetableEventSchema = timetableEventSchema.partial().extend({
-  id: z.string().uuid()
+  id: z.string().min(1)
 })
 
 const timetableFiltersSchema = z.object({
-  class_id: z.string().uuid().optional(),
-  semester_id: z.string().uuid().optional(),
+  class_id: z.string().min(1).optional(),
+  semester_id: z.string().min(1).optional(),
   week_number: z.number().int().min(1).max(52).optional(),
-  teacher_id: z.string().uuid().optional(),
-  classroom_id: z.string().uuid().optional(),
+  teacher_id: z.string().min(1).optional(),
+  classroom_id: z.string().min(1).optional(),
   day_of_week: z.number().int().min(0).max(6).optional()
 })
 

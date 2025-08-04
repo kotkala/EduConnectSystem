@@ -54,7 +54,7 @@ function EventWrapper({
   return (
     <button
       className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-2",
+        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3",
         getEventColorClasses(event.color),
         getBorderRadiusClasses(isFirstDay, isLastDay),
         className,
@@ -133,8 +133,14 @@ export function EventItem({
       return formatTimeWithOptionalMinutes(displayStart);
     }
 
-    // For longer events, show both start and end time
-    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}`;
+    // For longer events, show both start and end time with duration
+    let durationText = ` (${durationMinutes}min)`;
+    if (durationMinutes === 45) {
+      durationText = " • 45min";
+    } else if (durationMinutes === 60) {
+      durationText = " • 1h";
+    }
+    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}${durationText}`;
   };
 
   if (view === "month") {
@@ -178,9 +184,11 @@ export function EventItem({
         isDragging={isDragging}
         onClick={onClick}
         className={cn(
-          "py-1",
+          "py-2",
           durationMinutes < 45 ? "items-center" : "flex-col",
-          view === "week" ? "text-[10px] sm:text-[13px]" : "text-[13px]",
+          view === "week" ? "text-[12px] sm:text-[14px]" : "text-[14px]",
+          // Add visual indicator for 45-minute slots
+          durationMinutes === 45 && "border-l-4 border-l-blue-500/70 bg-blue-50/30",
           className,
         )}
         currentTime={currentTime}
@@ -200,10 +208,15 @@ export function EventItem({
           </div>
         ) : (
           <>
-            <div className="truncate font-medium">{event.title}</div>
+            <div className="truncate font-semibold text-sm">{event.title}</div>
+            {event.location && event.location !== 'TBD' && (
+              <div className="truncate font-medium opacity-80 text-xs mt-0.5">
+                📍 Phòng {event.location}
+              </div>
+            )}
             {showTime && (
-              <div className="truncate font-normal opacity-70 sm:text-xs uppercase">
-                {getEventTime()}
+              <div className="truncate font-medium opacity-70 text-xs mt-0.5">
+                🕐 {getEventTime()}
               </div>
             )}
           </>

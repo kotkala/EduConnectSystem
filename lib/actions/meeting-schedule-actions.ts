@@ -149,16 +149,16 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
       throw new Error(error.message)
     }
 
-    // Get all student IDs to fetch their parents
-    const studentIds = students?.map(enrollment => {
+    // Get all student UUIDs to fetch their parents
+    const studentUUIDs = students?.map(enrollment => {
       const student = enrollment.students as unknown as {
         id: string
         student_id: string
       }
-      return student.student_id
+      return student.id
     }).filter(Boolean) || []
 
-    // Fetch parents for these students using the correct join on student_id string
+    // Fetch parents for these students using the correct join on student UUID
     const { data: parentRelationships, error: parentsError } = await supabase
       .from('parent_student_relationships')
       .select(`
@@ -169,13 +169,13 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
           email
         )
       `)
-      .in('student_id', studentIds)
+      .in('student_id', studentUUIDs)
 
     if (parentsError) {
       throw new Error(parentsError.message)
     }
 
-    // Create a map of student_id to parents
+    // Create a map of student UUID to parents
     const parentsMap = new Map<string, Array<{ id: string; full_name: string; email: string }>>()
     parentRelationships?.forEach(rel => {
       const parent = rel.parents as unknown as { id: string; full_name: string; email: string }
@@ -194,7 +194,7 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
         student_id: string
       }
 
-      const parents = parentsMap.get(student.student_id) || []
+      const parents = parentsMap.get(student.id) || []
 
       return {
         id: student.id,
@@ -260,30 +260,17 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       throw new Error(meetingError?.message || "Failed to create meeting schedule")
     }
 
-    // Get student_id strings for the selected student UUIDs
-    const { data: selectedStudents, error: studentsError } = await supabase
-      .from('profiles')
-      .select('id, student_id')
-      .in('id', request.student_ids)
-      .eq('role', 'student')
-
-    if (studentsError) {
-      throw new Error(studentsError.message)
-    }
-
-    const studentIdStrings = selectedStudents?.map(s => s.student_id).filter(Boolean) || []
-
-    // Get parents for the selected students using student_id strings
+    // Get parents for the selected students using student UUIDs directly
     const { data: studentParents, error: parentsError } = await supabase
       .from('parent_student_relationships')
       .select('parent_id, student_id')
-      .in('student_id', studentIdStrings)
+      .in('student_id', request.student_ids)
 
     if (parentsError) {
       throw new Error(parentsError.message)
     }
 
-    // Create recipients records - need to map back to student UUIDs
+    // Create recipients records using student UUIDs directly
     const recipients: Array<{
       meeting_schedule_id: string
       student_id: string
@@ -291,15 +278,11 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
     }> = []
 
     studentParents?.forEach(rel => {
-      // Find the student UUID for this student_id string
-      const studentUUID = selectedStudents?.find(s => s.student_id === rel.student_id)?.id
-      if (studentUUID) {
-        recipients.push({
-          meeting_schedule_id: meetingSchedule.id,
-          student_id: studentUUID,
-          parent_id: rel.parent_id
-        })
-      }
+      recipients.push({
+        meeting_schedule_id: meetingSchedule.id,
+        student_id: rel.student_id,
+        parent_id: rel.parent_id
+      })
     })
 
     if (recipients.length > 0) {

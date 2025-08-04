@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Trash2, AlertTriangle } from "lucide-react"
 
 interface SubjectDeleteDialogProps {
-  subject: Subject
-  children?: React.ReactNode
+  readonly subject: Subject
+  readonly children?: React.ReactNode
 }
 
 export function SubjectDeleteDialog({ subject, children }: SubjectDeleteDialogProps) {
@@ -67,7 +67,7 @@ export function SubjectDeleteDialog({ subject, children }: SubjectDeleteDialogPr
             Are you sure you want to delete the subject{" "}
             <span className="font-semibold">
               {subject.name_vietnamese} ({subject.code})
-            </span>
+            </span>{" "}
             ?
           </DialogDescription>
         </DialogHeader>

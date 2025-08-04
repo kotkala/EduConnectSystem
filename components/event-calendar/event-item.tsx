@@ -133,8 +133,14 @@ export function EventItem({
       return formatTimeWithOptionalMinutes(displayStart);
     }
 
-    // For longer events, show both start and end time
-    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}`;
+    // For longer events, show both start and end time with duration
+    let durationText = ` (${durationMinutes}min)`;
+    if (durationMinutes === 45) {
+      durationText = " (45min)";
+    } else if (durationMinutes === 60) {
+      durationText = " (1h)";
+    }
+    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}${durationText}`;
   };
 
   if (view === "month") {
@@ -181,6 +187,8 @@ export function EventItem({
           "py-1",
           durationMinutes < 45 ? "items-center" : "flex-col",
           view === "week" ? "text-[10px] sm:text-[13px]" : "text-[13px]",
+          // Add visual indicator for 45-minute slots
+          durationMinutes === 45 && "border-l-4 border-l-yellow-400/60",
           className,
         )}
         currentTime={currentTime}

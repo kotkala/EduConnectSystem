@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,15 +8,50 @@ import { Plus, Settings, FileText, AlertTriangle } from 'lucide-react'
 import ViolationCategoriesManager from '@/components/admin/violations/violation-categories-manager'
 import ViolationRecordForm from '@/components/admin/violations/violation-record-form'
 import SimpleViolationsTable from '@/components/admin/violations/simple-violations-table'
+import { getViolationStatsAction } from '@/lib/actions/violation-actions'
 
+
+interface ViolationStats {
+  totalViolations: number
+  thisWeekViolations: number
+  totalCategories: number
+  notificationsSent: number
+}
 
 export default function ViolationsPageClient() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [stats, setStats] = useState<ViolationStats>({
+    totalViolations: 0,
+    thisWeekViolations: 0,
+    totalCategories: 0,
+    notificationsSent: 0
+  })
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
 
   const handleRecordSuccess = () => {
     // Switch to overview tab after successful recording
     setActiveTab('overview')
+    // Reload stats after successful violation recording
+    loadViolationStats()
   }
+
+  const loadViolationStats = async () => {
+    setIsLoadingStats(true)
+    try {
+      const result = await getViolationStatsAction()
+      if (result.success && result.data) {
+        setStats(result.data)
+      }
+    } catch (error) {
+      console.error('Failed to load violation stats:', error)
+    } finally {
+      setIsLoadingStats(false)
+    }
+  }
+
+  useEffect(() => {
+    loadViolationStats()
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -36,9 +71,11 @@ export default function ViolationsPageClient() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">
+                  {isLoadingStats ? '...' : stats.totalViolations}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  This month
+                  Total recorded
                 </p>
               </CardContent>
             </Card>
@@ -48,7 +85,9 @@ export default function ViolationsPageClient() {
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">
+                  {isLoadingStats ? '...' : stats.thisWeekViolations}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Current week
                 </p>
@@ -60,7 +99,9 @@ export default function ViolationsPageClient() {
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">
+                  {isLoadingStats ? '...' : stats.totalCategories}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Active categories
                 </p>
@@ -72,7 +113,9 @@ export default function ViolationsPageClient() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">
+                  {isLoadingStats ? '...' : stats.notificationsSent}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   To parents this month
                 </p>

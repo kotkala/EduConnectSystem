@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -8,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, GraduationCap, Users, BookOpen, RefreshCw } from "lucide-react"
 import { ClassTable } from "@/components/admin/class-table"
 import { ClassForm } from "@/components/admin/class-form"
-import { SidebarLayout } from "@/components/dashboard/sidebar-layout"
 import { getClassesAction, getHomeroomEnabledTeachersAction } from "@/lib/actions/class-actions"
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
 import {
@@ -70,12 +69,17 @@ export default function ClassManagementPage() {
     }
   }, [classesFilters])
 
-  // Fetch Form Data
+  // Fetch Form Data with optimized loading
   const fetchFormData = useCallback(async () => {
+    // Only fetch if data is not already loaded (simple caching)
+    if (academicYears.length > 0 && semesters.length > 0 && teachers.length > 0) {
+      return
+    }
+
     try {
       const [academicYearsResult, semestersResult, teachersResult] = await Promise.all([
-        getAcademicYearsAction({ page: 1, limit: 100 }),
-        getSemestersAction({ page: 1, limit: 100 }),
+        getAcademicYearsAction({ page: 1, limit: 50 }),
+        getSemestersAction({ page: 1, limit: 50 }),
         getHomeroomEnabledTeachersAction()
       ])
 
@@ -93,7 +97,7 @@ export default function ClassManagementPage() {
     } catch (error) {
       console.error("Failed to fetch form data:", error)
     }
-  }, [])
+  }, [academicYears.length, semesters.length, teachers.length])
 
   useEffect(() => {
     fetchClasses()
@@ -133,24 +137,33 @@ export default function ClassManagementPage() {
     fetchFormData()
   }
 
-  // Calculate stats
-  const mainClasses = classes.filter(c => !c.is_subject_combination)
-  const combinedClasses = classes.filter(c => c.is_subject_combination)
-  const totalStudents = classes.reduce((sum, c) => sum + c.current_students, 0)
-  const totalCapacity = classes.reduce((sum, c) => sum + c.max_students, 0)
+  // Calculate stats with memoization for performance
+  const classStats = useMemo(() => {
+    const mainClasses = classes.filter(c => !c.is_subject_combination)
+    const combinedClasses = classes.filter(c => c.is_subject_combination)
+    const totalStudents = classes.reduce((sum, c) => sum + c.current_students, 0)
+    const totalCapacity = classes.reduce((sum, c) => sum + c.max_students, 0)
+
+    return {
+      mainClasses,
+      combinedClasses,
+      totalStudents,
+      totalCapacity
+    }
+  }, [classes])
 
   if (classesLoading && classes.length === 0) {
     return (
-      <SidebarLayout role="admin" title="Class Management">
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin" />
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   return (
-    <SidebarLayout role="admin" title="Class Management">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
       <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -187,7 +200,7 @@ export default function ClassManagementPage() {
             <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{mainClasses.length}</div>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.mainClasses.length}</div>
             <p className="text-xs text-muted-foreground">
               Regular homeroom classes
             </p>
@@ -200,7 +213,7 @@ export default function ClassManagementPage() {
             <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{combinedClasses.length}</div>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.combinedClasses.length}</div>
             <p className="text-xs text-muted-foreground">
               Subject combination classes
             </p>
@@ -213,9 +226,9 @@ export default function ClassManagementPage() {
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{totalStudents}</div>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.totalStudents}</div>
             <p className="text-xs text-muted-foreground">
-              {totalCapacity > 0 ? `${Math.round((totalStudents / totalCapacity) * 100)}% capacity` : "No capacity"}
+              {classStats.totalCapacity > 0 ? `${Math.round((classStats.totalStudents / classStats.totalCapacity) * 100)}% capacity` : "No capacity"}
             </p>
           </CardContent>
         </Card>
@@ -288,6 +301,6 @@ export default function ClassManagementPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

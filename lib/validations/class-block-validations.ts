@@ -5,7 +5,7 @@ export const classBlockSchema = z.object({
   name: z.string()
     .min(1, "Block name is required")
     .max(50, "Block name must be less than 50 characters")
-    .regex(/^[0-9]+$/, "Block name must contain only numbers"),
+    .regex(/^\d+$/, "Block name must contain only numbers"),
   display_name: z.string()
     .min(1, "Display name is required")
     .max(100, "Display name must be less than 100 characters"),
@@ -15,7 +15,7 @@ export const classBlockSchema = z.object({
 })
 
 export const updateClassBlockSchema = classBlockSchema.partial().extend({
-  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid class block ID')
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Invalid class block ID')
 })
 
 // Class Block Filters

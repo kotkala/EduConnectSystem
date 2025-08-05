@@ -6,11 +6,11 @@ import { z } from 'zod'
 
 // Validation schema for study slots
 const studySlotSchema = z.object({
-  class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
-  subject_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
-  teacher_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
-  classroom_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
-  semester_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i),
+  subject_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i),
+  teacher_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i),
+  classroom_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i),
   day_of_week: z.number().int().min(0).max(6),
   start_time: z.string().regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/),
   end_time: z.string().regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/),
@@ -19,7 +19,7 @@ const studySlotSchema = z.object({
 })
 
 const updateStudySlotSchema = studySlotSchema.partial().extend({
-  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i)
 })
 
 // Types
@@ -116,7 +116,7 @@ export async function getStudySlotDropdownData() {
         classrooms: classrooms || [],
         teacherAssignments: teacherAssignments?.map(ta => ({
           teacher_id: ta.teacher_id,
-          teacher_name: ta.profiles && typeof ta.profiles === 'object' && !Array.isArray(ta.profiles) && Object.prototype.hasOwnProperty.call(ta.profiles, 'full_name')
+          teacher_name: ta.profiles && typeof ta.profiles === 'object' && !Array.isArray(ta.profiles) && Object.hasOwn(ta.profiles, 'full_name')
             ? (ta.profiles as { full_name: string }).full_name
             : '',
           subject_id: ta.subject_id,

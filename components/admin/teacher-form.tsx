@@ -16,9 +16,9 @@ import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/
 import { createTeacherAction, updateTeacherAction } from "@/lib/actions/user-actions"
 
 interface TeacherFormProps {
-  teacher?: TeacherProfile
-  onSuccess?: () => void
-  onCancel?: () => void
+  readonly teacher?: TeacherProfile
+  readonly onSuccess?: () => void
+  readonly onCancel?: () => void
 }
 
 export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) {

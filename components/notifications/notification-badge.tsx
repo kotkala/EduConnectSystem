@@ -6,7 +6,7 @@ import { getUnreadNotificationCountAction } from '@/lib/actions/notification-act
 import { createClient } from '@/utils/supabase/client'
 
 interface NotificationBadgeProps {
-  className?: string
+  readonly className?: string
 }
 
 export function NotificationBadge({ className }: NotificationBadgeProps) {

@@ -15,7 +15,7 @@ export const classBlockSchema = z.object({
 })
 
 export const updateClassBlockSchema = classBlockSchema.partial().extend({
-  id: z.string().uuid()
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid class block ID')
 })
 
 // Class Block Filters
@@ -49,16 +49,16 @@ export interface ClassBlockWithStats extends ClassBlock {
 
 // Student Assignment Schema
 export const studentAssignmentSchema = z.object({
-  student_id: z.string().uuid("Invalid student ID"),
-  class_id: z.string().uuid("Invalid class ID"),
+  student_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid student ID"),
+  class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid class ID"),
   assignment_type: z.enum(["main", "combined"], {
     message: "Assignment type is required"
   })
 })
 
 export const bulkStudentAssignmentSchema = z.object({
-  student_ids: z.array(z.string().uuid()).min(1, "At least one student must be selected"),
-  class_id: z.string().uuid("Invalid class ID"),
+  student_ids: z.array(z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)).min(1, "At least one student must be selected"),
+  class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid class ID"),
   assignment_type: z.enum(["main", "combined"], {
     message: "Assignment type is required"
   })
@@ -93,7 +93,7 @@ export interface StudentClassAssignment {
 
 // Class Assignment Filters
 export const classAssignmentFiltersSchema = z.object({
-  class_id: z.string().uuid().optional(),
+  class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
   assignment_type: z.enum(["main", "combined"]).optional(),
   is_active: z.boolean().optional(),
   search: z.string().optional(), // Search by student name or ID

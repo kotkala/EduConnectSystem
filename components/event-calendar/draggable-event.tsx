@@ -12,16 +12,16 @@ import {
 } from "@/components/event-calendar";
 
 interface DraggableEventProps {
-  event: CalendarEvent;
-  view: "month" | "week" | "day";
-  showTime?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
-  height?: number;
-  isMultiDay?: boolean;
-  multiDayWidth?: number;
-  isFirstDay?: boolean;
-  isLastDay?: boolean;
-  "aria-hidden"?: boolean | "true" | "false";
+  readonly event: CalendarEvent;
+  readonly view: "month" | "week" | "day";
+  readonly showTime?: boolean;
+  readonly onClick?: (e: React.MouseEvent) => void;
+  readonly height?: number;
+  readonly isMultiDay?: boolean;
+  readonly multiDayWidth?: number;
+  readonly isFirstDay?: boolean;
+  readonly isLastDay?: boolean;
+  readonly "aria-hidden"?: boolean | "true" | "false";
 }
 
 export function DraggableEvent({

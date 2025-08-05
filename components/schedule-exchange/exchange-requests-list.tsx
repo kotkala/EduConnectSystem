@@ -17,8 +17,8 @@ import {
 } from "@/lib/actions/schedule-exchange-actions"
 
 interface ExchangeRequestsListProps {
-  teacherId: string
-  refreshTrigger?: number
+  readonly teacherId: string
+  readonly refreshTrigger?: number
 }
 
 const statusConfig = {

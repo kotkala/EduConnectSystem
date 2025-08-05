@@ -40,15 +40,15 @@ import {
 } from "@/lib/validations/academic-validations"
 
 interface AcademicTableProps {
-  data: AcademicYearWithSemesters[] | SemesterWithAcademicYear[]
-  type: "academic-years" | "semesters"
-  total: number
-  currentPage: number
-  limit?: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: Partial<AcademicFilters>) => void
-  onEdit: (item: AcademicYear | Semester) => void
-  onRefresh: () => void
+  readonly data: AcademicYearWithSemesters[] | SemesterWithAcademicYear[]
+  readonly type: "academic-years" | "semesters"
+  readonly total: number
+  readonly currentPage: number
+  readonly limit?: number
+  readonly onPageChange: (page: number) => void
+  readonly onFiltersChange: (filters: Partial<AcademicFilters>) => void
+  readonly onEdit: (item: AcademicYear | Semester) => void
+  readonly onRefresh: () => void
 }
 
 export function AcademicTable({

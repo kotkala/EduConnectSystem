@@ -33,7 +33,7 @@ function isValidUUID(str: string): boolean {
 }
 
 // Helper function to check if filters are valid for loading events
-function hasValidFilters(filters: TeacherTimetableFiltersType): boolean {
+function hasValidFilters(filters: TeacherTimetableFiltersType): filters is TeacherTimetableFiltersType & { semesterId: string } {
   return !!(
     filters.semesterId &&
     filters.studyWeek &&
@@ -205,7 +205,7 @@ export default function TeacherScheduleBigCalendar() {
           <div className="flex justify-end">
             <ExchangeRequestForm
               teacherId={user.id}
-              semesterId={filters.semesterId!}
+              semesterId={filters.semesterId}
               onSuccess={() => setExchangeRefreshTrigger(prev => prev + 1)}
             />
           </div>

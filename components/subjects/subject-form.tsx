@@ -25,11 +25,11 @@ import {
 } from "@/components/ui/select"
 
 interface SubjectFormProps {
-  subject?: Subject | null
-  onSubmit: (data: SubjectFormData) => Promise<void>
-  onCancel: () => void
-  isLoading?: boolean
-  submitLabel?: string
+  readonly subject?: Subject | null
+  readonly onSubmit: (data: SubjectFormData) => Promise<void>
+  readonly onCancel: () => void
+  readonly isLoading?: boolean
+  readonly submitLabel?: string
 }
 
 export function SubjectForm({

@@ -12,9 +12,9 @@ import {
 } from "@/components/event-calendar";
 
 interface AgendaViewProps {
-  currentDate: Date;
-  events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
+  readonly currentDate: Date;
+  readonly events: CalendarEvent[];
+  readonly onEventSelect: (event: CalendarEvent) => void;
 }
 
 export function AgendaView({

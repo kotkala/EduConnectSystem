@@ -8,6 +8,10 @@ import { differenceInMinutes, format, getMinutes } from "date-fns";
 import {
   getBorderRadiusClasses,
   getEventColorClasses,
+  getSingleDayEventPosition,
+  getFirstDayEventPosition,
+  getLastDayEventPosition,
+  getMiddleDayEventPosition,
   type CalendarEvent,
 } from "@/components/event-calendar";
 import { cn } from "@/lib/utils";
@@ -21,18 +25,32 @@ const formatTimeWithOptionalMinutes = (date: Date) => {
 };
 
 interface EventWrapperProps {
-  event: CalendarEvent;
-  isFirstDay?: boolean;
-  isLastDay?: boolean;
-  isDragging?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
-  className?: string;
-  children: React.ReactNode;
-  currentTime?: Date;
-  dndListeners?: SyntheticListenerMap;
-  dndAttributes?: DraggableAttributes;
-  onMouseDown?: (e: React.MouseEvent) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
+  readonly event: CalendarEvent;
+  readonly isFirstDay?: boolean;
+  readonly isLastDay?: boolean;
+  readonly isDragging?: boolean;
+  readonly onClick?: (e: React.MouseEvent) => void;
+  readonly className?: string;
+  readonly children: React.ReactNode;
+  readonly currentTime?: Date;
+  readonly dndListeners?: SyntheticListenerMap;
+  readonly dndAttributes?: DraggableAttributes;
+  readonly onMouseDown?: (e: React.MouseEvent) => void;
+  readonly onTouchStart?: (e: React.TouchEvent) => void;
+}
+
+// Helper function to determine event position
+function determineEventPosition(isFirstDay: boolean, isLastDay: boolean) {
+  if (isFirstDay && isLastDay) {
+    return getSingleDayEventPosition();
+  }
+  if (isFirstDay) {
+    return getFirstDayEventPosition();
+  }
+  if (isLastDay) {
+    return getLastDayEventPosition();
+  }
+  return getMiddleDayEventPosition();
 }
 
 // Shared wrapper component for event styling
@@ -56,7 +74,7 @@ function EventWrapper({
       className={cn(
         "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3",
         getEventColorClasses(event.color),
-        getBorderRadiusClasses(isFirstDay, isLastDay),
+        getBorderRadiusClasses(determineEventPosition(isFirstDay, isLastDay)),
         className,
       )}
       data-dragging={isDragging || undefined}
@@ -72,20 +90,20 @@ function EventWrapper({
 }
 
 interface EventItemProps {
-  event: CalendarEvent;
-  view: "month" | "week" | "day" | "agenda";
-  isDragging?: boolean;
-  onClick?: (e: React.MouseEvent) => void;
-  showTime?: boolean;
-  currentTime?: Date; // For updating time during drag
-  isFirstDay?: boolean;
-  isLastDay?: boolean;
-  children?: React.ReactNode;
-  className?: string;
-  dndListeners?: SyntheticListenerMap;
-  dndAttributes?: DraggableAttributes;
-  onMouseDown?: (e: React.MouseEvent) => void;
-  onTouchStart?: (e: React.TouchEvent) => void;
+  readonly event: CalendarEvent;
+  readonly view: "month" | "week" | "day" | "agenda";
+  readonly isDragging?: boolean;
+  readonly onClick?: (e: React.MouseEvent) => void;
+  readonly showTime?: boolean;
+  readonly currentTime?: Date; // For updating time during drag
+  readonly isFirstDay?: boolean;
+  readonly isLastDay?: boolean;
+  readonly children?: React.ReactNode;
+  readonly className?: string;
+  readonly dndListeners?: SyntheticListenerMap;
+  readonly dndAttributes?: DraggableAttributes;
+  readonly onMouseDown?: (e: React.MouseEvent) => void;
+  readonly onTouchStart?: (e: React.TouchEvent) => void;
 }
 
 export function EventItem({

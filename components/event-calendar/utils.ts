@@ -3,6 +3,11 @@ import { isSameDay } from "date-fns";
 import type { CalendarEvent, EventColor } from "@/components/event-calendar";
 
 /**
+ * Event position types for multi-day events
+ */
+export type EventPosition = 'single' | 'first' | 'middle' | 'last';
+
+/**
  * Get CSS classes for event colors
  */
 export function getEventColorClasses(color?: EventColor): string {
@@ -27,19 +32,90 @@ export function getEventColorClasses(color?: EventColor): string {
 /**
  * Get CSS classes for border radius based on event position in multi-day events
  */
-export function getBorderRadiusClasses(
-  isFirstDay: boolean,
-  isLastDay: boolean,
-): string {
-  if (isFirstDay && isLastDay) {
-    return getBorderRadiusForSingleDay();
-  } else if (isFirstDay) {
-    return getBorderRadiusForFirstDay();
-  } else if (isLastDay) {
-    return getBorderRadiusForLastDay();
-  } else {
-    return getBorderRadiusForMiddleDay();
+export function getBorderRadiusClasses(position: EventPosition): string {
+  switch (position) {
+    case 'single':
+      return getBorderRadiusForSingleDay();
+    case 'first':
+      return getBorderRadiusForFirstDay();
+    case 'last':
+      return getBorderRadiusForLastDay();
+    case 'middle':
+      return getBorderRadiusForMiddleDay();
+    default:
+      return getBorderRadiusForSingleDay();
   }
+}
+
+/**
+ * Get event position for single day events
+ */
+export function getSingleDayEventPosition(): EventPosition {
+  return 'single';
+}
+
+/**
+ * Get event position for first day of multi-day events
+ */
+export function getFirstDayEventPosition(): EventPosition {
+  return 'first';
+}
+
+/**
+ * Get event position for last day of multi-day events
+ */
+export function getLastDayEventPosition(): EventPosition {
+  return 'last';
+}
+
+/**
+ * Get event position for middle day of multi-day events
+ */
+export function getMiddleDayEventPosition(): EventPosition {
+  return 'middle';
+}
+
+/**
+ * Determine event position based on day flags
+ */
+export function getEventPosition(isFirstDay: boolean, isLastDay: boolean): EventPosition {
+  if (isFirstDay && isLastDay) {
+    return getSingleDayEventPosition();
+  } else if (isFirstDay) {
+    return getFirstDayEventPosition();
+  } else if (isLastDay) {
+    return getLastDayEventPosition();
+  } else {
+    return getMiddleDayEventPosition();
+  }
+}
+
+/**
+ * Get CSS classes for border radius when event is both first and last day (single day)
+ */
+export function getBorderRadiusForSingleDayEvent(): string {
+  return getBorderRadiusForSingleDay();
+}
+
+/**
+ * Get CSS classes for border radius when event is first day of multi-day event
+ */
+export function getBorderRadiusForFirstDayEvent(): string {
+  return getBorderRadiusForFirstDay();
+}
+
+/**
+ * Get CSS classes for border radius when event is last day of multi-day event
+ */
+export function getBorderRadiusForLastDayEvent(): string {
+  return getBorderRadiusForLastDay();
+}
+
+/**
+ * Get CSS classes for border radius when event is middle day of multi-day event
+ */
+export function getBorderRadiusForMiddleDayEvent(): string {
+  return getBorderRadiusForMiddleDay();
 }
 
 /**

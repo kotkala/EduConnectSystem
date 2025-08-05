@@ -57,7 +57,7 @@ export const OTP_CONFIG = {
 
 // Validation constants
 export const VALIDATION = {
-  EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  EMAIL_REGEX: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   MIN_NAME_LENGTH: 2,
   MAX_NAME_LENGTH: 50,
   OTP_REGEX: /^\d{6}$/,

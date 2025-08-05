@@ -18,7 +18,7 @@ const baseUserFields = {
     .max(100, "Name must be less than 100 characters"),
   email: z.string()
     .min(1, "Email is required")
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format"),
+    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Invalid email format"),
   phone_number: z.string()
     .min(1, "Phone number is required")
     .regex(/^[\d+\-\s()]+$/, "Invalid phone number format"),

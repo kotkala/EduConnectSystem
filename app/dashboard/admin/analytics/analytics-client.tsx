@@ -6,22 +6,86 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, TrendingUp, Users, BookOpen, GraduationCap, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-  Line,
-  ComposedChart,
-  Area
-} from 'recharts'
+
+import dynamic from 'next/dynamic'
+
+// Lazy load individual chart components to reduce initial bundle size
+interface ChartData {
+  name?: string
+  count?: number
+  percentage?: number
+  className?: string
+  averageGrade?: number
+  period?: string
+  submissions?: number
+}
+
+interface ChartProps {
+  readonly data: ChartData[]
+  readonly colors?: readonly string[]
+}
+
+const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
+  default: ({ data }: ChartProps) => (
+    <mod.ResponsiveContainer width="100%" height={300}>
+      <mod.BarChart data={data}>
+        <mod.CartesianGrid strokeDasharray="3 3" />
+        <mod.XAxis dataKey="name" />
+        <mod.YAxis />
+        <mod.Tooltip />
+        <mod.Bar dataKey="count" fill="#8884d8" />
+      </mod.BarChart>
+    </mod.ResponsiveContainer>
+  )
+})), {
+  ssr: false,
+  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+})
+
+const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
+  default: ({ data, colors }: ChartProps) => (
+    <mod.ResponsiveContainer width="100%" height={300}>
+      <mod.PieChart>
+        <mod.Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="percentage"
+          nameKey="name"
+        >
+          {data.map((entry, index) => (
+            <mod.Cell key={entry.name} fill={colors?.[index % (colors?.length || 1)] || '#8884d8'} />
+          ))}
+        </mod.Pie>
+        <mod.Tooltip />
+        <mod.Legend />
+      </mod.PieChart>
+    </mod.ResponsiveContainer>
+  )
+})), {
+  ssr: false,
+  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+})
+
+const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
+  default: ({ data }: ChartProps) => (
+    <mod.ResponsiveContainer width="100%" height={300}>
+      <mod.ComposedChart data={data}>
+        <mod.CartesianGrid strokeDasharray="3 3" />
+        <mod.XAxis dataKey="period" />
+        <mod.YAxis />
+        <mod.Tooltip />
+        <mod.Area type="monotone" dataKey="averageGrade" fill="#8884d8" stroke="#8884d8" />
+        <mod.Line type="monotone" dataKey="averageGrade" stroke="#ff7300" strokeWidth={2} />
+      </mod.ComposedChart>
+    </mod.ResponsiveContainer>
+  )
+})), {
+  ssr: false,
+  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+})
 import {
   getOverallGradeStatsAction,
   getGradeDistributionAction,
@@ -308,15 +372,7 @@ export default function AnalyticsClient() {
             {loadingStates.distribution ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData.gradeDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarChartComponent data={chartData.gradeDistribution} />
             )}
           </CardContent>
         </Card>
@@ -331,25 +387,7 @@ export default function AnalyticsClient() {
             {loadingStates.distribution ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={chartData.gradeDistribution}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="percentage"
-                    nameKey="name"
-                  >
-                    {chartData.gradeDistribution.map((entry, index) => (
-                      <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <PieChartComponent data={chartData.gradeDistribution} colors={COLORS} />
             )}
           </CardContent>
         </Card>
@@ -364,15 +402,7 @@ export default function AnalyticsClient() {
             {loadingStates.classes ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData.classPerformance}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="className" />
-                  <YAxis domain={[0, 10]} />
-                  <Tooltip />
-                  <Bar dataKey="averageGrade" fill="#00C49F" />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarChartComponent data={chartData.classPerformance} />
             )}
           </CardContent>
         </Card>
@@ -387,16 +417,7 @@ export default function AnalyticsClient() {
             {loadingStates.trends ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={chartData.trendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
-                  <YAxis domain={[0, 10]} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="averageGrade" fill="#8884d8" stroke="#8884d8" />
-                  <Line type="monotone" dataKey="averageGrade" stroke="#ff7300" strokeWidth={2} />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <ComposedChartComponent data={chartData.trendData} />
             )}
           </CardContent>
         </Card>

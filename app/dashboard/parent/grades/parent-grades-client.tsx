@@ -1,14 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Users, Eye, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
 import { getChildrenGradeReportsAction, getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
 import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
-import { ParentGradeViewDialog } from '@/components/parent-dashboard/parent-grade-view-dialog'
+
+// Lazy load heavy dialog component to improve initial page load
+const ParentGradeViewDialog = dynamic(() => import('@/components/parent-dashboard/parent-grade-view-dialog').then(mod => ({ default: mod.ParentGradeViewDialog })), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-100 rounded animate-pulse"></div>
+})
 
 interface GradeSubmission {
   id: string
@@ -206,6 +212,24 @@ export default function ParentGradesClient() {
     loadGradeReports()
   }, [loadGradeReports])
 
+  // Memoize grouped submissions to prevent unnecessary re-renders
+  const groupedSubmissions = useMemo(() => {
+    const groups = new Map<string, { student: { id: string, full_name: string, student_id: string }, submissions: GradeSubmission[] }>()
+
+    submissions.forEach(submission => {
+      const studentKey = submission.student.id
+      if (!groups.has(studentKey)) {
+        groups.set(studentKey, {
+          student: submission.student,
+          submissions: []
+        })
+      }
+      groups.get(studentKey)!.submissions.push(submission)
+    })
+
+    return Array.from(groups.values())
+  }, [submissions])
+
   const loadSubmissionDetails = useCallback(async (submission: GradeSubmission) => {
     setLoadingStates(prev => ({ ...prev, details: true, stats: true }))
     try {
@@ -290,18 +314,7 @@ export default function ParentGradesClient() {
     return 'destructive'
   }
 
-  // Group submissions by student
-  const studentGroups = submissions.reduce((groups, submission) => {
-    const studentId = submission.student_id
-    if (!groups[studentId]) {
-      groups[studentId] = {
-        student: submission.student,
-        submissions: []
-      }
-    }
-    groups[studentId].submissions.push(submission)
-    return groups
-  }, {} as Record<string, { student: { id: string, full_name: string, student_id: string }, submissions: GradeSubmission[] }>)
+  // Use memoized grouped submissions for better performance
 
   return (
     <div className="space-y-6">
@@ -321,7 +334,7 @@ export default function ParentGradesClient() {
               return <div className="text-center py-8">Đang tải...</div>
             }
 
-            if (Object.keys(studentGroups).length === 0) {
+            if (groupedSubmissions.length === 0) {
               return (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -333,7 +346,7 @@ export default function ParentGradesClient() {
 
             return (
             <div className="space-y-6">
-              {Object.values(studentGroups).map(({ student, submissions: studentSubmissions }) => (
+              {groupedSubmissions.map(({ student, submissions: studentSubmissions }) => (
                 <StudentGroup
                   key={student.id}
                   student={student}

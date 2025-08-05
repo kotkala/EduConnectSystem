@@ -2,10 +2,30 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+// Lazy load heavy calendar components to improve initial page load
+const EventCalendar = dynamic(() => import("@/components/event-calendar").then(mod => ({ default: mod.EventCalendar })), {
+  ssr: false,
+  loading: () => (
+    <div className="h-96 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+      <div className="text-gray-500">Loading calendar...</div>
+    </div>
+  )
+});
+
+const ExchangeRequestForm = dynamic(() => import("@/components/schedule-exchange/exchange-request-form").then(mod => ({ default: mod.ExchangeRequestForm })), {
+  ssr: false,
+  loading: () => <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+});
+
+const ExchangeRequestsList = dynamic(() => import("@/components/schedule-exchange/exchange-requests-list").then(mod => ({ default: mod.ExchangeRequestsList })), {
+  ssr: false,
+  loading: () => <div className="h-40 bg-gray-100 rounded animate-pulse"></div>
+});
 
 import {
   type CalendarEvent,
-  EventCalendar,
   type EventColor,
 } from "@/components/event-calendar";
 import { useCalendarContext } from "@/components/event-calendar/calendar-context";
@@ -16,8 +36,6 @@ import {
 } from "./teacher-timetable/teacher-timetable-event-dialog";
 import { getTeacherScheduleAction } from "@/lib/actions/teacher-schedule-actions";
 import { useAuth } from "@/hooks/use-auth";
-import { ExchangeRequestForm } from "@/components/schedule-exchange/exchange-request-form";
-import { ExchangeRequestsList } from "@/components/schedule-exchange/exchange-requests-list";
 
 // Map teacher event types to colors
 const getTeacherEventColor = (): EventColor => {
@@ -109,8 +127,8 @@ export default function TeacherScheduleBigCalendar() {
     setIsLoading(true);
     try {
       const result = await getTeacherScheduleAction({
-        semester_id: filters.semesterId!,
-        week_number: filters.studyWeek!,
+        semester_id: filters.semesterId,
+        week_number: filters.studyWeek,
       });
 
       if (result.success && result.data) {

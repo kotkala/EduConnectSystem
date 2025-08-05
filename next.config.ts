@@ -3,23 +3,20 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Enable experimental features for better performance
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-icons',
+      'framer-motion',
+      '@supabase/supabase-js',
+      'recharts',
+      '@emotion/react',
+      '@emotion/styled',
+      '@emotion/is-prop-valid'
+    ],
+
   },
 
-  // Exclude experiment folders from build
-  webpack: (config: any) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-    };
 
-    // Exclude experiment-06 folder from compilation
-    config.module.rules.push({
-      test: /\.(js|jsx|ts|tsx)$/,
-      exclude: /experiment-06/,
-    });
-
-    return config;
-  },
 
   // Security headers
   async headers() {
@@ -58,20 +55,32 @@ const nextConfig: NextConfig = {
   // Compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+    // Enable SWC minification for better performance
+    styledComponents: true,
   },
 
-  // Bundle analyzer (only in development)
-  ...(process.env.ANALYZE === 'true' && {
-    webpack: (config: any) => {
+
+
+  // Webpack optimization with conditional bundle analyzer
+  webpack: (config: any) => {
+    // Exclude experiment folders from build
+    config.module.rules.push({
+      test: /\.(js|jsx|ts|tsx)$/,
+      exclude: /experiment-06/,
+    });
+
+    // Add bundle analyzer in development if ANALYZE=true
+    if (process.env.ANALYZE === 'true') {
       config.plugins.push(
         new (require('webpack-bundle-analyzer').BundleAnalyzerPlugin)({
           analyzerMode: 'static',
           openAnalyzer: false,
         })
       );
-      return config;
-    },
-  }),
+    }
+
+    return config;
+  },
 };
 
 export default nextConfig;

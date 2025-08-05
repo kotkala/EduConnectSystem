@@ -2,7 +2,21 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import dynamic from 'next/dynamic'
+
+// Lazy load heavy components to reduce initial bundle size
+const MotionDiv = dynamic(() => import('framer-motion').then(mod => mod.motion.div), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48" />
+})
+
+// Performance optimization: Lazy load framer-motion to reduce initial bundle
+
+// Create a motion object for consistent usage
+const motion = {
+  div: MotionDiv,
+  section: MotionDiv, // Reuse MotionDiv for sections to reduce bundle size
+}
 import { Button } from '@/components/ui/button'
 import {
   Users, GraduationCap, BookOpen, Heart, Brain, Phone,

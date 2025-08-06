@@ -420,33 +420,7 @@ JOIN profiles t ON fn.teacher_id = t.id
 JOIN timetable_events te ON fn.timetable_event_id = te.id
 JOIN classes c ON te.class_id = c.id;
 
-CREATE INDEX idx_profiles_role ON profiles(role);
-CREATE INDEX idx_profiles_email ON profiles(email);
-CREATE INDEX idx_profiles_student_id ON profiles(student_id);
-CREATE INDEX idx_profiles_employee_id ON profiles(employee_id);
-CREATE INDEX idx_academic_years_active ON academic_years(is_active);
-CREATE INDEX idx_semesters_academic_year ON semesters(academic_year_id);
-CREATE INDEX idx_classes_academic_year ON classes(academic_year_id);
-CREATE INDEX idx_classes_homeroom_teacher ON classes(homeroom_teacher_id);
-CREATE INDEX idx_timetable_events_teacher ON timetable_events(teacher_id);
-CREATE INDEX idx_timetable_events_class ON timetable_events(class_id);
-CREATE INDEX idx_timetable_events_semester ON timetable_events(semester_id);
-CREATE INDEX idx_timetable_events_week ON timetable_events(week_number);
-CREATE INDEX idx_teacher_assignments_teacher ON teacher_class_assignments(teacher_id);
-CREATE INDEX idx_student_assignments_student ON student_class_assignments(student_id);
-CREATE INDEX idx_parent_student_relationships_parent ON parent_student_relationships(parent_id);
-CREATE INDEX idx_parent_student_relationships_student ON parent_student_relationships(student_id);
-CREATE INDEX idx_feedback_notifications_student ON feedback_notifications(student_id);
-CREATE INDEX idx_feedback_notifications_teacher ON feedback_notifications(teacher_id);
-CREATE INDEX idx_feedback_notifications_week ON feedback_notifications(week_number);
-CREATE INDEX idx_notifications_target_roles ON notifications USING GIN(target_roles);
-CREATE INDEX idx_notification_reads_user ON notification_reads(user_id);
-CREATE INDEX idx_meeting_schedules_teacher ON meeting_schedules(teacher_id);
-CREATE INDEX idx_meeting_recipients_parent ON meeting_schedule_recipients(parent_id);
-CREATE INDEX idx_leave_applications_student ON leave_applications(student_id);
-CREATE INDEX idx_leave_applications_teacher ON leave_applications(homeroom_teacher_id);
-CREATE INDEX idx_student_violations_student ON student_violations(student_id);
-CREATE INDEX idx_student_violations_date ON student_violations(violation_date);
+-- Remove duplicate indexes - keeping only the first set of indexes defined above
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academic_years ENABLE ROW LEVEL SECURITY;

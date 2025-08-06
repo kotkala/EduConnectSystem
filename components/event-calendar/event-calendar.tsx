@@ -46,13 +46,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export interface EventCalendarProps {
-  events?: CalendarEvent[];
-  onEventAdd?: (event: CalendarEvent) => void;
-  onEventUpdate?: (event: CalendarEvent) => void;
-  onEventDelete?: (eventId: string) => void;
-  onSelectEvent?: (event: CalendarEvent) => void;
-  className?: string;
-  initialView?: CalendarView;
+  readonly events?: CalendarEvent[];
+  readonly onEventAdd?: (event: CalendarEvent) => void;
+  readonly onEventUpdate?: (event: CalendarEvent) => void;
+  readonly onEventDelete?: (eventId: string) => void;
+  readonly onSelectEvent?: (event: CalendarEvent) => void;
+  readonly className?: string;
+  readonly initialView?: CalendarView;
 }
 
 export function EventCalendar({

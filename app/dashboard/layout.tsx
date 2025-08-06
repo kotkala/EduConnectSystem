@@ -7,7 +7,7 @@ import { UserRole } from '@/lib/types'
 export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  readonly children: React.ReactNode
 }) {
   const supabase = await createClient()
 

@@ -18,8 +18,8 @@ import {
 } from '@/lib/actions/notification-actions'
 
 interface NotificationFormProps {
-  onSuccess?: () => void
-  onCancel?: () => void
+  readonly onSuccess?: () => void
+  readonly onCancel?: () => void
 }
 
 export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps) {

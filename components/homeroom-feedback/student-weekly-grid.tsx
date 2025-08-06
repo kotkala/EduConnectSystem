@@ -14,9 +14,9 @@ import {
 import { type StudentWeeklySchedule } from "@/lib/actions/homeroom-feedback-actions"
 
 interface StudentWeeklyGridProps {
-  students: StudentWeeklySchedule[]
-  onStudentDayClick: (student: StudentWeeklySchedule, dayOfWeek: number) => void
-  loading?: boolean
+  readonly students: StudentWeeklySchedule[]
+  readonly onStudentDayClick: (student: StudentWeeklySchedule, dayOfWeek: number) => void
+  readonly loading?: boolean
 }
 
 export function StudentWeeklyGrid({

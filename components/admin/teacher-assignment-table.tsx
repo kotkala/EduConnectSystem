@@ -22,11 +22,11 @@ import {
 } from '@/lib/actions/teacher-assignment-actions'
 
 interface TeacherAssignmentTableProps {
-  assignments: TeacherAssignment[]
-  onUpdate?: () => void
-  showClassColumn?: boolean
-  title?: string
-  description?: string
+  readonly assignments: TeacherAssignment[]
+  readonly onUpdate?: () => void
+  readonly showClassColumn?: boolean
+  readonly title?: string
+  readonly description?: string
 }
 
 export default function TeacherAssignmentTable({ 

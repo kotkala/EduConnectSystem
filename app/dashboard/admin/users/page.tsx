@@ -120,8 +120,8 @@ export default function UsersPage() {
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium">Key Features:</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      {userType.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2">
+                      {userType.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
                           {feature}
                         </li>

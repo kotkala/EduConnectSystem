@@ -21,10 +21,10 @@ import {
 } from "@/lib/validations/academic-validations"
 
 interface SemesterFormProps {
-  semester?: Semester
-  preselectedAcademicYearId?: string
-  onSuccess?: () => void
-  onCancel?: () => void
+  readonly semester?: Semester
+  readonly preselectedAcademicYearId?: string
+  readonly onSuccess?: () => void
+  readonly onCancel?: () => void
 }
 
 export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, onCancel }: SemesterFormProps) {

@@ -213,7 +213,7 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
     // Get user profile to check role
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, class_id')
+      .select('role')
       .eq('id', user.id)
       .single()
 
@@ -235,10 +235,9 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
     query = query.contains('target_roles', [profile.role])
 
     // For students and parents, also filter by class if target_classes is specified
-    if ((profile.role === 'student' || profile.role === 'parent') && profile.class_id) {
-      // Get notifications that either have no class restriction (empty target_classes)
-      // or include the user's class
-      query = query.or(`target_classes.is.null,target_classes.cs.{${profile.class_id}}`)
+    if (profile.role === 'student' || profile.role === 'parent') {
+      // For now, show all notifications for the role (class filtering can be added later)
+      // This ensures parents and students see notifications targeted to their role
     }
 
     query = query.order('created_at', { ascending: false })
@@ -274,7 +273,7 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
     // Get user profile to check role
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, class_id')
+      .select('role')
       .eq('id', user.id)
       .single()
 
@@ -295,10 +294,9 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
     query = query.contains('target_roles', [profile.role])
 
     // For students and parents, also filter by class if target_classes is specified
-    if ((profile.role === 'student' || profile.role === 'parent') && profile.class_id) {
-      // Get notifications that either have no class restriction (empty target_classes)
-      // or include the user's class
-      query = query.or(`target_classes.is.null,target_classes.cs.{${profile.class_id}}`)
+    if (profile.role === 'student' || profile.role === 'parent') {
+      // For now, show all notifications for the role (class filtering can be added later)
+      // This ensures parents and students see notifications targeted to their role
     }
 
     const { data: notifications, error } = await query

@@ -15,8 +15,8 @@ import {
 import { type HomeroomStudent } from "@/lib/validations/homeroom-validations"
 
 interface HomeroomStudentCardProps {
-  student: HomeroomStudent
-  onClick: () => void
+  readonly student: HomeroomStudent
+  readonly onClick: () => void
 }
 
 export function HomeroomStudentCard({ student, onClick }: HomeroomStudentCardProps) {

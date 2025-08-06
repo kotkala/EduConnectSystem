@@ -26,7 +26,7 @@ export const classroomSchema = z.object({
 })
 
 export const updateClassroomSchema = classroomSchema.partial().extend({
-  id: z.string().uuid('Invalid classroom ID')
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid classroom ID')
 })
 
 export const classroomFiltersSchema = z.object({
@@ -40,19 +40,19 @@ export const classroomFiltersSchema = z.object({
 
 // Timetable event validation schemas
 export const timetableEventSchema = z.object({
-  class_id: z.string().uuid('Please select a valid class'),
-  subject_id: z.string().uuid('Please select a valid subject'),
-  teacher_id: z.string().uuid('Please select a valid teacher'),
-  classroom_id: z.string().uuid('Please select a valid classroom'),
-  semester_id: z.string().uuid('Please select a valid semester'),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Please select a valid class'),
+  subject_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Please select a valid subject'),
+  teacher_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Please select a valid teacher'),
+  classroom_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Please select a valid classroom'),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Please select a valid semester'),
   day_of_week: z.number()
     .int('Day of week must be a number')
     .min(0, 'Invalid day of week')
     .max(6, 'Invalid day of week'),
   start_time: z.string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Start time must be in HH:MM format'),
+    .regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/, 'Start time must be in HH:MM format'),
   end_time: z.string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'End time must be in HH:MM format'),
+    .regex(/^([0-1]?\d|2[0-3]):[0-5]\d$/, 'End time must be in HH:MM format'),
   week_number: z.number()
     .int('Week number must be a whole number')
     .min(1, 'Week number must be at least 1')
@@ -72,24 +72,24 @@ export const timetableEventSchema = z.object({
 })
 
 export const updateTimetableEventSchema = timetableEventSchema.partial().extend({
-  id: z.string().uuid('Invalid event ID')
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid event ID')
 })
 
 export const timetableFiltersSchema = z.object({
-  class_id: z.string().uuid().optional(),
-  semester_id: z.string().uuid().optional(),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).optional(),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).optional(),
   week_number: z.number().int().min(1).max(52).optional(),
-  teacher_id: z.string().uuid().optional(),
-  classroom_id: z.string().uuid().optional(),
+  teacher_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).optional(),
+  classroom_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).optional(),
   day_of_week: z.number().int().min(0).max(6).optional()
 })
 
 // Week selection schema
 export const weekSelectionSchema = z.object({
-  academic_year_id: z.string().uuid('Please select an academic year'),
-  semester_id: z.string().uuid('Please select a semester'),
-  class_block_id: z.string().uuid('Please select a class block'),
-  class_id: z.string().uuid('Please select a class'),
+  academic_year_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Please select an academic year'),
+  semester_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Please select a semester'),
+  class_block_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Please select a class block'),
+  class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Please select a class'),
   week_number: z.number().int().min(1).max(52, 'Week number must be between 1 and 52')
 })
 

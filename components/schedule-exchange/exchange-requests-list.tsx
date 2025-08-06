@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { Trash2, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react"
@@ -17,8 +17,8 @@ import {
 } from "@/lib/actions/schedule-exchange-actions"
 
 interface ExchangeRequestsListProps {
-  teacherId: string
-  refreshTrigger?: number
+  readonly teacherId: string
+  readonly refreshTrigger?: number
 }
 
 const statusConfig = {
@@ -73,7 +73,15 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
     loadRequests()
   }, [loadRequests, refreshTrigger])
 
-
+  // Memoize formatted requests to prevent unnecessary re-renders
+  const formattedRequests = useMemo(() => {
+    return requests.map((request) => ({
+      ...request,
+      formattedCreatedAt: format(new Date(request.created_at), 'PPp'),
+      formattedExchangeDate: format(new Date(request.exchange_date), 'PPP'),
+      formattedApprovedAt: request.approved_at ? format(new Date(request.approved_at), 'PPp') : null
+    }))
+  }, [requests])
 
   const handleDeleteRequest = async () => {
     if (!requestToDelete) return
@@ -164,7 +172,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {requests.map((request) => {
+          {formattedRequests.map((request) => {
             const config = statusConfig[request.status]
             const StatusIcon = config.icon
             const isRequester = request.requester_teacher_id === teacherId
@@ -221,7 +229,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                       <strong>Week:</strong> {request.week_number}
                     </div>
                     <div>
-                      <strong>Exchange Date:</strong> {format(new Date(request.exchange_date), 'PPP')}
+                      <strong>Exchange Date:</strong> {request.formattedExchangeDate}
                     </div>
                   </div>
 
@@ -247,11 +255,11 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                   {/* Timestamps */}
                   <div className="flex justify-between text-xs text-muted-foreground pt-2">
                     <span>
-                      Submitted: {format(new Date(request.created_at), 'PPp')}
+                      Submitted: {request.formattedCreatedAt}
                     </span>
-                    {request.approved_at && (
+                    {request.formattedApprovedAt && (
                       <span>
-                        {request.status === 'approved' ? 'Approved' : 'Rejected'}: {format(new Date(request.approved_at), 'PPp')}
+                        {request.status === 'approved' ? 'Approved' : 'Rejected'}: {request.formattedApprovedAt}
                       </span>
                     )}
                   </div>

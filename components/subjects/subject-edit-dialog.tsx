@@ -18,8 +18,8 @@ import { Edit } from "lucide-react"
 import { SubjectForm } from "./subject-form"
 
 interface SubjectEditDialogProps {
-  subject: Subject
-  children?: React.ReactNode
+  readonly subject: Subject
+  readonly children?: React.ReactNode
 }
 
 export function SubjectEditDialog({ subject, children }: SubjectEditDialogProps) {

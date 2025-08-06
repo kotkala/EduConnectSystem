@@ -41,11 +41,11 @@ import {
 } from "@/components/event-calendar/constants";
 
 interface EventDialogProps {
-  event: CalendarEvent | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (event: CalendarEvent) => void;
-  onDelete: (eventId: string) => void;
+  readonly event: CalendarEvent | null;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onSave: (event: CalendarEvent) => void;
+  readonly onDelete: (eventId: string) => void;
 }
 
 export function EventDialog({

@@ -26,15 +26,15 @@ import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@
 import { deleteTeacherAction, deleteStudentAction } from "@/lib/actions/user-actions"
 
 interface UserTableProps {
-  users: (TeacherProfile | StudentWithParent)[]
-  userType: "teacher" | "student"
-  total: number
-  currentPage: number
-  limit: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: Partial<UserFilters>) => void
-  onEdit: (user: TeacherProfile | StudentWithParent) => void
-  onRefresh: () => void
+  readonly users: (TeacherProfile | StudentWithParent)[]
+  readonly userType: "teacher" | "student"
+  readonly total: number
+  readonly currentPage: number
+  readonly limit: number
+  readonly onPageChange: (page: number) => void
+  readonly onFiltersChange: (filters: Partial<UserFilters>) => void
+  readonly onEdit: (user: TeacherProfile | StudentWithParent) => void
+  readonly onRefresh: () => void
 }
 
 export function UserTable({

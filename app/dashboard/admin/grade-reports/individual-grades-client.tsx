@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -227,9 +227,22 @@ export default function IndividualGradesClient() {
     setSelectedSubmissionId(null)
   }, [])
 
-  const canShowStudents = () => {
+  // Memoize expensive calculations to prevent unnecessary re-renders
+  const canShowStudents = useMemo(() => {
     return form.academic_year_id && form.semester_id && form.class_id
-  }
+  }, [form.academic_year_id, form.semester_id, form.class_id])
+
+  const submittedCount = useMemo(() => {
+    return submissions.filter(s => s.status === 'submitted').length
+  }, [submissions])
+
+  const studentSubmissionMap = useMemo(() => {
+    const map = new Map<string, string>()
+    submissions.forEach(s => {
+      map.set(s.student_id, s.status || 'draft')
+    })
+    return map
+  }, [submissions])
 
   // Helper functions for placeholders and variants
   const getSemesterPlaceholder = () => {
@@ -251,7 +264,7 @@ export default function IndividualGradesClient() {
   }
 
   const handleDownloadStudentExcel = async (student: StudentInfo) => {
-    if (!canShowStudents()) return
+    if (!canShowStudents) return
 
     setLoading(true)
     try {
@@ -367,17 +380,12 @@ export default function IndividualGradesClient() {
     }
   }
 
-  const getStudentSubmissionStatus = (studentId: string) => {
-    const submission = submissions.find(s => s.student_id === studentId)
-    return submission?.status || 'draft'
-  }
-
-  const getSubmittedCount = () => {
-    return submissions.filter(s => s.status === 'submitted').length
-  }
+  const getStudentSubmissionStatus = useCallback((studentId: string) => {
+    return studentSubmissionMap.get(studentId) || 'draft'
+  }, [studentSubmissionMap])
 
   const handleSendToTeacher = async () => {
-    if (!canShowStudents()) return
+    if (!canShowStudents) return
 
     setLoading(true)
     try {
@@ -478,7 +486,7 @@ export default function IndividualGradesClient() {
       </Card>
 
       {/* Students List */}
-      {canShowStudents() && students.length > 0 && (
+      {canShowStudents && students.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -493,11 +501,11 @@ export default function IndividualGradesClient() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-sm text-gray-600">
-                  Đã nhập: {getSubmittedCount()}/{students.length}
+                  Đã nhập: {submittedCount}/{students.length}
                 </div>
                 <Button
                   onClick={handleSendToTeacher}
-                  disabled={getSubmittedCount() === 0}
+                  disabled={submittedCount === 0}
                   className="flex items-center gap-2"
                 >
                   <Send className="h-4 w-4" />
@@ -572,7 +580,7 @@ export default function IndividualGradesClient() {
         </Card>
       )}
 
-      {canShowStudents() && students.length === 0 && !loadingStates.students && (
+      {canShowStudents && students.length === 0 && !loadingStates.students && (
         <Card>
           <CardContent className="text-center py-8">
             <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />

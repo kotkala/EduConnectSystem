@@ -24,10 +24,10 @@ import {
 import { type HomeroomStudent, type HomeroomClass } from "@/lib/validations/homeroom-validations"
 
 interface HomeroomStudentDetailProps {
-  student: HomeroomStudent
-  classInfo: HomeroomClass | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly student: HomeroomStudent
+  readonly classInfo: HomeroomClass | null
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 export function HomeroomStudentDetail({ 

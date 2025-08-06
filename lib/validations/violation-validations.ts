@@ -15,13 +15,13 @@ export const violationCategorySchema = z.object({
 })
 
 export const updateViolationCategorySchema = violationCategorySchema.extend({
-  id: z.string().uuid("Invalid category ID"),
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid category ID"),
   is_active: z.boolean().optional()
 })
 
 // Violation type validation schemas
 export const violationTypeSchema = z.object({
-  category_id: z.string().uuid("Invalid category ID"),
+  category_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid category ID"),
   name: z.string()
     .min(1, "Violation type name is required")
     .max(200, "Violation type name must be 200 characters or less"),
@@ -34,30 +34,30 @@ export const violationTypeSchema = z.object({
 })
 
 export const updateViolationTypeSchema = violationTypeSchema.extend({
-  id: z.string().uuid("Invalid violation type ID"),
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
   is_active: z.boolean().optional()
 })
 
 // Student violation validation schemas
 export const studentViolationSchema = z.object({
-  student_id: z.string().uuid("Invalid student ID"),
-  class_id: z.string().uuid("Invalid class ID"),
-  violation_type_id: z.string().uuid("Invalid violation type ID"),
+  student_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid student ID"),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid class ID"),
+  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
   severity: z.enum(violationSeverityLevels, {
     message: "Invalid severity level"
   }),
   description: z.string()
     .max(1000, "Description must be 1000 characters or less")
     .optional(),
-  academic_year_id: z.string().uuid("Invalid academic year ID"),
-  semester_id: z.string().uuid("Invalid semester ID")
+  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid academic year ID"),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid semester ID")
 })
 
 export const bulkStudentViolationSchema = z.object({
-  student_ids: z.array(z.string().uuid("Invalid student ID"))
+  student_ids: z.array(z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid student ID"))
     .min(1, "At least one student must be selected"),
-  class_id: z.string().uuid("Invalid class ID"),
-  violation_type_id: z.string().uuid("Invalid violation type ID"),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid class ID"),
+  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
   severity: z.enum(violationSeverityLevels, {
     message: "Invalid severity level"
   }),
@@ -67,12 +67,12 @@ export const bulkStudentViolationSchema = z.object({
   violation_date: z.string()
     .min(1, "Violation date is required")
     .refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
-  academic_year_id: z.string().uuid("Invalid academic year ID"),
-  semester_id: z.string().uuid("Invalid semester ID")
+  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid academic year ID"),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid semester ID")
 })
 
 export const updateStudentViolationSchema = z.object({
-  id: z.string().uuid("Invalid violation ID"),
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation ID"),
   severity: z.enum(violationSeverityLevels, {
     message: "Invalid severity level"
   }).optional(),
@@ -83,14 +83,14 @@ export const updateStudentViolationSchema = z.object({
 
 // Violation notification validation schemas
 export const violationNotificationSchema = z.object({
-  violation_id: z.string().uuid("Invalid violation ID"),
-  parent_id: z.string().uuid("Invalid parent ID")
+  violation_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation ID"),
+  parent_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid parent ID")
 })
 
 export const bulkViolationNotificationSchema = z.object({
-  violation_ids: z.array(z.string().uuid("Invalid violation ID"))
+  violation_ids: z.array(z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation ID"))
     .min(1, "At least one violation must be selected"),
-  parent_ids: z.array(z.string().uuid("Invalid parent ID"))
+  parent_ids: z.array(z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid parent ID"))
     .min(1, "At least one parent must be selected")
 })
 
@@ -99,22 +99,22 @@ export const violationFiltersSchema = z.object({
   page: z.number().int().min(1),
   limit: z.number().int().min(1).max(100),
   search: z.string().optional(),
-  category_id: z.string().refine((val) => val === '' || val === 'all' || z.string().uuid().safeParse(val).success, {
+  category_id: z.string().refine((val) => val === '' || val === 'all' || z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).safeParse(val).success, {
     message: "Invalid category ID"
   }).optional(),
   severity: z.string().refine((val) => !val || val === 'all' || (violationSeverityLevels as readonly string[]).includes(val), {
     message: "Invalid severity level"
   }).optional(),
-  student_id: z.string().refine((val) => val === '' || z.string().uuid().safeParse(val).success, {
+  student_id: z.string().refine((val) => val === '' || z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).safeParse(val).success, {
     message: "Invalid student ID"
   }).optional(),
-  class_id: z.string().refine((val) => val === '' || z.string().uuid().safeParse(val).success, {
+  class_id: z.string().refine((val) => val === '' || z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).safeParse(val).success, {
     message: "Invalid class ID"
   }).optional(),
-  academic_year_id: z.string().refine((val) => val === '' || z.string().uuid().safeParse(val).success, {
+  academic_year_id: z.string().refine((val) => val === '' || z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).safeParse(val).success, {
     message: "Invalid academic year ID"
   }).optional(),
-  semester_id: z.string().refine((val) => val === '' || z.string().uuid().safeParse(val).success, {
+  semester_id: z.string().refine((val) => val === '' || z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i).safeParse(val).success, {
     message: "Invalid semester ID"
   }).optional(),
   date_from: z.string().optional(),

@@ -26,10 +26,10 @@ import { StartHour, EndHour } from "@/components/event-calendar/constants";
 import { cn } from "@/lib/utils";
 
 interface DayViewProps {
-  currentDate: Date;
-  events: CalendarEvent[];
-  onEventSelect: (event: CalendarEvent) => void;
-  onEventCreate: (startTime: Date) => void;
+  readonly currentDate: Date;
+  readonly events: CalendarEvent[];
+  readonly onEventSelect: (event: CalendarEvent) => void;
+  readonly onEventCreate: (startTime: Date) => void;
 }
 
 interface PositionedEvent {

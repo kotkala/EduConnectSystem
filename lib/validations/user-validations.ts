@@ -18,10 +18,10 @@ const baseUserFields = {
     .max(100, "Name must be less than 100 characters"),
   email: z.string()
     .min(1, "Email is required")
-    .email("Invalid email format"),
+    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, "Invalid email format"),
   phone_number: z.string()
     .min(1, "Phone number is required")
-    .regex(/^[0-9+\-\s()]+$/, "Invalid phone number format"),
+    .regex(/^[\d+\-\s()]+$/, "Invalid phone number format"),
   gender: genderEnum,
   date_of_birth: z.string()
     .min(1, "Date of birth is required")
@@ -84,11 +84,11 @@ export const studentParentSchema = z.object({
 
 // Update schemas for editing
 export const updateTeacherSchema = teacherSchema.partial().extend({
-  id: z.string().uuid("Invalid teacher ID")
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid teacher ID")
 })
 
 export const updateStudentParentSchema = z.object({
-  student_id: z.string().uuid("Invalid student ID"),
+  student_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid student ID"),
   student: studentSchema.partial(),
   parent: parentSchema.partial()
 }).refine((data) => {

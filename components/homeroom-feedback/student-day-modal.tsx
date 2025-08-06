@@ -32,7 +32,6 @@ import { toast } from "sonner"
 import {
   getStudentDayScheduleWithFeedbackAction,
   type StudentWeeklySchedule,
-  type StudentDaySchedule,
   type HomeroomFeedbackFilters
 } from "@/lib/actions/homeroom-feedback-actions"
 import {
@@ -41,12 +40,12 @@ import {
 } from "@/lib/actions/feedback-notification-actions"
 
 interface StudentDayModalProps {
-  student: StudentWeeklySchedule
-  dayOfWeek: number
-  dayName: string
-  filters: HomeroomFeedbackFilters
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  readonly student: StudentWeeklySchedule
+  readonly dayOfWeek: number
+  readonly dayName: string
+  readonly filters: HomeroomFeedbackFilters
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
 }
 
 export function StudentDayModal({
@@ -57,7 +56,7 @@ export function StudentDayModal({
   open,
   onOpenChange
 }: StudentDayModalProps) {
-  const [, setDaySchedule] = useState<StudentDaySchedule | null>(null)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sendingDailyFeedback, setSendingDailyFeedback] = useState(false)
@@ -281,8 +280,6 @@ export function StudentDayModal({
         )
 
         if (result.success && result.data) {
-          setDaySchedule(result.data)
-
           // Check daily sent status
           checkDailySentStatus()
         } else {

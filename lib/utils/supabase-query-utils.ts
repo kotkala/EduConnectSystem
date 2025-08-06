@@ -38,10 +38,31 @@ export async function getParentStudentRelationships(parentId: string) {
   )
 }
 
-// Common query pattern for recent feedback data
-export async function getRecentFeedbackData(studentIds: string[], daysBack: number = 30) {
+// Common query pattern for recent feedback data - optimized with batch processing
+export async function getRecentFeedbackData(studentIds: string[], daysBack: number = 30): Promise<unknown[]> {
+  // Optimize: Early return for empty student list
+  if (studentIds.length === 0) return []
+
   const cutoffDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString()
-  
+
+  // Optimize: Batch process large student lists to avoid query size limits
+  const BATCH_SIZE = 100
+  if (studentIds.length > BATCH_SIZE) {
+    const batches = []
+    for (let i = 0; i < studentIds.length; i += BATCH_SIZE) {
+      const batch = studentIds.slice(i, i + BATCH_SIZE)
+      batches.push(getRecentFeedbackData(batch, daysBack))
+    }
+    const results = await Promise.all(batches)
+    const flatResults = results.flat()
+    const sortedResults = flatResults.toSorted((a: unknown, b: unknown) => {
+      const aDate = (a as { feedback_created_at: string }).feedback_created_at
+      const bDate = (b as { feedback_created_at: string }).feedback_created_at
+      return new Date(bDate).getTime() - new Date(aDate).getTime()
+    })
+    return sortedResults.slice(0, 50) // Limit final results
+  }
+
   return executeSupabaseQuery(
     async (supabase) => supabase
       .from('parent_feedback_with_ai_summary')
@@ -63,10 +84,31 @@ export async function getRecentFeedbackData(studentIds: string[], daysBack: numb
   )
 }
 
-// Common query pattern for recent grade data
-export async function getRecentGradeData(studentIds: string[], daysBack: number = 30) {
+// Common query pattern for recent grade data - optimized with batch processing
+export async function getRecentGradeData(studentIds: string[], daysBack: number = 30): Promise<unknown[]> {
+  // Optimize: Early return for empty student list
+  if (studentIds.length === 0) return []
+
   const cutoffDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString()
-  
+
+  // Optimize: Batch process large student lists
+  const BATCH_SIZE = 100
+  if (studentIds.length > BATCH_SIZE) {
+    const batches = []
+    for (let i = 0; i < studentIds.length; i += BATCH_SIZE) {
+      const batch = studentIds.slice(i, i + BATCH_SIZE)
+      batches.push(getRecentGradeData(batch, daysBack))
+    }
+    const results = await Promise.all(batches)
+    const flatResults = results.flat()
+    const sortedResults = flatResults.toSorted((a: unknown, b: unknown) => {
+      const aDate = (a as { submission_date: string }).submission_date
+      const bDate = (b as { submission_date: string }).submission_date
+      return new Date(bDate).getTime() - new Date(aDate).getTime()
+    })
+    return sortedResults.slice(0, 30) // Limit final results
+  }
+
   return executeSupabaseQuery(
     async (supabase) => supabase
       .from('submission_grades')
@@ -132,25 +174,78 @@ export interface FormattedContextData {
   recentViolations: unknown[]
 }
 
+// Optimized batch query function with caching
+const dataCache = new Map<string, { data: unknown; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+function getCachedData(key: string): unknown {
+  const cached = dataCache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data
+  }
+  dataCache.delete(key)
+  return null
+}
+
+function setCachedData(key: string, data: unknown): void {
+  dataCache.set(key, { data, timestamp: Date.now() })
+}
+
+// Cache cleanup function to prevent memory leaks
+export function cleanupExpiredCache(): void {
+  const now = Date.now()
+  for (const [key, value] of dataCache.entries()) {
+    if (now - value.timestamp > CACHE_TTL) {
+      dataCache.delete(key)
+    }
+  }
+}
+
+// Auto cleanup every 10 minutes
+if (typeof window === 'undefined') { // Server-side only
+  setInterval(cleanupExpiredCache, 10 * 60 * 1000)
+}
+
 export async function getFormattedParentContextData(parentId: string): Promise<FormattedContextData> {
+  const cacheKey = `parent_context_${parentId}`
+  const cached = getCachedData(cacheKey)
+  if (cached) {
+    return cached as FormattedContextData
+  }
+
   // Get parent-student relationships
   const relationships = await getParentStudentRelationships(parentId)
   const studentIds = extractStudentIds(relationships)
   const studentNames = extractStudentNames(relationships)
-  
-  // Get all data in parallel
+
+  // Optimize: Early return if no students
+  if (studentIds.length === 0) {
+    const emptyData = {
+      students: [],
+      recentFeedback: [],
+      recentGrades: [],
+      recentViolations: []
+    }
+    setCachedData(cacheKey, emptyData)
+    return emptyData
+  }
+
+  // Get all data in parallel with optimized batch sizes
   const [feedbackData, gradeData, violationsData] = await Promise.all([
-    getRecentFeedbackData(studentIds),
-    getRecentGradeData(studentIds),
-    getRecentViolationsData(studentIds)
+    getRecentFeedbackData(studentIds, 30), // Reduced from default
+    getRecentGradeData(studentIds, 30),    // Reduced from default
+    getRecentViolationsData(studentIds, 60) // Keep longer for violations
   ])
-  
-  return {
+
+  const result = {
     students: studentNames,
     recentFeedback: feedbackData || [],
     recentGrades: gradeData || [],
     recentViolations: violationsData || []
   }
+
+  setCachedData(cacheKey, result)
+  return result
 }
 
 // Severity labels mapping

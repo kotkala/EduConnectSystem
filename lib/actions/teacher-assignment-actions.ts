@@ -113,7 +113,57 @@ export async function assignTeacherToClassSubjectAction(
   assignedBy: string
 ) {
   try {
+    console.log('Starting teacher assignment:', { teacherId, classId, subjectId, assignedBy })
+
+    // Validate inputs
+    if (!teacherId || !classId || !subjectId || !assignedBy) {
+      return {
+        success: false,
+        error: 'Missing required parameters for teacher assignment'
+      }
+    }
+
     const supabase = await createClient()
+
+    // Get the academic year from the class
+    const { data: classData, error: classError } = await supabase
+      .from('classes')
+      .select('academic_year_id, name')
+      .eq('id', classId)
+      .single()
+
+    if (classError) {
+      console.error('Error fetching class data:', classError)
+      return {
+        success: false,
+        error: 'Failed to fetch class information'
+      }
+    }
+
+    if (!classData) {
+      return {
+        success: false,
+        error: 'Class not found'
+      }
+    }
+
+    console.log('Class data retrieved:', classData)
+
+    // Check if assignment already exists
+    const { data: existingAssignment } = await supabase
+      .from('teacher_class_assignments')
+      .select('id')
+      .eq('class_id', classId)
+      .eq('subject_id', subjectId)
+      .eq('is_active', true)
+      .single()
+
+    if (existingAssignment) {
+      return {
+        success: false,
+        error: 'This subject is already assigned to a teacher in this class'
+      }
+    }
 
     // Insert the assignment
     const { data: assignment, error } = await supabase
@@ -122,6 +172,7 @@ export async function assignTeacherToClassSubjectAction(
         teacher_id: teacherId,
         class_id: classId,
         subject_id: subjectId,
+        academic_year_id: classData.academic_year_id,
         assigned_by: assignedBy,
         is_active: true
       })
@@ -129,8 +180,8 @@ export async function assignTeacherToClassSubjectAction(
       .single()
 
     if (error) {
-      console.error('Error assigning teacher:', error)
-      
+      console.error('Error inserting teacher assignment:', error)
+
       // Check if it's a unique constraint violation
       if (error.code === '23505') {
         return {
@@ -138,21 +189,30 @@ export async function assignTeacherToClassSubjectAction(
           error: 'This subject is already assigned to a teacher in this class'
         }
       }
-      
+
+      // Check for foreign key violations
+      if (error.code === '23503') {
+        return {
+          success: false,
+          error: 'Invalid teacher, class, or subject reference'
+        }
+      }
+
       return {
         success: false,
-        error: 'Failed to assign teacher to class subject'
+        error: `Database error: ${error.message}`
       }
     }
 
+    console.log('Teacher assignment successful:', assignment)
     revalidatePath('/dashboard/admin/classes')
-    
+
     return {
       success: true,
       data: assignment
     }
   } catch (error) {
-    console.error('Error in assignTeacherToClassSubjectAction:', error)
+    console.error('Exception in assignTeacherToClassSubjectAction:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to assign teacher to class subject'

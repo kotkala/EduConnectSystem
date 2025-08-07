@@ -1,7 +1,5 @@
-import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import TeacherAssignmentClient from './teacher-assignment-client'
 
 export default async function TeacherAssignmentsPage() {
   const supabase = await createClient()
@@ -19,20 +17,6 @@ export default async function TeacherAssignmentsPage() {
     redirect('/dashboard')
   }
 
-  return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Teacher Assignments</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Assign teachers to teach specific subjects in classes
-          </p>
-        </div>
-      </div>
-
-      <Suspense fallback={<div>Loading...</div>}>
-        <TeacherAssignmentClient currentUserId={user?.id || ''} />
-      </Suspense>
-    </div>
-  )
+  // Redirect to class management page for teacher assignments
+  redirect('/dashboard/admin/classes')
 }

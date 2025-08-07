@@ -90,7 +90,11 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
     try {
       setAssigning(true)
       
+<<<<<<< Updated upstream
       // TODO: Replace with actual API call
+=======
+
+>>>>>>> Stashed changes
       // const result = await updateHomeroomTeacherAction(classId, selectedTeacherId)
       
       // Mock success for now
@@ -99,7 +103,10 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       setShowAssignDialog(false)
       setSelectedTeacherId("")
       
+<<<<<<< Updated upstream
       // TODO: Refresh class data to show new homeroom teacher
+=======
+>>>>>>> Stashed changes
       
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign homeroom teacher")
@@ -112,6 +119,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
     try {
       setRemoving(true)
       
+<<<<<<< Updated upstream
       // TODO: Replace with actual API call
       // const result = await removeHomeroomTeacherAction(classId)
       
@@ -119,6 +127,12 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       console.log("Removing homeroom teacher from class:", classId)
       
       // TODO: Refresh class data to remove homeroom teacher
+=======
+
+      // Mock success for now
+      console.log("Removing homeroom teacher from class:", classId)
+      
+>>>>>>> Stashed changes
       
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove homeroom teacher")
@@ -301,6 +315,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
             <Button variant="outline" onClick={() => setShowAssignDialog(false)}>
               Cancel
             </Button>
+<<<<<<< Updated upstream
             <Button 
               onClick={handleConfirmAssign}
               disabled={!selectedTeacherId || assigning}
@@ -313,6 +328,24 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               ) : (
                 currentHomeroomTeacher ? "Change Teacher" : "Assign Teacher"
               )}
+=======
+            <Button
+              onClick={handleConfirmAssign}
+              disabled={!selectedTeacherId || assigning}
+            >
+              {(() => {
+                if (assigning) {
+                  const loadingText = currentHomeroomTeacher ? "Changing..." : "Assigning..."
+                  return (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {loadingText}
+                    </>
+                  )
+                }
+                return currentHomeroomTeacher ? "Change Teacher" : "Assign Teacher"
+              })()}
+>>>>>>> Stashed changes
             </Button>
           </DialogFooter>
         </DialogContent>

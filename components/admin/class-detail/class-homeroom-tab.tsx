@@ -91,7 +91,11 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       setAssigning(true)
       
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       // TODO: Replace with actual API call
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -104,7 +108,10 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       setSelectedTeacherId("")
       
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       // TODO: Refresh class data to show new homeroom teacher
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
       
@@ -120,6 +127,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       setRemoving(true)
       
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       // TODO: Replace with actual API call
       // const result = await removeHomeroomTeacherAction(classId)
       
@@ -128,10 +136,15 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
       
       // TODO: Refresh class data to remove homeroom teacher
 =======
+=======
+>>>>>>> Stashed changes
 
       // Mock success for now
       console.log("Removing homeroom teacher from class:", classId)
       
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       
     } catch (err) {
@@ -316,6 +329,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               Cancel
             </Button>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <Button 
               onClick={handleConfirmAssign}
               disabled={!selectedTeacherId || assigning}
@@ -329,6 +343,8 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                 currentHomeroomTeacher ? "Change Teacher" : "Assign Teacher"
               )}
 =======
+=======
+>>>>>>> Stashed changes
             <Button
               onClick={handleConfirmAssign}
               disabled={!selectedTeacherId || assigning}
@@ -345,6 +361,9 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                 }
                 return currentHomeroomTeacher ? "Change Teacher" : "Assign Teacher"
               })()}
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             </Button>
           </DialogFooter>

@@ -1,18 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -36,6 +29,7 @@ import {
 interface StudentAssignmentFormProps {
   readonly classId: string
   readonly className: string
+  readonly isSubjectCombination: boolean
   readonly isOpen: boolean
   readonly onClose: () => void
   readonly onSuccess: () => void
@@ -44,6 +38,7 @@ interface StudentAssignmentFormProps {
 export default function StudentAssignmentForm({
   classId,
   className,
+  isSubjectCombination,
   isOpen,
   onClose,
   onSuccess
@@ -54,11 +49,14 @@ export default function StudentAssignmentForm({
   const [error, setError] = useState<string | null>(null)
 
   // Context7 pattern: useForm with validation
+  // Set assignment type based on current class type
+  const defaultAssignmentType = isSubjectCombination ? "combined" : "main"
+
   const form = useForm<BulkStudentAssignmentFormData>({
     resolver: zodResolver(bulkStudentAssignmentSchema),
     defaultValues: {
       class_id: classId,
-      assignment_type: "main",
+      assignment_type: defaultAssignmentType,
       student_ids: []
     }
   })
@@ -158,24 +156,19 @@ export default function StudentAssignmentForm({
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Assignment Type Selection */}
+          {/* Assignment Type Display */}
           <div className="space-y-2">
-            <Label htmlFor="assignment_type">Assignment Type *</Label>
-            <Controller
-              name="assignment_type"
-              control={form.control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select assignment type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="main">Main Class</SelectItem>
-                    <SelectItem value="combined">Combined Class (Subject Combination)</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <Label>Assignment Type</Label>
+            <div className="p-3 bg-muted rounded-md border">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  {isSubjectCombination ? "Combined Class (Subject Combination)" : "Main Class"}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  - Students will be assigned to this {isSubjectCombination ? "combined" : "main"} class
+                </span>
+              </div>
+            </div>
             {form.formState.errors.assignment_type && (
               <p className="text-sm text-red-500">{form.formState.errors.assignment_type.message}</p>
             )}

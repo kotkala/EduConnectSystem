@@ -12,7 +12,6 @@ import { getClassesAction, getHomeroomEnabledTeachersAction } from "@/lib/action
 import { getAcademicYearsAction, getSemestersAction } from "@/lib/actions/academic-actions"
 import {
   type ClassWithDetails,
-  type Class,
   type ClassFilters
 } from "@/lib/validations/class-validations"
 import { type AcademicYear, type Semester } from "@/lib/validations/academic-validations"
@@ -40,8 +39,6 @@ export default function ClassManagementPage() {
 
   // Dialog States
   const [showCreateClassDialog, setShowCreateClassDialog] = useState(false)
-  const [showEditClassDialog, setShowEditClassDialog] = useState(false)
-  const [editingClass, setEditingClass] = useState<Class | null>(null)
 
   // Fetch Classes
   const fetchClasses = useCallback(async () => {
@@ -116,19 +113,8 @@ export default function ClassManagementPage() {
     setClassesFilters(prev => ({ ...prev, ...newFilters }))
   }
 
-  const handleEditClass = (classData: ClassWithDetails) => {
-    setEditingClass(classData as Class)
-    setShowEditClassDialog(true)
-  }
-
   const handleCreateClassSuccess = () => {
     setShowCreateClassDialog(false)
-    fetchClasses()
-  }
-
-  const handleEditClassSuccess = () => {
-    setShowEditClassDialog(false)
-    setEditingClass(null)
     fetchClasses()
   }
 
@@ -262,7 +248,7 @@ export default function ClassManagementPage() {
         limit={classesFilters.limit}
         onPageChange={handleClassPageChange}
         onFiltersChange={handleClassFiltersChange}
-        onEdit={handleEditClass}
+
         onRefresh={handleRefresh}
         academicYears={academicYears}
         semesters={semesters}
@@ -282,24 +268,7 @@ export default function ClassManagementPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Class Dialog */}
-      <Dialog open={showEditClassDialog} onOpenChange={setShowEditClassDialog}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Edit Class</DialogTitle>
-          </DialogHeader>
-          {editingClass && (
-            <ClassForm
-              class={editingClass}
-              onSuccess={handleEditClassSuccess}
-              onCancel={() => {
-                setShowEditClassDialog(false)
-                setEditingClass(null)
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+
       </div>
     </div>
   )

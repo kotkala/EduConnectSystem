@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import {
   Table,
   TableBody,
@@ -25,21 +26,18 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  Edit,
-  Trash2,
-  Users,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  UserPlus
+  Eye,
+  Users
 } from "lucide-react"
 import {
   type ClassWithDetails,
   type ClassFilters,
   getSubjectCombinationName
 } from "@/lib/validations/class-validations"
-import { deleteClassAction } from "@/lib/actions/class-actions"
-import StudentAssignmentForm from "./student-assignment-form"
+
 
 interface ClassTableProps {
   readonly data: ClassWithDetails[]
@@ -48,7 +46,6 @@ interface ClassTableProps {
   readonly limit: number
   readonly onPageChange: (page: number) => void
   readonly onFiltersChange: (filters: Partial<ClassFilters>) => void
-  readonly onEdit: (classData: ClassWithDetails) => void
   readonly onRefresh: () => void
   readonly academicYears?: Array<{ id: string; name: string }>
   readonly semesters?: Array<{ id: string; name: string }>
@@ -62,21 +59,18 @@ export function ClassTable({
   limit,
   onPageChange,
   onFiltersChange,
-  onEdit,
   onRefresh,
   academicYears = [],
   semesters = [],
   teachers = []
 }: ClassTableProps) {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>("all")
   const [selectedSemester, setSelectedSemester] = useState<string>("all")
   const [selectedClassType, setSelectedClassType] = useState<string>("all")
   const [selectedTeacher, setSelectedTeacher] = useState<string>("all")
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [assignmentFormOpen, setAssignmentFormOpen] = useState(false)
-  const [selectedClassForAssignment, setSelectedClassForAssignment] = useState<ClassWithDetails | null>(null)
+
 
   const totalPages = Math.ceil(total / limit)
 
@@ -104,27 +98,10 @@ export function ClassTable({
     onFiltersChange({ page: 1 })
   }
 
-  const handleDelete = async (classData: ClassWithDetails) => {
-    if (!confirm(`Are you sure you want to delete class "${classData.name}"?`)) {
-      return
-    }
 
-    setDeletingId(classData.id)
-    setDeleteError(null)
 
-    try {
-      const result = await deleteClassAction(classData.id)
-      
-      if (result.success) {
-        onRefresh()
-      } else {
-        setDeleteError(result.error || "Failed to delete class")
-      }
-    } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : "Failed to delete class")
-    } finally {
-      setDeletingId(null)
-    }
+  const handleViewClassDetail = (classData: ClassWithDetails) => {
+    router.push(`/dashboard/admin/classes/${classData.id}`)
   }
 
   const getClassTypeBadge = (classData: ClassWithDetails) => {
@@ -150,14 +127,9 @@ export function ClassTable({
     return getSubjectCombinationName(classData.subject_combination_type, classData.subject_combination_variant)
   }
 
-  const handleAssignStudents = (classData: ClassWithDetails) => {
-    setSelectedClassForAssignment(classData)
-    setAssignmentFormOpen(true)
-  }
 
-  const handleAssignmentSuccess = () => {
-    onRefresh() // Refresh the class list to update student counts
-  }
+
+
 
   return (
     <div className="space-y-4">
@@ -269,12 +241,7 @@ export function ClassTable({
         </CardContent>
       </Card>
 
-      {/* Error Alert */}
-      {deleteError && (
-        <Alert variant="destructive">
-          <AlertDescription>{deleteError}</AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Table */}
       <Card>
@@ -337,21 +304,9 @@ export function ClassTable({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEdit(classData)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAssignStudents(classData)}>
-                              <UserPlus className="mr-2 h-4 w-4" />
-                              Assign Students
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(classData)}
-                              disabled={deletingId === classData.id}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {deletingId === classData.id ? "Deleting..." : "Delete"}
+                            <DropdownMenuItem onClick={() => handleViewClassDetail(classData)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Class Detail
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -397,19 +352,7 @@ export function ClassTable({
         </CardContent>
       </Card>
 
-      {/* Student Assignment Form */}
-      {selectedClassForAssignment && (
-        <StudentAssignmentForm
-          classId={selectedClassForAssignment.id}
-          className={selectedClassForAssignment.name}
-          isOpen={assignmentFormOpen}
-          onClose={() => {
-            setAssignmentFormOpen(false)
-            setSelectedClassForAssignment(null)
-          }}
-          onSuccess={handleAssignmentSuccess}
-        />
-      )}
+
     </div>
   )
 }

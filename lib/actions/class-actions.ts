@@ -698,3 +698,126 @@ export async function getHomeroomEnabledTeachersAction() {
     }
   }
 }
+
+// Get single class by ID
+export async function getClassByIdAction(classId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from("classes")
+      .select(`
+        *,
+        academic_year:academic_years(name),
+        semester:semesters(name),
+        class_block:class_blocks(id, name, display_name),
+        homeroom_teacher:profiles!homeroom_teacher_id(full_name, employee_id)
+      `)
+      .eq("id", classId)
+      .single()
+
+    if (error) {
+      console.error("Error fetching class by ID:", error)
+      return {
+        success: false,
+        error: error.message === "PGRST116" ? "Class not found" : "Failed to fetch class",
+        data: null
+      }
+    }
+
+    return {
+      success: true,
+      data: data as ClassWithDetails
+    }
+
+  } catch (error) {
+    console.error("Get class by ID error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch class",
+      data: null
+    }
+  }
+}
+
+// Get students in a specific class with combined class information
+export async function getClassStudentsWithDetailsAction(classId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from("student_class_assignments")
+      .select(`
+        id,
+        student_id,
+        assignment_type,
+        assigned_at,
+        student:profiles!student_class_assignments_student_id_fkey(
+          id,
+          full_name,
+          student_id,
+          email
+        )
+      `)
+      .eq("class_id", classId)
+      .eq("is_active", true)
+      .order("assigned_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching class students:", error)
+      return {
+        success: false,
+        error: "Failed to fetch class students",
+        data: []
+      }
+    }
+
+    // For each student, get their other class assignment (main or combined)
+    const studentsWithOtherClass = await Promise.all(
+      (data || []).map(async (assignment) => {
+        const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
+
+        // If current assignment is "main", look for "combined" class
+        // If current assignment is "combined", look for "main" class
+        const otherAssignmentType = assignment.assignment_type === "main" ? "combined" : "main"
+
+        const { data: otherAssignment } = await supabase
+          .from("student_class_assignments")
+          .select(`
+            class:classes(name)
+          `)
+          .eq("student_id", assignment.student_id)
+          .eq("assignment_type", otherAssignmentType)
+          .eq("is_active", true)
+          .single()
+
+        const otherClass = Array.isArray(otherAssignment?.class) ? otherAssignment?.class[0] : otherAssignment?.class
+
+        return {
+          id: assignment.id,
+          student_id: student?.student_id || "",
+          full_name: student?.full_name || "",
+          email: student?.email || "",
+          assignment_type: assignment.assignment_type,
+          assigned_at: assignment.assigned_at,
+          combined_class_name: otherClass?.name || null
+        }
+      })
+    )
+
+    return {
+      success: true,
+      data: studentsWithOtherClass
+    }
+
+  } catch (error) {
+    console.error("Get class students with details error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch class students",
+      data: []
+    }
+  }
+}

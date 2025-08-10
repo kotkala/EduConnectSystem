@@ -22,7 +22,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -32,7 +32,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("Admin permissions required")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id }
@@ -69,7 +69,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     if (existingEmail) {
       return {
         success: false,
-        error: "Email already exists"
+        error: "Email đã tồn tại"
       }
     }
 
@@ -87,7 +87,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     if (authError || !authData.user) {
       return {
         success: false,
-        error: authError?.message || "Failed to create user account"
+        error: authError?.message || "Không thể tạo tài khoản người dùng"
       }
     }
 
@@ -119,7 +119,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     revalidatePath("/dashboard/admin/users/teachers")
     return {
       success: true,
-      message: "Teacher created successfully"
+      message: "Tạo giáo viên thành công"
     }
 
   } catch (error) {
@@ -181,7 +181,7 @@ export async function updateTeacherAction(formData: UpdateTeacherFormData) {
       if (duplicateEmail) {
         return {
           success: false,
-          error: "Email already exists"
+          error: "Email đã tồn tại"
         }
       }
     }
@@ -341,7 +341,7 @@ async function checkStudentDuplicates(supabase: ReturnType<typeof createAdminCli
     .single()
 
   if (existingStudentEmail) {
-    return { isDuplicate: true, error: "Student email already exists" }
+    return { isDuplicate: true, error: "Email của học sinh đã tồn tại" }
   }
 
   return { isDuplicate: false }
@@ -386,22 +386,33 @@ async function createAuthUsers(supabase: ReturnType<typeof createAdminClient>, v
   if (existingParent) {
     parentUserId = existingParent.id
   } else {
-    const { data: parentAuthData, error: parentAuthError } = await supabase.auth.admin.createUser({
-      email: validatedData.parent.email,
-      password: "TempPassword123!",
-      email_confirm: true,
-      user_metadata: {
-        full_name: validatedData.parent.full_name,
-        role: "parent"
-      }
-    })
-
-    if (parentAuthError || !parentAuthData.user) {
+    const redirectBase = process.env.NEXT_PUBLIC_SITE_URL
+    if (!redirectBase) {
       // Cleanup: delete student auth user
       await supabase.auth.admin.deleteUser(studentAuthData.user.id)
       return {
         success: false,
-        error: parentAuthError?.message || "Failed to create parent account"
+        error: "Missing NEXT_PUBLIC_SITE_URL for invite redirect"
+      }
+    }
+    const redirectTo = `${redirectBase}/auth/confirm?next=/dashboard/parent`
+    const { data: parentAuthData, error: parentAuthError } = await supabase.auth.admin.inviteUserByEmail(
+      validatedData.parent.email,
+      {
+        data: {
+          full_name: validatedData.parent.full_name,
+          role: "parent"
+        },
+        redirectTo
+      }
+    )
+
+    if (parentAuthError || !parentAuthData?.user) {
+      // Cleanup: delete student auth user
+      await supabase.auth.admin.deleteUser(studentAuthData.user.id)
+      return {
+        success: false,
+        error: parentAuthError?.message || "Failed to invite parent"
       }
     }
 
@@ -518,8 +529,8 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       return {
         success: true,
         message: existingParent
-          ? "Student created and linked to existing parent successfully"
-          : "Student and parent created successfully"
+          ? "Tạo học sinh và liên kết với phụ huynh hiện có thành công"
+          : "Tạo học sinh và phụ huynh thành công"
       }
 
     } catch (error) {
@@ -714,7 +725,7 @@ export async function searchUsersByEmailAction(emailQuery: string) {
     console.error('Error searching users by email:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to search users"
+      error: error instanceof Error ? error.message : "Không thể tìm kiếm người dùng"
     }
   }
 }

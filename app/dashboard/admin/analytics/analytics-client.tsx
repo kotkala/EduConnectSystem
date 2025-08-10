@@ -25,6 +25,7 @@ interface ChartProps {
   readonly colors?: readonly string[]
 }
 
+import { LoadingFallback } from '@/components/ui/loading-fallback'
 const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   default: ({ data }: ChartProps) => (
     <mod.ResponsiveContainer width="100%" height={300}>
@@ -39,7 +40,7 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
 })
 
 const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -66,7 +67,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
 })
 
 const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -84,7 +85,7 @@ const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <div className="h-80 bg-gray-100 rounded animate-pulse flex items-center justify-center">Loading chart...</div>
+  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
 })
 import {
   getOverallGradeStatsAction,

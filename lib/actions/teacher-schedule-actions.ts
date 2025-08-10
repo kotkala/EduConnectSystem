@@ -54,7 +54,7 @@ export async function getTeacherScheduleAction(
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -65,7 +65,7 @@ export async function getTeacherScheduleAction(
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Access denied. Teacher role required.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
     // Build parameters object following Context7 pattern - only include defined values
@@ -150,7 +150,7 @@ export async function getTeacherScheduleAction(
     console.error("Get teacher schedule error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch teacher schedule"
+      error: error instanceof Error ? error.message : "Không thể lấy thời khóa biểu của giáo viên"
     }
   }
 }
@@ -166,7 +166,7 @@ export async function getTeacherScheduleFiltersAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get unique semester IDs where teacher has classes
@@ -231,7 +231,7 @@ export async function getTeacherScheduleFiltersAction(): Promise<{
     console.error("Get teacher schedule filters error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch filter options"
+      error: error instanceof Error ? error.message : "Không thể lấy tùy chọn bộ lọc"
     }
   }
 }
@@ -255,7 +255,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Check if teacher is enabled as homeroom teacher
@@ -319,7 +319,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
     console.error("Get teacher homeroom info error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch homeroom information"
+      error: error instanceof Error ? error.message : "Không thể lấy thông tin giáo viên chủ nhiệm"
     }
   }
 }
@@ -344,7 +344,7 @@ export async function getTeacherSubjectAssignmentsAction(): Promise<{
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get teacher's subject assignments
@@ -403,7 +403,7 @@ export async function getTeacherSubjectAssignmentsAction(): Promise<{
     console.error("Get teacher subject assignments error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch subject assignments"
+      error: error instanceof Error ? error.message : "Không thể lấy phân công môn học"
     }
   }
 }
@@ -424,7 +424,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -435,7 +435,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Access denied. Teacher role required.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
     // Get unique semester IDs where teacher has timetable events
@@ -483,7 +483,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
     console.error("Get teacher academic years error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch academic years"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách niên khóa"
     }
   }
 }
@@ -505,7 +505,7 @@ export async function getTeacherSemestersAction(academicYearId: string): Promise
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get unique semester IDs where teacher has timetable events
@@ -540,7 +540,7 @@ export async function getTeacherSemestersAction(academicYearId: string): Promise
     console.error("Get teacher semesters error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch semesters"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách học kỳ"
     }
   }
 }

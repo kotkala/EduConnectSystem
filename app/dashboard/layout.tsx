@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/')
   }
 
   // Get user profile to determine role
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     .single()
 
   if (!profile) {
-    redirect('/profile/setup')
+    redirect('/pending-approval')
   }
 
   const role = profile.role as UserRole

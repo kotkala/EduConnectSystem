@@ -9,7 +9,7 @@ async function checkTeacherPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -19,7 +19,7 @@ async function checkTeacherPermissions() {
     .single()
 
   if (!profile || profile.role !== 'teacher') {
-    throw new Error("Teacher access required")
+    throw new Error("Yêu cầu quyền giáo viên")
   }
 
   return { user, profile }
@@ -62,7 +62,7 @@ export async function getClassGradeSummariesAction() {
     console.error('Error fetching class grade summaries:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch grade summaries"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách bảng điểm"
     }
   }
 }
@@ -141,7 +141,7 @@ export async function getClassGradeDetailsAction(summaryId: string) {
     console.error('Error fetching class grade details:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch grade details"
+      error: error instanceof Error ? error.message : "Không thể lấy chi tiết bảng điểm"
     }
   }
 }
@@ -248,7 +248,7 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
     console.error('Error sending grades to parent:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to send grades to parent"
+      error: error instanceof Error ? error.message : "Không thể gửi bảng điểm cho phụ huynh"
     }
   }
 }
@@ -286,7 +286,7 @@ export async function getStudentParentsAction(studentId: string) {
     console.error('Error fetching student parents:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch student parents"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách phụ huynh của học sinh"
     }
   }
 }

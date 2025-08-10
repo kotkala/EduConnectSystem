@@ -3,8 +3,8 @@ import { createClient } from '@/utils/supabase/server'
 import { ExchangeRequestsManagement } from '@/components/admin/exchange-requests-management'
 
 export const metadata = {
-  title: 'Schedule Exchange Requests',
-  description: 'Manage teacher schedule exchange requests',
+  title: 'Yêu cầu đổi lịch',
+  description: 'Quản lý yêu cầu đổi lịch giảng dạy của giáo viên',
 }
 
 export default async function AdminExchangeRequestsPage() {
@@ -26,9 +26,9 @@ export default async function AdminExchangeRequestsPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Schedule Exchange Requests</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Yêu cầu đổi lịch</h2>
         <p className="text-muted-foreground">
-          Review and manage teacher schedule exchange requests.
+          Xem xét và quản lý các yêu cầu đổi lịch giảng dạy của giáo viên.
         </p>
       </div>
 

@@ -40,10 +40,10 @@ export default function ClassroomsPage() {
         setClassrooms(result.data)
         setTotal(result.total)
       } else {
-        setError(result.error || 'Failed to load classrooms')
+        setError(result.error || 'Không thể tải danh sách phòng học')
       }
     } catch {
-      setError('Failed to load classrooms')
+      setError('Không thể tải danh sách phòng học')
     } finally {
       setLoading(false)
     }
@@ -97,20 +97,20 @@ export default function ClassroomsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Classroom Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý phòng học</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Manage classrooms, their capacity, equipment, and availability
+            Quản lý phòng học, sức chứa, trang thiết bị và trạng thái sử dụng
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-            <span className="sm:hidden">Refresh</span>
+            <span className="hidden sm:inline">Làm mới</span>
+            <span className="sm:hidden">Làm mới</span>
           </Button>
           <Button onClick={handleCreateClassroom} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Add Classroom
+            Thêm phòng học
           </Button>
         </div>
       </div>
@@ -119,46 +119,46 @@ export default function ClassroomsPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Classrooms</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng số phòng học</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              {activeClassrooms} active
+              {activeClassrooms} đang hoạt động
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Capacity</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng sức chứa</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{totalCapacity}</div>
             <p className="text-xs text-muted-foreground">
-              students across all rooms
+              học sinh trên tất cả phòng
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Room Types</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Loại phòng</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{roomTypes}</div>
             <p className="text-xs text-muted-foreground">
-              different room types
+              số loại phòng khác nhau
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Average Capacity</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Sức chứa trung bình</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -166,7 +166,7 @@ export default function ClassroomsPage() {
               {total > 0 ? Math.round(totalCapacity / total) : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              students per room
+              học sinh mỗi phòng
             </p>
           </CardContent>
         </Card>
@@ -182,7 +182,7 @@ export default function ClassroomsPage() {
       {/* Classrooms Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Classrooms</CardTitle>
+          <CardTitle>Danh sách phòng học</CardTitle>
         </CardHeader>
         <CardContent>
           <ClassroomTable
@@ -203,7 +203,7 @@ export default function ClassroomsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingClassroom ? 'Edit Classroom' : 'Create New Classroom'}
+              {editingClassroom ? 'Chỉnh sửa phòng học' : 'Tạo phòng học mới'}
             </DialogTitle>
           </DialogHeader>
           <ClassroomForm

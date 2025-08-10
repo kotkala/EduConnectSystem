@@ -17,20 +17,19 @@ function handleOAuthError(origin: string, error: string): NextResponse {
   return NextResponse.redirect(`${origin}/auth/auth-code-error?error=${error}`)
 }
 
-// Helper function to check user profile completeness
+// Helper function to check user profile status
 async function checkUserProfile(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<string> {
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name')
+    .select('role')
     .eq('id', userId)
     .single()
 
-  // If profile exists and is complete, go to dashboard
-  if (profile?.role && profile?.full_name) {
+  // If user has been assigned a role, go to dashboard; otherwise show pending approval
+  if (profile?.role) {
     return '/dashboard'
   } else {
-    // Otherwise go to profile setup
-    return '/profile/setup'
+    return '/pending-approval'
   }
 }
 

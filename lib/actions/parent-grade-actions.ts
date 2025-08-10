@@ -83,7 +83,7 @@ export async function getChildrenGradeReportsAction() {
     console.error('Error fetching children grade reports:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch grade reports"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách bảng điểm"
     }
   }
 }
@@ -194,7 +194,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     console.error('Error fetching student grade detail:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch grade detail"
+      error: error instanceof Error ? error.message : "Không thể lấy chi tiết bảng điểm"
     }
   }
 }
@@ -262,7 +262,7 @@ export async function getStudentGradeStatsAction(submissionId: string) {
     console.error('Error calculating grade statistics:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to calculate grade statistics"
+      error: error instanceof Error ? error.message : "Không thể tính toán thống kê điểm"
     }
   }
 }

@@ -136,10 +136,11 @@ export async function createStudentGradeSubmissionAction(data: StudentGradeSubmi
       .eq('semester_id', validatedData.semester_id)
       .eq('class_id', validatedData.class_id)
       .eq('student_id', validatedData.student_id)
-      .single()
+      .maybeSingle()
 
+    // If a draft submission already exists, return it instead of erroring
     if (existingSubmission) {
-      return createErrorResponse(null, "Grade submission already exists for this student")
+      return createSuccessResponse(existingSubmission, 'EXISTS')
     }
 
     // Create submission

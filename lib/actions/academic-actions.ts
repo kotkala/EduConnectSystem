@@ -24,7 +24,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -34,7 +34,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("Admin permissions required")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id }

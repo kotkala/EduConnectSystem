@@ -33,10 +33,10 @@ export default function UsersPage() {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
         <AlertCircle className="h-16 w-16 text-red-500" />
-        <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-        <p className="text-gray-600">You don&apos;t have permission to access user management.</p>
+        <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+        <p className="text-gray-600">Bạn không có quyền truy cập khu vực quản lý người dùng.</p>
         <Button onClick={() => router.push('/dashboard/admin')}>
-          Return to Dashboard
+          Quay lại trang tổng quan
         </Button>
       </div>
     )
@@ -44,31 +44,31 @@ export default function UsersPage() {
 
   const userTypes = [
     {
-      title: "Teachers",
-      description: "Manage teacher accounts and information",
+      title: "Giáo viên",
+      description: "Quản lý tài khoản và thông tin giáo viên",
       icon: Users,
-      count: "Manage all teaching staff",
+      count: "Quản lý toàn bộ đội ngũ giảng dạy",
       href: "/dashboard/admin/users/teachers",
       color: "bg-blue-500",
       features: [
-        "Create and edit teacher profiles",
-        "Manage employee IDs",
-        "Enable/disable homeroom features",
-        "View teacher statistics"
+        "Tạo và chỉnh sửa hồ sơ giáo viên",
+        "Quản lý mã nhân viên",
+        "Bật/tắt quyền GVCN",
+        "Xem thống kê giáo viên"
       ]
     },
     {
-      title: "Students & Parents",
-      description: "Manage student accounts with mandatory parent relationships",
+      title: "Học sinh & Phụ huynh",
+      description: "Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc",
       icon: GraduationCap,
-      count: "Students must have parent accounts",
+      count: "Học sinh bắt buộc có tài khoản phụ huynh",
       href: "/dashboard/admin/users/students",
       color: "bg-green-500",
       features: [
-        "Create student + parent together",
-        "Manage student IDs",
-        "Parent-student relationships",
-        "View family connections"
+        "Tạo học sinh + phụ huynh cùng lúc",
+        "Quản lý mã học sinh",
+        "Mối quan hệ phụ huynh - học sinh",
+        "Xem kết nối gia đình"
       ]
     }
   ]
@@ -77,9 +77,9 @@ export default function UsersPage() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="space-y-2 sm:space-y-3">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">User Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Manage all user accounts in the EduConnect system
+          Quản lý toàn bộ tài khoản trong hệ thống EduConnect
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export default function UsersPage() {
                     onClick={() => router.push(userType.href)}
                     className="w-full sm:w-auto shrink-0"
                   >
-                    Manage
+                    Quản lý
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -118,7 +118,7 @@ export default function UsersPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Key Features:</h4>
+                    <h4 className="text-sm font-medium">Chức năng chính:</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       {userType.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2">
@@ -140,29 +140,29 @@ export default function UsersPage() {
         <CardHeader>
           <CardTitle className="text-amber-800 flex items-center gap-2">
             <Heart className="h-5 w-5" />
-            Important Notes
+            Ghi chú quan trọng
           </CardTitle>
         </CardHeader>
         <CardContent className="text-amber-700 space-y-2">
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>Student-Parent Relationship:</strong> When creating a student account, 
-              you must also create a parent account in the same form. Parents cannot be added independently.
+              <strong>Mối quan hệ Học sinh - Phụ huynh:</strong> Khi tạo tài khoản học sinh,
+              bạn phải tạo kèm tài khoản phụ huynh trong cùng biểu mẫu. Không thể thêm phụ huynh độc lập.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>Homeroom Teachers:</strong> Admin can enable/disable homeroom features 
-              for teachers, allowing them to manage students and communicate with parents.
+              <strong>Giáo viên chủ nhiệm (GVCN):</strong> Admin có thể bật/tắt quyền GVCN
+              cho giáo viên, cho phép họ quản lý học sinh và liên lạc với phụ huynh.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>User Roles:</strong> The system maintains four basic roles: Admin, Teacher, 
-              Student, and Parent. Keep the role system simple and focused.
+              <strong>Vai trò người dùng:</strong> Hệ thống duy trì 4 vai trò: Admin, Giáo viên,
+              Học sinh và Phụ huynh. Giữ hệ thống vai trò đơn giản và tập trung.
             </p>
           </div>
         </CardContent>
@@ -171,9 +171,9 @@ export default function UsersPage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>Thao tác nhanh</CardTitle>
           <CardDescription>
-            Common user management tasks
+            Các tác vụ quản lý người dùng thường dùng
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -188,8 +188,8 @@ export default function UsersPage() {
                   <UserPlus className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">Add New Teacher</div>
-                  <div className="text-sm text-muted-foreground">Create a teacher account</div>
+                  <div className="font-medium">Thêm giáo viên</div>
+                  <div className="text-sm text-muted-foreground">Tạo tài khoản giáo viên</div>
                 </div>
               </div>
             </Button>
@@ -204,8 +204,8 @@ export default function UsersPage() {
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">Add Student & Parent</div>
-                  <div className="text-sm text-muted-foreground">Create linked accounts</div>
+                  <div className="font-medium">Thêm học sinh & phụ huynh</div>
+                  <div className="text-sm text-muted-foreground">Tạo tài khoản được liên kết</div>
                 </div>
               </div>
             </Button>

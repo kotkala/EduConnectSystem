@@ -68,7 +68,7 @@ export default function ParentDashboard() {
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
-      setError(result.error || 'Failed to load students')
+      setError(result.error || 'Không thể tải danh sách học sinh')
     }
     setStudentsLoading(false)
   }
@@ -79,7 +79,7 @@ export default function ParentDashboard() {
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
-      setError(result.error || 'Failed to load students')
+      setError(result.error || 'Không thể tải danh sách học sinh')
     }
     setStudentsLoading(false)
   }
@@ -101,10 +101,10 @@ export default function ParentDashboard() {
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-          <p className="text-gray-600">You don&apos;t have permission to access this page.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard')}>
-            Return to Dashboard
+            Quay lại bảng điều khiển
           </Button>
         </div>
       </div>
@@ -118,10 +118,10 @@ export default function ParentDashboard() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="space-y-2 sm:space-y-3">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-              Welcome back, {profile.full_name || 'Parent'}!
+              Chào mừng trở lại, {profile.full_name || 'Phụ huynh'}!
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Manage your children&apos;s school activities and stay connected with their education.
+              Quản lý hoạt động học tập của con em và luôn đồng hành cùng các em.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -131,7 +131,7 @@ export default function ParentDashboard() {
               className="w-full sm:w-auto min-h-[44px] px-4 py-2 text-sm sm:text-base"
             >
               <Plus className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              Create Leave Application
+              Tạo đơn xin nghỉ
             </Button>
           </div>
         </div>

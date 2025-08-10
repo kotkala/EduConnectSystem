@@ -33,7 +33,7 @@ export async function getParentStudentsAction(): Promise<{ success: boolean; dat
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a parent
@@ -123,7 +123,7 @@ export async function getParentStudentsAction(): Promise<{ success: boolean; dat
 
     return { success: true, data: studentsWithClasses }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -216,7 +216,7 @@ export async function getParentStudentsByYearAction(academicYearId: string): Pro
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get student IDs for this parent
@@ -245,7 +245,7 @@ export async function getParentStudentsByYearAction(academicYearId: string): Pro
 
     return { success: true, data: studentsWithClasses }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -265,6 +265,6 @@ export async function getAcademicYearsAction(): Promise<{ success: boolean; data
 
     return { success: true, data: academicYears || [] }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }

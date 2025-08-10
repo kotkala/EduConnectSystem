@@ -141,7 +141,7 @@ export function UserTable({
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={`Search ${userType}s by name, email, or ID...`}
+              placeholder={`Tìm kiếm ${userType} theo tên, email, hoặc Mã...`}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
@@ -151,13 +151,13 @@ export function UserTable({
             <Select value={genderFilter} onValueChange={handleGenderFilter}>
               <SelectTrigger className="w-32">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Gender" />
+                <SelectValue placeholder="Giới tính" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Genders</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="male">Nam</SelectItem>
+                <SelectItem value="female">Nữ</SelectItem>
+                <SelectItem value="other">Khác</SelectItem>
               </SelectContent>
             </Select>
           </div>

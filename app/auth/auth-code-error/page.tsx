@@ -10,30 +10,30 @@ export default function AuthCodeErrorPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-destructive">
-              Authentication Error
+              Lỗi xác thực
             </CardTitle>
             <CardDescription className="text-center">
-              There was a problem with your authentication
+              Đã xảy ra sự cố với quá trình xác thực
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>
-                The authentication link may have expired or been used already. 
-                Please try signing in again.
+                Liên kết xác thực có thể đã hết hạn hoặc đã được sử dụng.
+                Vui lòng đăng nhập lại.
               </AlertDescription>
             </Alert>
             
             <div className="space-y-2">
               <Button asChild className="w-full">
                 <Link href="/">
-                  Try Again
+                  Thử lại
                 </Link>
               </Button>
 
               <Button asChild variant="outline" className="w-full">
                 <Link href="/">
-                  Go Home
+                  Về trang chủ
                 </Link>
               </Button>
             </div>

@@ -23,26 +23,26 @@ interface ExchangeRequestsListProps {
 
 const statusConfig = {
   pending: {
-    label: "Pending",
+    label: "Đang chờ",
     variant: "secondary" as const,
     icon: Clock,
-    description: "Waiting for admin approval"
+    description: "Đang chờ phê duyệt từ admin"
   },
   approved: {
-    label: "Approved",
+    label: "Đã chấp thuận",
     variant: "default" as const,
     icon: CheckCircle,
-    description: "Request has been approved"
+    description: "Yêu cầu đã được chấp thuận"
   },
   rejected: {
-    label: "Rejected",
+    label: "Đã từ chối",
     variant: "destructive" as const,
     icon: XCircle,
-    description: "Request has been rejected"
+    description: "Yêu cầu đã bị từ chối"
   }
 }
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
 
 export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequestsListProps) {
   const [requests, setRequests] = useState<ScheduleExchangeRequestDetailed[]>([])
@@ -63,7 +63,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         toast.error(result.error)
       }
     } catch {
-      toast.error("Failed to load exchange requests")
+      toast.error("Không thể tải danh sách yêu cầu đổi lịch")
     } finally {
       setLoading(false)
     }
@@ -99,7 +99,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
       const result = await response.json()
 
       if (result.success) {
-        toast.success("Request deleted successfully")
+        toast.success("Đã xoá yêu cầu thành công")
         setRequests(prev => prev.filter(req => req.id !== requestToDelete))
         setDeleteDialogOpen(false)
         setRequestToDelete(null)
@@ -107,7 +107,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         toast.error(result.error)
       }
     } catch {
-      toast.error("Failed to delete request")
+      toast.error("Không thể xoá yêu cầu")
     } finally {
       setDeleting(false)
     }
@@ -124,7 +124,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            Loading Exchange Requests...
+            Đang tải yêu cầu đổi lịch...
           </CardTitle>
         </CardHeader>
       </Card>
@@ -135,13 +135,13 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Exchange Requests</CardTitle>
-          <CardDescription>Your schedule exchange requests will appear here</CardDescription>
+          <CardTitle>Yêu cầu đổi lịch</CardTitle>
+          <CardDescription>Các yêu cầu đổi lịch của bạn sẽ hiển thị tại đây</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
             <AlertDescription>
-              You haven&apos;t submitted any schedule exchange requests yet.
+              Bạn chưa gửi yêu cầu đổi lịch nào.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -155,9 +155,9 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Exchange Requests</CardTitle>
+              <CardTitle>Yêu cầu đổi lịch</CardTitle>
               <CardDescription>
-                Your schedule exchange requests and their status
+                Các yêu cầu đổi lịch của bạn và trạng thái xử lý
               </CardDescription>
             </div>
             <Button
@@ -167,7 +167,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -191,7 +191,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                           {config.label}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                          {isRequester ? "Sent to" : "Received from"} {otherTeacher.name}
+                          {isRequester ? "Gửi tới" : "Nhận từ"} {otherTeacher.name}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -214,22 +214,22 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                   {/* Teaching Slot Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <strong>Subject:</strong> {request.subject_code} - {request.subject_name}
+                      <strong>Môn:</strong> {request.subject_code} - {request.subject_name}
                     </div>
                     <div>
-                      <strong>Class:</strong> {request.class_name}
+                      <strong>Lớp:</strong> {request.class_name}
                     </div>
                     <div>
-                      <strong>Time:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
+                      <strong>Thời gian:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
                     </div>
                     <div>
-                      <strong>Classroom:</strong> {request.classroom_name}
+                      <strong>Phòng học:</strong> {request.classroom_name}
                     </div>
                     <div>
-                      <strong>Week:</strong> {request.week_number}
+                      <strong>Tuần:</strong> {request.week_number}
                     </div>
                     <div>
-                      <strong>Exchange Date:</strong> {request.formattedExchangeDate}
+                      <strong>Ngày đổi lịch:</strong> {request.formattedExchangeDate}
                     </div>
                   </div>
 
@@ -246,7 +246,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                     <>
                       <Separator />
                       <div>
-                        <strong className="text-sm">Admin Response:</strong>
+                        <strong className="text-sm">Phản hồi từ admin:</strong>
                         <p className="text-sm text-muted-foreground mt-1">{request.admin_response}</p>
                       </div>
                     </>
@@ -255,11 +255,11 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                   {/* Timestamps */}
                   <div className="flex justify-between text-xs text-muted-foreground pt-2">
                     <span>
-                      Submitted: {request.formattedCreatedAt}
+                      Đã gửi: {request.formattedCreatedAt}
                     </span>
                     {request.formattedApprovedAt && (
                       <span>
-                        {request.status === 'approved' ? 'Approved' : 'Rejected'}: {request.formattedApprovedAt}
+                        {request.status === 'approved' ? 'Đã chấp thuận' : 'Đã từ chối'}: {request.formattedApprovedAt}
                       </span>
                     )}
                   </div>
@@ -274,9 +274,9 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Exchange Request</DialogTitle>
+            <DialogTitle>Xoá yêu cầu đổi lịch</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this exchange request? This action cannot be undone.
+              Bạn có chắc chắn muốn xoá yêu cầu đổi lịch này? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -285,14 +285,14 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleting}
             >
-              Cancel
+              Hủy
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteRequest}
               disabled={deleting}
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? "Đang xoá..." : "Xoá"}
             </Button>
           </DialogFooter>
         </DialogContent>

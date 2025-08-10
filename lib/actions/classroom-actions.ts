@@ -99,7 +99,7 @@ export async function getClassroomsAction(filters: Partial<ClassroomFilters> = {
     console.error('Error in getClassroomsAction:', error)
     return { 
       success: false, 
-      error: 'Failed to fetch classrooms', 
+      error: 'Không thể lấy danh sách phòng học',
       data: [], 
       total: 0 
     }
@@ -126,7 +126,7 @@ export async function createClassroomAction(formData: ClassroomFormData) {
     return { success: true, data }
   } catch (error) {
     console.error('Error in createClassroomAction:', error)
-    return { success: false, error: 'Failed to create classroom' }
+    return { success: false, error: 'Không thể tạo phòng học' }
   }
 }
 
@@ -152,7 +152,7 @@ export async function updateClassroomAction(formData: UpdateClassroomFormData) {
     return { success: true, data }
   } catch (error) {
     console.error('Error in updateClassroomAction:', error)
-    return { success: false, error: 'Failed to update classroom' }
+    return { success: false, error: 'Không thể cập nhật phòng học' }
   }
 }
 
@@ -174,7 +174,7 @@ export async function deleteClassroomAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Error in deleteClassroomAction:', error)
-    return { success: false, error: 'Failed to delete classroom' }
+    return { success: false, error: 'Không thể xóa phòng học' }
   }
 }
 
@@ -228,6 +228,6 @@ export async function getAvailableClassroomsAction(
     return { success: true, data: availableClassrooms }
   } catch (error) {
     console.error('Error in getAvailableClassroomsAction:', error)
-    return { success: false, error: 'Failed to get available classrooms', data: [] }
+    return { success: false, error: 'Không thể lấy danh sách phòng học khả dụng', data: [] }
   }
 }

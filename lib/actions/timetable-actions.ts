@@ -115,6 +115,12 @@ export interface TimetableDropdownData {
 export async function getTimetableEventsAction(filters: TimetableFilters = {}) {
   try {
     const validatedFilters = timetableFiltersSchema.parse(filters)
+
+    // Early return to prevent heavy queries when critical filters are missing
+    if (!validatedFilters.class_id || !validatedFilters.semester_id || !validatedFilters.week_number) {
+      return { success: true, data: [] as TimetableEventDetailed[] }
+    }
+
     const supabase = await createClient()
 
     let query = supabase

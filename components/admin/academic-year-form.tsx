@@ -221,7 +221,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <span className="text-sm sm:text-base">
-            {isEditing ? "Update Academic Year" : "Create Academic Year"}
+            {isEditing ? "Cập nhật niên khóa" : "Tạo niên khóa"}
           </span>
         </Button>
 
@@ -233,7 +233,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
             disabled={isSubmitting}
             className="h-10 sm:h-11 sm:w-auto"
           >
-            Cancel
+            Hủy
           </Button>
         )}
       </div>

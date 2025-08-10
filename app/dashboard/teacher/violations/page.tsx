@@ -13,7 +13,7 @@ export default async function TeacherViolationsPage() {
 
     if (authError || !user) {
       console.error('Auth error:', authError)
-      redirect('/auth/login')
+      redirect('/')
     }
 
     // Context7 pattern: Better error handling for profile query with homeroom check
@@ -40,18 +40,18 @@ export default async function TeacherViolationsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Student Violations</h1>
-                <p className="text-muted-foreground">Teacher Dashboard</p>
+                <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
+                <p className="text-muted-foreground">Bảng điều khiển giáo viên</p>
               </div>
             </div>
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">Homeroom Teacher Access Required</h2>
+                <h2 className="text-lg font-semibold mb-2">Yêu cầu quyền GVCN</h2>
                 <p className="text-muted-foreground mb-4">
-                  Only homeroom teachers can view and manage student violations.
+                  Chỉ giáo viên chủ nhiệm mới có thể xem và quản lý vi phạm học sinh.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  If you believe this is an error, please contact your administrator.
+                  Nếu bạn tin đây là nhầm lẫn, vui lòng liên hệ quản trị viên.
                 </p>
               </div>
             </div>
@@ -77,7 +77,7 @@ export default async function TeacherViolationsPage() {
 
     return (
       <div className="p-6">
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>Đang tải...</div>}>
           <TeacherViolationsPageClient
             homeroomClass={homeroomClass}
             isHomeroomTeacher={isHomeroomTeacher}
@@ -93,12 +93,12 @@ export default async function TeacherViolationsPage() {
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <h2 className="text-lg font-semibold mb-2">Connection Error</h2>
+            <h2 className="text-lg font-semibold mb-2">Lỗi kết nối</h2>
             <p className="text-muted-foreground mb-4">
-              Unable to connect to the database. Please check your internet connection and try again.
+              Không thể kết nối cơ sở dữ liệu. Vui lòng kiểm tra Internet và thử lại.
             </p>
             <p className="text-sm text-muted-foreground">
-              Please refresh the page to retry.
+              Vui lòng tải lại trang để thử lại.
             </p>
           </div>
         </div>

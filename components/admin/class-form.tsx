@@ -500,12 +500,12 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: Readonly<Cl
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditing ? "Updating..." : "Creating..."}
+                {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                {isEditing ? "Update Class" : "Create Class"}
+                {isEditing ? "Cập nhật lớp" : "Tạo lớp"}
               </>
             )}
           </Button>
@@ -516,7 +516,7 @@ export function ClassForm({ class: classData, onSuccess, onCancel }: Readonly<Cl
             disabled={isSubmitting}
           >
             <X className="mr-2 h-4 w-4" />
-            Cancel
+            Hủy
           </Button>
         </div>
       </div>

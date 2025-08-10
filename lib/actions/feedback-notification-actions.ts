@@ -18,7 +18,7 @@ export async function sendDailyFeedbackToParentsAction(
     if (!user) {
       return {
         success: false,
-        error: "Authentication required"
+        error: "Yêu cầu xác thực"
       }
     }
 
@@ -32,7 +32,7 @@ export async function sendDailyFeedbackToParentsAction(
     if (!profile || profile.role !== 'teacher') {
       return {
         success: false,
-        error: "Teacher access required"
+        error: "Yêu cầu quyền giáo viên"
       }
     }
 
@@ -62,7 +62,7 @@ export async function sendDailyFeedbackToParentsAction(
     if (!dailyFeedback || dailyFeedback.length === 0) {
       return {
         success: false,
-        error: "No feedback found for this day"
+        error: "Không có phản hồi nào trong ngày này"
       }
     }
 
@@ -86,7 +86,7 @@ export async function sendDailyFeedbackToParentsAction(
     if (!parents || parents.length === 0) {
       return {
         success: false,
-        error: "No parents found for this student"
+        error: "Không tìm thấy phụ huynh cho học sinh này"
       }
     }
 
@@ -119,14 +119,14 @@ export async function sendDailyFeedbackToParentsAction(
 
     return {
       success: true,
-      message: `All daily feedback (${dailyFeedback.length} items) sent to ${parents.length} parent(s) successfully`
+      message: `Đã gửi toàn bộ phản hồi trong ngày (${dailyFeedback.length} mục) đến ${parents.length} phụ huynh thành công`
     }
 
   } catch (error) {
     console.error("Send daily feedback to parents error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to send daily feedback to parents"
+      error: error instanceof Error ? error.message : "Không thể gửi phản hồi trong ngày cho phụ huynh"
     }
   }
 }
@@ -143,7 +143,7 @@ export async function sendFeedbackToParentsAction(
     if (!user) {
       return {
         success: false,
-        error: "Authentication required"
+        error: "Yêu cầu xác thực"
       }
     }
 
@@ -157,7 +157,7 @@ export async function sendFeedbackToParentsAction(
     if (!profile || profile.role !== 'teacher') {
       return {
         success: false,
-        error: "Teacher access required"
+        error: "Yêu cầu quyền giáo viên"
       }
     }
 
@@ -173,7 +173,7 @@ export async function sendFeedbackToParentsAction(
     if (!feedback) {
       return {
         success: false,
-        error: "Feedback not found or access denied"
+        error: "Không tìm thấy phản hồi hoặc bị từ chối truy cập"
       }
     }
 
@@ -197,7 +197,7 @@ export async function sendFeedbackToParentsAction(
     if (!parents || parents.length === 0) {
       return {
         success: false,
-        error: "No parents found for this student"
+        error: "Không tìm thấy phụ huynh cho học sinh này"
       }
     }
 
@@ -225,14 +225,14 @@ export async function sendFeedbackToParentsAction(
 
     return {
       success: true,
-      message: `Feedback sent to ${parents.length} parent(s) successfully`
+      message: `Đã gửi phản hồi thành công đến ${parents.length} phụ huynh`
     }
 
   } catch (error) {
     console.error("Send feedback to parents error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to send feedback to parents"
+      error: error instanceof Error ? error.message : "Không thể gửi phản hồi cho phụ huynh"
     }
   }
 }
@@ -252,7 +252,7 @@ export async function checkDailyFeedbackSentStatusAction(
     if (!user) {
       return {
         success: false,
-        error: "Authentication required"
+        error: "Yêu cầu xác thực"
       }
     }
 
@@ -317,7 +317,7 @@ export async function checkDailyFeedbackSentStatusAction(
     console.error("Check daily feedback sent status error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to check daily feedback status"
+      error: error instanceof Error ? error.message : "Không thể kiểm tra trạng thái phản hồi trong ngày"
     }
   }
 }
@@ -333,7 +333,7 @@ export async function checkFeedbackSentStatusAction(
     if (!user) {
       return {
         success: false,
-        error: "Authentication required"
+        error: "Yêu cầu xác thực"
       }
     }
 
@@ -365,7 +365,7 @@ export async function checkFeedbackSentStatusAction(
     console.error("Check feedback sent status error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to check feedback status"
+      error: error instanceof Error ? error.message : "Không thể kiểm tra trạng thái phản hồi"
     }
   }
 }

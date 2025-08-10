@@ -8,20 +8,21 @@ import dynamic from "next/dynamic";
 const EventCalendar = dynamic(() => import("@/components/event-calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
-    <div className="h-96 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-      <div className="text-gray-500">Loading calendar...</div>
-    </div>
+    <LoadingFallback size="lg" className="flex items-center justify-center">
+      <span className="sr-only">Loading calendar...</span>
+    </LoadingFallback>
   )
 });
+import { LoadingFallback } from "@/components/ui/loading-fallback"
 
 const ExchangeRequestForm = dynamic(() => import("@/components/schedule-exchange/exchange-request-form").then(mod => ({ default: mod.ExchangeRequestForm })), {
   ssr: false,
-  loading: () => <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+  loading: () => <LoadingFallback size="xs" />
 });
 
 const ExchangeRequestsList = dynamic(() => import("@/components/schedule-exchange/exchange-requests-list").then(mod => ({ default: mod.ExchangeRequestsList })), {
   ssr: false,
-  loading: () => <div className="h-40 bg-gray-100 rounded animate-pulse"></div>
+  loading: () => <LoadingFallback size="sm" />
 });
 
 import {

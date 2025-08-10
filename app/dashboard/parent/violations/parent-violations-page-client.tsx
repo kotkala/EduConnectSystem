@@ -23,7 +23,7 @@ function renderViolationsContent(
     return (
       <Card>
         <CardContent className="text-center py-8">
-          Loading violations...
+          Đang tải danh sách vi phạm...
         </CardContent>
       </Card>
     )
@@ -34,11 +34,11 @@ function renderViolationsContent(
       <Card>
         <CardContent className="text-center py-8">
           <AlertTriangle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No violations recorded</h3>
+          <h3 className="text-lg font-semibold mb-2">Không có vi phạm nào</h3>
           <p className="text-muted-foreground">
             {selectedStudent
-              ? `${selectedStudent.full_name} has no recorded violations.`
-              : 'Your children have no recorded violations.'
+              ? `${selectedStudent.full_name} không có vi phạm nào.`
+              : 'Con em bạn không có vi phạm nào.'
             }
           </p>
         </CardContent>
@@ -53,10 +53,10 @@ function renderViolationsContent(
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Violations ({violations.length})
+              Danh sách vi phạm ({violations.length})
             </CardTitle>
             <CardDescription>
-              All recorded violations for your children
+              Tất cả vi phạm đã ghi nhận của con em bạn
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -83,7 +83,7 @@ function renderViolationsContent(
                         <Clock className="h-3 w-3" />
                         {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
                       </span>
-                      <span>Recorded by: {violation.recorded_by.full_name}</span>
+                      <span>Người ghi nhận: {violation.recorded_by.full_name}</span>
                     </div>
                   </div>
                 </div>
@@ -123,10 +123,10 @@ export default function ParentViolationsPageClient() {
             setSelectedStudentId(result.data[0].id)
           }
         } else {
-          toast.error(result?.error || 'Failed to load students')
+          toast.error(result?.error || 'Không thể tải danh sách học sinh')
         }
       } catch {
-        toast.error('An error occurred while loading students')
+        toast.error('Đã xảy ra lỗi khi tải danh sách học sinh')
       }
     }
 
@@ -181,10 +181,10 @@ export default function ParentViolationsPageClient() {
           const weeks = [...new Set(violationsWithWeeks.map(v => v.calculatedWeekNumber).filter((week): week is number => week !== null))]
           setAvailableWeeks(weeks.toSorted((a, b) => a - b))
         } else {
-          toast.error(result?.error || 'Failed to load violations')
+          toast.error(result?.error || 'Không thể tải danh sách vi phạm')
         }
       } catch {
-        toast.error('An error occurred while loading violations')
+        toast.error('Đã xảy ra lỗi khi tải danh sách vi phạm')
       } finally {
         setLoading(false)
       }
@@ -208,9 +208,9 @@ export default function ParentViolationsPageClient() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vi Phạm Con Em</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm con em</h1>
             <p className="text-muted-foreground">
-              View your children&apos;s violation records
+              Xem các vi phạm của con em bạn
             </p>
           </div>
         </div>

@@ -67,7 +67,7 @@ export default function HomeroomStudentsPage() {
       // Get class information
       const classResult = await getHomeroomClassInfoAction()
       if (!classResult.success) {
-        setError(classResult.error || "Failed to load class information")
+        setError(classResult.error || "Không thể tải thông tin lớp học")
         return
       }
 
@@ -76,7 +76,7 @@ export default function HomeroomStudentsPage() {
       // Get students
       const studentsResult = await getHomeroomStudentsAction()
       if (!studentsResult.success) {
-        setError(studentsResult.error || "Failed to load students")
+        setError(studentsResult.error || "Không thể tải danh sách học sinh")
         return
       }
 
@@ -85,8 +85,8 @@ export default function HomeroomStudentsPage() {
 
     } catch (err) {
       console.error("Load data error:", err)
-      setError("An unexpected error occurred")
-      toast.error("Failed to load homeroom data")
+      setError("Đã xảy ra lỗi không mong muốn")
+      toast.error("Không thể tải dữ liệu lớp chủ nhiệm")
     } finally {
       setLoading(false)
     }
@@ -172,7 +172,7 @@ export default function HomeroomStudentsPage() {
   // Handle refresh
   const handleRefresh = () => {
     loadData()
-    toast.success("Data refreshed")
+    toast.success("Đã làm mới dữ liệu")
   }
 
   if (loading && !classInfo) {
@@ -202,7 +202,7 @@ export default function HomeroomStudentsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Homeroom Students
+            Học sinh lớp chủ nhiệm
           </h1>
           {classInfo && (
             <p className="text-sm sm:text-base text-muted-foreground">
@@ -212,7 +212,7 @@ export default function HomeroomStudentsPage() {
         </div>
         <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto">
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          Làm mới
         </Button>
       </div>
 
@@ -222,7 +222,7 @@ export default function HomeroomStudentsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <GraduationCap className="h-5 w-5" />
-              Class Overview
+              Tổng quan lớp học
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -231,7 +231,7 @@ export default function HomeroomStudentsPage() {
                 <Users className="h-8 w-8 text-blue-500" />
                 <div>
                   <p className="text-2xl font-bold">{classInfo.student_count}</p>
-                  <p className="text-sm text-muted-foreground">Total Students</p>
+                  <p className="text-sm text-muted-foreground">Tổng số học sinh</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -240,7 +240,7 @@ export default function HomeroomStudentsPage() {
                   <p className="text-2xl font-bold">
                     {students.filter(s => s.parents.length > 0).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">With Parents</p>
+                  <p className="text-sm text-muted-foreground">Có phụ huynh</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -249,7 +249,7 @@ export default function HomeroomStudentsPage() {
                   <p className="text-2xl font-bold">
                     {students.filter(s => s.parents.length === 0).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Without Parents</p>
+                  <p className="text-sm text-muted-foreground">Chưa có phụ huynh</p>
                 </div>
               </div>
             </div>
@@ -262,34 +262,34 @@ export default function HomeroomStudentsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Filters
+            Bộ lọc
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="search">Search</Label>
+              <Label htmlFor="search">Tìm kiếm</Label>
               <Input
                 id="search"
-                placeholder="Name, Student ID, or Email"
+                placeholder="Tên, Mã học sinh hoặc Email"
                 value={filters.search || ''}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
+              <Label htmlFor="gender">Giới tính</Label>
               <Select
                 value={filters.gender || 'all'}
                 onValueChange={(value) => handleFilterChange('gender', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="All Genders" />
+                  <SelectValue placeholder="Tất cả" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Genders</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="male">Nam</SelectItem>
+                  <SelectItem value="female">Nữ</SelectItem>
+                  <SelectItem value="other">Khác</SelectItem>
                 </SelectContent>
               </Select>
             </div>

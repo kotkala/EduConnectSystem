@@ -233,12 +233,12 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditing ? "Updating..." : "Creating..."}
+                  {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {isEditing ? "Update Teacher" : "Create Teacher"}
+                  {isEditing ? "Cập nhật giáo viên" : "Tạo giáo viên"}
                 </>
               )}
             </Button>
@@ -251,7 +251,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
                 disabled={isSubmitting}
               >
                 <X className="mr-2 h-4 w-4" />
-                Cancel
+                Hủy
               </Button>
             )}
           </div>

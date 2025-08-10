@@ -1,4 +1,19 @@
-import * as XLSX from 'xlsx'
+// Lazy-load xlsx to reduce initial bundle size when not needed
+let _XLSX: typeof import('xlsx') | null = null
+async function getXLSX() {
+  if (!_XLSX) {
+    _XLSX = await import('xlsx')
+  }
+  return _XLSX
+}
+
+// Helper to wrap usages in this module
+async function withXLSX<T>(fn: (XLSX: typeof import('xlsx')) => T | Promise<T>): Promise<T> {
+  const XLSX = await getXLSX()
+  return fn(XLSX)
+}
+import type * as XLSX from 'xlsx'
+
 
 export interface ClassSummaryData {
   className: string
@@ -163,18 +178,20 @@ function getCellStyle(rowIndex: number): {
 }
 
 // Helper function to apply header row styles
-function applyHeaderRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): void {
-  for (let R = 0; R <= 5; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!worksheet[cellAddress]) continue;
+async function applyHeaderRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): Promise<void> {
+  await withXLSX((XLSX) => {
+    for (let R = 0; R <= 5; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[cellAddress]) continue;
 
-      const style = getCellStyle(R);
-      if (style) {
-        worksheet[cellAddress].s = style;
+        const style = getCellStyle(R);
+        if (style) {
+          worksheet[cellAddress].s = style;
+        }
       }
     }
-  }
+  })
 }
 
 // Helper function to get data row style
@@ -202,28 +219,32 @@ function getDataRowStyle(columnIndex: number): {
 }
 
 // Helper function to apply data row styles
-function applyDataRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): void {
-  for (let R = 6; R <= range.e.r; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-      if (!worksheet[cellAddress]) {
-        worksheet[cellAddress] = { t: 's', v: '' };
-      }
+async function applyDataRowStyles(worksheet: XLSX.WorkSheet, range: XLSX.Range): Promise<void> {
+  await withXLSX((XLSX) => {
+    for (let R = 6; R <= range.e.r; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[cellAddress]) {
+          worksheet[cellAddress] = { t: 's', v: '' };
+        }
 
-      worksheet[cellAddress].s = getDataRowStyle(C);
+        worksheet[cellAddress].s = getDataRowStyle(C);
+      }
     }
-  }
+  })
 }
 
 // Helper function to apply styles to worksheet
-function applyWorksheetStyles(worksheet: XLSX.WorkSheet): void {
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+async function applyWorksheetStyles(worksheet: XLSX.WorkSheet): Promise<void> {
+  await withXLSX(async (XLSX) => {
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
 
-  // Apply header row styles
-  applyHeaderRowStyles(worksheet, range);
+    // Apply header row styles
+    await applyHeaderRowStyles(worksheet, range);
 
-  // Apply data row styles
-  applyDataRowStyles(worksheet, range);
+    // Apply data row styles
+    await applyDataRowStyles(worksheet, range);
+  })
 }
 
 // Helper function to create individual student worksheet data
@@ -290,76 +311,84 @@ function createStudentWorksheetData(student: StudentGradeData, classData: ClassS
 }
 
 // Helper function to create individual student worksheet
-function createStudentWorksheet(student: StudentGradeData, classData: ClassSummaryData): XLSX.WorkSheet {
-  const studentWorksheetData = createStudentWorksheetData(student, classData);
-  const studentWorksheet = XLSX.utils.aoa_to_sheet(studentWorksheetData);
+async function createStudentWorksheet(student: StudentGradeData, classData: ClassSummaryData): Promise<import('xlsx').WorkSheet> {
+  return withXLSX((XLSX) => {
+    const studentWorksheetData = createStudentWorksheetData(student, classData);
+    const studentWorksheet = XLSX.utils.aoa_to_sheet(studentWorksheetData);
 
-  studentWorksheet['!cols'] = [
-    { wch: 5 },  // STT
-    { wch: 25 }, // Môn học
-    { wch: 15 }, // Điểm giữa kì
-    { wch: 15 }, // Điểm cuối kì
-    { wch: 18 }  // Điểm trung bình
-  ];
+    studentWorksheet['!cols'] = [
+      { wch: 5 },  // STT
+      { wch: 25 }, // Môn học
+      { wch: 15 }, // Điểm giữa kì
+      { wch: 15 }, // Điểm cuối kì
+      { wch: 18 }  // Điểm trung bình
+    ];
 
-  return studentWorksheet;
+    return studentWorksheet;
+  })
 }
 
 // Helper function to add individual student sheets to workbook
-function addStudentSheetsToWorkbook(workbook: XLSX.WorkBook, data: ClassSummaryData): void {
+async function addStudentSheetsToWorkbook(workbook: import('xlsx').WorkBook, data: ClassSummaryData): Promise<void> {
   const maxStudentSheets = 10; // Limit to avoid too many sheets
 
-  data.students.slice(0, maxStudentSheets).forEach((student) => {
-    const studentWorksheet = createStudentWorksheet(student, data);
-    const sheetName = `${student.studentCode}_${student.studentName}`.substring(0, 31); // Excel sheet name limit
-    XLSX.utils.book_append_sheet(workbook, studentWorksheet, sheetName);
-  });
+  await withXLSX(async (XLSX) => {
+    for (const student of data.students.slice(0, maxStudentSheets)) {
+      const studentWorksheet = await createStudentWorksheet(student, data);
+      const sheetName = `${student.studentCode}_${student.studentName}`.substring(0, 31); // Excel sheet name limit
+      XLSX.utils.book_append_sheet(workbook, studentWorksheet, sheetName);
+    }
+  })
 }
 
 // Helper function to create main summary worksheet
-function createMainSummaryWorksheet(data: ClassSummaryData): XLSX.WorkSheet {
-  const worksheetData: (string | number)[][] = [];
+async function createMainSummaryWorksheet(data: ClassSummaryData): Promise<import('xlsx').WorkSheet> {
+  return withXLSX(async (XLSX) => {
+    const worksheetData: (string | number)[][] = [];
 
-  // Add header rows
-  worksheetData.push(...createHeaderRows(data));
+    // Add header rows
+    worksheetData.push(...createHeaderRows(data));
 
-  // Get all unique subjects and create headers
-  const subjectList = getAllSubjects(data.students);
-  const headers = createColumnHeaders(subjectList);
-  worksheetData.push(headers);
+    // Get all unique subjects and create headers
+    const subjectList = getAllSubjects(data.students);
+    const headers = createColumnHeaders(subjectList);
+    worksheetData.push(headers);
 
-  // Add student rows
-  const studentRows = createStudentRows(data.students, subjectList);
-  worksheetData.push(...studentRows);
+    // Add student rows
+    const studentRows = createStudentRows(data.students, subjectList);
+    worksheetData.push(...studentRows);
 
-  // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    // Create worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-  // Set column widths
-  worksheet['!cols'] = createColumnWidths(subjectList);
+    // Set column widths
+    worksheet['!cols'] = createColumnWidths(subjectList);
 
-  // Merge header cells
-  worksheet['!merges'] = createMergeRanges(headers.length);
+    // Merge header cells
+    worksheet['!merges'] = createMergeRanges(headers.length);
 
-  // Apply styles
-  applyWorksheetStyles(worksheet);
+    // Apply styles
+    await applyWorksheetStyles(worksheet);
 
-  return worksheet;
+    return worksheet;
+  })
 }
 
 // Create Excel file for class grade summary
-export function createClassSummaryExcel(data: ClassSummaryData): ArrayBuffer {
-  const workbook = XLSX.utils.book_new();
+export async function createClassSummaryExcel(data: ClassSummaryData): Promise<ArrayBuffer> {
+  return withXLSX(async (XLSX) => {
+    const workbook = XLSX.utils.book_new();
 
-  // Create and add main summary worksheet
-  const mainWorksheet = createMainSummaryWorksheet(data);
-  XLSX.utils.book_append_sheet(workbook, mainWorksheet, 'Bảng điểm tổng hợp');
+    // Create and add main summary worksheet
+    const mainWorksheet = await createMainSummaryWorksheet(data);
+    XLSX.utils.book_append_sheet(workbook, mainWorksheet, 'Bảng điểm tổng hợp');
 
-  // Add individual student sheets
-  addStudentSheetsToWorkbook(workbook, data);
+    // Add individual student sheets
+    await addStudentSheetsToWorkbook(workbook, data);
 
-  // Convert to array buffer
-  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+    // Convert to array buffer
+    return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  })
 }
 
 // Download file helper

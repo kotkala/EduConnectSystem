@@ -192,7 +192,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
       if (error) {
         console.error('Error loading violations:', error)
-        toast.error('Failed to load violations')
+        toast.error('Không thể tải danh sách vi phạm')
         return
       }
 
@@ -200,7 +200,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       setFilteredViolations(data || [])
     } catch (error) {
       console.error('Error:', error)
-      toast.error('An error occurred while loading violations')
+      toast.error('Đã xảy ra lỗi khi tải danh sách vi phạm')
     } finally {
       setLoading(false)
     }
@@ -300,13 +300,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Student Violations</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
             <p className="text-muted-foreground">
-              {homeroomClass ? `Class: ${homeroomClass.name}` : 'Teacher Dashboard'}
+              {homeroomClass ? `Lớp: ${homeroomClass.name}` : 'Bảng điều khiển giáo viên'}
             </p>
           </div>
         </div>
-        <div className="text-center py-8">Loading violations...</div>
+        <div className="text-center py-8">Đang tải danh sách vi phạm...</div>
       </div>
     )
   }
@@ -317,8 +317,8 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Student Violations</h1>
-            <p className="text-muted-foreground">Teacher Dashboard</p>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
+            <p className="text-muted-foreground">Bảng điều khiển giáo viên</p>
           </div>
         </div>
 

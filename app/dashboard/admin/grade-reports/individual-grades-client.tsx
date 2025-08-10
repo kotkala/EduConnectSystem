@@ -248,11 +248,11 @@ export default function IndividualGradesClient() {
   const getSemesterPlaceholder = () => {
     if (!form.academic_year_id) return "Chọn năm học trước"
     if (loadingStates.semesters) return "Đang tải..."
-    return "Chọn học kì"
+    return "Chọn học kỳ"
   }
 
   const getClassPlaceholder = () => {
-    if (!form.semester_id) return "Chọn học kì trước"
+    if (!form.semester_id) return "Chọn học kỳ trước"
     if (loadingStates.classes) return "Đang tải..."
     return "Chọn lớp"
   }
@@ -280,9 +280,9 @@ export default function IndividualGradesClient() {
         semester: selectedSemester?.name || ''
       }
 
-      const excelBuffer = createIndividualGradeTemplate(exportData)
+      const excelBuffer = await createIndividualGradeTemplate(exportData)
       const filename = `BangDiem_${student.student_id}_${student.full_name}_${selectedSemester?.name}.xlsx`
-      
+
       downloadExcelFile(excelBuffer, filename)
       
       toast.success(`Đã tải file Excel cho ${student.full_name}`)
@@ -339,7 +339,7 @@ export default function IndividualGradesClient() {
 
       // Parse Excel file
       const arrayBuffer = await file.arrayBuffer()
-      const parseResult = parseIndividualGradeExcel(arrayBuffer, subjects)
+      const parseResult = await parseIndividualGradeExcel(arrayBuffer, subjects)
 
       if (!parseResult.success) {
         toast.error(`Lỗi đọc file Excel: ${parseResult.errors?.join(', ')}`)
@@ -442,7 +442,7 @@ export default function IndividualGradesClient() {
 
             {/* Semester Selection */}
             <div className="space-y-2">
-              <Label htmlFor="semester">Học kì</Label>
+              <Label htmlFor="semester">Học kỳ</Label>
               <Select
                 value={form.semester_id}
                 onValueChange={(value) => handleFormChange('semester_id', value)}

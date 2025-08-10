@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduConnect - Educational Platform",
-  description: "A comprehensive educational platform with role-based access for students, teachers, parents, and administrators.",
+  title: "EduConnect - Nền tảng giáo dục",
+  description: "Nền tảng giáo dục toàn diện với quyền truy cập theo vai trò cho học sinh, giáo viên, phụ huynh và quản trị viên.",
 };
 
 export const viewport = {

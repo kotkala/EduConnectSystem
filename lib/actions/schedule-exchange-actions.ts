@@ -6,23 +6,23 @@ import { z } from 'zod'
 
 // Validation schemas
 const scheduleExchangeRequestSchema = z.object({
-  target_teacher_id: z.string().uuid('Please select a valid teacher'),
-  timetable_event_id: z.string().uuid('Please select a valid timetable event'),
+  target_teacher_id: z.string().uuid('Vui lòng chọn giáo viên hợp lệ'),
+  timetable_event_id: z.string().uuid('Vui lòng chọn sự kiện thời khóa biểu hợp lệ'),
   exchange_date: z.string().refine((date) => {
     const exchangeDate = new Date(date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     return exchangeDate >= today
-  }, 'Exchange date must be today or in the future'),
+  }, 'Ngày đổi lịch phải là hôm nay hoặc tương lai'),
   reason: z.string()
-    .min(10, 'Reason must be at least 10 characters')
-    .max(500, 'Reason must be less than 500 characters')
+    .min(10, 'Lý do phải có ít nhất 10 ký tự')
+    .max(500, 'Lý do phải ít hơn 500 ký tự')
 })
 
 const approveRejectRequestSchema = z.object({
-  request_id: z.string().uuid('Invalid request ID'),
+  request_id: z.string().uuid('ID yêu cầu không hợp lệ'),
   status: z.enum(['approved', 'rejected']),
-  admin_response: z.string().max(500, 'Response must be less than 500 characters').optional()
+  admin_response: z.string().max(500, 'Phản hồi phải ít hơn 500 ký tự').optional()
 })
 
 // Types
@@ -106,7 +106,7 @@ export async function getTeacherTimetableEventsAction(teacherId: string, semeste
     return { success: true, data: transformedData }
   } catch (error) {
     console.error('Error in getTeacherTimetableEventsAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -148,7 +148,7 @@ export async function getEligibleTeachersForExchangeAction(
     return { success: true, data: data || [] }
   } catch (error) {
     console.error('Error in getEligibleTeachersForExchangeAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -208,7 +208,7 @@ export async function createScheduleExchangeRequestAction(formData: ScheduleExch
 
     if (error) {
       console.error('Error creating exchange request:', error)
-      return { success: false, error: 'Failed to create exchange request' }
+      return { success: false, error: 'Không thể tạo yêu cầu đổi lịch' }
     }
 
     revalidatePath('/dashboard/teacher')
@@ -218,7 +218,7 @@ export async function createScheduleExchangeRequestAction(formData: ScheduleExch
       return { success: false, error: error.issues[0].message }
     }
     console.error('Error in createScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -254,7 +254,7 @@ export async function getScheduleExchangeRequestsAction(filters?: {
 
     if (error) {
       console.error('Error fetching exchange requests:', error)
-      return { success: false, error: 'Failed to fetch exchange requests' }
+      return { success: false, error: 'Không thể lấy danh sách yêu cầu đổi lịch' }
     }
 
     // Return basic data with mock values for now
@@ -278,7 +278,7 @@ export async function getScheduleExchangeRequestsAction(filters?: {
     return { success: true, data: transformedData }
   } catch (error) {
     console.error('Error in getScheduleExchangeRequestsAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -319,11 +319,11 @@ export async function approveRejectScheduleExchangeRequestAction(formData: Appro
       .single()
 
     if (requestError || !request) {
-      return { success: false, error: 'Exchange request not found' }
+      return { success: false, error: 'Không tìm thấy yêu cầu đổi lịch' }
     }
 
     if (request.status !== 'pending') {
-      return { success: false, error: 'Request has already been processed' }
+      return { success: false, error: 'Yêu cầu đã được xử lý trước đó' }
     }
 
     // Update the request status
@@ -372,13 +372,13 @@ export async function approveRejectScheduleExchangeRequestAction(formData: Appro
 
     revalidatePath('/dashboard/admin')
     revalidatePath('/dashboard/teacher')
-    return { success: true, message: `Request ${validatedData.status} successfully` }
+    return { success: true, message: `Yêu cầu đã được ${validatedData.status === 'approved' ? 'phê duyệt' : 'từ chối'} thành công` }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message }
     }
     console.error('Error in approveRejectScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -407,9 +407,9 @@ export async function deleteScheduleExchangeRequestAction(requestId: string) {
     }
 
     revalidatePath('/dashboard/teacher')
-    return { success: true, message: 'Request deleted successfully' }
+    return { success: true, message: 'Xóa yêu cầu thành công' }
   } catch (error) {
     console.error('Error in deleteScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }
   }
 }

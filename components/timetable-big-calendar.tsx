@@ -1,16 +1,25 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 
-import {
-  type CalendarEvent,
-  EventCalendar,
-  type EventColor,
-} from "@/components/event-calendar";
+import { type CalendarEvent, type EventColor } from "@/components/event-calendar";
+const EventCalendar = dynamic(
+  () => import("@/components/event-calendar").then((mod) => ({ default: mod.EventCalendar })),
+  {
+    ssr: false,
+    loading: () => (
+      <LoadingFallback size="lg" className="flex items-center justify-center">
+        <span className="sr-only">Loading calendar...</span>
+      </LoadingFallback>
+    ),
+  }
+);
+import { LoadingFallback } from "@/components/ui/loading-fallback"
 import { useCalendarContext } from "@/components/event-calendar/calendar-context";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-calendar/timetable-filters";
 import {
@@ -165,47 +174,56 @@ export default function TimetableBigCalendar() {
     loadDropdownData();
   }, []);
 
-  // Load timetable events when filters change
+  // Load timetable events when filters change with guard + debounce + request cancel
+  const requestIdRef = useRef(0)
   useEffect(() => {
-    const loadTimetableEvents = async () => {
-      if (!filters.classId || !filters.semesterId || !filters.studyWeek ||
-          !isValidUUID(filters.classId) || !isValidUUID(filters.semesterId)) {
-        setEvents([]);
-        setStudySlots([]);
-        return;
-      }
+    // Guard: require valid filters
+    if (!filters.classId || !filters.semesterId || !filters.studyWeek ||
+        !isValidUUID(filters.classId) || !isValidUUID(filters.semesterId)) {
+      setEvents([])
+      setStudySlots([])
+      return
+    }
 
-      setIsLoading(true);
+    const currentId = ++requestIdRef.current
+    const timer = setTimeout(async () => {
+      setIsLoading(true)
       try {
         const result = await getTimetableEventsAction({
-          class_id: filters.classId,
-          semester_id: filters.semesterId,
-          week_number: filters.studyWeek,
-        });
+          class_id: filters.classId!,
+          semester_id: filters.semesterId!,
+          week_number: filters.studyWeek!,
+        })
+
+        // Ignore out-of-date responses
+        if (currentId !== requestIdRef.current) return
 
         if (result.success && result.data) {
-          const slots = result.data as StudySlot[];
-          setStudySlots(slots);
-          
-          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot));
-          setEvents(calendarEvents);
+          const slots = result.data as StudySlot[]
+          setStudySlots(slots)
+          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot))
+          setEvents(calendarEvents)
         } else {
-          toast.error("Failed to load timetable events");
-          setEvents([]);
-          setStudySlots([]);
+          toast.error("Failed to load timetable events")
+          setEvents([])
+          setStudySlots([])
         }
       } catch (error) {
-        console.error("Error loading timetable events:", error);
-        toast.error("Failed to load timetable events");
-        setEvents([]);
-        setStudySlots([]);
+        if (currentId === requestIdRef.current) {
+          console.error("Error loading timetable events:", error)
+          toast.error("Failed to load timetable events")
+          setEvents([])
+          setStudySlots([])
+        }
       } finally {
-        setIsLoading(false);
+        if (currentId === requestIdRef.current) setIsLoading(false)
       }
-    };
+    }, 250) // debounce ~250ms
 
-    loadTimetableEvents();
-  }, [filters.classId, filters.semesterId, filters.studyWeek]);
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [filters.classId, filters.semesterId, filters.studyWeek])
 
   const handleEventAdd = async (event: CalendarEvent) => {
     if (!hasValidFilters(filters)) {

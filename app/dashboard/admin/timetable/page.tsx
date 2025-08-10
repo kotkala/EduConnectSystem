@@ -3,8 +3,8 @@ import { CalendarProvider } from "@/components/event-calendar/calendar-context";
 import TimetableBigCalendar from "@/components/timetable-big-calendar";
 
 export const metadata: Metadata = {
-  title: "Timetable Management",
-  description: "Manage class schedules, teachers, and weekly timetables",
+  title: "Quản lý thời khóa biểu",
+  description: "Quản lý lịch học, giáo viên và thời khóa biểu theo tuần",
 };
 
 export default function TimetablePage() {

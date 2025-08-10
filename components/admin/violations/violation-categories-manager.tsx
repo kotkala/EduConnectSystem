@@ -31,14 +31,14 @@ import { toast } from 'sonner'
 
 // Helper function to get button text for category operations
 function getCategoryButtonText(loading: boolean, selectedCategory: unknown): string {
-  if (loading) return 'Saving...'
-  return selectedCategory ? 'Update' : 'Create'
+  if (loading) return 'Đang lưu...'
+  return selectedCategory ? 'Cập nhật' : 'Tạo'
 }
 
 // Helper function to get button text for type operations
 function getTypeButtonText(loading: boolean, selectedType: unknown): string {
-  if (loading) return 'Saving...'
-  return selectedType ? 'Update' : 'Create'
+  if (loading) return 'Đang lưu...'
+  return selectedType ? 'Cập nhật' : 'Tạo'
 }
 
 import {
@@ -117,15 +117,15 @@ export default function ViolationCategoriesManager() {
       const result = await createViolationCategoryAction(data)
       
       if (result.success) {
-        toast.success('Category created successfully')
+        toast.success('Tạo danh mục vi phạm thành công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
         loadCategoriesAndTypes()
       } else {
-        toast.error(result.error || 'Failed to create category')
+        toast.error(result.error || 'Không thể tạo danh mục vi phạm')
       }
     } catch {
-      toast.error('An error occurred while creating category')
+      toast.error('Đã xảy ra lỗi khi tạo danh mục')
     } finally {
       setLoading(false)
     }
@@ -142,16 +142,16 @@ export default function ViolationCategoriesManager() {
       })
       
       if (result.success) {
-        toast.success('Category updated successfully')
+        toast.success('Cập nhật danh mục vi phạm thành công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
         setSelectedCategory(null)
         loadCategoriesAndTypes()
       } else {
-        toast.error(result.error || 'Failed to update category')
+        toast.error(result.error || 'Không thể cập nhật danh mục vi phạm')
       }
     } catch {
-      toast.error('An error occurred while updating category')
+      toast.error('Đã xảy ra lỗi khi cập nhật danh mục')
     } finally {
       setLoading(false)
     }
@@ -163,15 +163,15 @@ export default function ViolationCategoriesManager() {
       const result = await createViolationTypeAction(data)
       
       if (result.success) {
-        toast.success('Violation type created successfully')
+        toast.success('Tạo loại vi phạm thành công')
         typeForm.reset()
         setTypeDialogOpen(false)
         loadCategoriesAndTypes()
       } else {
-        toast.error(result.error || 'Failed to create violation type')
+        toast.error(result.error || 'Không thể tạo loại vi phạm')
       }
     } catch {
-      toast.error('An error occurred while creating violation type')
+      toast.error('Đã xảy ra lỗi khi tạo loại vi phạm')
     } finally {
       setLoading(false)
     }
@@ -188,16 +188,16 @@ export default function ViolationCategoriesManager() {
       })
       
       if (result.success) {
-        toast.success('Violation type updated successfully')
+        toast.success('Cập nhật loại vi phạm thành công')
         typeForm.reset()
         setTypeDialogOpen(false)
         setSelectedType(null)
         loadCategoriesAndTypes()
       } else {
-        toast.error(result.error || 'Failed to update violation type')
+        toast.error(result.error || 'Không thể cập nhật loại vi phạm')
       }
     } catch {
-      toast.error('An error occurred while updating violation type')
+      toast.error('Đã xảy ra lỗi khi cập nhật loại vi phạm')
     } finally {
       setLoading(false)
     }
@@ -242,28 +242,28 @@ export default function ViolationCategoriesManager() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Violation Categories
+                Danh mục vi phạm
               </CardTitle>
               <CardDescription>
-                Manage violation categories and their associated types
+                Quản lý danh mục vi phạm và các loại vi phạm liên quan
               </CardDescription>
             </div>
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => openCategoryDialog()}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Category
+                  Thêm danh mục
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedCategory ? 'Edit Category' : 'Create New Category'}
+                    {selectedCategory ? 'Chỉnh sửa danh mục' : 'Tạo danh mục mới'}
                   </DialogTitle>
                   <DialogDescription>
-                    {selectedCategory 
-                      ? 'Update the category information below.'
-                      : 'Create a new violation category to organize violation types.'
+                    {selectedCategory
+                      ? 'Cập nhật thông tin danh mục bên dưới.'
+                      : 'Tạo danh mục vi phạm mới để tổ chức các loại vi phạm.'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -279,9 +279,9 @@ export default function ViolationCategoriesManager() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category Name</FormLabel>
+                          <FormLabel>Tên danh mục</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., Discipline, Academic" {...field} />
+                            <Input placeholder="vd: Kỷ luật, Học thuật" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -292,12 +292,12 @@ export default function ViolationCategoriesManager() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>Mô tả</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Brief description of this category..."
+                            <Textarea
+                              placeholder="Mô tả ngắn gọn về danh mục này..."
                               className="resize-none"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -311,7 +311,7 @@ export default function ViolationCategoriesManager() {
                         onClick={() => setCategoryDialogOpen(false)}
                         disabled={loading}
                       >
-                        Cancel
+                        Hủy
                       </Button>
                       <Button type="submit" disabled={loading}>
                         {getCategoryButtonText(loading, selectedCategory)}
@@ -380,27 +380,27 @@ export default function ViolationCategoriesManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Violation Types</CardTitle>
+              <CardTitle>Các loại vi phạm</CardTitle>
               <CardDescription>
-                Specific violation types within each category
+                Những loại vi phạm cụ thể trong từng danh mục
               </CardDescription>
             </div>
             <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => openTypeDialog()} disabled={categories.length === 0}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Type
+                  Thêm loại
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedType ? 'Edit Violation Type' : 'Create New Violation Type'}
+                    {selectedType ? 'Chỉnh sửa loại vi phạm' : 'Tạo loại vi phạm mới'}
                   </DialogTitle>
                   <DialogDescription>
-                    {selectedType 
-                      ? 'Update the violation type information below.'
-                      : 'Create a new violation type within a category.'
+                    {selectedType
+                      ? 'Cập nhật thông tin loại vi phạm bên dưới.'
+                      : 'Tạo loại vi phạm mới trong một danh mục.'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -416,11 +416,11 @@ export default function ViolationCategoriesManager() {
                       name="category_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>Danh mục</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
+                                <SelectValue placeholder="Chọn danh mục" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -440,9 +440,9 @@ export default function ViolationCategoriesManager() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Violation Type Name</FormLabel>
+                          <FormLabel>Tên loại vi phạm</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., Late to class, Missing homework" {...field} />
+                            <Input placeholder="vd: Đi học muộn, Không làm bài tập" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -453,12 +453,12 @@ export default function ViolationCategoriesManager() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>Mô tả</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Detailed description of this violation type..."
+                            <Textarea
+                              placeholder="Mô tả chi tiết về loại vi phạm này..."
                               className="resize-none"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -470,11 +470,11 @@ export default function ViolationCategoriesManager() {
                       name="default_severity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Default Severity</FormLabel>
+                          <FormLabel>Mức độ mặc định</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select default severity" />
+                                <SelectValue placeholder="Chọn mức độ mặc định" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -498,7 +498,7 @@ export default function ViolationCategoriesManager() {
                         onClick={() => setTypeDialogOpen(false)}
                         disabled={loading}
                       >
-                        Cancel
+                        Hủy
                       </Button>
                       <Button type="submit" disabled={loading}>
                         {getTypeButtonText(loading, selectedType)}

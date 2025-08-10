@@ -8,7 +8,7 @@ export default async function ParentViolationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/')
   }
 
   const { data: profile } = await supabase
@@ -23,7 +23,7 @@ export default async function ParentViolationsPage() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <ParentViolationsPageClient />
       </Suspense>
     </div>

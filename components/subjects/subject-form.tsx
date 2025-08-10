@@ -37,7 +37,7 @@ export function SubjectForm({
   onSubmit,
   onCancel,
   isLoading = false,
-  submitLabel = "Save Subject"
+  submitLabel = "Lưu môn học"
 }: SubjectFormProps) {
   const form = useForm<SubjectFormData>({
     resolver: zodResolver(SubjectFormSchema),
@@ -67,16 +67,16 @@ export function SubjectForm({
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Subject Code</FormLabel>
+                <FormLabel>Mã môn học</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="e.g., TOAN, VAN"
+                    placeholder="VD: TOAN, VAN"
                     {...field}
                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                   />
                 </FormControl>
                 <FormDescription>
-                  Unique code for the subject (2-10 characters, uppercase)
+                  Mã duy nhất cho môn học (2-10 ký tự, viết hoa)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -88,20 +88,20 @@ export function SubjectForm({
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>Phân loại</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Chọn phân loại" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="core">Core Subject</SelectItem>
-                    <SelectItem value="specialized">Specialized Subject</SelectItem>
+                    <SelectItem value="core">Môn học cốt lõi</SelectItem>
+                    <SelectItem value="specialized">Môn học chuyên đề</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Core subjects are required, specialized are optional
+                  Môn cốt lõi là bắt buộc, môn chuyên đề là tuỳ chọn
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -115,12 +115,12 @@ export function SubjectForm({
             name="name_vietnamese"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vietnamese Name</FormLabel>
+                <FormLabel>Tên tiếng Việt</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Toán học" {...field} />
+                  <Input placeholder="VD: Toán học" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Subject name in Vietnamese
+                  Tên môn học bằng tiếng Việt
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -132,12 +132,12 @@ export function SubjectForm({
             name="name_english"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>English Name</FormLabel>
+                <FormLabel>Tên tiếng Anh</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Mathematics" {...field} />
+                  <Input placeholder="VD: Mathematics" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Subject name in English
+                  Tên môn học bằng tiếng Anh
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -150,16 +150,16 @@ export function SubjectForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Mô tả</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Brief description of the subject (optional)"
+                  placeholder="Mô tả ngắn gọn về môn học (không bắt buộc)"
                   className="min-h-[100px]"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Optional description of the subject content and objectives
+                Mô tả tuỳ chọn về nội dung và mục tiêu môn học
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -173,10 +173,10 @@ export function SubjectForm({
             onClick={onCancel}
             disabled={isLoading}
           >
-            Cancel
+            Hủy
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : submitLabel}
+            {isLoading ? "Đang lưu..." : submitLabel}
           </Button>
         </div>
       </form>

@@ -32,7 +32,7 @@ async function checkAdminPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -42,7 +42,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (!profile || profile.role !== 'admin') {
-    throw new Error("Admin access required")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id, supabase }
@@ -54,7 +54,7 @@ async function checkHomeroomTeacherPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -64,7 +64,7 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (!profile || profile.role !== 'teacher') {
-    throw new Error("Teacher access required")
+    throw new Error("Yêu cầu quyền giáo viên")
   }
 
   // Check if teacher is a homeroom teacher
@@ -76,7 +76,7 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (!homeroomClass) {
-    throw new Error("Homeroom teacher access required")
+    throw new Error("Yêu cầu quyền giáo viên chủ nhiệm")
   }
 
   return { userId: user.id, supabase, homeroomClass }
@@ -106,7 +106,7 @@ export async function createViolationCategoryAction(data: ViolationCategoryFormD
   } catch (error: unknown) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An error occurred' 
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -136,7 +136,7 @@ export async function updateViolationCategoryAction(data: UpdateViolationCategor
   } catch (error: unknown) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An error occurred' 
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -157,7 +157,7 @@ export async function getViolationCategoriesAction(): Promise<{ success: boolean
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -188,7 +188,7 @@ export async function createViolationTypeAction(data: ViolationTypeFormData) {
   } catch (error: unknown) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An error occurred' 
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -220,7 +220,7 @@ export async function updateViolationTypeAction(data: UpdateViolationTypeFormDat
   } catch (error: unknown) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An error occurred' 
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -245,7 +245,7 @@ export async function getViolationTypesAction(categoryId?: string): Promise<{ su
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -389,7 +389,7 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
   } catch (error: unknown) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'An error occurred' 
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -425,7 +425,7 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -455,7 +455,7 @@ export async function updateStudentViolationAction(data: UpdateStudentViolationF
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -484,7 +484,7 @@ export async function getStudentViolationsAction(filters?: ViolationFilters): Pr
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -500,7 +500,7 @@ export async function getViolationCategoriesAndTypesAction(): Promise<{
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error('Authentication required')
+      throw new Error('Yêu cầu xác thực')
     }
 
     // Simple parallel queries
@@ -528,7 +528,7 @@ export async function getViolationCategoriesAndTypesAction(): Promise<{
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -558,7 +558,7 @@ export async function createViolationNotificationAction(data: ViolationNotificat
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -595,7 +595,7 @@ export async function getHomeroomViolationsAction(): Promise<{ success: boolean;
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -622,7 +622,7 @@ export async function getParentViolationsAction(
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Set default pagination values
@@ -685,7 +685,7 @@ export async function getParentViolationsAction(
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -715,7 +715,7 @@ export async function getClassBlocksAction(): Promise<{ success: boolean; data?:
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -770,7 +770,7 @@ export async function getClassesByBlockAction(classBlockId: string): Promise<{ s
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -844,7 +844,7 @@ export async function getViolationStatsAction(): Promise<{
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }
@@ -916,7 +916,7 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An error occurred'
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
 }

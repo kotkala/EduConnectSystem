@@ -8,7 +8,7 @@ export default async function ViolationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/auth/login')
+    redirect('/')
   }
 
   const { data: profile } = await supabase
@@ -25,14 +25,14 @@ export default async function ViolationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Student Violations Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý vi phạm học sinh</h1>
           <p className="text-muted-foreground">
-            Manage violation categories, record violations, and track student discipline
+            Quản lý danh mục vi phạm, ghi nhận vi phạm và theo dõi kỷ luật học sinh
           </p>
         </div>
       </div>
 
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <ViolationsPageClient />
       </Suspense>
     </div>

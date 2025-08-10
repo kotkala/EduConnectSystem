@@ -38,7 +38,7 @@ async function checkNotificationPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -48,12 +48,12 @@ async function checkNotificationPermissions() {
     .single()
 
   if (profileError || !profile) {
-    throw new Error("Profile not found")
+    throw new Error("Không tìm thấy hồ sơ")
   }
 
   // Only admins and teachers can create notifications
   if (profile.role !== 'admin' && profile.role !== 'teacher') {
-    throw new Error("Only administrators and teachers can create notifications")
+    throw new Error("Chỉ quản trị viên và giáo viên mới có thể tạo thông báo")
   }
 
   return { userId: user.id, profile }
@@ -166,7 +166,7 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
 
     return { success: true, data: options }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -196,7 +196,7 @@ export async function createNotificationAction(data: NotificationFormData) {
     revalidatePath('/dashboard')
     return { success: true, data: notification }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -207,7 +207,7 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get user profile to check role
@@ -256,7 +256,7 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
 
     return { success: true, data: notificationsWithReadStatus }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -312,7 +312,7 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
 
     return { success: true, data: unreadCount }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -323,7 +323,7 @@ export async function markNotificationAsReadAction(notificationId: string) {
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     const { error } = await supabase
@@ -340,7 +340,7 @@ export async function markNotificationAsReadAction(notificationId: string) {
     revalidatePath('/dashboard')
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -368,6 +368,6 @@ export async function uploadNotificationImageAction(file: File): Promise<{ succe
 
     return { success: true, data: { url: publicUrl, path: filePath } }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }

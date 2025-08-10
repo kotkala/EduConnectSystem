@@ -43,9 +43,9 @@ export default async function AdminSubjectsPage() {
     <div className="space-y-6 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Subject Management</h2>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Quản lý môn học</h2>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Manage Vietnamese high school subjects and curriculum
+              Quản lý môn học và chương trình THPT
             </p>
           </div>
           <div className="w-full sm:w-auto">
@@ -57,37 +57,37 @@ export default async function AdminSubjectsPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng số môn học</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{subjects?.length || 0}</div>
               <p className="text-xs text-muted-foreground">
-                Vietnamese high school curriculum
+                Chương trình THPT
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Core Subjects</CardTitle>
+              <CardTitle className="text-sm font-medium">Môn học cơ bản</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{coreSubjects.length}</div>
               <p className="text-xs text-muted-foreground">
-                Essential curriculum subjects
+                Môn cốt lõi bắt buộc
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Specialized Subjects</CardTitle>
+              <CardTitle className="text-sm font-medium">Môn học chuyên đề</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{specializedSubjects.length}</div>
               <p className="text-xs text-muted-foreground">
-                Specialized curriculum subjects
+                Môn chuyên sâu theo định hướng
               </p>
             </CardContent>
           </Card>
@@ -98,10 +98,10 @@ export default async function AdminSubjectsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
-              Core Subjects ({coreSubjects.length})
+              Môn học cơ bản ({coreSubjects.length})
             </CardTitle>
             <CardDescription>
-              Essential subjects required for all students
+              Môn bắt buộc dành cho tất cả học sinh
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -109,7 +109,7 @@ export default async function AdminSubjectsPage() {
               {coreSubjects.map((subject: Subject) => (
                 <div key={subject.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge variant="default" className="text-xs">Core</Badge>
+                    <Badge variant="default" className="text-xs">Cơ bản</Badge>
                     <div className="flex gap-1">
                       <SubjectEditDialog subject={subject} />
                       <SubjectDeleteDialog subject={subject} />
@@ -118,7 +118,7 @@ export default async function AdminSubjectsPage() {
                   <div>
                     <h4 className="text-sm sm:text-base font-semibold">{subject.name_vietnamese}</h4>
                     <p className="text-xs sm:text-sm text-muted-foreground">{subject.name_english}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Code: {subject.code}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Mã: {subject.code}</p>
                   </div>
                   {subject.description && (
                     <p className="text-xs text-muted-foreground">{subject.description}</p>
@@ -134,10 +134,10 @@ export default async function AdminSubjectsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
-              Specialized Subjects ({specializedSubjects.length})
+              Môn học chuyên đề ({specializedSubjects.length})
             </CardTitle>
             <CardDescription>
-              Specialized subjects for skill development and career preparation
+              Môn chuyên sâu phục vụ phát triển kỹ năng và định hướng nghề nghiệp
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,7 +145,7 @@ export default async function AdminSubjectsPage() {
               {specializedSubjects.map((subject: Subject) => (
                 <div key={subject.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-xs">Specialized</Badge>
+                    <Badge variant="secondary" className="text-xs">Chuyên đề</Badge>
                     <div className="flex gap-1">
                       <SubjectEditDialog subject={subject} />
                       <SubjectDeleteDialog subject={subject} />
@@ -154,7 +154,7 @@ export default async function AdminSubjectsPage() {
                   <div>
                     <h4 className="text-sm sm:text-base font-semibold">{subject.name_vietnamese}</h4>
                     <p className="text-xs sm:text-sm text-muted-foreground">{subject.name_english}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Code: {subject.code}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Mã: {subject.code}</p>
                   </div>
                   {subject.description && (
                     <p className="text-xs text-muted-foreground">{subject.description}</p>

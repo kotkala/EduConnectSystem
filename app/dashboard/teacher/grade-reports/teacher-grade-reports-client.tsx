@@ -269,9 +269,9 @@ export default function TeacherGradeReportsClient() {
         students: studentsData
       }
 
-      const excelBuffer = createClassSummaryExcel(classData)
+      const excelBuffer = await createClassSummaryExcel(classData)
       const filename = `BangDiem_${selectedSummary.class.name}_${selectedSummary.semester.name}.xlsx`
-      
+
       downloadExcelFile(excelBuffer, filename)
       toast.success("Đã tải file Excel thành công")
     } catch {

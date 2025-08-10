@@ -21,7 +21,7 @@ export default async function GradeReportsPage() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <IndividualGradesClient />
       </Suspense>
     </div>

@@ -60,7 +60,7 @@ export default function LeaveApplicationPage() {
       // Show all students - we'll handle enrollment check in the backend
       setStudents(result.data)
     } else {
-      setError(result.error || 'Failed to load students')
+      setError(result.error || 'Không thể tải danh sách học sinh')
     }
   }
 
@@ -70,13 +70,13 @@ export default function LeaveApplicationPage() {
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
       if (!allowedTypes.includes(file.type)) {
-        setError('Please select an image (JPEG, PNG, GIF) or PDF file')
+        setError('Vui lòng chọn hình ảnh (JPEG, PNG, GIF) hoặc tệp PDF')
         return
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setError('File size must be less than 5MB')
+        setError('Kích thước tệp phải nhỏ hơn 5MB')
         return
       }
 
@@ -110,16 +110,16 @@ export default function LeaveApplicationPage() {
     try {
       // Validate form
       if (!formData.student_id) {
-        throw new Error('Please select a student')
+        throw new Error('Vui lòng chọn học sinh')
       }
       if (!formData.start_date || !formData.end_date) {
-        throw new Error('Please select start and end dates')
+        throw new Error('Vui lòng chọn ngày bắt đầu và kết thúc')
       }
       if (new Date(formData.start_date) > new Date(formData.end_date)) {
-        throw new Error('End date must be after start date')
+        throw new Error('Ngày kết thúc phải sau ngày bắt đầu')
       }
       if (!formData.reason.trim()) {
-        throw new Error('Please provide a reason for the leave')
+        throw new Error('Vui lòng nhập lý do xin nghỉ')
       }
 
       let attachmentUrl = ''
@@ -130,7 +130,7 @@ export default function LeaveApplicationPage() {
         if (uploadResult.success && uploadResult.data) {
           attachmentUrl = uploadResult.data.url
         } else {
-          throw new Error(uploadResult.error || 'Failed to upload attachment')
+          throw new Error(uploadResult.error || 'Tải tệp đính kèm thất bại')
         }
       }
 
@@ -157,10 +157,10 @@ export default function LeaveApplicationPage() {
           router.push('/dashboard/parent')
         }, 2000)
       } else {
-        throw new Error(result.error || 'Failed to create leave application')
+        throw new Error(result.error || 'Không thể tạo đơn xin nghỉ')
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       setIsSubmitting(false)
     }
@@ -169,7 +169,7 @@ export default function LeaveApplicationPage() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="parent" title="Leave Application">
+      <SidebarLayout role="parent" title="Đơn xin nghỉ">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
@@ -180,13 +180,13 @@ export default function LeaveApplicationPage() {
   // Show access denied if no permission
   if (!user || profile?.role !== 'parent') {
     return (
-      <SidebarLayout role="parent" title="Access Denied">
+      <SidebarLayout role="parent" title="Từ chối truy cập">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-          <p className="text-gray-600">You don&apos;t have permission to access this page.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/parent')}>
-            Return to Dashboard
+            Quay lại bảng điều khiển
           </Button>
         </div>
       </SidebarLayout>
@@ -195,38 +195,38 @@ export default function LeaveApplicationPage() {
 
   if (success) {
     return (
-      <SidebarLayout role="parent" title="Leave Application">
+      <SidebarLayout role="parent" title="Đơn xin nghỉ">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
             <FileText className="w-8 h-8 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Application Submitted!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Đã gửi đơn thành công!</h2>
           <p className="text-gray-600 text-center">
-            Your leave application has been sent to the homeroom teacher for review.
+            Đơn xin nghỉ của bạn đã được gửi đến giáo viên chủ nhiệm để xem xét.
           </p>
-          <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
+          <p className="text-sm text-gray-500">Đang chuyển hướng về bảng điều khiển...</p>
         </div>
       </SidebarLayout>
     )
   }
 
   return (
-    <SidebarLayout role="parent" title="Leave Application">
+    <SidebarLayout role="parent" title="Đơn xin nghỉ">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/dashboard/parent')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            Quay lại bảng điều khiển
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create Leave Application</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Tạo đơn xin nghỉ</h1>
             <p className="text-muted-foreground">
-              Submit a leave request for your child to their homeroom teacher
+              Gửi đơn xin nghỉ cho GVCN của con em bạn
             </p>
           </div>
         </div>
@@ -239,24 +239,24 @@ export default function LeaveApplicationPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Leave Application Form</CardTitle>
+            <CardTitle>Biểu mẫu đơn xin nghỉ</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Student Selection */}
               <div className="space-y-2">
-                <Label htmlFor="student">Student *</Label>
-                <Select 
-                  value={formData.student_id} 
+                <Label htmlFor="student">Học sinh *</Label>
+                <Select
+                  value={formData.student_id}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, student_id: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a student" />
+                    <SelectValue placeholder="Chọn học sinh" />
                   </SelectTrigger>
                   <SelectContent>
                     {students.map(student => (
                       <SelectItem key={student.id} value={student.id}>
-                        {student.full_name} {student.current_class ? `- ${student.current_class.name}` : '(No class assigned)'}
+                        {student.full_name} {student.current_class ? `- ${student.current_class.name}` : '(Chưa có lớp)'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -265,10 +265,10 @@ export default function LeaveApplicationPage() {
 
               {/* Leave Type */}
               <div className="space-y-2">
-                <Label htmlFor="leave_type">Leave Type *</Label>
-                <Select 
-                  value={formData.leave_type} 
-                  onValueChange={(value: 'sick' | 'family' | 'emergency' | 'vacation' | 'other') => 
+                <Label htmlFor="leave_type">Loại đơn *</Label>
+                <Select
+                  value={formData.leave_type}
+                  onValueChange={(value: 'sick' | 'family' | 'emergency' | 'vacation' | 'other') =>
                     setFormData(prev => ({ ...prev, leave_type: value }))
                   }
                 >
@@ -276,11 +276,11 @@ export default function LeaveApplicationPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sick">Sick Leave</SelectItem>
-                    <SelectItem value="family">Family Emergency</SelectItem>
-                    <SelectItem value="emergency">Emergency</SelectItem>
-                    <SelectItem value="vacation">Vacation</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="sick">Nghỉ ốm</SelectItem>
+                    <SelectItem value="family">Việc gia đình</SelectItem>
+                    <SelectItem value="emergency">Khẩn cấp</SelectItem>
+                    <SelectItem value="vacation">Nghỉ phép</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -288,7 +288,7 @@ export default function LeaveApplicationPage() {
               {/* Date Range */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date *</Label>
+                  <Label htmlFor="start_date">Ngày bắt đầu *</Label>
                   <Input
                     id="start_date"
                     type="date"
@@ -299,7 +299,7 @@ export default function LeaveApplicationPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date *</Label>
+                  <Label htmlFor="end_date">Ngày kết thúc *</Label>
                   <Input
                     id="end_date"
                     type="date"
@@ -313,10 +313,10 @@ export default function LeaveApplicationPage() {
 
               {/* Reason */}
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason for Leave *</Label>
+                <Label htmlFor="reason">Lý do xin nghỉ *</Label>
                 <Textarea
                   id="reason"
-                  placeholder="Please provide a detailed reason for the leave request..."
+                  placeholder="Vui lòng nêu rõ lý do xin nghỉ..."
                   value={formData.reason}
                   onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
                   rows={4}
@@ -326,7 +326,7 @@ export default function LeaveApplicationPage() {
 
               {/* File Upload */}
               <div className="space-y-2">
-                <Label>Supporting Document (Optional)</Label>
+                <Label>Tài liệu hỗ trợ (không bắt buộc)</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                   {selectedFile ? (
                     <div className="space-y-4">
@@ -334,7 +334,7 @@ export default function LeaveApplicationPage() {
                         <div className="relative w-32 h-32 mx-auto">
                           <Image
                             src={previewUrl}
-                            alt="Preview"
+                            alt="Xem trước"
                             fill
                             className="object-cover rounded-lg"
                           />
@@ -356,10 +356,10 @@ export default function LeaveApplicationPage() {
                     <div className="text-center">
                       <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600 mb-2">
-                        Upload medical certificate, letter, or other supporting document
+                        Tải lên giấy khám bệnh, thư xác nhận hoặc tài liệu liên quan khác
                       </p>
                       <p className="text-xs text-gray-500 mb-4">
-                        Supported formats: JPEG, PNG, GIF, PDF (max 5MB)
+                        Định dạng hỗ trợ: JPEG, PNG, GIF, PDF (tối đa 5MB)
                       </p>
                       <input
                         type="file"
@@ -373,7 +373,7 @@ export default function LeaveApplicationPage() {
                         variant="outline"
                         onClick={() => document.getElementById('file-upload')?.click()}
                       >
-                        Choose File
+                        Chọn tệp
                       </Button>
                     </div>
                   )}
@@ -388,10 +388,10 @@ export default function LeaveApplicationPage() {
                   onClick={() => router.push('/dashboard/parent')}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  Hủy
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                  {isSubmitting ? 'Đang gửi...' : 'Gửi đơn'}
                 </Button>
               </div>
             </form>

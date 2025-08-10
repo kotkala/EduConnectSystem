@@ -4,30 +4,30 @@ import type { NotificationPageConfig } from './shared-notifications-page'
 export const NOTIFICATION_CONFIGS: Record<string, NotificationPageConfig> = {
   parent: {
     role: 'parent',
-    title: 'Notifications',
-    description: 'View notifications about your children from teachers and school administration',
-    emptyStateMessage: "You'll see notifications about your children here",
+    title: 'Thông báo',
+    description: 'Xem thông báo về con em từ giáo viên và nhà trường',
+    emptyStateMessage: 'Bạn sẽ thấy thông báo về con em tại đây',
     dashboardPath: '/dashboard/parent'
   },
   student: {
     role: 'student',
-    title: 'Notifications',
-    description: 'View notifications from your teachers and school administration',
-    emptyStateMessage: "You'll see notifications from your teachers here",
+    title: 'Thông báo',
+    description: 'Xem thông báo từ giáo viên và nhà trường',
+    emptyStateMessage: 'Bạn sẽ thấy thông báo từ giáo viên tại đây',
     dashboardPath: '/dashboard/student'
   },
   teacher: {
     role: 'teacher',
-    title: 'Notifications',
-    description: 'View notifications from school administration and other teachers',
-    emptyStateMessage: "You'll see notifications from school administration here",
+    title: 'Thông báo',
+    description: 'Xem thông báo từ ban giám hiệu và giáo viên khác',
+    emptyStateMessage: 'Bạn sẽ thấy thông báo từ ban giám hiệu tại đây',
     dashboardPath: '/dashboard/teacher'
   },
   admin: {
     role: 'admin',
-    title: 'Notifications',
-    description: 'View all system notifications and administrative messages',
-    emptyStateMessage: "You'll see system notifications and administrative messages here",
+    title: 'Thông báo',
+    description: 'Xem tất cả thông báo hệ thống và tin nhắn quản trị',
+    emptyStateMessage: 'Bạn sẽ thấy thông báo hệ thống và tin nhắn quản trị tại đây',
     dashboardPath: '/dashboard/admin'
   }
 } as const

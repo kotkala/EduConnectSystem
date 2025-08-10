@@ -149,7 +149,7 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Send Notification</CardTitle>
+        <CardTitle>Gửi thông báo</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,23 +166,23 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Tiêu đề</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Enter notification title"
+              placeholder="Nhập tiêu đề thông báo"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
+            <Label htmlFor="content">Nội dung</Label>
             <Textarea
               id="content"
               value={formData.content}
               onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Enter notification content"
+              placeholder="Nhập nội dung thông báo"
               rows={4}
               required
             />
@@ -203,13 +203,13 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
                 className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
               >
                 <Upload className="w-4 h-4" />
-                Choose Image
+                Chọn ảnh
               </Label>
               {imagePreview && (
                 <div className="relative">
                   <Image
                     src={imagePreview}
-                    alt="Preview"
+                    alt="Xem trước"
                     width={80}
                     height={80}
                     className="w-20 h-20 object-cover rounded-lg"
@@ -281,18 +281,18 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
               {loading || uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {uploading ? 'Uploading...' : 'Sending...'}
+                  {uploading ? 'Đang tải lên...' : 'Đang gửi...'}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Send Notification
+                  Gửi thông báo
                 </>
               )}
             </Button>
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
+                Hủy
               </Button>
             )}
           </div>

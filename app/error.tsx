@@ -20,10 +20,10 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-destructive">
-            Something went wrong!
+            Đã xảy ra lỗi!
           </CardTitle>
           <CardDescription>
-            An unexpected error occurred. Please try again.
+            Có lỗi không mong muốn xảy ra. Vui lòng thử lại.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -36,14 +36,14 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           )}
           <div className="flex gap-2">
             <Button onClick={reset} className="flex-1">
-              Try again
+              Thử lại
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.location.href = '/'}
               className="flex-1"
             >
-              Go home
+              Về trang chủ
             </Button>
           </div>
         </CardContent>

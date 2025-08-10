@@ -168,7 +168,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
         setNotifications(allNotifications.slice(startIndex, endIndex))
 
       } else {
-        setError(result.error || 'Failed to load notifications')
+        setError(result.error || 'Không thể tải thông báo')
         setNotifications([])
         setTotalCount(0)
         setTotalPages(1)
@@ -221,10 +221,10 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   const accessDeniedContent = (
     <div className="flex flex-col items-center justify-center h-64 space-y-4">
       <AlertCircle className="h-16 w-16 text-red-500" />
-      <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-      <p className="text-gray-600">You don&apos;t have permission to access notifications.</p>
+      <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+      <p className="text-gray-600">Bạn không có quyền truy cập mục thông báo.</p>
       <Button onClick={() => router.push(config.dashboardPath)}>
-        Return to Dashboard
+        Quay lại bảng điều khiển
       </Button>
     </div>
   )
@@ -233,7 +233,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   if (loading) {
     if (config.useSidebarLayout) {
       return (
-        <SidebarLayout role={config.role} title="Notifications">
+        <SidebarLayout role={config.role} title="Thông báo">
           {loadingContent}
         </SidebarLayout>
       )
@@ -267,7 +267,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
         {config.canSendNotifications && (
           <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Send Notification
+            Gửi thông báo
           </Button>
         )}
       </div>
@@ -334,7 +334,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                   <div className="mt-4">
                     <Image
                       src={selectedNotification.image_url}
-                      alt="Notification attachment"
+                      alt="Tệp đính kèm thông báo"
                       width={600}
                       height={400}
                       className="max-w-full h-auto rounded-lg"
@@ -371,7 +371,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
   if (config.useSidebarLayout) {
     return (
-      <SidebarLayout role={config.role} title="Notifications">
+      <SidebarLayout role={config.role} title="Thông báo">
         {mainContent}
       </SidebarLayout>
     )

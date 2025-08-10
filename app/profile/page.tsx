@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
+import nextDynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,11 +14,18 @@ import AvatarEditor from '@/components/profile/avatar-editor'
 import { toast } from 'sonner'
 import { User, Settings, Shield } from 'lucide-react'
 
+// Lazy-load framer-motion to keep initial bundle small
+import { LoadingFallback } from '@/components/ui/loading-fallback'
+const MotionDiv = nextDynamic(() => import('framer-motion').then(mod => mod.motion.div), {
+  ssr: false,
+  loading: () => <LoadingFallback size="sm" />,
+})
+
 const roleConfig = {
-  admin: { label: 'Administrator', color: 'bg-red-500' },
-  teacher: { label: 'Teacher', color: 'bg-blue-500' },
-  student: { label: 'Student', color: 'bg-green-500' },
-  parent: { label: 'Parent', color: 'bg-purple-500' },
+  admin: { label: 'Quản trị viên', color: 'bg-red-500' },
+  teacher: { label: 'Giáo viên', color: 'bg-blue-500' },
+  student: { label: 'Học sinh', color: 'bg-green-500' },
+  parent: { label: 'Phụ huynh', color: 'bg-purple-500' },
 }
 
 export default function ProfilePage() {
@@ -109,7 +116,7 @@ export default function ProfilePage() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
-              Please sign in to view your profile.
+              Vui lòng đăng nhập để xem hồ sơ của bạn.
             </p>
           </CardContent>
         </Card>
@@ -122,7 +129,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -140,7 +147,7 @@ export default function ProfilePage() {
                 />
                 <div className="flex-1">
                   <CardTitle className="text-2xl">
-                    {profile.full_name || 'User Profile'}
+                    {profile.full_name || 'Hồ sơ người dùng'}
                   </CardTitle>
                   <CardDescription className="flex items-center space-x-2 mt-1">
                     <span>{profile.email}</span>
@@ -152,26 +159,26 @@ export default function ProfilePage() {
               </div>
             </CardHeader>
           </Card>
-        </motion.div>
+        </MotionDiv>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="w-4 h-4" />
-              <span>Profile</span>
+              <span>Hồ sơ</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2">
               <Settings className="w-4 h-4" />
-              <span>Settings</span>
+              <span>Cài đặt</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center space-x-2">
               <Shield className="w-4 h-4" />
-              <span>Security</span>
+              <span>Bảo mật</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
@@ -180,14 +187,14 @@ export default function ProfilePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Personal Information</CardTitle>
+                      <CardTitle>Thông tin cá nhân</CardTitle>
                       <CardDescription>
-                        Update your personal details and contact information
+                        Cập nhật thông tin cá nhân và liên hệ của bạn
                       </CardDescription>
                     </div>
                     {!isEditing && (
                       <Button onClick={() => setIsEditing(true)}>
-                        Edit Profile
+                        Chỉnh sửa hồ sơ
                       </Button>
                     )}
                   </div>
@@ -195,7 +202,7 @@ export default function ProfilePage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="full_name">Full Name</Label>
+                      <Label htmlFor="full_name">Họ và tên</Label>
                       <Input
                         id="full_name"
                         value={formData.full_name}
@@ -216,149 +223,149 @@ export default function ProfilePage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Role</Label>
+                    <Label>Vai trò</Label>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className={config.color}>
                         {config.label}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        Contact an administrator to change your role
+                        Liên hệ quản trị viên để thay đổi vai trò
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Account Created</Label>
+                    <Label>Ngày tạo tài khoản</Label>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(profile.created_at).toLocaleDateString()}
+                      {new Date(profile.created_at).toLocaleDateString('vi-VN')}
                     </p>
                   </div>
 
                   {isEditing && (
                     <div className="flex space-x-2 pt-4">
                       <Button onClick={handleSave} disabled={loading}>
-                        {loading ? 'Saving...' : 'Save Changes'}
+                        {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </Button>
                       <Button variant="outline" onClick={handleCancel}>
-                        Cancel
+                        Hủy
                       </Button>
                     </div>
                   )}
                 </CardContent>
               </Card>
-            </motion.div>
+            </MotionDiv>
           </TabsContent>
 
           <TabsContent value="settings">
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
+                  <CardTitle>Cài đặt tài khoản</CardTitle>
                   <CardDescription>
-                    Manage your account preferences and notifications
+                    Quản lý tuỳ chọn tài khoản và thông báo
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Email Notifications</h4>
+                        <h4 className="font-medium">Thông báo Email</h4>
                         <p className="text-sm text-muted-foreground">
-                          Receive email updates about your account
+                          Nhận cập nhật qua email về tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Configure
+                        Cấu hình
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Privacy Settings</h4>
+                        <h4 className="font-medium">Cài đặt quyền riêng tư</h4>
                         <p className="text-sm text-muted-foreground">
-                          Control who can see your profile information
+                          Kiểm soát ai có thể xem thông tin hồ sơ của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Manage
+                        Quản lý
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Data Export</h4>
+                        <h4 className="font-medium">Xuất dữ liệu</h4>
                         <p className="text-sm text-muted-foreground">
-                          Download a copy of your data
+                          Tải xuống bản sao dữ liệu của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Export
+                        Xuất
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </MotionDiv>
           </TabsContent>
 
           <TabsContent value="security">
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
+                  <CardTitle>Cài đặt bảo mật</CardTitle>
                   <CardDescription>
-                    Manage your account security and authentication methods
+                    Quản lý bảo mật tài khoản và phương thức xác thực
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Change Password</h4>
+                        <h4 className="font-medium">Đổi mật khẩu</h4>
                         <p className="text-sm text-muted-foreground">
-                          Update your account password
+                          Cập nhật mật khẩu tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Change
+                        Đổi
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Two-Factor Authentication</h4>
+                        <h4 className="font-medium">Xác thực hai lớp</h4>
                         <p className="text-sm text-muted-foreground">
-                          Add an extra layer of security to your account
+                          Thêm một lớp bảo mật cho tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Enable
+                        Bật
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Active Sessions</h4>
+                        <h4 className="font-medium">Phiên đăng nhập hiện tại</h4>
                         <p className="text-sm text-muted-foreground">
-                          Manage devices signed into your account
+                          Quản lý các thiết bị đang đăng nhập vào tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        View
+                        Xem
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </MotionDiv>
           </TabsContent>
         </Tabs>
       </div>

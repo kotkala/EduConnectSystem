@@ -48,7 +48,7 @@ export async function createLeaveApplicationAction(data: LeaveApplicationFormDat
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a parent and has relationship with the student
@@ -107,7 +107,7 @@ export async function createLeaveApplicationAction(data: LeaveApplicationFormDat
     revalidatePath('/dashboard/parent')
     return { success: true, data: leaveApplication }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -118,7 +118,7 @@ export async function getParentLeaveApplicationsAction(): Promise<{ success: boo
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     const { data: applications, error } = await supabase
@@ -138,7 +138,7 @@ export async function getParentLeaveApplicationsAction(): Promise<{ success: boo
 
     return { success: true, data: applications || [] }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -149,7 +149,7 @@ export async function getTeacherLeaveApplicationsAction(): Promise<{ success: bo
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     const { data: applications, error } = await supabase
@@ -168,7 +168,7 @@ export async function getTeacherLeaveApplicationsAction(): Promise<{ success: bo
 
     return { success: true, data: applications || [] }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -183,7 +183,7 @@ export async function respondToLeaveApplicationAction(
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify the teacher is the homeroom teacher for this application
@@ -214,7 +214,7 @@ export async function respondToLeaveApplicationAction(
     revalidatePath('/dashboard/teacher')
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 
@@ -225,7 +225,7 @@ export async function uploadLeaveAttachmentAction(file: File): Promise<{ success
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("Authentication required")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Validate file type and size
@@ -258,7 +258,7 @@ export async function uploadLeaveAttachmentAction(file: File): Promise<{ success
 
     return { success: true, data: { url: publicUrl, path: filePath } }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'An error occurred' }
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }
 

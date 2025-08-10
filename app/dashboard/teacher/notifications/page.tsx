@@ -2,9 +2,9 @@ import { SharedNotificationsPage, type NotificationPageConfig } from '@/componen
 
 const teacherConfig: NotificationPageConfig = {
   role: 'teacher',
-  title: 'Notifications',
-  description: 'Send notifications to your students and view received messages',
-  emptyStateMessage: 'Send your first notification to get started',
+  title: 'Thông báo',
+  description: 'Gửi thông báo cho học sinh và xem tin đã nhận',
+  emptyStateMessage: 'Gửi thông báo đầu tiên để bắt đầu',
   dashboardPath: '/dashboard/teacher',
   canSendNotifications: true,
   useSidebarLayout: false

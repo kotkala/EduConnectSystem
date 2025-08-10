@@ -1,4 +1,18 @@
-import * as XLSX from 'xlsx'
+// Lazy-load xlsx to reduce initial bundle size
+let _XLSX: typeof import('xlsx') | null = null
+async function getXLSX() {
+  if (!_XLSX) {
+    _XLSX = await import('xlsx')
+  }
+  return _XLSX
+}
+
+async function withXLSX<T>(fn: (XLSX: typeof import('xlsx')) => T | Promise<T>): Promise<T> {
+  const XLSX = await getXLSX()
+  return fn(XLSX)
+}
+
+import type * as XLSX from 'xlsx'
 
 export interface StudentInfo {
   id: string
@@ -54,7 +68,7 @@ function createStandardBorder() {
 }
 
 // Helper function to get cell address - eliminates duplication
-function getCellAddress(row: number, col: number): string {
+function getCellAddress(XLSX: typeof import('xlsx'), row: number, col: number): string {
   return XLSX.utils.encode_cell({ r: row, c: col })
 }
 
@@ -145,87 +159,93 @@ function getCellStyle(rowIndex: number): CellStyleConfig | null {
 }
 
 // Helper function to apply worksheet styling
-function applyWorksheetStyling(worksheet: XLSX.WorkSheet): void {
-  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
+async function applyWorksheetStyling(worksheet: XLSX.WorkSheet): Promise<void> {
+  await withXLSX((XLSX) => {
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
 
-  // Style header rows (0-6)
-  for (let R = 0; R <= 6; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = getCellAddress(R, C)
-      if (!worksheet[cellAddress]) continue
+    // Style header rows (0-6)
+    for (let R = 0; R <= 6; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = getCellAddress(XLSX, R, C)
+        if (!worksheet[cellAddress]) continue
 
-      const style = getCellStyle(R)
-      if (style) {
-        worksheet[cellAddress].s = style
+        const style = getCellStyle(R)
+        if (style) {
+          worksheet[cellAddress].s = style
+        }
       }
     }
-  }
 
-  // Style data rows with borders
-  for (let R = 7; R <= range.e.r; R++) {
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const cellAddress = getCellAddress(R, C)
-      if (!worksheet[cellAddress]) {
-        worksheet[cellAddress] = { t: 's', v: '' }
+    // Style data rows with borders
+    for (let R = 7; R <= range.e.r; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellAddress = getCellAddress(XLSX, R, C)
+        if (!worksheet[cellAddress]) {
+          worksheet[cellAddress] = { t: 's', v: '' }
+        }
+
+        // Apply data row style with appropriate alignment
+        worksheet[cellAddress].s = createDataRowStyle(C === 1)
       }
-
-      // Apply data row style with appropriate alignment
-      worksheet[cellAddress].s = createDataRowStyle(C === 1)
     }
-  }
+  })
 }
 
 // Helper function to create instructions sheet
-function createInstructionsSheet(): XLSX.WorkSheet {
-  const instructionsData = [
-    ['HƯỚNG DẪN NHẬP ĐIỂM CÁ NHÂN'],
-    [''],
-    ['1. Điểm số: Nhập số từ 0 đến 10, có thể có 1 chữ số thập phân (ví dụ: 8.5)'],
-    ['2. Điểm giữa kì: Điểm kiểm tra giữa học kì'],
-    ['3. Điểm cuối kì: Điểm kiểm tra cuối học kì'],
-    ['4. Ghi chú: Có thể để trống hoặc nhập thông tin bổ sung'],
-    ['5. Không được thay đổi cấu trúc bảng (thêm/xóa cột, hàng tiêu đề)'],
-    ['6. Không được thay đổi thông tin học sinh và môn học'],
-    ['7. Sau khi nhập xong, lưu file và import lại vào hệ thống'],
-    [''],
-    ['LƯU Ý:'],
-    ['- File này chỉ dùng để nhập điểm, không dùng để in ấn'],
-    ['- Hãy kiểm tra kỹ trước khi import'],
-    ['- Liên hệ admin nếu có vấn đề'],
-    ['- Điểm trung bình sẽ được tự động tính toán']
-  ]
+async function createInstructionsSheet(): Promise<import('xlsx').WorkSheet> {
+  return withXLSX((XLSX) => {
+    const instructionsData = [
+      ['HƯỚNG DẪN NHẬP ĐIỂM CÁ NHÂN'],
+      [''],
+      ['1. Điểm số: Nhập số từ 0 đến 10, có thể có 1 chữ số thập phân (ví dụ: 8.5)'],
+      ['2. Điểm giữa kì: Điểm kiểm tra giữa học kì'],
+      ['3. Điểm cuối kì: Điểm kiểm tra cuối học kì'],
+      ['4. Ghi chú: Có thể để trống hoặc nhập thông tin bổ sung'],
+      ['5. Không được thay đổi cấu trúc bảng (thêm/xóa cột, hàng tiêu đề)'],
+      ['6. Không được thay đổi thông tin học sinh và môn học'],
+      ['7. Sau khi nhập xong, lưu file và import lại vào hệ thống'],
+      [''],
+      ['LƯU Ý:'],
+      ['- File này chỉ dùng để nhập điểm, không dùng để in ấn'],
+      ['- Hãy kiểm tra kỹ trước khi import'],
+      ['- Liên hệ admin nếu có vấn đề'],
+      ['- Điểm trung bình sẽ được tự động tính toán']
+    ]
 
-  const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData)
-  instructionsSheet['!cols'] = [{ wch: 80 }]
-  return instructionsSheet
+    const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData)
+    instructionsSheet['!cols'] = [{ wch: 80 }]
+    return instructionsSheet
+  })
 }
 
 // Create Excel template for individual student grades
-export function createIndividualGradeTemplate(data: IndividualGradeExportData): ArrayBuffer {
-  const workbook = XLSX.utils.book_new()
+export async function createIndividualGradeTemplate(data: IndividualGradeExportData): Promise<ArrayBuffer> {
+  return withXLSX(async (XLSX) => {
+    const workbook = XLSX.utils.book_new()
 
-  // Create worksheet data
-  const worksheetData = [
-    ...createHeaderRows(data),
-    ...createSubjectRows(data.subjects)
-  ]
-  
-  // Create worksheet
-  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+    // Create worksheet data
+    const worksheetData = [
+      ...createHeaderRows(data),
+      ...createSubjectRows(data.subjects)
+    ]
 
-  // Configure layout and styling
-  configureWorksheetLayout(worksheet)
-  applyWorksheetStyling(worksheet)
-  
-  // Add worksheet to workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm')
+    // Create worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
 
-  // Add instructions sheet
-  const instructionsSheet = createInstructionsSheet()
-  XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Hướng dẫn')
-  
-  // Convert to array buffer
-  return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+    // Configure layout and styling
+    configureWorksheetLayout(worksheet)
+    await applyWorksheetStyling(worksheet)
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm')
+
+    // Add instructions sheet
+    const instructionsSheet = await createInstructionsSheet()
+    XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Hướng dẫn')
+
+    // Convert to array buffer
+    return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
+  })
 }
 
 // Helper function to validate if row should be skipped
@@ -317,65 +337,67 @@ function processGradeRow(
 }
 
 // Parse Excel file and extract individual grade data
-export function parseIndividualGradeExcel(file: ArrayBuffer, expectedSubjects: SubjectInfo[]): {
+export async function parseIndividualGradeExcel(file: ArrayBuffer, expectedSubjects: SubjectInfo[]): Promise<{
   success: boolean
   data?: IndividualGradeData[]
   errors?: string[]
-} {
+}> {
   try {
-    const workbook = XLSX.read(file, { type: 'array' })
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+    return withXLSX((XLSX) => {
+      const workbook = XLSX.read(file, { type: 'array' })
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
 
-    if (!worksheet) {
+      if (!worksheet) {
+        return {
+          success: false,
+          errors: ['Không tìm thấy worksheet trong file Excel']
+        }
+      }
+
+      // Convert to JSON, starting from row 8 (after headers, column titles, and separator)
+      const rawData = XLSX.utils.sheet_to_json(worksheet, {
+        range: 7, // Start from row 8 (0-indexed) to skip headers, column titles, and separator
+        header: 1,
+        defval: ''
+      }) as unknown as Record<string, string | number>[]
+
+      // Type guard to ensure proper typing
+      const jsonData: Record<string, string | number>[] = Array.isArray(rawData)
+        ? rawData.filter((row): row is Record<string, string | number> =>
+            typeof row === 'object' && row !== null
+          )
+        : []
+
+      const gradeData: IndividualGradeData[] = []
+      const errors: string[] = []
+
+      // Debug: Log the raw data to understand the structure
+      console.log('Raw Excel data:', jsonData.slice(0, 5)) // Log first 5 rows for debugging
+      console.log('Expected subjects:', expectedSubjects.map(s => s.name_vietnamese))
+
+      // Process each subject row
+      jsonData.forEach((row, rowIndex) => {
+        const result = processGradeRow(row, rowIndex, expectedSubjects)
+
+        if (result.gradeData) {
+          gradeData.push(result.gradeData)
+        }
+
+        errors.push(...result.errors)
+      })
+
+      if (errors.length > 0) {
+        return {
+          success: false,
+          errors
+        }
+      }
+
       return {
-        success: false,
-        errors: ['Không tìm thấy worksheet trong file Excel']
+        success: true,
+        data: gradeData
       }
-    }
-
-    // Convert to JSON, starting from row 8 (after headers, column titles, and separator)
-    const rawData = XLSX.utils.sheet_to_json(worksheet, {
-      range: 7, // Start from row 8 (0-indexed) to skip headers, column titles, and separator
-      header: 1,
-      defval: ''
     })
-
-    // Type guard to ensure proper typing
-    const jsonData: Record<string, string | number>[] = Array.isArray(rawData)
-      ? rawData.filter((row): row is Record<string, string | number> =>
-          typeof row === 'object' && row !== null
-        )
-      : []
-
-    const gradeData: IndividualGradeData[] = []
-    const errors: string[] = []
-
-    // Debug: Log the raw data to understand the structure
-    console.log('Raw Excel data:', jsonData.slice(0, 5)) // Log first 5 rows for debugging
-    console.log('Expected subjects:', expectedSubjects.map(s => s.name_vietnamese))
-
-    // Process each subject row
-    jsonData.forEach((row, rowIndex) => {
-      const result = processGradeRow(row, rowIndex, expectedSubjects)
-
-      if (result.gradeData) {
-        gradeData.push(result.gradeData)
-      }
-
-      errors.push(...result.errors)
-    })
-
-    if (errors.length > 0) {
-      return {
-        success: false,
-        errors
-      }
-    }
-
-    return {
-      success: true,
-      data: gradeData
-    }
   } catch (error) {
     return {
       success: false,

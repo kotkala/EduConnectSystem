@@ -24,7 +24,7 @@ export default async function ParentGradesPage() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <ParentGradesClient />
       </Suspense>
     </div>

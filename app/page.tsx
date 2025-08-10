@@ -1,13 +1,16 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
 // Lazy load heavy components to reduce initial bundle size
-const MotionDiv = dynamic(() => import('framer-motion').then(mod => mod.motion.div), {
+import { LoadingFallback } from '@/components/ui/loading-fallback'
+import { Spinner } from '@/components/ui/spinner'
+const MotionDiv = nextDynamic(() => import('framer-motion').then(mod => mod.motion.div), {
   ssr: false,
-  loading: () => <div className="animate-pulse bg-gray-200 rounded-lg h-48" />
+  loading: () => <LoadingFallback size="md" />
 })
 
 // Performance optimization: Lazy load framer-motion to reduce initial bundle
@@ -95,7 +98,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <Spinner size={32} className="mx-auto" />
           <p className="mt-2 text-sm text-gray-600">Đang tải...</p>
         </div>
       </div>

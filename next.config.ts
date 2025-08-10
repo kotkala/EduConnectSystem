@@ -69,6 +69,12 @@ const nextConfig: NextConfig = {
       exclude: /experiment-06/,
     });
 
+    // Silence dynamic require warning from @supabase/realtime-js only for the specific file
+    config.module.rules.push({
+      test: /node_modules[\\\\\/]@supabase[\\\\\/]realtime-js[\\\\\/]dist[\\\\\/]module[\\\\\/]lib[\\\\\/]websocket-factory\.js$/,
+      parser: { exprContextCritical: false },
+    });
+
     // Add bundle analyzer in development if ANALYZE=true
     if (process.env.ANALYZE === 'true') {
       config.plugins.push(

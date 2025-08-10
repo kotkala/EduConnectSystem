@@ -19,6 +19,7 @@ import {
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { LoadingFallback } from '@/components/ui/loading-fallback'
 
 interface Profile {
   id: string
@@ -247,15 +248,13 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div>
+          <LoadingFallback size="xs" className="w-1/3 mb-2" />
+          <LoadingFallback size="xs" className="w-1/2" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="animate-pulse">
-              <div className="h-32 bg-gray-200 rounded"></div>
-            </div>
+            <LoadingFallback key={i} size="sm" />
           ))}
         </div>
       </div>
@@ -402,7 +401,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
                         <p className="text-sm font-medium">{activity.title}</p>
                         {activity.urgent && (
                           <Badge variant="destructive" className="text-xs">
-                            Urgent
+                            Khẩn cấp
                           </Badge>
                         )}
                       </div>

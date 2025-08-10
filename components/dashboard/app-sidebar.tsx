@@ -69,60 +69,60 @@ interface PlatformItem {
 // Platform items for each role
 const platformItems: Record<string, PlatformItem[]> = {
   admin: [
-    { title: "Dashboard", url: "/dashboard/admin", icon: Home },
-    { title: "Users", url: "/dashboard/admin/users", icon: Users },
-    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
-    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
-    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
-    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
-    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
-    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
-    { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
-    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
-    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
+    { title: "Tổng quan", url: "/dashboard/admin", icon: Home },
+    { title: "Người dùng", url: "/dashboard/admin/users", icon: Users },
+    { title: "Thông báo", url: "/dashboard/admin/notifications", icon: Bell },
+    { title: "Niên khóa", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
+    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   admin_full: [
-    { title: "Dashboard", url: "/dashboard/admin", icon: Home },
-    { title: "Users", url: "/dashboard/admin/users", icon: Users },
-    { title: "Notifications", url: "/dashboard/admin/notifications", icon: Bell },
-    { title: "Academic", url: "/dashboard/admin/academic", icon: Calendar },
-    { title: "Classes", url: "/dashboard/admin/classes", icon: GraduationCap },
-    { title: "Subjects", url: "/dashboard/admin/subjects", icon: BookOpen },
-    { title: "Classrooms", url: "/dashboard/admin/classrooms", icon: Building },
-    { title: "Timetable", url: "/dashboard/admin/timetable", icon: Calendar },
-    { title: "Bảng Điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
-    { title: "Vi Phạm Học Sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
-    { title: "Exchange Requests", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
+    { title: "Tổng quan", url: "/dashboard/admin", icon: Home },
+    { title: "Người dùng", url: "/dashboard/admin/users", icon: Users },
+    { title: "Thông báo", url: "/dashboard/admin/notifications", icon: Bell },
+    { title: "Niên khóa", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
+    { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
+    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
   teacher: [
-    { title: "Dashboard", url: "/dashboard/teacher", icon: Home },
-    { title: "Notifications", url: "/dashboard/teacher/notifications", icon: Bell },
-    { title: "Lịch Giảng Dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
-    { title: "Bảng Điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
-    { title: "Họp Phụ Huynh", url: "/dashboard/teacher/meetings", icon: Users },
-    { title: "Homeroom Students", url: "/dashboard/teacher/homeroom-students", icon: Heart },
-    { title: "Leave Requests", url: "/dashboard/teacher/leave-requests", icon: FileText },
+    { title: "Tổng quan", url: "/dashboard/teacher", icon: Home },
+    { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
+    { title: "Lịch giảng dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Bảng điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
+    { title: "Họp phụ huynh", url: "/dashboard/teacher/meetings", icon: Users },
+    { title: "Học sinh chủ nhiệm", url: "/dashboard/teacher/homeroom-students", icon: Heart },
+    { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
   ],
   student: [
     { title: "Dashboard", url: "/dashboard/student", icon: Home },
-    { title: "Notifications", url: "/dashboard/student/notifications", icon: Bell },
-    { title: "My Courses", url: "/dashboard/student/courses", icon: BookOpen },
-    { title: "Assignments", url: "/dashboard/student/assignments", icon: FileText },
-    { title: "Grades", url: "/dashboard/student/grades", icon: Award },
+    { title: "Thông báo", url: "/dashboard/student/notifications", icon: Bell },
+    { title: "Khóa học của tôi", url: "/dashboard/student/courses", icon: BookOpen },
+    { title: "Bài tập", url: "/dashboard/student/assignments", icon: FileText },
+    { title: "Điểm số", url: "/dashboard/student/grades", icon: Award },
   ],
   parent: [
-    { title: "Dashboard", url: "/dashboard/parent", icon: Home },
-    { title: "Notifications", url: "/dashboard/parent/notifications", icon: Bell },
-    { title: "Trợ Lý AI", url: "#", icon: Bot, isSpecial: true },
-    { title: "Trợ Lý AI - Mở Rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
-    { title: "Bảng Điểm Con Em", url: "/dashboard/parent/grades", icon: Award },
-    { title: "Phản Hồi Học Tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
-    { title: "Vi Phạm Con Em", url: "/dashboard/parent/violations", icon: AlertTriangle },
-    { title: "Meeting Schedules", url: "/dashboard/parent/meetings", icon: Calendar },
-    { title: "Leave Application", url: "/dashboard/parent/leave-application", icon: FileText },
-    { title: "Leave Status", url: "/dashboard/parent/leave-status", icon: Clock },
-    { title: "My Children", url: "/dashboard/parent/children", icon: Heart },
-    { title: "Messages", url: "/dashboard/parent/messages", icon: MessageSquare },
+    { title: "Tổng quan", url: "/dashboard/parent", icon: Home },
+    { title: "Thông báo", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Trợ lý AI", url: "#", icon: Bot, isSpecial: true },
+    { title: "Trợ lý AI - Mở rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
+    { title: "Bảng điểm con em", url: "/dashboard/parent/grades", icon: Award },
+    { title: "Phản hồi học tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
+    { title: "Vi phạm con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
+    { title: "Lịch họp", url: "/dashboard/parent/meetings", icon: Calendar },
+    { title: "Đơn xin nghỉ", url: "/dashboard/parent/leave-application", icon: FileText },
+    { title: "Trạng thái nghỉ", url: "/dashboard/parent/leave-status", icon: Clock },
+    { title: "Con của tôi", url: "/dashboard/parent/children", icon: Heart },
+    { title: "Tin nhắn", url: "/dashboard/parent/messages", icon: MessageSquare },
   ],
 }
 
@@ -201,7 +201,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel>Nền tảng</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -270,15 +270,15 @@ export function AppSidebar({ role }: AppSidebarProps) {
               >
                 <DropdownMenuItem onClick={() => router.push('/profile')}>
                   <User2 className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>Hồ sơ</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/profile?tab=settings')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>Cài đặt</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>Đăng xuất</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

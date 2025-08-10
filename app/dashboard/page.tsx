@@ -14,8 +14,8 @@ export default async function DashboardPage() {
     .single()
 
   if (!profile) {
-    // If no profile exists, redirect to profile setup
-    redirect('/profile/setup')
+    // If no profile exists, redirect to pending approval (awaiting admin role assignment)
+    redirect('/pending-approval')
   }
 
   // Redirect to role-specific dashboard

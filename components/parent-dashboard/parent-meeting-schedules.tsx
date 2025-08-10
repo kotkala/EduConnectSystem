@@ -246,7 +246,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
         className="relative"
       >
         <Calendar className="mr-2 h-4 w-4" />
-        Meeting Schedules
+        Lịch họp phụ huynh
         {unreadCount > 0 && (
           <Badge variant="destructive" className="ml-2 px-1 py-0 text-xs">
             {unreadCount}

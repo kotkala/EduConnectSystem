@@ -22,7 +22,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("Authentication required")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -32,7 +32,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("Admin permissions required")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id }
@@ -57,7 +57,7 @@ export async function createClassAction(formData: ClassFormData) {
     if (existingClass) {
       return {
         success: false,
-        error: "Class name already exists in this academic year and semester"
+        error: "Tên lớp đã tồn tại trong niên khóa và học kỳ này"
       }
     }
 
@@ -73,14 +73,14 @@ export async function createClassAction(formData: ClassFormData) {
       if (!teacher) {
         return {
           success: false,
-          error: "Selected homeroom teacher not found"
+          error: "Không tìm thấy giáo viên chủ nhiệm đã chọn"
         }
       }
 
       if (!teacher.homeroom_enabled) {
         return {
           success: false,
-          error: "Selected teacher is not enabled for homeroom duties"
+          error: "Giáo viên đã chọn chưa được kích hoạt cho nhiệm vụ chủ nhiệm"
         }
       }
 
@@ -95,7 +95,7 @@ export async function createClassAction(formData: ClassFormData) {
       if (existingAssignment) {
         return {
           success: false,
-          error: `Teacher is already assigned as homeroom teacher for class "${existingAssignment.name}" in this semester`
+          error: `Giáo viên đã được phân công làm GVCN cho lớp "${existingAssignment.name}" trong học kỳ này`
         }
       }
     }
@@ -128,14 +128,14 @@ export async function createClassAction(formData: ClassFormData) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Class created successfully"
+      message: "Tạo lớp thành công"
     }
 
   } catch (error) {
     console.error("Create class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to create class"
+      error: error instanceof Error ? error.message : "Không thể tạo lớp"
     }
   }
 }
@@ -156,7 +156,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
     if (fetchError || !existingClass) {
       return {
         success: false,
-        error: "Class not found"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -176,7 +176,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (nameExists) {
         return {
           success: false,
-          error: "Class name already exists in this academic year and semester"
+          error: "Tên lớp đã tồn tại trong niên khóa và học kỳ này"
         }
       }
     }
@@ -193,14 +193,14 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (!teacher) {
         return {
           success: false,
-          error: "Selected homeroom teacher not found"
+          error: "Không tìm thấy giáo viên chủ nhiệm đã chọn"
         }
       }
 
       if (!teacher.homeroom_enabled) {
         return {
           success: false,
-          error: "Selected teacher is not enabled for homeroom duties"
+          error: "Giáo viên đã chọn chưa được kích hoạt cho nhiệm vụ chủ nhiệm"
         }
       }
 
@@ -216,7 +216,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (existingAssignment) {
         return {
           success: false,
-          error: `Teacher is already assigned as homeroom teacher for class "${existingAssignment.name}" in this semester`
+          error: `Giáo viên đã được phân công làm GVCN cho lớp "${existingAssignment.name}" trong học kỳ này`
         }
       }
     }
@@ -251,14 +251,14 @@ export async function updateClassAction(formData: UpdateClassFormData) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Class updated successfully"
+      message: "Cập nhật lớp thành công"
     }
 
   } catch (error) {
     console.error("Update class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to update class"
+      error: error instanceof Error ? error.message : "Không thể cập nhật lớp"
     }
   }
 }
@@ -278,7 +278,7 @@ export async function deleteClassAction(classId: string) {
     if (fetchError || !classData) {
       return {
         success: false,
-        error: "Class not found"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -286,7 +286,7 @@ export async function deleteClassAction(classId: string) {
     if (classData.current_students > 0) {
       return {
         success: false,
-        error: "Cannot delete class with assigned students. Please remove all students first."
+        error: "Không thể xóa lớp đang có học sinh. Vui lòng gỡ tất cả học sinh trước."
       }
     }
 
@@ -306,14 +306,14 @@ export async function deleteClassAction(classId: string) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Class deleted successfully"
+      message: "Xóa lớp thành công"
     }
 
   } catch (error) {
     console.error("Delete class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to delete class"
+      error: error instanceof Error ? error.message : "Không thể xóa lớp"
     }
   }
 }
@@ -333,7 +333,7 @@ export async function getClassesAction(filters?: ClassFilters) {
     if (tableCheckError?.message?.includes('relation "classes" does not exist')) {
       return {
         success: false,
-        error: "Classes table does not exist. Please contact your administrator to set up the database.",
+        error: "Bảng classes không tồn tại. Vui lòng liên hệ quản trị viên để thiết lập cơ sở dữ liệu.",
         data: [],
         total: 0,
         page: validatedFilters.page
@@ -404,7 +404,7 @@ export async function getClassesAction(filters?: ClassFilters) {
     console.error("Get classes error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to fetch classes",
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách lớp",
       data: [],
       total: 0,
       page: 1
@@ -430,7 +430,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (!student) {
       return {
         success: false,
-        error: "Student not found"
+        error: "Không tìm thấy học sinh"
       }
     }
 
@@ -444,7 +444,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (!classData) {
       return {
         success: false,
-        error: "Class not found"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -452,7 +452,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (classData.current_students >= classData.max_students) {
       return {
         success: false,
-        error: "Class is at maximum capacity"
+        error: "Lớp đã đạt sĩ số tối đa"
       }
     }
 
@@ -460,14 +460,14 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (validatedData.assignment_type === 'main' && classData.is_subject_combination) {
       return {
         success: false,
-        error: "Cannot assign student to subject combination class as main class"
+        error: "Không thể phân học sinh vào lớp tổ hợp làm lớp chính"
       }
     }
 
     if (validatedData.assignment_type === 'combined' && !classData.is_subject_combination) {
       return {
         success: false,
-        error: "Cannot assign student to regular class as combined class"
+        error: "Không thể phân học sinh vào lớp thường làm lớp tổ hợp"
       }
     }
 
@@ -482,7 +482,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (existingAssignment) {
       return {
         success: false,
-        error: `Student already has a ${validatedData.assignment_type} class assignment`
+        error: `Học sinh đã có phân công lớp dạng ${validatedData.assignment_type}`
       }
     }
 
@@ -518,7 +518,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: `Student assigned to ${validatedData.assignment_type} class successfully`
+      message: `Phân công học sinh vào lớp dạng ${validatedData.assignment_type} thành công`
     }
 
   } catch (error) {
@@ -545,7 +545,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     if (fetchError || !assignment) {
       return {
         success: false,
-        error: "Assignment not found"
+        error: "Không tìm thấy phân công"
       }
     }
 
@@ -587,7 +587,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Student removed from class successfully"
+      message: "Gỡ học sinh khỏi lớp thành công"
     }
 
   } catch (error) {
@@ -774,38 +774,50 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
       }
     }
 
-    // For each student, get their other class assignment (main or combined)
-    const studentsWithOtherClass = await Promise.all(
-      (data || []).map(async (assignment) => {
-        const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
+    // Batch fetch other assignments to avoid N+1 queries
+    const assignments = data || []
+    const uniqueStudentIds = Array.from(new Set(assignments.map(a => a.student_id)))
 
-        // If current assignment is "main", look for "combined" class
-        // If current assignment is "combined", look for "main" class
-        const otherAssignmentType = assignment.assignment_type === "main" ? "combined" : "main"
+    // Fetch all active assignments for these students (both types)
+    const { data: otherAssignments, error: otherErr } = await supabase
+      .from("student_class_assignments")
+      .select(`
+        student_id,
+        assignment_type,
+        class:classes(name)
+      `)
+      .in("student_id", uniqueStudentIds)
+      .eq("is_active", true)
 
-        const { data: otherAssignment } = await supabase
-          .from("student_class_assignments")
-          .select(`
-            class:classes(name)
-          `)
-          .eq("student_id", assignment.student_id)
-          .eq("assignment_type", otherAssignmentType)
-          .eq("is_active", true)
-          .single()
+    if (otherErr) {
+      console.error("Error fetching other assignments:", otherErr)
+    }
 
-        const otherClass = Array.isArray(otherAssignment?.class) ? otherAssignment?.class[0] : otherAssignment?.class
+    // Build map: student_id -> { main?: className, combined?: className }
+    const studentIdToTypeToClass: Record<string, { main?: string; combined?: string }> = {}
+    for (const oa of otherAssignments || []) {
+      const cls = Array.isArray(oa.class) ? oa.class[0] : oa.class
+      const className: string | undefined = cls?.name
+      if (!className) continue
+      const bucket = (studentIdToTypeToClass[oa.student_id] ||= {})
+      if (oa.assignment_type === "main") bucket.main = className
+      else if (oa.assignment_type === "combined") bucket.combined = className
+    }
 
-        return {
-          id: assignment.id,
-          student_id: student?.student_id || "",
-          full_name: student?.full_name || "",
-          email: student?.email || "",
-          assignment_type: assignment.assignment_type,
-          assigned_at: assignment.assigned_at,
-          combined_class_name: otherClass?.name || null
-        }
-      })
-    )
+    const studentsWithOtherClass = assignments.map((assignment) => {
+      const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
+      const otherType = assignment.assignment_type === "main" ? "combined" : "main"
+      const otherName = studentIdToTypeToClass[assignment.student_id]?.[otherType as "main" | "combined"]
+      return {
+        id: assignment.id,
+        student_id: student?.student_id || "",
+        full_name: student?.full_name || "",
+        email: student?.email || "",
+        assignment_type: assignment.assignment_type,
+        assigned_at: assignment.assigned_at,
+        combined_class_name: otherName ?? undefined
+      }
+    })
 
     return {
       success: true,

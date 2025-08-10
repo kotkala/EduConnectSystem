@@ -36,10 +36,10 @@ export default function StudentsPageClient() {
         setTotal(result.total)
         setCurrentPage(result.page || 1)
       } else {
-        setError(result.error || "Failed to fetch students")
+        setError(result.error || "Không thể tải danh sách học sinh")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch students")
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách học sinh")
     } finally {
       setLoading(false)
     }
@@ -99,14 +99,14 @@ export default function StudentsPageClient() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Student & Parent Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý Học sinh & Phụ huynh</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Manage student accounts with mandatory parent relationships
+            Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <UserPlus className="mr-2 h-4 w-4" />
-          Add Student & Parent
+          Thêm Học sinh & Phụ huynh
         </Button>
       </div>
 
@@ -114,20 +114,20 @@ export default function StudentsPageClient() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Total Students</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số học sinh</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              Active student accounts
+              Tài khoản học sinh đang hoạt động
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">With Parents</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Có phụ huynh</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -135,14 +135,14 @@ export default function StudentsPageClient() {
               {studentsWithParents.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Students with parent links
+              Học sinh đã liên kết phụ huynh
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Missing Parents</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Thiếu phụ huynh</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -150,14 +150,14 @@ export default function StudentsPageClient() {
               {studentsWithoutParents.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Students without parent links
+              Học sinh chưa liên kết phụ huynh
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">New This Month</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Mới trong tháng</CardTitle>
             <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -165,7 +165,7 @@ export default function StudentsPageClient() {
               {newThisMonth.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Students added this month
+              Học sinh được thêm trong tháng này
             </p>
           </CardContent>
         </Card>
@@ -175,8 +175,8 @@ export default function StudentsPageClient() {
       {studentsWithoutParents.length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
-            Warning: {studentsWithoutParents.length} student(s) do not have parent relationships. 
-            This should not happen with the new system. Please contact support.
+            Cảnh báo: Có {studentsWithoutParents.length} học sinh chưa liên kết phụ huynh.
+            Điều này không nên xảy ra với hệ thống mới. Vui lòng liên hệ hỗ trợ.
           </AlertDescription>
         </Alert>
       )}

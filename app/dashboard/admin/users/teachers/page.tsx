@@ -36,10 +36,10 @@ export default function TeachersPage() {
         setTotal(result.total)
         setCurrentPage(result.page || 1)
       } else {
-        setError(result.error || "Failed to fetch teachers")
+        setError(result.error || "Không thể tải danh sách giáo viên")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch teachers")
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
     } finally {
       setLoading(false)
     }
@@ -93,14 +93,14 @@ export default function TeachersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Teacher Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý giáo viên</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Manage teacher accounts and information
+            Quản lý tài khoản và thông tin giáo viên
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Add Teacher
+          Thêm giáo viên
         </Button>
       </div>
 
@@ -108,20 +108,20 @@ export default function TeachersPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Total Teachers</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số giáo viên</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              Active teacher accounts
+              Tài khoản giáo viên đang hoạt động
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Homeroom Teachers</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Giáo viên chủ nhiệm</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -129,14 +129,14 @@ export default function TeachersPage() {
               {teachers.filter(t => t.homeroom_enabled).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Teachers with homeroom access
+              Giáo viên có quyền GVCN
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">New This Month</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Mới trong tháng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export default function TeachersPage() {
               }).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Teachers added this month
+              Giáo viên được thêm trong tháng này
             </p>
           </CardContent>
         </Card>

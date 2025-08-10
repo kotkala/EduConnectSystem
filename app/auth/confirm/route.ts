@@ -27,12 +27,11 @@ export async function GET(request: NextRequest) {
           .eq('id', user.id)
           .single()
 
-        // If profile exists and is complete, go to dashboard
-        if (profile?.role && profile?.full_name) {
+        // If user has been assigned a role, go to dashboard; otherwise show pending approval
+        if (profile?.role) {
           redirectTo.pathname = '/dashboard'
         } else {
-          // Otherwise go to profile setup
-          redirectTo.pathname = '/profile/setup'
+          redirectTo.pathname = '/pending-approval'
         }
       }
 

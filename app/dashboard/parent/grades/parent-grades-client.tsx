@@ -11,9 +11,10 @@ import { getChildrenGradeReportsAction, getStudentGradeDetailAction, getStudentG
 import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
 
 // Lazy load heavy dialog component to improve initial page load
+import { LoadingFallback } from '@/components/ui/loading-fallback'
 const ParentGradeViewDialog = dynamic(() => import('@/components/parent-dashboard/parent-grade-view-dialog').then(mod => ({ default: mod.ParentGradeViewDialog })), {
   ssr: false,
-  loading: () => <div className="h-96 bg-gray-100 rounded animate-pulse"></div>
+  loading: () => <LoadingFallback size="lg" />
 })
 
 interface GradeSubmission {
@@ -286,9 +287,9 @@ export default function ParentGradesClient() {
         semester: submission.semester.name
       }
 
-      const excelBuffer = createIndividualGradeTemplate(exportData)
+      const excelBuffer = await createIndividualGradeTemplate(exportData)
       const filename = `BangDiem_${submission.student.student_id}_${submission.student.full_name}_${submission.semester.name}.xlsx`
-      
+
       downloadExcelFile(excelBuffer, filename)
       toast.success(`Đã tải bảng điểm của ${submission.student.full_name}`)
     } catch {

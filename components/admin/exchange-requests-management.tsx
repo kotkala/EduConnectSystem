@@ -23,7 +23,7 @@ import {
 import { ExchangeRequestCard, type ExchangeRequest } from "@/components/shared/request-card"
 
 const responseSchema = z.object({
-  admin_response: z.string().max(500, "Response must be less than 500 characters").optional()
+  admin_response: z.string().max(500, "Phản hồi phải ít hơn 500 ký tự").optional()
 })
 
 type ResponseFormData = z.infer<typeof responseSchema>
@@ -101,7 +101,7 @@ export function ExchangeRequestsManagement() {
       }
     } catch (error) {
       console.error('Exception loading requests:', error)
-      toast.error("Failed to load exchange requests")
+      toast.error("Không thể tải danh sách yêu cầu đổi lịch")
     } finally {
       setLoading(false)
     }
@@ -166,7 +166,7 @@ export function ExchangeRequestsManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            Loading Exchange Requests...
+            Đang tải danh sách yêu cầu đổi lịch...
           </CardTitle>
         </CardHeader>
       </Card>
@@ -183,9 +183,9 @@ export function ExchangeRequestsManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Schedule Exchange Requests</CardTitle>
+              <CardTitle>Yêu cầu đổi lịch</CardTitle>
               <CardDescription>
-                Manage teacher schedule exchange requests
+                Quản lý yêu cầu đổi lịch giảng dạy của giáo viên
               </CardDescription>
             </div>
             <Button
@@ -195,7 +195,7 @@ export function ExchangeRequestsManagement() {
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -204,15 +204,15 @@ export function ExchangeRequestsManagement() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="pending" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Pending ({pendingRequests.length})
+                Đang chờ ({pendingRequests.length})
               </TabsTrigger>
               <TabsTrigger value="approved" className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
-                Approved ({approvedRequests.length})
+                Đã chấp thuận ({approvedRequests.length})
               </TabsTrigger>
               <TabsTrigger value="rejected" className="flex items-center gap-2">
                 <XCircle className="h-4 w-4" />
-                Rejected ({rejectedRequests.length})
+                Bị từ chối ({rejectedRequests.length})
               </TabsTrigger>
             </TabsList>
 
@@ -220,7 +220,7 @@ export function ExchangeRequestsManagement() {
               {pendingRequests.length === 0 ? (
                 <Alert>
                   <AlertDescription>
-                    No pending exchange requests at the moment.
+                    Hiện chưa có yêu cầu đổi lịch đang chờ xử lý.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -232,7 +232,7 @@ export function ExchangeRequestsManagement() {
               {approvedRequests.length === 0 ? (
                 <Alert>
                   <AlertDescription>
-                    No approved exchange requests yet.
+                    Chưa có yêu cầu đổi lịch nào được chấp thuận.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -244,7 +244,7 @@ export function ExchangeRequestsManagement() {
               {rejectedRequests.length === 0 ? (
                 <Alert>
                   <AlertDescription>
-                    No rejected exchange requests yet.
+                    Chưa có yêu cầu đổi lịch nào bị từ chối.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -260,12 +260,12 @@ export function ExchangeRequestsManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionType === 'approve' ? 'Approve' : 'Reject'} Exchange Request
+              {actionType === 'approve' ? 'Chấp thuận' : 'Từ chối'} yêu cầu đổi lịch
             </DialogTitle>
             <DialogDescription>
-              {actionType === 'approve' 
-                ? 'This will approve the schedule exchange and update the timetable.'
-                : 'This will reject the schedule exchange request.'
+              {actionType === 'approve'
+                ? 'Thao tác này sẽ chấp thuận đổi lịch và cập nhật thời khóa biểu.'
+                : 'Thao tác này sẽ từ chối yêu cầu đổi lịch.'
               }
             </DialogDescription>
           </DialogHeader>
@@ -273,11 +273,11 @@ export function ExchangeRequestsManagement() {
           {selectedRequest && (
             <div className="space-y-4">
               <div className="text-sm">
-                <strong>Request:</strong> {selectedRequest.requester_name} → {selectedRequest.target_name}
+                <strong>Yêu cầu:</strong> {selectedRequest.requester_name} → {selectedRequest.target_name}
                 <br />
-                <strong>Subject:</strong> {selectedRequest.subject_code} - {selectedRequest.class_name}
+                <strong>Môn học:</strong> {selectedRequest.subject_code} - {selectedRequest.class_name}
                 <br />
-                <strong>Date:</strong> {format(new Date(selectedRequest.exchange_date), 'PPP')}
+                <strong>Ngày:</strong> {format(new Date(selectedRequest.exchange_date), 'PPP')}
               </div>
 
               <Form {...form}>
@@ -288,16 +288,16 @@ export function ExchangeRequestsManagement() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
-                          Response Message {(() => {
-                            return actionType === 'reject' ? '(Required)' : '(Optional)'
+                          Nội dung phản hồi {(() => {
+                            return actionType === 'reject' ? '(Bắt buộc)' : '(Không bắt buộc)'
                           })()}
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder={
-                              actionType === 'approve' 
-                                ? "Optional message to the teachers..."
-                                : "Please explain why this request is being rejected..."
+                              actionType === 'approve'
+                                ? "Tin nhắn tuỳ chọn gửi tới giáo viên..."
+                                : "Vui lòng giải thích lý do từ chối yêu cầu này..."
                             }
                             className="min-h-[80px]"
                             {...field}
@@ -315,7 +315,7 @@ export function ExchangeRequestsManagement() {
                       onClick={() => setActionDialogOpen(false)}
                       disabled={processing}
                     >
-                      Cancel
+                      Hủy
                     </Button>
                     <Button
                       type="submit"
@@ -323,8 +323,8 @@ export function ExchangeRequestsManagement() {
                       disabled={processing}
                     >
                       {(() => {
-                        if (processing) return 'Processing...'
-                        return actionType === 'approve' ? 'Approve' : 'Reject'
+                        if (processing) return 'Đang xử lý...'
+                        return actionType === 'approve' ? 'Chấp thuận' : 'Từ chối'
                       })()}
                     </Button>
                   </DialogFooter>

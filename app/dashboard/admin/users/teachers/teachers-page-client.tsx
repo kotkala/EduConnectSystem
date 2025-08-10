@@ -11,7 +11,7 @@ import { TeacherForm } from "@/components/admin/teacher-form"
 import { getTeachersAction } from "@/lib/actions/user-actions"
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
 
-export default function TeachersPage() {
+export default function TeachersPageClient() {
   const [teachers, setTeachers] = useState<TeacherProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +54,7 @@ export default function TeachersPage() {
   }
 
   const handleFiltersChange = (newFilters: Partial<UserFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }))
+    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }))
   }
 
   const handleEdit = (user: TeacherProfile | StudentWithParent) => {
@@ -208,3 +208,4 @@ export default function TeachersPage() {
     </div>
   )
 }
+

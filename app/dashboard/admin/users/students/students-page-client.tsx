@@ -58,7 +58,12 @@ export default function StudentsPageClient() {
   }
 
   const handleEdit = (user: StudentWithParent | TeacherProfile) => {
-    setEditingStudent(user as StudentWithParent)
+    const s = user as StudentWithParent
+    if (!s.student_id) {
+      setError("Bản ghi học sinh thiếu Mã học sinh. Vui lòng chọn lại hoặc tải lại danh sách.")
+      return
+    }
+    setEditingStudent(s)
     setShowEditDialog(true)
   }
 

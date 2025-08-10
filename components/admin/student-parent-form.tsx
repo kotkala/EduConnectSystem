@@ -13,8 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Save, X, User, Users, RefreshCw } from "lucide-react"
-import { studentParentSchema, type StudentParentFormData, type StudentWithParent } from "@/lib/validations/user-validations"
-import { createStudentWithParentAction, generateNextStudentIdAction } from "@/lib/actions/user-actions"
+import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
+import { createStudentWithParentAction, updateStudentParentAction, generateNextStudentIdAction } from "@/lib/actions/user-actions"
 import { EmailSuggestionInput } from "@/components/admin/email-suggestion-input"
 
 interface StudentParentFormProps {
@@ -212,6 +212,7 @@ function StudentInfoSection({
             <SelectContent>
               <SelectItem value="male">Nam</SelectItem>
               <SelectItem value="female">Nữ</SelectItem>
+              <SelectItem value="other">Khác</SelectItem>
             </SelectContent>
           </Select>
           {form.formState.errors.student?.gender && (
@@ -326,7 +327,6 @@ function ParentInfoSection({
             <SelectContent>
               <SelectItem value="male">Nam</SelectItem>
               <SelectItem value="female">Nữ</SelectItem>
-              <SelectItem value="other">Khác</SelectItem>
             </SelectContent>
           </Select>
           {form.formState.errors.parent?.gender && (
@@ -407,7 +407,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   const [generatingId, setGeneratingId] = useState(false)
 
   const form = useForm<StudentParentFormData>({
-    resolver: zodResolver(studentParentSchema),
+    resolver: zodResolver(editMode ? studentParentSchema : studentParentSchema),
     defaultValues: getInitialFormValues(editMode, initialData)
   })
 
@@ -438,7 +438,18 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
     setSubmitSuccess(null)
 
     try {
-      const result = await createStudentWithParentAction(data)
+      let result
+      if (editMode) {
+        // Build payload for update action: needs student auth id and partials
+        const payload: UpdateStudentParentFormData = {
+          student_id: initialData!.id, // profiles.id (auth user id) of student
+          student: data.student,
+          parent: data.parent
+        }
+        result = await updateStudentParentAction(payload)
+      } else {
+        result = await createStudentWithParentAction(data)
+      }
 
       if (result.success) {
         setSubmitSuccess(result.message || `Student and parent ${editMode ? 'updated' : 'created'} successfully`)
@@ -459,6 +470,17 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   // Handle parent email suggestion selection
   const handleParentEmailSelect = (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => {
     handleParentEmailSelection(user, form)
+  }
+
+  // Guard: when editMode, require initialData with id & student_id
+  if (editMode && (!initialData?.id || !initialData?.student_id)) {
+    return (
+      <Alert variant="destructive" className="border-red-200 bg-red-50">
+        <AlertDescription className="text-red-800 font-medium">
+          Thiếu dữ liệu học sinh để chỉnh sửa. Vui lòng đóng và chọn lại học sinh.
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   return (

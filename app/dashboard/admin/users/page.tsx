@@ -1,46 +1,12 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
-import { Users, GraduationCap, UserPlus, Heart, ArrowRight, AlertCircle } from "lucide-react"
+import { Users, GraduationCap, UserPlus, Heart, ArrowRight } from "lucide-react"
 
 export default function UsersPage() {
   const router = useRouter()
-  const { profile, loading } = useAuth()
-  const isAdmin = profile?.role === 'admin'
-
-  // Redirect if user doesn't have permission
-  useEffect(() => {
-    if (!loading && !isAdmin) {
-      router.push('/dashboard/admin')
-    }
-  }, [loading, isAdmin, router])
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64 p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    )
-  }
-
-  // Show access denied if no permission
-  if (!isAdmin) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
-        <AlertCircle className="h-16 w-16 text-red-500" />
-        <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
-        <p className="text-gray-600">Bạn không có quyền truy cập khu vực quản lý người dùng.</p>
-        <Button onClick={() => router.push('/dashboard/admin')}>
-          Quay lại trang tổng quan
-        </Button>
-      </div>
-    )
-  }
 
   const userTypes = [
     {

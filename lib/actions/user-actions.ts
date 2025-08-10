@@ -7,10 +7,12 @@ import {
   teacherSchema,
   studentParentSchema,
   updateTeacherSchema,
+  updateStudentParentSchema,
   userFiltersSchema,
   type TeacherFormData,
   type StudentParentFormData,
   type UpdateTeacherFormData,
+  type UpdateStudentParentFormData,
   type UserFilters,
   type TeacherProfile,
   type StudentWithParent
@@ -19,7 +21,7 @@ import {
 // Helper function to check admin permissions
 async function checkAdminPermissions() {
   const supabase = await createClient()
-  
+
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
     throw new Error("Yêu cầu xác thực")
@@ -271,7 +273,7 @@ export async function getTeachersAction(filters?: UserFilters) {
 
     let query = supabase
       .from("profiles")
-      .select("*")
+      .select("*", { count: 'exact' })
       .eq("role", "teacher")
       .order("created_at", { ascending: false })
 
@@ -553,6 +555,165 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
   }
 }
 
+// Update existing Student & Parent data and relationship
+export async function updateStudentParentAction(formData: UpdateStudentParentFormData) {
+  try {
+    const validated = updateStudentParentSchema.parse(formData)
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Fetch existing student by auth user id (student profile id)
+    const { data: existingStudent, error: fetchStudentError } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, phone_number, gender, date_of_birth, address, student_id')
+      .eq('id', validated.student_id)
+      .eq('role', 'student')
+      .single()
+
+    if (fetchStudentError || !existingStudent) {
+      return { success: false, error: 'Student not found' }
+    }
+
+    // If parent email provided, find or create/link parent profile
+    let parentProfileId: string | undefined
+
+    if (validated.parent && (validated.parent.email || validated.parent.full_name)) {
+      // Try to find existing parent by email if provided
+      if (validated.parent.email) {
+        const { data: existingParent } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', validated.parent.email)
+          .eq('role', 'parent')
+          .single()
+
+        if (existingParent) {
+          parentProfileId = existingParent.id
+        }
+      }
+    }
+
+    // Update student profile if there are fields to update
+    const studentUpdate = validated.student && Object.fromEntries(
+      Object.entries(validated.student).filter(([, v]) => v !== undefined)
+    )
+
+    if (studentUpdate && Object.keys(studentUpdate).length > 0) {
+      const { error: updStudentErr } = await supabase
+        .from('profiles')
+        .update(studentUpdate)
+        .eq('id', validated.student_id)
+        .eq('role', 'student')
+      if (updStudentErr) {
+        return { success: false, error: updStudentErr.message }
+      }
+    }
+
+    // Update or create parent profile if parent fields provided but no parent found yet
+    if (validated.parent) {
+      // Build parent profile fields separate from relationship fields (omit relationship fields)
+      const parentProfileFields = { ...validated.parent } as Record<string, unknown>
+      delete parentProfileFields['relationship_type']
+      delete parentProfileFields['is_primary_contact']
+
+      if (!parentProfileId && (parentProfileFields.email || parentProfileFields.full_name)) {
+        // Create new parent auth user via invite if email is present; else cannot create
+        if (!parentProfileFields.email) {
+          return { success: false, error: 'Parent email is required to create new parent' }
+        }
+
+        const redirectBase = process.env.NEXT_PUBLIC_SITE_URL
+        if (!redirectBase) {
+          return { success: false, error: 'Missing NEXT_PUBLIC_SITE_URL for invite redirect' }
+        }
+
+        const redirectTo = `${redirectBase}/auth/confirm?next=/dashboard/parent`
+        const { data: parentAuthData, error: parentAuthError } = await supabase.auth.admin.inviteUserByEmail(
+          parentProfileFields.email as string,
+          {
+            data: {
+              full_name: (parentProfileFields.full_name as string) || '',
+              role: 'parent'
+            },
+            redirectTo
+          }
+        )
+        if (parentAuthError || !parentAuthData?.user) {
+          return { success: false, error: parentAuthError?.message || 'Failed to invite parent' }
+        }
+        parentProfileId = parentAuthData.user.id
+
+        const { error: parentProfErr } = await supabase
+          .from('profiles')
+          .insert({
+            id: parentProfileId,
+            role: 'parent',
+            ...parentProfileFields
+          })
+        if (parentProfErr) {
+          return { success: false, error: parentProfErr.message }
+        }
+      } else if (parentProfileId && Object.keys(parentProfileFields).length > 0) {
+        // Update existing parent profile
+        const { error: updParentErr } = await supabase
+          .from('profiles')
+          .update(parentProfileFields)
+          .eq('id', parentProfileId)
+          .eq('role', 'parent')
+        if (updParentErr) {
+          return { success: false, error: updParentErr.message }
+        }
+      }
+
+      // Upsert relationship if we have a parent id
+      if (parentProfileId) {
+        // Check if relationship exists
+        const { data: existingRel } = await supabase
+          .from('parent_student_relationships')
+          .select('id')
+          .eq('student_id', validated.student_id)
+          .eq('parent_id', parentProfileId)
+          .single()
+
+        const relationshipPayload = {
+          parent_id: parentProfileId,
+          student_id: validated.student_id,
+          relationship_type: validated.parent.relationship_type ?? 'father',
+          is_primary_contact: validated.parent.is_primary_contact ?? true
+        }
+
+        if (existingRel) {
+          const { error: updRelErr } = await supabase
+            .from('parent_student_relationships')
+            .update({
+              relationship_type: relationshipPayload.relationship_type,
+              is_primary_contact: relationshipPayload.is_primary_contact
+            })
+            .eq('id', existingRel.id)
+          if (updRelErr) {
+            return { success: false, error: updRelErr.message }
+          }
+        } else {
+          const { error: insRelErr } = await supabase
+            .from('parent_student_relationships')
+            .insert(relationshipPayload)
+          if (insRelErr) {
+            return { success: false, error: insRelErr.message }
+          }
+        }
+      }
+    }
+
+    revalidatePath('/dashboard/admin/users/students')
+    return { success: true, message: 'Updated student and parent data successfully' }
+
+  } catch (error) {
+    console.error('Update student & parent error:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update student and parent' }
+  }
+}
+
+
 export async function getStudentsWithParentsAction(filters?: UserFilters) {
   try {
     await checkAdminPermissions()
@@ -575,7 +736,7 @@ export async function getStudentsWithParentsAction(filters?: UserFilters) {
             role
           )
         )
-      `)
+      `, { count: 'exact' })
       .eq("role", "student")
       .order("created_at", { ascending: false })
 
@@ -673,12 +834,20 @@ export async function deleteStudentAction(studentId: string) {
       }
     }
 
-    // Delete parent if exists
+    // Delete parent only if they have no other student relationships
     if (parentId) {
-      const { error: deleteParentError } = await supabase.auth.admin.deleteUser(parentId)
-      if (deleteParentError) {
-        console.error("Failed to delete parent:", deleteParentError.message)
-        // Don't fail the whole operation if parent deletion fails
+      const { data: otherRels, error: relErr } = await supabase
+        .from('parent_student_relationships')
+        .select('id')
+        .eq('parent_id', parentId)
+        .limit(1)
+
+      if (!relErr && (!otherRels || otherRels.length === 0)) {
+        const { error: deleteParentError } = await supabase.auth.admin.deleteUser(parentId)
+        if (deleteParentError) {
+          console.error("Failed to delete parent:", deleteParentError.message)
+          // Don't fail the whole operation if parent deletion fails
+        }
       }
     }
 

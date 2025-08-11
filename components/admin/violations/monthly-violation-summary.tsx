@@ -169,6 +169,10 @@ export default function MonthlyViolationSummary() {
             ? { ...summary, is_admin_viewed: true, admin_viewed_at: new Date().toISOString() }
             : summary
         ))
+
+        // Trigger custom event to refresh violation alert count
+        window.dispatchEvent(new CustomEvent('violation-alert-updated'))
+
         toast.success('Đã đánh dấu đã xem')
       } else {
         toast.error(res.error || 'Không thể lưu trạng thái đã xem')

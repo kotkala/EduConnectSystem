@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 // Validation schemas
 const parentResponseSchema = z.object({
-  student_report_id: z.string().uuid('Invalid report ID'),
+  student_report_id: z.string().uuid(),
   agreement_status: z.enum(['agree', 'disagree']),
   comments: z.string().optional()
 })
@@ -102,16 +102,26 @@ export async function getUnreadReportCountAction() {
   }
 }
 
-// Get all report notifications for parent
-export async function getParentReportNotificationsAction() {
+// Get all report notifications for parent with pagination and performance optimization
+export async function getParentReportNotificationsAction(page: number = 1, limit: number = 20) {
   try {
     const { userId } = await checkParentPermissions()
     const supabase = await createClient()
 
+    // PERFORMANCE OPTIMIZATION: Add pagination and limit data fetching
+    const offset = (page - 1) * limit
+
+    // PERFORMANCE OPTIMIZATION: Fetch notifications without problematic join
     const { data: notifications, error } = await supabase
       .from('report_notifications')
       .select(`
-        *,
+        id,
+        student_report_id,
+        parent_id,
+        homeroom_teacher_id,
+        is_read,
+        read_at,
+        created_at,
         student_report:student_reports!student_report_id(
           id,
           strengths,
@@ -124,27 +134,74 @@ export async function getParentReportNotificationsAction() {
           class:classes!class_id(name),
           report_period:report_periods!report_period_id(name, start_date, end_date),
           homeroom_teacher:profiles!homeroom_teacher_id(full_name)
-        ),
-        parent_response:parent_report_responses!student_report_id(
-          agreement_status,
-          comments,
-          is_read,
-          responded_at
         )
       `)
       .eq('parent_id', userId)
       .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1) // Add pagination
 
     if (error) {
       throw new Error(error.message)
     }
 
-    return { success: true, data: notifications }
+    // PERFORMANCE OPTIMIZATION: Fetch parent responses separately to avoid relationship issues
+    let notificationsWithResponses = notifications || []
+
+    if (notifications && notifications.length > 0) {
+      const reportIds = notifications
+        .map(n => n.student_report_id)
+        .filter(Boolean)
+
+      if (reportIds.length > 0) {
+        const { data: responses } = await supabase
+          .from('parent_report_responses')
+          .select(`
+            student_report_id,
+            agreement_status,
+            comments,
+            is_read,
+            responded_at
+          `)
+          .eq('parent_id', userId)
+          .in('student_report_id', reportIds)
+
+        // Map responses to notifications
+        const responseMap = new Map(
+          (responses || []).map(r => [r.student_report_id, r])
+        )
+
+        notificationsWithResponses = notifications.map(notification => ({
+          ...notification,
+          parent_response: responseMap.get(notification.student_report_id) || null
+        }))
+      }
+    }
+
+    // Get total count for pagination
+    const { count, error: countError } = await supabase
+      .from('report_notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('parent_id', userId)
+
+    if (countError) {
+      console.error('Error getting count:', countError)
+    }
+
+    return {
+      success: true,
+      data: notificationsWithResponses,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      }
+    }
   } catch (error) {
     console.error('Error in getParentReportNotificationsAction:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to fetch notifications' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch notifications'
     }
   }
 }

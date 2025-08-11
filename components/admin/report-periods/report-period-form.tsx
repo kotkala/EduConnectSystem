@@ -46,6 +46,7 @@ export function ReportPeriodForm({
     name: '',
     start_date: '',
     end_date: '',
+    deadline: '',
     academic_year_id: '',
     semester_id: ''
   })
@@ -103,9 +104,9 @@ export function ReportPeriodForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!formData.name || !formData.start_date || !formData.end_date || 
-        !formData.academic_year_id || !formData.semester_id) {
+
+    if (!formData.name || !formData.start_date || !formData.end_date ||
+        !formData.deadline || !formData.academic_year_id || !formData.semester_id) {
       toast.error('Please fill in all required fields')
       return
     }
@@ -172,11 +173,16 @@ export function ReportPeriodForm({
     const selectedPeriod = periods.find(p => p.value === periodValue)
 
     if (selectedPeriod) {
+      // Set deadline to 3 days before end date
+      const deadlineDate = new Date(selectedPeriod.end_date)
+      deadlineDate.setDate(deadlineDate.getDate() - 3)
+
       setFormData(prev => ({
         ...prev,
         name: selectedPeriod.name,
         start_date: selectedPeriod.start_date,
-        end_date: selectedPeriod.end_date
+        end_date: selectedPeriod.end_date,
+        deadline: deadlineDate.toISOString().split('T')[0]
       }))
     }
   }
@@ -231,6 +237,7 @@ export function ReportPeriodForm({
       name: '',
       start_date: '',
       end_date: '',
+      deadline: '',
       academic_year_id: '',
       semester_id: ''
     })
@@ -441,12 +448,34 @@ export function ReportPeriodForm({
           })()}
 
           {formData.name && formData.start_date && formData.end_date && (
-            <div className="p-3 bg-muted rounded-lg">
-              <h4 className="font-medium text-sm mb-2">Report Period Summary</h4>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p><strong>Name:</strong> {formData.name}</p>
-                <p><strong>Start Date:</strong> {new Date(formData.start_date).toLocaleDateString('vi-VN')}</p>
-                <p><strong>End Date:</strong> {new Date(formData.end_date).toLocaleDateString('vi-VN')}</p>
+            <div>
+              <div>
+                <Label htmlFor="deadline">Thời hạn nộp báo cáo</Label>
+                <input
+                  type="date"
+                  id="deadline"
+                  value={formData.deadline}
+                  onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                  min={formData.start_date}
+                  max={formData.end_date}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ngày cuối cùng giáo viên có thể nộp báo cáo
+                </p>
+              </div>
+
+              <div className="p-3 bg-muted rounded-lg mt-4">
+                <h4 className="font-medium text-sm mb-2">Tóm tắt kỳ báo cáo</h4>
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <p><strong>Tên:</strong> {formData.name}</p>
+                  <p><strong>Ngày bắt đầu:</strong> {new Date(formData.start_date).toLocaleDateString('vi-VN')}</p>
+                  <p><strong>Ngày kết thúc:</strong> {new Date(formData.end_date).toLocaleDateString('vi-VN')}</p>
+                  {formData.deadline && (
+                    <p><strong>Thời hạn nộp:</strong> {new Date(formData.deadline).toLocaleDateString('vi-VN')}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}

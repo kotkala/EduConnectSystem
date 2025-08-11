@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import {
   Home,
   Users,
@@ -16,7 +17,6 @@ import {
   Clock,
   ChevronUp,
   User2,
-  Zap,
   BarChart3,
   ArrowLeftRight,
   ClipboardList,
@@ -187,9 +187,16 @@ export function AppSidebar({ role }: AppSidebarProps) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-3 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          {/* Logo Icon - Contained properly */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 shrink-0">
-            <Zap className="h-4 w-4 text-white" />
+          {/* Logo Icon - EduConnect Dashboard Logo */}
+          <div className="flex h-8 w-8 items-center justify-center rounded-md shrink-0">
+            <Image
+              src="/edu_connect_dashboard.png"
+              alt="EduConnect Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+              priority
+            />
           </div>
 
           {/* Brand Text - Hidden when collapsed */}

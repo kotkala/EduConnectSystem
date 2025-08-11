@@ -5,6 +5,9 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 
+const isProd = process.env.NODE_ENV === 'production'
+const isVercel = !!process.env.VERCEL
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -22,6 +25,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "EduConnect - Nền tảng giáo dục",
   description: "Nền tảng giáo dục toàn diện với quyền truy cập theo vai trò cho học sinh, giáo viên, phụ huynh và quản trị viên.",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export const viewport = {
@@ -46,8 +54,12 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
-        <Analytics />
-        <SpeedInsights />
+        {isProd && isVercel && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

@@ -346,7 +346,6 @@ export async function getAcademicYearsLightAction() {
     const { data, error } = await supabase
       .from("academic_years")
       .select("id, name")
-      .eq("is_active", true)
       .order("name", { ascending: false })
       .limit(20)
 

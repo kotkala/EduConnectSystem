@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Calendar, Users, CheckCircle, AlertCircle, RefreshCw } from "lucide-react"
+import { Plus, Calendar, Users, CheckCircle, AlertCircle, RefreshCw, Bell } from "lucide-react"
 import { toast } from "sonner"
 import { ReportPeriodForm } from "@/components/admin/report-periods/report-period-form"
 import { ClassProgressTable } from "@/components/admin/report-periods/class-progress-table"
@@ -32,9 +32,11 @@ export default function ReportPeriodsPage() {
   const [academicYears, setAcademicYears] = useState<Array<{ id: string; name: string }>>([])
   const [classBlocks, setClassBlocks] = useState<Array<{ id: string; name: string }>>([])
   const [selectedClassBlock, setSelectedClassBlock] = useState<string>("all-blocks")
+  const [selectedCompletionStatus, setSelectedCompletionStatus] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [progressLoading, setProgressLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sendingNotifications, setSendingNotifications] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -110,12 +112,58 @@ export default function ReportPeriodsPage() {
     }
   }, [loadInitialData, selectedPeriod, loadClassProgress])
 
+  const filteredClassProgress = useMemo(() => {
+    if (selectedCompletionStatus === "all") return classProgress
+    return classProgress.filter(c => c.status === selectedCompletionStatus)
+  }, [classProgress, selectedCompletionStatus])
+
   const stats = useMemo(() => {
     const total = classProgress.length
     const complete = classProgress.filter(c => c.status === 'complete').length
     const incomplete = total - complete
     return { total, complete, incomplete }
   }, [classProgress])
+
+  const incompleteClasses = useMemo(() => {
+    return classProgress.filter(c => c.status === 'incomplete')
+  }, [classProgress])
+
+  const handleSendNotifications = useCallback(async () => {
+    if (incompleteClasses.length === 0) {
+      toast.info('Không có lớp nào chưa hoàn thành báo cáo')
+      return
+    }
+
+    setSendingNotifications(true)
+    try {
+      // Create notification for incomplete classes
+      const teacherIds = incompleteClasses.map(c => c.homeroom_teacher_id).filter(Boolean)
+      const uniqueTeacherIds = [...new Set(teacherIds)]
+
+      if (uniqueTeacherIds.length === 0) {
+        toast.error('Không tìm thấy giáo viên chủ nhiệm')
+        return
+      }
+
+      // Here you would call your notification action with the data
+      // const selectedPeriodData = reportPeriods.find(p => p.id === selectedPeriod)
+      // const notificationData = {
+      //   title: `Nhắc nhở nộp báo cáo ${selectedPeriodData?.name}`,
+      //   content: `Kính gửi thầy/cô, lớp của thầy/cô chưa hoàn thành báo cáo cho kỳ ${selectedPeriodData?.name}. Vui lòng hoàn thành báo cáo trước thời hạn.`,
+      //   target_roles: ['teacher'],
+      //   target_user_ids: uniqueTeacherIds,
+      //   priority: 'high'
+      // }
+      // const result = await sendNotificationAction(notificationData)
+
+      toast.success(`Đã gửi thông báo tới ${uniqueTeacherIds.length} giáo viên chủ nhiệm`)
+    } catch (error) {
+      console.error('Error sending notifications:', error)
+      toast.error('Có lỗi xảy ra khi gửi thông báo')
+    } finally {
+      setSendingNotifications(false)
+    }
+  }, [incompleteClasses])
 
   useEffect(() => {
     loadInitialData()
@@ -167,19 +215,19 @@ export default function ReportPeriodsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Academic Report Periods</h1>
+            <h1 className="text-3xl font-bold">Kỳ báo cáo</h1>
             <p className="text-muted-foreground">
-              Manage monthly reporting periods and track class progress
+              Quản lý kỳ báo cáo hàng tháng và theo dõi tiến độ hoàn thành theo lớp
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              Làm mới
             </Button>
             <Button onClick={() => setShowCreateForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Report Period
+              Tạo kỳ báo cáo
             </Button>
           </div>
         </div>
@@ -197,16 +245,16 @@ export default function ReportPeriodsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Select Report Period
+              Chọn kỳ báo cáo
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <div className="text-sm font-medium mb-2">Report Period</div>
+                <div className="text-sm font-medium mb-2">Kỳ báo cáo</div>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a report period" />
+                    <SelectValue placeholder="Chọn kỳ báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
                     {reportPeriods.map((period) => (
@@ -217,26 +265,71 @@ export default function ReportPeriodsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {selectedPeriod && (
-                <div>
-                  <div className="text-sm font-medium mb-2">Class Block Filter</div>
-                  <Select value={selectedClassBlock} onValueChange={setSelectedClassBlock}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All class blocks" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-blocks">All class blocks</SelectItem>
-                      {classBlocks.map((block) => (
-                        <SelectItem key={block.id} value={block.id}>
-                          {block.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <>
+                  <div>
+                    <div className="text-sm font-medium mb-2">Lọc theo khối lớp</div>
+                    <Select value={selectedClassBlock} onValueChange={setSelectedClassBlock}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tất cả khối lớp" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-blocks">Tất cả khối lớp</SelectItem>
+                        {classBlocks.map((block) => (
+                          <SelectItem key={block.id} value={block.id}>
+                            {block.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium mb-2">Tình trạng hoàn thành</div>
+                    <Select value={selectedCompletionStatus} onValueChange={setSelectedCompletionStatus}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tất cả" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="complete">Đã hoàn thành</SelectItem>
+                        <SelectItem value="incomplete">Chưa hoàn thành</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
               )}
             </div>
+
+            {/* Send Notifications Button */}
+            {selectedPeriod && incompleteClasses.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    {incompleteClasses.length} lớp chưa hoàn thành báo cáo
+                  </div>
+                  <Button
+                    onClick={handleSendNotifications}
+                    disabled={sendingNotifications}
+                    variant="outline"
+                    className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                  >
+                    {sendingNotifications ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                        Đang gửi...
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="h-4 w-4 mr-2" />
+                        Gửi thông báo nhắc nhở
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -247,7 +340,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
+                    <p className="text-sm font-medium text-muted-foreground">Tổng số lớp</p>
                     <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
                   <Users className="h-8 w-8 text-blue-500" />
@@ -259,7 +352,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Complete</p>
+                    <p className="text-sm font-medium text-muted-foreground">Hoàn thành</p>
                     <p className="text-2xl font-bold text-green-600">{stats.complete}</p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-500" />
@@ -271,7 +364,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Incomplete</p>
+                    <p className="text-sm font-medium text-muted-foreground">Chưa hoàn thành</p>
                     <p className="text-2xl font-bold text-red-600">{stats.incomplete}</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-red-500" />
@@ -285,11 +378,11 @@ export default function ReportPeriodsPage() {
         {selectedPeriod && (
           <Card>
             <CardHeader>
-              <CardTitle>Class Progress</CardTitle>
+              <CardTitle>Tiến độ theo lớp</CardTitle>
             </CardHeader>
             <CardContent>
-              <ClassProgressTable 
-                data={classProgress}
+              <ClassProgressTable
+                data={filteredClassProgress}
                 loading={progressLoading}
               />
             </CardContent>

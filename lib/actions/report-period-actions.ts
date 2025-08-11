@@ -10,14 +10,16 @@ const reportPeriodSchema = z.object({
   name: z.string().min(1, 'Report period name is required').max(100),
   start_date: z.string().min(1, 'Start date is required'),
   end_date: z.string().min(1, 'End date is required'),
+  deadline: z.string().min(1, 'Deadline is required'),
   academic_year_id: z.string().uuid('Invalid academic year ID'),
   semester_id: z.string().uuid('Invalid semester ID')
 }).refine((data) => {
   const startDate = new Date(data.start_date)
   const endDate = new Date(data.end_date)
-  return endDate > startDate
+  const deadline = new Date(data.deadline)
+  return endDate > startDate && deadline >= startDate && deadline <= endDate
 }, {
-  message: "End date must be after start date",
+  message: "End date must be after start date and deadline must be within the period",
   path: ["end_date"]
 })
 
@@ -34,6 +36,7 @@ export interface ReportPeriod {
   name: string
   start_date: string
   end_date: string
+  deadline: string
   academic_year_id: string
   semester_id: string
   created_by: string
@@ -51,6 +54,7 @@ export interface ReportPeriod {
 export interface ClassProgress {
   class_id: string
   class_name: string
+  homeroom_teacher_id: string
   homeroom_teacher_name: string
   total_students: number
   sent_reports: number
@@ -248,6 +252,7 @@ export async function getClassProgressAction(reportPeriodId: string, classBlockI
       .select(`
         id,
         name,
+        homeroom_teacher_id,
         homeroom_teacher:profiles!homeroom_teacher_id(full_name)
       `)
 
@@ -273,11 +278,53 @@ export async function getClassProgressAction(reportPeriodId: string, classBlockI
 
     // Use optimized PostgreSQL function for server-side aggregation
     // This replaces 2 separate queries + client-side aggregation with 1 server call
-    const { data: progressCounts, error: countsError } = await supabase
+    // Prefer RPC if available; fallback to safe client-side aggregation when function is missing
+    let progressCounts: Array<{ class_id: string; total_students: number; sent_reports: number }> | null = null
+    let countsError: { message: string } | null = null
+
+    const rpcResult = await supabase
       .rpc('get_class_progress_counts', {
         report_period_id_param: reportPeriodId,
         class_ids_param: classIds
       })
+
+    if (rpcResult.error?.message?.includes('Could not find the function')) {
+      // Fallback: compute counts with two lightweight queries
+      const [{ data: studentCounts }, { data: sentCounts }] = await Promise.all([
+        supabase
+          .from('student_class_assignments')
+          .select('class_id, count:class_id', { head: false, count: 'exact' })
+          .in('class_id', classIds)
+          .eq('is_active', true),
+        supabase
+          .from('student_reports')
+          .select('class_id', { head: false, count: undefined })
+          .in('class_id', classIds)
+          .eq('report_period_id', reportPeriodId)
+          .eq('status', 'sent')
+      ])
+
+      type CountRow = { class_id: string }
+      const totalByClass: Record<string, number> = {}
+      ;((studentCounts || []) as CountRow[]).forEach((row) => {
+        totalByClass[row.class_id] = (totalByClass[row.class_id] || 0) + 1
+      })
+
+      const sentByClass: Record<string, number> = {}
+      ;((sentCounts || []) as CountRow[]).forEach((row) => {
+        sentByClass[row.class_id] = (sentByClass[row.class_id] || 0) + 1
+      })
+
+      progressCounts = classIds.map(id => ({
+        class_id: id,
+        total_students: totalByClass[id] || 0,
+        sent_reports: sentByClass[id] || 0
+      }))
+    } else if (rpcResult.error) {
+      countsError = rpcResult.error
+    } else {
+      progressCounts = rpcResult.data || []
+    }
 
     if (countsError) {
       throw new Error(countsError.message)
@@ -311,6 +358,7 @@ export async function getClassProgressAction(reportPeriodId: string, classBlockI
       return {
         class_id: classItem.id,
         class_name: classItem.name,
+        homeroom_teacher_id: classItem.homeroom_teacher_id || '',
         homeroom_teacher_name: (homeroomTeacher as { full_name?: string } | null)?.full_name || 'Chưa phân công',
         total_students: totalStudents,
         sent_reports: sentReportsCount,

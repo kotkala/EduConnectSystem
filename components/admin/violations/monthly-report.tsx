@@ -168,7 +168,8 @@ export default function MonthlyReport() {
       })
 
       if (result.success) {
-        // Có thể cập nhật UI để hiển thị đã xem
+        // Trigger custom event to refresh violation alert count
+        window.dispatchEvent(new CustomEvent('violation-alert-updated'))
         console.log('Đã đánh dấu xem cho học sinh:', studentId)
       }
     } catch (error) {

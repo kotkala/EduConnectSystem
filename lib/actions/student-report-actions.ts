@@ -4,13 +4,16 @@ import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { generateAIAcademicSummary, generateAIDisciplineSummary, generateAIStrengthsSummary, generateAIWeaknessesSummary } from '@/lib/services/ai-report-service'
 
 // Validation schemas
 const studentReportSchema = z.object({
   report_period_id: z.string().uuid('Invalid report period ID'),
   student_id: z.string().uuid('Invalid student ID'),
   strengths: z.string().min(1, 'Strengths field is required'),
-  weaknesses: z.string().min(1, 'Weaknesses field is required')
+  weaknesses: z.string().min(1, 'Weaknesses field is required'),
+  academic_performance: z.string().optional(),
+  discipline_status: z.string().optional()
 })
 
 
@@ -74,155 +77,19 @@ async function checkHomeroomTeacherPermissions() {
   return { userId: user.id, profile }
 }
 
-// Generate AI summary for academic performance
-async function generateAcademicPerformanceSummary(studentId: string, reportPeriodId: string): Promise<string> {
-  try {
-    const supabase = await createClient()
-    
-    // Get report period dates
-    const { data: reportPeriod } = await supabase
-      .from('report_periods')
-      .select('start_date, end_date')
-      .eq('id', reportPeriodId)
-      .single()
 
-    if (!reportPeriod) {
-      return 'Không có dữ liệu phản hồi trong kỳ báo cáo này.'
-    }
 
-    // Get feedback within the report period (4 weeks)
-    const { data: feedback } = await supabase
-      .from('feedback_notifications')
-      .select(`
-        rating,
-        comment,
-        subject:subjects(name_vietnamese),
-        teacher:profiles!teacher_id(full_name)
-      `)
-      .eq('student_id', studentId)
-      .gte('created_at', reportPeriod.start_date)
-      .lte('created_at', reportPeriod.end_date)
-
-    if (!feedback || feedback.length === 0) {
-      return 'Chưa có phản hồi từ giáo viên trong kỳ báo cáo này.'
-    }
-
-    // Generate summary based on feedback
-    const subjectSummaries = feedback.reduce((acc: Record<string, { ratings: number[]; comments: string[] }>, item) => {
-      const subjectData = Array.isArray(item.subject) ? item.subject[0] : item.subject
-      const subject = subjectData?.name_vietnamese || 'Môn học'
-      if (!acc[subject]) {
-        acc[subject] = { ratings: [], comments: [] }
-      }
-      if (item.rating) acc[subject].ratings.push(item.rating)
-      if (item.comment) acc[subject].comments.push(item.comment)
-      return acc
-    }, {})
-
-    let summary = 'Tình hình học tập trong kỳ báo cáo:\n\n'
-    
-    Object.entries(subjectSummaries).forEach(([subject, data]) => {
-      const avgRating = data.ratings.length > 0
-        ? (data.ratings.reduce((a: number, b: number) => a + b, 0) / data.ratings.length).toFixed(1)
-        : 'N/A'
-
-      summary += `• ${subject}: Điểm trung bình ${avgRating}/5`
-      if (data.comments.length > 0) {
-        summary += ` - ${data.comments.slice(0, 2).join('; ')}`
-      }
-      summary += '\n'
-    })
-
-    return summary
-  } catch (error) {
-    console.error('Error generating academic performance summary:', error)
-    return 'Không thể tạo tóm tắt tình hình học tập.'
-  }
-}
-
-// Generate discipline status summary
-async function generateDisciplineStatus(studentId: string, reportPeriodId: string): Promise<string> {
-  try {
-    const supabase = await createClient()
-    
-    // Get report period dates
-    const { data: reportPeriod } = await supabase
-      .from('report_periods')
-      .select('start_date, end_date')
-      .eq('id', reportPeriodId)
-      .single()
-
-    if (!reportPeriod) {
-      return 'Không có dữ liệu vi phạm trong kỳ báo cáo này.'
-    }
-
-    // Get violations within the report period
-    const { data: violations } = await supabase
-      .from('student_violations')
-      .select(`
-        violation_date,
-        description,
-        penalty_points,
-        violation_type:violation_types(name)
-      `)
-      .eq('student_id', studentId)
-      .gte('violation_date', reportPeriod.start_date)
-      .lte('violation_date', reportPeriod.end_date)
-      .order('violation_date', { ascending: false })
-
-    if (!violations || violations.length === 0) {
-      return 'Học sinh tuân thủ tốt nội quy nhà trường trong kỳ báo cáo này.'
-    }
-
-    let disciplineStatus = `Có ${violations.length} vi phạm trong kỳ báo cáo:\n\n`
-    
-    violations.forEach((violation, index) => {
-      const violationType = Array.isArray(violation.violation_type)
-        ? violation.violation_type[0]
-        : violation.violation_type
-
-      disciplineStatus += `${index + 1}. ${violationType?.name || 'Vi phạm'} (${violation.violation_date})`
-      if (violation.description) {
-        disciplineStatus += `: ${violation.description}`
-      }
-      if (violation.penalty_points) {
-        disciplineStatus += ` - ${violation.penalty_points} điểm`
-      }
-      disciplineStatus += '\n'
-    })
-
-    return disciplineStatus
-  } catch (error) {
-    console.error('Error generating discipline status:', error)
-    return 'Không thể tạo tóm tắt tình hình kỷ luật.'
-  }
-}
-
-// Get students for homeroom teacher's report period
+// Get students for homeroom teacher's report period (OPTIMIZED)
 export async function getStudentsForReportAction(reportPeriodId: string) {
   try {
     const { userId } = await checkHomeroomTeacherPermissions()
     const supabase = await createClient()
 
-    // Get classes where user is homeroom teacher
-    const { data: classes, error: classError } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('homeroom_teacher_id', userId)
-      .eq('is_active', true)
-
-    if (classError) {
-      throw new Error(classError.message)
-    }
-
-    if (!classes || classes.length === 0) {
-      return { success: true, data: [] }
-    }
-
-    const classIds = classes.map(c => c.id)
-
-    // Get students in these classes
-    const { data: students, error: studentError } = await supabase
+    // PERFORMANCE OPTIMIZATION: Single optimized query with proper joins
+    // Eliminates N+1 queries by combining 3 separate queries into 1
+    // Uses proper column selection to reduce over-fetching
+    // Adds pagination to prevent loading too much data
+    const { data: studentsData, error } = await supabase
       .from('student_class_assignments')
       .select(`
         student:profiles!student_id(
@@ -233,52 +100,340 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
         ),
         class:classes!class_id(
           id,
-          name
+          name,
+          homeroom_teacher_id
         )
       `)
-      .in('class_id', classIds)
       .eq('is_active', true)
+      .eq('classes.homeroom_teacher_id', userId)
+      .limit(100) // Pagination: Limit to 100 students max for performance
 
-    if (studentError) {
-      throw new Error(studentError.message)
+    if (error) {
+      throw new Error(error.message)
     }
 
-    // Get existing reports for this period
-    const { data: existingReports, error: reportsError } = await supabase
+    if (!studentsData || studentsData.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    // PERFORMANCE OPTIMIZATION: Get existing reports for this period in a separate optimized query
+    const studentIds = studentsData.map(item => {
+      const student = Array.isArray(item.student) ? item.student[0] : item.student
+      return student.id
+    }).filter(Boolean)
+
+    const { data: existingReports } = await supabase
       .from('student_reports')
       .select('*')
       .eq('report_period_id', reportPeriodId)
       .eq('homeroom_teacher_id', userId)
+      .in('student_id', studentIds)
 
-    if (reportsError) {
-      throw new Error(reportsError.message)
-    }
+    // PERFORMANCE OPTIMIZATION: Efficient data transformation with minimal processing
+    const studentsWithReports: StudentForReport[] = studentsData
+      .filter(item => item.student && item.class) // Filter out invalid records
+      .sort((a, b) => {
+        // Sort by student full name for consistent ordering
+        const studentA = Array.isArray(a.student) ? a.student[0] : a.student
+        const studentB = Array.isArray(b.student) ? b.student[0] : b.student
+        const nameA = studentA?.full_name || ''
+        const nameB = studentB?.full_name || ''
+        return nameA.localeCompare(nameB)
+      })
+      .map(item => {
+        const student = Array.isArray(item.student) ? item.student[0] : item.student
+        const classData = Array.isArray(item.class) ? item.class[0] : item.class
+        const report = existingReports?.find(r => r.student_id === student.id)
 
-    // Combine student data with report data
-    const studentsWithReports: StudentForReport[] = (students || []).map((item: {
-      student: { id: string; full_name: string; student_id: string; email: string }[] | { id: string; full_name: string; student_id: string; email: string };
-      class: { id: string; name: string }[] | { id: string; name: string };
-    }) => {
-      const student = Array.isArray(item.student) ? item.student[0] : item.student
-      const classData = Array.isArray(item.class) ? item.class[0] : item.class
-
-      return {
-        id: student.id,
-        full_name: student.full_name,
-        student_id: student.student_id,
-        email: student.email,
-        class_id: classData.id,
-        class_name: classData.name,
-        report: existingReports?.find(r => r.student_id === student.id)
-      }
-    })
+        return {
+          id: student.id,
+          full_name: student.full_name,
+          student_id: student.student_id,
+          email: student.email,
+          class_id: classData.id,
+          class_name: classData.name,
+          report: report
+        }
+      })
 
     return { success: true, data: studentsWithReports }
   } catch (error) {
     console.error('Error in getStudentsForReportAction:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Failed to fetch students' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch students'
+    }
+  }
+}
+
+// Regenerate academic summary using AI
+export async function regenerateAcademicSummaryAction(studentId: string, reportPeriodId: string) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const summary = await generateAIAcademicSummary(studentId, reportPeriodId)
+
+    return { success: true, data: summary }
+  } catch (error) {
+    console.error('Error in regenerateAcademicSummaryAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to regenerate academic summary'
+    }
+  }
+}
+
+// Regenerate discipline summary using AI
+export async function regenerateDisciplineSummaryAction(studentId: string, reportPeriodId: string) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const summary = await generateAIDisciplineSummary(studentId, reportPeriodId)
+
+    return { success: true, data: summary }
+  } catch (error) {
+    console.error('Error in regenerateDisciplineSummaryAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to regenerate discipline summary'
+    }
+  }
+}
+
+// Generate strengths summary using AI
+export async function generateStrengthsSummaryAction(studentId: string, reportPeriodId: string) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const summary = await generateAIStrengthsSummary(studentId, reportPeriodId)
+
+    return { success: true, data: summary }
+  } catch (error) {
+    console.error('Error in generateStrengthsSummaryAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate strengths summary'
+    }
+  }
+}
+
+// Generate weaknesses summary using AI
+export async function generateWeaknessesSummaryAction(studentId: string, reportPeriodId: string) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const summary = await generateAIWeaknessesSummary(studentId, reportPeriodId)
+
+    return { success: true, data: summary }
+  } catch (error) {
+    console.error('Error in generateWeaknessesSummaryAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate weaknesses summary'
+    }
+  }
+}
+
+// Bulk send reports to parents with email notifications
+export async function bulkSendReportsAction(reportPeriodId: string, reportIds: string[]) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const supabase = await createClient()
+
+    // Get report period details for email
+    const { data: reportPeriod } = await supabase
+      .from('report_periods')
+      .select('name, start_date, end_date')
+      .eq('id', reportPeriodId)
+      .single()
+
+    if (!reportPeriod) {
+      return { success: false, error: 'Report period not found' }
+    }
+
+    // Update all reports to sent status
+    const { error: updateError } = await supabase
+      .from('student_reports')
+      .update({
+        status: 'sent',
+        sent_at: new Date().toISOString()
+      })
+      .in('id', reportIds)
+
+    if (updateError) {
+      console.error('Error updating reports:', updateError)
+      return { success: false, error: 'Failed to update report status' }
+    }
+
+    // Get student and parent information for email notifications
+    const { data: reports } = await supabase
+      .from('student_reports')
+      .select(`
+        id,
+        student:students(
+          id,
+          full_name,
+          student_id,
+          parent:profiles!students_parent_id_fkey(
+            id,
+            full_name,
+            email
+          )
+        )
+      `)
+      .in('id', reportIds)
+
+    if (reports && reports.length > 0) {
+      // Send email notifications to parents
+      const emailPromises = reports.map(async (report) => {
+        const student = Array.isArray(report.student) ? report.student[0] : report.student
+        const parent = Array.isArray(student?.parent) ? student.parent[0] : student?.parent
+
+        if (parent?.email) {
+          try {
+            // Import email service
+            const { sendReportNotificationEmail } = await import('@/lib/services/email-service')
+
+            await sendReportNotificationEmail({
+              parentEmail: parent.email,
+              parentName: parent.full_name,
+              studentName: student.full_name,
+              reportPeriodName: reportPeriod.name,
+              startDate: reportPeriod.start_date,
+              endDate: reportPeriod.end_date
+            })
+
+            console.log(`Email sent successfully to ${parent.email} for student ${student.full_name}`)
+          } catch (emailError) {
+            console.error(`Failed to send email to ${parent.email}:`, emailError)
+            // Don't fail the entire operation if email fails
+          }
+        }
+      })
+
+      await Promise.allSettled(emailPromises)
+    }
+
+    return {
+      success: true,
+      data: {
+        sentCount: reportIds.length,
+        reportPeriodName: reportPeriod.name
+      }
+    }
+  } catch (error) {
+    console.error('Error in bulkSendReportsAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send reports'
+    }
+  }
+}
+
+// Resend report with reason and email notification
+export async function resendStudentReportAction(reportId: string, resendReason: string) {
+  try {
+    await checkHomeroomTeacherPermissions()
+
+    const supabase = await createClient()
+
+    // Get report details with student and parent info
+    const { data: report } = await supabase
+      .from('student_reports')
+      .select(`
+        id,
+        report_period_id,
+        student_id,
+        student:profiles!student_reports_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        report_period:report_periods(
+          name,
+          start_date,
+          end_date
+        )
+      `)
+      .eq('id', reportId)
+      .single()
+
+    if (!report) {
+      return { success: false, error: 'Report not found' }
+    }
+
+    // Update report with resend timestamp
+    const { error: updateError } = await supabase
+      .from('student_reports')
+      .update({
+        sent_at: new Date().toISOString()
+      })
+      .eq('id', reportId)
+
+    if (updateError) {
+      console.error('Error updating report:', updateError)
+      return { success: false, error: 'Failed to update report' }
+    }
+
+    // Send email notification to parents
+    const student = Array.isArray(report.student) ? report.student[0] : report.student
+    const reportPeriod = Array.isArray(report.report_period) ? report.report_period[0] : report.report_period
+
+    // Get parents for this student with their profile information
+    const { data: parents } = await supabase
+      .from('parent_student_relationships')
+      .select(`
+        parent_id,
+        parent:profiles!parent_student_relationships_parent_id_fkey(
+          full_name,
+          email
+        )
+      `)
+      .eq('student_id', report.student_id)
+
+    if (parents && parents.length > 0 && reportPeriod) {
+      const emailPromises = parents.map(async (parentRelation) => {
+        const parent = Array.isArray(parentRelation.parent) ? parentRelation.parent[0] : parentRelation.parent
+
+        if (parent?.email) {
+          try {
+            const { sendResendNotificationEmail } = await import('@/lib/services/email-service')
+
+            await sendResendNotificationEmail({
+              parentEmail: parent.email,
+              parentName: parent.full_name,
+              studentName: student.full_name,
+              reportPeriodName: reportPeriod.name,
+              startDate: reportPeriod.start_date,
+              endDate: reportPeriod.end_date,
+              resendReason: resendReason
+            })
+
+            console.log(`Resend email sent successfully to ${parent.email} for student ${student.full_name}`)
+          } catch (emailError) {
+            console.error('Failed to send resend email:', emailError)
+            // Don't fail the operation if email fails
+          }
+        }
+      })
+
+      await Promise.allSettled(emailPromises)
+    }
+
+    return {
+      success: true,
+      data: {
+        reportId,
+        studentName: student.full_name,
+        resendReason
+      }
+    }
+  } catch (error) {
+    console.error('Error in resendStudentReportAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to resend report'
     }
   }
 }
@@ -303,16 +458,12 @@ export async function saveStudentReportAction(formData: StudentReportFormData) {
       throw new Error('Student class not found')
     }
 
-    // Generate AI summaries
-    const academicPerformance = await generateAcademicPerformanceSummary(
-      validatedData.student_id, 
-      validatedData.report_period_id
-    )
-    
-    const disciplineStatus = await generateDisciplineStatus(
-      validatedData.student_id, 
-      validatedData.report_period_id
-    )
+    // Generate AI summaries using Google Generative AI if not provided
+    const academicPerformance = validatedData.academic_performance ||
+      await generateAIAcademicSummary(validatedData.student_id, validatedData.report_period_id)
+
+    const disciplineStatus = validatedData.discipline_status ||
+      await generateAIDisciplineSummary(validatedData.student_id, validatedData.report_period_id)
 
     const reportData = {
       ...validatedData,
@@ -381,10 +532,16 @@ export async function sendStudentReportAction(reportId: string) {
       throw new Error(updateError.message)
     }
 
-    // Get parents for this student
+    // Get parents for this student with their profile information
     const { data: parents, error: parentsError } = await supabase
       .from('parent_student_relationships')
-      .select('parent_id')
+      .select(`
+        parent_id,
+        parent:profiles!parent_student_relationships_parent_id_fkey(
+          full_name,
+          email
+        )
+      `)
       .eq('student_id', report.student_id)
 
     if (parentsError) {
@@ -406,6 +563,36 @@ export async function sendStudentReportAction(reportId: string) {
       if (notificationError) {
         console.error('Error creating notifications:', notificationError)
       }
+
+      // Send email notifications to parents
+      const emailPromises = parents.map(async (parentRelation) => {
+        const parent = Array.isArray(parentRelation.parent) ? parentRelation.parent[0] : parentRelation.parent
+
+        if (parent?.email) {
+          try {
+            const { sendReportNotificationEmail } = await import('@/lib/services/email-service')
+
+            const student = Array.isArray(report.student) ? report.student[0] : report.student
+            const reportPeriod = Array.isArray(report.report_period) ? report.report_period[0] : report.report_period
+
+            await sendReportNotificationEmail({
+              parentEmail: parent.email,
+              parentName: parent.full_name,
+              studentName: student.full_name,
+              reportPeriodName: reportPeriod.name,
+              startDate: reportPeriod.start_date,
+              endDate: reportPeriod.end_date
+            })
+
+            console.log(`Email sent successfully to ${parent.email} for student ${student.full_name}`)
+          } catch (emailError) {
+            console.error(`Failed to send email to ${parent.email}:`, emailError)
+            // Don't fail the entire operation if email fails
+          }
+        }
+      })
+
+      await Promise.allSettled(emailPromises)
 
       // Create parent responses records
       const responses = parents.map(parent => ({

@@ -119,17 +119,7 @@ export default function AcademicManagementPage() {
     setSemestersFilters(prev => ({ ...prev, ...newFilters }))
   }
 
-  const handleEditAcademicYear = (item: AcademicYear | Semester) => {
-    const academicYear = item as AcademicYear
-    setEditingAcademicYear(academicYear)
-    setShowEditAcademicYearDialog(true)
-  }
 
-  const handleEditSemester = (item: AcademicYear | Semester) => {
-    const semester = item as Semester
-    setEditingSemester(semester)
-    setShowEditSemesterDialog(true)
-  }
 
   const handleCreateAcademicYearSuccess = () => {
     setShowCreateAcademicYearDialog(false)
@@ -321,7 +311,6 @@ export default function AcademicManagementPage() {
             limit={academicYearsFilters.limit}
             onPageChange={handleAcademicYearPageChange}
             onFiltersChange={handleAcademicYearFiltersChange}
-            onEdit={handleEditAcademicYear}
             onRefresh={handleRefresh}
           />
         </TabsContent>
@@ -341,7 +330,6 @@ export default function AcademicManagementPage() {
             limit={semestersFilters.limit}
             onPageChange={handleSemesterPageChange}
             onFiltersChange={handleSemesterFiltersChange}
-            onEdit={handleEditSemester}
             onRefresh={handleRefresh}
           />
         </TabsContent>

@@ -36,7 +36,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
       full_name: teacher?.full_name || "",
       email: teacher?.email || "",
       phone_number: teacher?.phone_number || "",
-      gender: teacher?.gender || "male",
+      gender: (teacher?.gender === "male" || teacher?.gender === "female") ? teacher.gender : "male",
       date_of_birth: teacher?.date_of_birth || "",
       address: teacher?.address || ""
     }
@@ -78,20 +78,20 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
   return (
     <Card className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto p-3 sm:p-4 md:p-6">
       <CardHeader className="space-y-2 sm:space-y-3">
-        <CardTitle className="text-lg sm:text-xl md:text-2xl">{isEditing ? "Edit Teacher" : "Add New Teacher"}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl md:text-2xl">{isEditing ? "Chỉnh sửa giáo viên" : "Thêm giáo viên mới"}</CardTitle>
         <CardDescription className="text-sm sm:text-base">
-          {isEditing ? "Update teacher information" : "Create a new teacher account"}
+          {isEditing ? "Cập nhật thông tin giáo viên" : "Tạo tài khoản giáo viên mới"}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {/* Employee ID */}
           <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="employee_id" className="text-sm sm:text-base">Employee ID *</Label>
+            <Label htmlFor="employee_id" className="text-sm sm:text-base">Mã nhân viên *</Label>
             <Input
               id="employee_id"
               {...form.register("employee_id")}
-              placeholder="e.g., EMP001"
+              placeholder="VD: EMP001"
               className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
             />
             {form.formState.errors.employee_id && (
@@ -101,11 +101,11 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Full Name */}
           <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="full_name" className="text-sm sm:text-base">Full Name *</Label>
+            <Label htmlFor="full_name" className="text-sm sm:text-base">Họ và tên *</Label>
             <Input
               id="full_name"
               {...form.register("full_name")}
-              placeholder="Enter full name"
+              placeholder="Nhập họ và tên"
               className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
             />
             {form.formState.errors.full_name && (
@@ -130,7 +130,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Phone Number */}
           <div className="space-y-2">
-            <Label htmlFor="phone_number">Phone Number *</Label>
+            <Label htmlFor="phone_number">Số điện thoại *</Label>
             <Input
               id="phone_number"
               {...form.register("phone_number")}
@@ -144,18 +144,17 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Gender */}
           <div className="space-y-2">
-            <Label htmlFor="gender">Gender *</Label>
+            <Label htmlFor="gender">Giới tính *</Label>
             <Select
               value={form.watch("gender")}
-              onValueChange={(value) => form.setValue("gender", value as "male" | "female" | "other")}
+              onValueChange={(value) => form.setValue("gender", value as "male" | "female")}
             >
               <SelectTrigger className={form.formState.errors.gender ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select gender" />
+                <SelectValue placeholder="Chọn giới tính" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="male">Nam</SelectItem>
+                <SelectItem value="female">Nữ</SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.gender && (
@@ -165,7 +164,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Date of Birth */}
           <div className="space-y-2">
-            <Label htmlFor="date_of_birth">Date of Birth *</Label>
+            <Label htmlFor="date_of_birth">Ngày sinh *</Label>
             <Input
               id="date_of_birth"
               type="date"
@@ -179,11 +178,11 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="address">Address *</Label>
+            <Label htmlFor="address">Địa chỉ *</Label>
             <Textarea
               id="address"
               {...form.register("address")}
-              placeholder="Enter full address"
+              placeholder="Nhập địa chỉ đầy đủ"
               rows={3}
               className={form.formState.errors.address ? "border-red-500" : ""}
             />

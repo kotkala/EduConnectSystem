@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table'
 import { Plus, Edit, Settings } from 'lucide-react'
 import { toast } from 'sonner'
+import { SharedPaginationControls } from '@/components/shared/shared-pagination-controls'
 
 // Helper function to get button text for category operations
 function getCategoryButtonText(loading: boolean, selectedCategory: unknown): string {
@@ -39,6 +40,14 @@ function getCategoryButtonText(loading: boolean, selectedCategory: unknown): str
 function getTypeButtonText(loading: boolean, selectedType: unknown): string {
   if (loading) return 'Đang lưu...'
   return selectedType ? 'Cập nhật' : 'Tạo'
+}
+
+// Helper function to get points color based on severity
+function getPointsColor(points: number): string {
+  if (points === 0) return 'text-gray-500'
+  if (points <= 5) return 'text-yellow-600 border-yellow-300'
+  if (points <= 10) return 'text-orange-600 border-orange-300'
+  return 'text-red-600 border-red-300'
 }
 
 import {
@@ -54,6 +63,7 @@ import {
 } from '@/lib/validations/violation-validations'
 import {
   getViolationCategoriesAndTypesAction,
+  getViolationTypesWithPaginationAction,
   createViolationCategoryAction,
   createViolationTypeAction,
   updateViolationCategoryAction,
@@ -69,6 +79,17 @@ export default function ViolationCategoriesManager() {
   const [typeDialogOpen, setTypeDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  // Pagination and search states for violation types
+  const [typesPage, setTypesPage] = useState(1)
+  const [typesTotal, setTypesTotal] = useState(0)
+  const [typesSearch, setTypesSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [typesCategoryFilter, setTypesCategoryFilter] = useState('all')
+  const [typesSeverityFilter, setTypesSeverityFilter] = useState('all')
+  const [typesLoading, setTypesLoading] = useState(false)
+
+  const TYPES_PER_PAGE = 10
+
   const categoryForm = useForm<ViolationCategoryFormData>({
     resolver: zodResolver(violationCategorySchema),
     defaultValues: {
@@ -83,44 +104,85 @@ export default function ViolationCategoriesManager() {
       category_id: '',
       name: '',
       description: '',
-      default_severity: 'minor' as const
+      default_severity: 'minor' as const,
+      points: 0
     }
   })
 
-  useEffect(() => {
-    loadCategoriesAndTypes()
-  }, [])
-
-  const loadCategoriesAndTypes = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const result = await getViolationCategoriesAndTypesAction()
-      if (result.success) {
-        if (result.categories) {
-          setCategories(result.categories)
-        }
-        if (result.types) {
-          setViolationTypes(result.types)
-        }
+      if (result.success && result.categories) {
+        setCategories(result.categories)
       } else {
-        console.error('Failed to load categories and types:', result.error)
-        toast.error(result.error || 'Failed to load violation categories and types')
+        console.error('Lỗi tải danh mục:', result.error)
+        toast.error(result.error || 'Không thể tải danh mục vi phạm')
       }
     } catch (error) {
-      console.error('Error loading categories and types:', error)
-      toast.error('Failed to load violation categories and types')
+      console.error('Lỗi tải danh mục:', error)
+      toast.error('Không thể tải danh mục vi phạm')
     }
-  }
+  }, [])
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(typesSearch)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [typesSearch])
+
+  // Reset page when search changes
+  useEffect(() => {
+    setTypesPage(1)
+  }, [debouncedSearch])
+
+  const loadViolationTypes = useCallback(async () => {
+    setTypesLoading(true)
+    try {
+      const result = await getViolationTypesWithPaginationAction({
+        page: typesPage,
+        limit: TYPES_PER_PAGE,
+        search: debouncedSearch.trim() || undefined,
+        category_id: typesCategoryFilter === 'all' ? undefined : typesCategoryFilter,
+        severity: typesSeverityFilter === 'all' ? undefined : typesSeverityFilter
+      })
+
+      if (result.success) {
+        setViolationTypes(result.data || [])
+        setTypesTotal(result.total || 0)
+      } else {
+        console.error('Lỗi tải loại vi phạm:', result.error)
+        toast.error(result.error || 'Không thể tải loại vi phạm')
+      }
+    } catch (error) {
+      console.error('Lỗi tải loại vi phạm:', error)
+      toast.error('Không thể tải loại vi phạm')
+    } finally {
+      setTypesLoading(false)
+    }
+  }, [typesPage, debouncedSearch, typesCategoryFilter, typesSeverityFilter])
+
+  useEffect(() => {
+    loadCategories()
+  }, [loadCategories])
+
+  useEffect(() => {
+    loadViolationTypes()
+  }, [loadViolationTypes])
 
   const handleCreateCategory = async (data: ViolationCategoryFormData) => {
     try {
       setLoading(true)
       const result = await createViolationCategoryAction(data)
-      
-      if (result.success) {
+
+      if (result.success && result.data) {
         toast.success('Tạo danh mục vi phạm thành công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
-        loadCategoriesAndTypes()
+        // Optimistically update state instead of reloading all data
+        setCategories(prev => [...prev, result.data])
       } else {
         toast.error(result.error || 'Không thể tạo danh mục vi phạm')
       }
@@ -140,13 +202,16 @@ export default function ViolationCategoriesManager() {
         id: selectedCategory.id,
         ...data
       })
-      
-      if (result.success) {
+
+      if (result.success && result.data) {
         toast.success('Cập nhật danh mục vi phạm thành công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
         setSelectedCategory(null)
-        loadCategoriesAndTypes()
+        // Optimistically update state
+        setCategories(prev => prev.map(cat =>
+          cat.id === selectedCategory.id ? result.data : cat
+        ))
       } else {
         toast.error(result.error || 'Không thể cập nhật danh mục vi phạm')
       }
@@ -161,12 +226,13 @@ export default function ViolationCategoriesManager() {
     try {
       setLoading(true)
       const result = await createViolationTypeAction(data)
-      
-      if (result.success) {
+
+      if (result.success && result.data) {
         toast.success('Tạo loại vi phạm thành công')
         typeForm.reset()
         setTypeDialogOpen(false)
-        loadCategoriesAndTypes()
+        // Reload types to get updated pagination
+        loadViolationTypes()
       } else {
         toast.error(result.error || 'Không thể tạo loại vi phạm')
       }
@@ -182,17 +248,23 @@ export default function ViolationCategoriesManager() {
 
     try {
       setLoading(true)
+      // Bảo đảm points luôn có số trước khi gọi action
       const result = await updateViolationTypeAction({
         id: selectedType.id,
-        ...data
+        category_id: data.category_id,
+        name: data.name,
+        description: data.description,
+        default_severity: data.default_severity,
+        points: data.points ?? 0
       })
-      
-      if (result.success) {
+
+      if (result.success && result.data) {
         toast.success('Cập nhật loại vi phạm thành công')
         typeForm.reset()
         setTypeDialogOpen(false)
         setSelectedType(null)
-        loadCategoriesAndTypes()
+        // Reload types to get updated data
+        loadViolationTypes()
       } else {
         toast.error(result.error || 'Không thể cập nhật loại vi phạm')
       }
@@ -224,7 +296,8 @@ export default function ViolationCategoriesManager() {
         category_id: type.category_id,
         name: type.name,
         description: type.description || '',
-        default_severity: type.default_severity
+        default_severity: type.default_severity,
+        points: type.points || 0
       })
     } else {
       setSelectedType(null)
@@ -268,10 +341,10 @@ export default function ViolationCategoriesManager() {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...categoryForm}>
-                  <form 
+                  <form
                     onSubmit={categoryForm.handleSubmit(
                       selectedCategory ? handleUpdateCategory : handleCreateCategory
-                    )} 
+                    )}
                     className="space-y-4"
                   >
                     <FormField
@@ -327,11 +400,11 @@ export default function ViolationCategoriesManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Types Count</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead>Tên danh mục</TableHead>
+                <TableHead>Mô tả</TableHead>
+                <TableHead>Số loại vi phạm</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="w-[100px]">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -341,14 +414,14 @@ export default function ViolationCategoriesManager() {
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">{category.name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {category.description || 'No description'}
+                      {category.description || 'Chưa có mô tả'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{typesCount} types</Badge>
+                      <Badge variant="secondary">{typesCount} loại</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={category.is_active ? 'default' : 'secondary'}>
-                        {category.is_active ? 'Active' : 'Inactive'}
+                        {category.is_active ? 'Hoạt động' : 'Không hoạt động'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -366,7 +439,7 @@ export default function ViolationCategoriesManager() {
               {categories.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No categories found. Create your first category to get started.
+                    Chưa có danh mục nào. Tạo danh mục đầu tiên để bắt đầu.
                   </TableCell>
                 </TableRow>
               )}
@@ -405,10 +478,10 @@ export default function ViolationCategoriesManager() {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...typeForm}>
-                  <form 
+                  <form
                     onSubmit={typeForm.handleSubmit(
                       selectedType ? handleUpdateType : handleCreateType
-                    )} 
+                    )}
                     className="space-y-4"
                   >
                     <FormField
@@ -491,6 +564,29 @@ export default function ViolationCategoriesManager() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={typeForm.control}
+                      name="points"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Điểm trừ</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              placeholder="0"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <p className="text-sm text-muted-foreground">
+                            Số điểm sẽ bị trừ khi học sinh vi phạm loại này (0-100 điểm)
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <div className="flex justify-end gap-2">
                       <Button
                         type="button"
@@ -511,51 +607,147 @@ export default function ViolationCategoriesManager() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Default Severity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {violationTypes.map((type) => (
-                <TableRow key={type.id}>
-                  <TableCell className="font-medium">{type.name}</TableCell>
-                  <TableCell>{type.category.name}</TableCell>
-                  <TableCell>
-                    <Badge className={getSeverityColor(type.default_severity)}>
-                      {getSeverityLabel(type.default_severity)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={type.is_active ? 'default' : 'secondary'}>
-                      {type.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openTypeDialog(type)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {violationTypes.length === 0 && (
+          {/* Search and Filter Controls */}
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                  value={typesSearch}
+                  onChange={(e) => {
+                    setTypesSearch(e.target.value)
+                    setTypesPage(1) // Reset to first page when searching
+                  }}
+                  className="max-w-sm"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={typesCategoryFilter} onValueChange={(value) => {
+                  setTypesCategoryFilter(value)
+                  setTypesPage(1)
+                }}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Lọc theo danh mục" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả danh mục</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={typesSeverityFilter} onValueChange={(value) => {
+                  setTypesSeverityFilter(value)
+                  setTypesPage(1)
+                }}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Lọc theo mức độ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả mức độ</SelectItem>
+                    {violationSeverityLevels.map((severity) => (
+                      <SelectItem key={severity} value={severity}>
+                        <Badge className={getSeverityColor(severity)}>
+                          {getSeverityLabel(severity)}
+                        </Badge>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Types Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    No violation types found. Create categories first, then add violation types.
-                  </TableCell>
+                  <TableHead>Tên loại vi phạm</TableHead>
+                  <TableHead>Danh mục</TableHead>
+                  <TableHead>Mức độ mặc định</TableHead>
+                  <TableHead>Điểm trừ</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="w-[100px]">Thao tác</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {(() => {
+                  if (typesLoading) {
+                    return (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Đang tải...
+                        </TableCell>
+                      </TableRow>
+                    )
+                  }
+
+                  if (violationTypes.length > 0) {
+                    return violationTypes.map((type) => (
+                      <TableRow key={type.id}>
+                        <TableCell className="font-medium">{type.name}</TableCell>
+                        <TableCell>{type.category.name}</TableCell>
+                        <TableCell>
+                          <Badge className={getSeverityColor(type.default_severity)}>
+                            {getSeverityLabel(type.default_severity)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`font-mono ${getPointsColor(type.points)}`}
+                          >
+                            {type.points} điểm
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={type.is_active ? 'default' : 'secondary'}>
+                            {type.is_active ? 'Hoạt động' : 'Không hoạt động'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openTypeDialog(type)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  }
+
+                  const hasFilters = typesSearch || typesCategoryFilter !== 'all' || typesSeverityFilter !== 'all'
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        {hasFilters
+                          ? 'Không tìm thấy loại vi phạm nào phù hợp với bộ lọc.'
+                          : 'Chưa có loại vi phạm nào. Tạo danh mục trước, sau đó thêm loại vi phạm.'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })()}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {typesTotal > TYPES_PER_PAGE && (
+            <div className="mt-4">
+              <SharedPaginationControls
+                currentPage={typesPage}
+                totalPages={Math.ceil(typesTotal / TYPES_PER_PAGE)}
+                totalCount={typesTotal}
+                onPageChange={setTypesPage}
+                itemName="loại vi phạm"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

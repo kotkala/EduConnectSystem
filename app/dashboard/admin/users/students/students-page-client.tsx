@@ -78,9 +78,7 @@ export default function StudentsPageClient() {
     fetchStudents()
   }
 
-  const handleRefresh = () => {
-    fetchStudents()
-  }
+
 
   // Calculate stats
   const studentsWithParents = students.filter(s => s.parent_relationship)
@@ -101,14 +99,8 @@ export default function StudentsPageClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý Học sinh & Phụ huynh</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc
-          </p>
-        </div>
+      {/* Thanh công cụ */}
+      <div className="flex items-center justify-end">
         <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <UserPlus className="mr-2 h-4 w-4" />
           Thêm Học sinh & Phụ huynh
@@ -203,7 +195,6 @@ export default function StudentsPageClient() {
         onPageChange={handlePageChange}
         onFiltersChange={handleFiltersChange}
         onEdit={handleEdit}
-        onRefresh={handleRefresh}
       />
 
       {/* Create Student & Parent Dialog */}

@@ -21,54 +21,59 @@ export const updateViolationCategorySchema = violationCategorySchema.extend({
 
 // Violation type validation schemas
 export const violationTypeSchema = z.object({
-  category_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid category ID"),
+  category_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã danh mục không hợp lệ"),
   name: z.string()
-    .min(1, "Violation type name is required")
-    .max(200, "Violation type name must be 200 characters or less"),
+    .min(1, "Tên loại vi phạm là bắt buộc")
+    .max(200, "Tên loại vi phạm tối đa 200 ký tự"),
   description: z.string()
-    .max(500, "Description must be 500 characters or less")
+    .max(500, "Mô tả tối đa 500 ký tự")
     .optional(),
   default_severity: z.enum(violationSeverityLevels, {
-    message: "Invalid severity level"
-  })
+    message: "Mức độ vi phạm không hợp lệ"
+  }),
+  points: z.number().int().min(0, "Điểm trừ phải >= 0").default(0)
 })
 
 export const updateViolationTypeSchema = violationTypeSchema.extend({
-  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
-  is_active: z.boolean().optional()
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã loại vi phạm không hợp lệ"),
+  is_active: z.boolean().optional(),
+  points: z.number().int().min(0).default(0)
 })
 
 // Student violation validation schemas
 export const studentViolationSchema = z.object({
-  student_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid student ID"),
-  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid class ID"),
-  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
+  student_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học sinh không hợp lệ"),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã lớp không hợp lệ"),
+  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã loại vi phạm không hợp lệ"),
   severity: z.enum(violationSeverityLevels, {
-    message: "Invalid severity level"
+    message: "Mức độ vi phạm không hợp lệ"
   }),
+  points: z.number().int().min(0, "Điểm trừ phải >= 0").optional(),
   description: z.string()
-    .max(1000, "Description must be 1000 characters or less")
+    .max(1000, "Mô tả tối đa 1000 ký tự")
     .optional(),
-  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid academic year ID"),
-  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid semester ID")
+  violation_date: z.string().optional(),
+  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã năm học không hợp lệ"),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học kì không hợp lệ")
 })
 
 export const bulkStudentViolationSchema = z.object({
-  student_ids: z.array(z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid student ID"))
-    .min(1, "At least one student must be selected"),
-  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid class ID"),
-  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid violation type ID"),
+  student_ids: z.array(z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học sinh không hợp lệ"))
+    .min(1, "Cần chọn ít nhất 1 học sinh"),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã lớp không hợp lệ"),
+  violation_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã loại vi phạm không hợp lệ"),
   severity: z.enum(violationSeverityLevels, {
-    message: "Invalid severity level"
+    message: "Mức độ vi phạm không hợp lệ"
   }),
+  points: z.number().int().min(0, "Điểm trừ phải >= 0").optional(),
   description: z.string()
-    .max(1000, "Description must be 1000 characters or less")
+    .max(1000, "Mô tả tối đa 1000 ký tự")
     .optional(),
   violation_date: z.string()
-    .min(1, "Violation date is required")
-    .refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
-  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid academic year ID"),
-  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid semester ID")
+    .min(1, "Ngày vi phạm là bắt buộc")
+    .refine((date) => !isNaN(Date.parse(date)), "Định dạng ngày không hợp lệ"),
+  academic_year_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã năm học không hợp lệ"),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học kì không hợp lệ")
 })
 
 export const updateStudentViolationSchema = z.object({
@@ -124,7 +129,8 @@ export const violationFiltersSchema = z.object({
 // Type exports
 export type ViolationCategoryFormData = z.infer<typeof violationCategorySchema>
 export type UpdateViolationCategoryFormData = z.infer<typeof updateViolationCategorySchema>
-export type ViolationTypeFormData = z.infer<typeof violationTypeSchema>
+// Dùng input type để tương thích zodResolver (trường points có thể không gửi từ form)
+export type ViolationTypeFormData = z.input<typeof violationTypeSchema>
 export type UpdateViolationTypeFormData = z.infer<typeof updateViolationTypeSchema>
 export type StudentViolationFormData = z.infer<typeof studentViolationSchema>
 export type BulkStudentViolationFormData = z.infer<typeof bulkStudentViolationSchema>
@@ -149,6 +155,7 @@ export interface ViolationType {
   name: string
   description: string | null
   default_severity: ViolationSeverity
+  points: number
   is_active: boolean
   created_at: string
   updated_at: string
@@ -167,11 +174,15 @@ export interface StudentViolation {
   class_id: string
   violation_type_id: string
   severity: ViolationSeverity
+  points: number
   description: string | null
+  violation_date: string
   recorded_by: string
   recorded_at: string
   academic_year_id: string
   semester_id: string
+  week_index: number
+  month_index: number
   created_at: string
   updated_at: string
 }
@@ -182,10 +193,14 @@ export interface StudentViolationWithDetails {
   class_id: string
   violation_type_id: string
   severity: ViolationSeverity
+  points: number
   description: string | null
+  violation_date: string
   recorded_at: string
   academic_year_id: string
   semester_id: string
+  week_index: number
+  month_index: number
   created_at: string
   updated_at: string
   student: {

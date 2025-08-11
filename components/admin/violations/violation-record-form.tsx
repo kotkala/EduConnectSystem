@@ -248,7 +248,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
       const result = await createBulkStudentViolationsAction(data)
       
       if (result.success) {
-        toast.success(`Successfully recorded ${data.student_ids.length} violation(s)`)
+        toast.success(`Ghi nhận vi phạm thành công cho ${data.student_ids.length} học sinh`)
         // Reset form with safe default values
         form.reset({
           student_ids: [],
@@ -263,10 +263,10 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
         setSelectedStudents([])
         onSuccess?.()
       } else {
-        toast.error(result.error || 'Failed to record violations')
+        toast.error(result.error || 'Ghi nhận vi phạm thất bại')
       }
     } catch {
-      toast.error('An error occurred while recording violations')
+      toast.error('Có lỗi xảy ra khi ghi nhận vi phạm')
     } finally {
       setLoading(false)
     }

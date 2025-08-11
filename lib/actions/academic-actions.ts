@@ -338,6 +338,36 @@ export async function getAcademicYearsAction(filters?: AcademicFilters) {
   }
 }
 
+// Lightweight academic years for dropdowns (performance optimized)
+export async function getAcademicYearsLightAction() {
+  try {
+    const supabase = createAdminClient()
+
+    const { data, error } = await supabase
+      .from("academic_years")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name", { ascending: false })
+      .limit(20)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: data as Array<{ id: string; name: string }>
+    }
+  } catch (error) {
+    console.error("Get academic years light error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch academic years",
+      data: []
+    }
+  }
+}
+
 // Semester CRUD Operations
 export async function createSemesterAction(formData: SemesterFormData) {
   try {

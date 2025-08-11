@@ -82,7 +82,7 @@ function handleParentEmailSelection(
     form.setValue("parent.full_name", user.full_name || "")
     form.setValue("parent.phone_number", user.phone_number || "")
     form.setValue("parent.address", user.address || "")
-    const validGender = user.gender === "male" || user.gender === "female" || user.gender === "other" ? user.gender : "male"
+    const validGender = user.gender === "male" || user.gender === "female" ? user.gender : "male"
     form.setValue("parent.gender", validGender)
     form.setValue("parent.date_of_birth", user.date_of_birth || "")
   }
@@ -212,7 +212,6 @@ function StudentInfoSection({
             <SelectContent>
               <SelectItem value="male">Nam</SelectItem>
               <SelectItem value="female">Nữ</SelectItem>
-              <SelectItem value="other">Khác</SelectItem>
             </SelectContent>
           </Select>
           {form.formState.errors.student?.gender && (
@@ -319,7 +318,7 @@ function ParentInfoSection({
           <Label htmlFor="parent_gender">Giới tính *</Label>
           <Select
             value={form.watch("parent.gender")}
-            onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female" | "other")}
+            onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female")}
           >
             <SelectTrigger className={form.formState.errors.parent?.gender ? "border-red-500" : ""}>
               <SelectValue placeholder="Chọn giới tính" />
@@ -407,7 +406,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   const [generatingId, setGeneratingId] = useState(false)
 
   const form = useForm<StudentParentFormData>({
-    resolver: zodResolver(editMode ? studentParentSchema : studentParentSchema),
+    resolver: zodResolver(studentParentSchema),
     defaultValues: getInitialFormValues(editMode, initialData)
   })
 

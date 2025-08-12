@@ -65,7 +65,10 @@ function handleDatabaseError<T = unknown>(error: { message: string } | null, def
 
 // Helper function to revalidate grade reports path - eliminates duplication
 function revalidateGradeReports(): void {
-  revalidatePath('/dashboard/admin/grade-reports')
+  // Note: Admin grade-reports page has been replaced by grade-management
+  // This function is kept for teacher and parent grade reports
+  revalidatePath('/dashboard/teacher/grade-reports')
+  revalidatePath('/dashboard/parent/grades')
 }
 
 // Helper function to get authenticated supabase client - eliminates duplication

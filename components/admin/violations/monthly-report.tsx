@@ -45,8 +45,8 @@ export default function MonthlyReport() {
   
   const [selectedSemester] = useState('current-semester-id') // TODO: Get current semester
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
-  const [selectedBlock, setSelectedBlock] = useState('')
-  const [selectedClass, setSelectedClass] = useState('')
+  const [selectedBlock, setSelectedBlock] = useState('all')
+  const [selectedClass, setSelectedClass] = useState('all')
 
   function getCurrentMonth(): number {
     // Tính tháng hiện tại dựa trên tuần (mỗi tháng = 4 tuần)
@@ -118,10 +118,10 @@ export default function MonthlyReport() {
 
   const handleBlockChange = async (blockId: string) => {
     setSelectedBlock(blockId)
-    setSelectedClass('')
+    setSelectedClass('all')
     setClasses([])
-    
-    if (blockId) {
+
+    if (blockId && blockId !== 'all') {
       try {
         // TODO: Implement getClassesByBlockAction
         // Tạm thời dùng dữ liệu mock
@@ -234,7 +234,7 @@ export default function MonthlyReport() {
                   <SelectValue placeholder="Tất cả khối" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả khối</SelectItem>
+                  <SelectItem value="all">Tất cả khối</SelectItem>
                   {blocks.map((block) => (
                     <SelectItem key={block.id} value={block.id}>
                       {block.name}
@@ -251,7 +251,7 @@ export default function MonthlyReport() {
                   <SelectValue placeholder="Tất cả lớp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả lớp</SelectItem>
+                  <SelectItem value="all">Tất cả lớp</SelectItem>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name}

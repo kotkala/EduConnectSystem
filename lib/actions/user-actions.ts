@@ -322,6 +322,58 @@ export async function getTeachersAction(filters?: UserFilters) {
   }
 }
 
+export async function getTeacherStatsAction() {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    // Compute month boundaries in ISO
+    const now = new Date()
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+    const nextMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1))
+
+    const [totalRes, homeroomRes, newMonthRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "teacher"),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "teacher")
+        .eq("homeroom_enabled", true),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "teacher")
+        .gte("created_at", monthStart.toISOString())
+        .lt("created_at", nextMonthStart.toISOString())
+    ])
+
+    const anyError = totalRes.error || homeroomRes.error || newMonthRes.error
+    if (anyError) {
+      return {
+        success: false,
+        error: (anyError as { message: string }).message || "Failed to fetch stats"
+      }
+    }
+
+    return {
+      success: true,
+      total: totalRes.count || 0,
+      homeroom: homeroomRes.count || 0,
+      newThisMonth: newMonthRes.count || 0
+    }
+  } catch (error) {
+    console.error("Get teacher stats error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch teacher stats"
+    }
+  }
+}
+
+
 // Helper function to check for duplicate student data
 async function checkStudentDuplicates(supabase: ReturnType<typeof createAdminClient>, studentData: StudentParentFormData['student']) {
   // Check for duplicate student_id

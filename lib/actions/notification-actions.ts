@@ -231,8 +231,13 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
       `)
       .eq('is_active', true)
 
-    // Filter by target roles - notifications must include user's role in target_roles array
-    query = query.contains('target_roles', [profile.role])
+    // For admin role, show both received and sent notifications
+    if (profile.role === 'admin') {
+      query = query.or(`target_roles.cs.{${profile.role}},sender_id.eq.${user.id}`)
+    } else {
+      // Filter by target roles - notifications must include user's role in target_roles array
+      query = query.contains('target_roles', [profile.role])
+    }
 
     // For students and parents, also filter by class if target_classes is specified
     if (profile.role === 'student' || profile.role === 'parent') {
@@ -290,8 +295,13 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
       `)
       .eq('is_active', true)
 
-    // Filter by target roles - notifications must include user's role in target_roles array
-    query = query.contains('target_roles', [profile.role])
+    // For admin role, show both received and sent notifications
+    if (profile.role === 'admin') {
+      query = query.or(`target_roles.cs.{${profile.role}},sender_id.eq.${user.id}`)
+    } else {
+      // Filter by target roles - notifications must include user's role in target_roles array
+      query = query.contains('target_roles', [profile.role])
+    }
 
     // For students and parents, also filter by class if target_classes is specified
     if (profile.role === 'student' || profile.role === 'parent') {

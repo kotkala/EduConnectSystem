@@ -30,7 +30,7 @@ import {
 async function checkAdminPermissions() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error("Yêu cầu xác thực")
   }
@@ -52,7 +52,7 @@ async function checkAdminPermissions() {
 async function checkHomeroomTeacherPermissions() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error("Yêu cầu xác thực")
   }
@@ -104,8 +104,8 @@ export async function createViolationCategoryAction(data: ViolationCategoryFormD
     revalidatePath('/dashboard/admin/violations')
     return { success: true, data: category }
   } catch (error: unknown) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
@@ -134,8 +134,8 @@ export async function updateViolationCategoryAction(data: UpdateViolationCategor
     revalidatePath('/dashboard/admin/violations')
     return { success: true, data: category }
   } catch (error: unknown) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
@@ -174,7 +174,8 @@ export async function createViolationTypeAction(data: ViolationTypeFormData) {
         category_id: validatedData.category_id,
         name: validatedData.name,
         description: validatedData.description,
-        default_severity: validatedData.default_severity
+        default_severity: validatedData.default_severity,
+        points: (data as { points?: number }).points ?? 0
       })
       .select()
       .single()
@@ -186,8 +187,8 @@ export async function createViolationTypeAction(data: ViolationTypeFormData) {
     revalidatePath('/dashboard/admin/violations')
     return { success: true, data: violationType }
   } catch (error: unknown) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
@@ -205,6 +206,7 @@ export async function updateViolationTypeAction(data: UpdateViolationTypeFormDat
         name: validatedData.name,
         description: validatedData.description,
         default_severity: validatedData.default_severity,
+        points: (data as { points?: number }).points ?? 0,
         is_active: validatedData.is_active
       })
       .eq('id', validatedData.id)
@@ -218,8 +220,8 @@ export async function updateViolationTypeAction(data: UpdateViolationTypeFormDat
     revalidatePath('/dashboard/admin/violations')
     return { success: true, data: violationType }
   } catch (error: unknown) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
@@ -365,6 +367,28 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
     const { userId, supabase } = await checkAdminPermissions()
     const validatedData = studentViolationSchema.parse(data)
 
+    // Lấy points từ loại vi phạm nếu points không được truyền vào
+    const { data: vtype } = await supabase
+      .from('violation_types')
+      .select('id, points')
+      .eq('id', validatedData.violation_type_id)
+      .single()
+
+    const points = typeof validatedData.points === 'number' ? validatedData.points : (vtype?.points ?? 0)
+
+    // Tính week_index, month_index dựa trên violation_date (hoặc recorded_at::date), và start_date của học kì
+    const { data: sem } = await supabase
+      .from('semesters')
+      .select('id, start_date')
+      .eq('id', validatedData.semester_id)
+      .single()
+
+    const vDate = validatedData.violation_date ? new Date(validatedData.violation_date) : new Date()
+    const semStart = sem?.start_date ? new Date(sem.start_date) : new Date()
+    const diffDays = Math.floor((Date.UTC(vDate.getFullYear(), vDate.getMonth(), vDate.getDate()) - Date.UTC(semStart.getFullYear(), semStart.getMonth(), semStart.getDate())) / (1000 * 60 * 60 * 24))
+    const week_index = Math.max(1, Math.floor(diffDays / 7) + 1)
+    const month_index = Math.floor((week_index - 1) / 4) + 1
+
     const { data: violation, error } = await supabase
       .from('student_violations')
       .insert({
@@ -372,7 +396,11 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
         class_id: validatedData.class_id,
         violation_type_id: validatedData.violation_type_id,
         severity: validatedData.severity,
+        points,
         description: validatedData.description,
+        violation_date: validatedData.violation_date ?? new Date().toISOString().slice(0,10),
+        week_index,
+        month_index,
         recorded_by: userId,
         academic_year_id: validatedData.academic_year_id,
         semester_id: validatedData.semester_id
@@ -387,8 +415,8 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
     revalidatePath('/dashboard/admin/violations')
     return { success: true, data: violation }
   } catch (error: unknown) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
     }
   }
@@ -399,6 +427,27 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
     const { userId, supabase } = await checkAdminPermissions()
     const validatedData = bulkStudentViolationSchema.parse(data)
 
+    // Lấy points
+    const { data: vtype } = await supabase
+      .from('violation_types')
+      .select('id, points')
+      .eq('id', validatedData.violation_type_id)
+      .single()
+
+    const { data: sem } = await supabase
+      .from('semesters')
+      .select('id, start_date')
+      .eq('id', validatedData.semester_id)
+      .single()
+
+    const vDate = new Date(validatedData.violation_date)
+    const semStart = sem?.start_date ? new Date(sem.start_date) : new Date()
+    const diffDays = Math.floor((Date.UTC(vDate.getFullYear(), vDate.getMonth(), vDate.getDate()) - Date.UTC(semStart.getFullYear(), semStart.getMonth(), semStart.getDate())) / (1000 * 60 * 60 * 24))
+    const week_index = Math.max(1, Math.floor(diffDays / 7) + 1)
+    const month_index = Math.floor((week_index - 1) / 4) + 1
+
+    const points = typeof validatedData.points === 'number' ? validatedData.points : (vtype?.points ?? 0)
+
     const violations = validatedData.student_ids.map(studentId => ({
       student_id: studentId,
       class_id: validatedData.class_id,
@@ -406,6 +455,9 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
       severity: validatedData.severity,
       description: validatedData.description,
       violation_date: validatedData.violation_date,
+      points,
+      week_index,
+      month_index,
       recorded_by: userId,
       academic_year_id: validatedData.academic_year_id,
       semester_id: validatedData.semester_id
@@ -524,6 +576,72 @@ export async function getViolationCategoriesAndTypesAction(): Promise<{
       success: true,
       categories: categoriesResult.data || [],
       types: typesResult.data || []
+    }
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn'
+    }
+  }
+}
+
+// Paginated violation types with search functionality
+export async function getViolationTypesWithPaginationAction(filters?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category_id?: string;
+  severity?: string;
+}): Promise<{
+  success: boolean;
+  data?: ViolationTypeWithCategory[];
+  total?: number;
+  page?: number;
+  error?: string;
+}> {
+  try {
+    const { supabase } = await checkAdminPermissions()
+
+    // Set default values
+    const page = filters?.page || 1
+    const limit = filters?.limit || 10
+    const offset = (page - 1) * limit
+
+    // Build base query
+    let query = supabase
+      .from('violation_types')
+      .select('*, category:violation_categories(id, name)', { count: 'exact' })
+      .eq('is_active', true)
+
+    // Apply search filter
+    if (filters?.search?.trim()) {
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
+    }
+
+    // Apply category filter
+    if (filters?.category_id && filters.category_id !== 'all') {
+      query = query.eq('category_id', filters.category_id)
+    }
+
+    // Apply severity filter
+    if (filters?.severity && filters.severity !== 'all') {
+      query = query.eq('default_severity', filters.severity)
+    }
+
+    // Apply pagination and ordering
+    const { data: violationTypes, error, count } = await query
+      .order('name')
+      .range(offset, offset + limit - 1)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: violationTypes || [],
+      total: count || 0,
+      page
     }
   } catch (error: unknown) {
     return {
@@ -819,9 +937,9 @@ export async function getViolationStatsAction(): Promise<{
         .select('id', { count: 'exact', head: true })
         .eq('is_active', true),
 
-      // Notifications sent this month
+      // Disciplinary cases created this month (as proxy for notifications)
       supabase
-        .from('violation_notifications')
+        .from('student_disciplinary_cases')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', new Date(now.getFullYear(), now.getMonth(), 1).toISOString())
     ])
@@ -856,7 +974,7 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
     // Simple approach: get all students first, then filter by class if needed
     const { data: students, error: studentsError } = await supabase
       .from('profiles')
-      .select('id, full_name, email')
+      .select('id, full_name, student_id, email')
       .eq('role', 'student')
 
     if (studentsError) {
@@ -891,7 +1009,7 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
         .map(student => ({
           id: student.id,
           full_name: student.full_name,
-          student_id: student.email || 'N/A',
+          student_id: student.student_id || 'N/A',
           email: student.email
         }))
 
@@ -908,7 +1026,7 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
       .map(student => ({
         id: student.id,
         full_name: student.full_name,
-        student_id: student.email || 'N/A',
+        student_id: student.student_id || 'N/A',
         email: student.email
       }))
 
@@ -920,3 +1038,366 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
     }
   }
 }
+
+
+// ===== Các hành động nâng cao cho điểm/tuần/tháng và kỷ luật =====
+
+// Tính tuần/tháng theo học kì
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function computeWeekMonthIndices(violationDateISO: string, semesterStartISO: string) {
+  const v = new Date(violationDateISO)
+  const s = new Date(semesterStartISO)
+  const vUTC = Date.UTC(v.getFullYear(), v.getMonth(), v.getDate())
+  const sUTC = Date.UTC(s.getFullYear(), s.getMonth(), s.getDate())
+  const diffDays = Math.floor((vUTC - sUTC) / (1000 * 60 * 60 * 24))
+  const week_index = Math.max(1, Math.floor(diffDays / 7) + 1)
+  const month_index = Math.floor((week_index - 1) / 4) + 1
+  return { week_index, month_index }
+}
+
+// Gom nhóm vi phạm theo học sinh trong 1 tuần (mặc định phục vụ báo cáo tuần)
+export async function getWeeklyGroupedViolationsAction(params: { semester_id: string; week_index: number; class_id?: string }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+
+    let query = supabase
+      .from('student_violations')
+      .select(`
+        id, student_id, class_id, violation_type_id, severity, points, description, violation_date,
+        student:profiles!student_id(id, full_name, student_id),
+        class:classes!class_id(id, name),
+        violation_type:violation_types!violation_type_id(id, name)
+      `)
+      .eq('semester_id', params.semester_id)
+      .eq('week_index', params.week_index)
+
+    if (params.class_id) query = query.eq('class_id', params.class_id)
+
+    // Chuyển kiểu an toàn cho dữ liệu trả về từ Supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = (await query) as any
+    type Row = { id: string; student_id: string; class_id: string; violation_type_id?: string; severity?: string; points: number; description: string | null; violation_date: string; student: { id: string; full_name: string; student_id: string } | null; class: { id: string; name: string } | null; violation_type?: { id: string; name: string } | null }
+    if (error) throw new Error(error.message)
+
+    // Group by student
+    const map = new Map<string, { student: { id: string; full_name: string; student_id: string } | null; class: { id: string; name: string } | null; total_points: number; total_violations: number; violations: Array<{ id: string; name: string; points: number; date: string; description: string | null }> }>()
+    for (const row of ((data || []) as unknown as Row[])) {
+      const key = row.student_id
+      if (!map.has(key)) {
+        map.set(key, {
+          student: row.student,
+          class: row.class,
+          total_points: 0,
+          total_violations: 0,
+          violations: [] as Array<{ id: string; name: string; points: number; date: string; description: string | null }>
+        })
+      }
+      const agg = map.get(key)!
+      agg.total_points += row.points || 0
+      agg.total_violations += 1
+      agg.violations.push({ id: row.id, name: row.violation_type?.name || '', points: row.points || 0, date: row.violation_date, description: row.description })
+    }
+
+    return { success: true, data: Array.from(map.values()) }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Xếp hạng theo "tháng học kì" (4 tuần)
+export async function getMonthlyRankingAction(params: { semester_id: string; month_index: number; class_id?: string }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    let query = supabase
+      .from('student_violations')
+      .select(`
+        id, student_id, class_id, points,
+        student:profiles!student_id(id, full_name, student_id),
+        class:classes!class_id(id, name)
+      `)
+      .eq('semester_id', params.semester_id)
+      .eq('month_index', params.month_index)
+
+    if (params.class_id) query = query.eq('class_id', params.class_id)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = (await query) as any
+    if (error) throw new Error(error.message)
+
+    const map = new Map<string, { student: { id: string; full_name: string; student_id: string } | null; class: { id: string; name: string } | null; total_points: number; total_violations: number }>()
+    for (const row of (data || [])) {
+      const key = row.student_id
+      if (!map.has(key)) {
+        map.set(key, { student: row.student, class: row.class, total_points: 0, total_violations: 0 })
+      }
+      const agg = map.get(key)!
+      agg.total_points += row.points || 0
+      agg.total_violations += 1
+    }
+
+    const arr = Array.from(map.values())
+    arr.sort((a, b) => {
+      if (b.total_violations !== a.total_violations) return b.total_violations - a.total_violations
+      if (b.total_points !== a.total_points) return b.total_points - a.total_points
+      return (a.student?.full_name || '').localeCompare(b.student?.full_name || '')
+    })
+
+    return { success: true, data: arr }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Danh sách HS có >=3 vi phạm trong tháng chưa được admin đánh dấu đã xem
+export async function getMonthlyThreePlusListAction(params: { semester_id: string; month_index: number }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+
+    // Lấy alerts chưa xem từ bảng monthly_violation_alerts
+    const { data, error } = await supabase
+      .from('monthly_violation_alerts')
+      .select(`
+        student_id, total_violations,
+        student:profiles!student_id(id, full_name, student_id)
+      `)
+      .eq('semester_id', params.semester_id)
+      .eq('month_index', params.month_index)
+      .eq('is_seen', false)
+      .gte('total_violations', 3)
+
+    if (error) throw new Error(error.message)
+
+    const withDetails = (data || []).map(alert => ({
+      count: alert.total_violations,
+      student: alert.student || { id: alert.student_id, full_name: 'Không xác định', student_id: '' }
+    }))
+
+    return { success: true, data: withDetails, total: withDetails.length }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Lấy số lượng alerts chưa xem cho sidebar badge
+export async function getUnseenViolationAlertsCountAction(): Promise<{
+  success: boolean;
+  count?: number;
+  error?: string;
+}> {
+  try {
+    const { supabase } = await checkAdminPermissions()
+
+    // Lấy học kì hiện tại
+    const { data: currentSemester } = await supabase
+      .from('semesters')
+      .select('id')
+      .eq('is_current', true)
+      .single()
+
+    if (!currentSemester) {
+      return { success: true, count: 0 }
+    }
+
+    // Đếm alerts chưa xem có >= 3 vi phạm
+    const { count, error } = await supabase
+      .from('monthly_violation_alerts')
+      .select('id', { count: 'exact', head: true })
+      .eq('semester_id', currentSemester.id)
+      .eq('is_seen', false)
+      .gte('total_violations', 3)
+
+    if (error) throw new Error(error.message)
+
+    return { success: true, count: count || 0 }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Đánh dấu đã xem cho 1 học sinh trong tháng (badge giảm)
+export async function markMonthlyAlertSeenAction(params: { student_id: string; semester_id: string; month_index: number }) {
+  try {
+    const { userId, supabase } = await checkAdminPermissions()
+    const { error } = await supabase
+      .from('monthly_violation_alerts')
+      .update({
+        is_seen: true,
+        seen_by: userId,
+        seen_at: new Date().toISOString()
+      })
+      .eq('student_id', params.student_id)
+      .eq('semester_id', params.semester_id)
+      .eq('month_index', params.month_index)
+    if (error) throw new Error(error.message)
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Tạo case kỷ luật
+export async function createDisciplinaryCaseAction(params: { student_id: string; class_id?: string; semester_id: string; week_index: number; action_type_id: string; notes?: string; violation_ids?: string[] }) {
+  try {
+    const { userId, supabase } = await checkAdminPermissions()
+
+    let total_points = 0
+    if (params.violation_ids && params.violation_ids.length > 0) {
+      const { data: vio } = await supabase
+        .from('student_violations')
+        .select('points')
+        .in('id', params.violation_ids)
+      total_points = (vio || []).reduce((s, v) => s + (v.points || 0), 0)
+    }
+
+    const { data, error } = await supabase
+      .from('student_disciplinary_cases')
+      .insert({
+        student_id: params.student_id,
+        class_id: params.class_id,
+        semester_id: params.semester_id,
+        week_index: params.week_index,
+        total_points,
+        action_type_id: params.action_type_id,
+        notes: params.notes,
+        violation_ids: params.violation_ids || [],
+        status: 'draft',
+        created_by: userId
+      })
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    return { success: true, data }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Lấy danh sách hình thức kỷ luật
+export async function getDisciplinaryActionTypesAction() {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    const { data, error } = await supabase
+      .from('disciplinary_action_types')
+      .select('*')
+      .eq('is_active', true)
+      .order('name')
+
+    if (error) throw new Error(error.message)
+    return { success: true, data: data || [] }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Tạo hình thức kỷ luật mới
+export async function createDisciplinaryActionTypeAction(params: { name: string; description?: string; severity_level?: number }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    const { data, error } = await supabase
+      .from('disciplinary_action_types')
+      .insert({
+        name: params.name,
+        description: params.description,
+        severity_level: typeof params.severity_level === 'number' ? params.severity_level : 1,
+        is_active: true
+      })
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return { success: true, data }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Cập nhật hình thức kỷ luật
+export async function updateDisciplinaryActionTypeAction(params: { id: string; name?: string; description?: string; severity_level?: number; is_active?: boolean }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    const updateData: Record<string, unknown> = {}
+    if (typeof params.name === 'string') updateData.name = params.name
+    if (typeof params.description === 'string') updateData.description = params.description
+    if (typeof params.severity_level === 'number') updateData.severity_level = params.severity_level
+    if (typeof params.is_active === 'boolean') updateData.is_active = params.is_active
+
+    const { data, error } = await supabase
+      .from('disciplinary_action_types')
+      .update(updateData)
+      .eq('id', params.id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return { success: true, data }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Vô hiệu (soft-delete) hình thức kỷ luật
+export async function deactivateDisciplinaryActionTypeAction(params: { id: string }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    const { data, error } = await supabase
+      .from('disciplinary_action_types')
+      .update({ is_active: false })
+      .eq('id', params.id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return { success: true, data }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Lấy danh sách case kỷ luật
+export async function getDisciplinaryCasesAction(params?: { semester_id?: string; status?: string; class_id?: string }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    let query = supabase
+      .from('student_disciplinary_cases')
+      .select(`
+        id, student_id, class_id, semester_id, week_index, total_points, notes, status, created_at,
+        student:profiles!student_id(id, full_name, student_id),
+        class:classes!class_id(id, name),
+        action_type:disciplinary_action_types!action_type_id(id, name)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (params?.semester_id) query = query.eq('semester_id', params.semester_id)
+    if (params?.status) query = query.eq('status', params.status)
+    if (params?.class_id) query = query.eq('class_id', params.class_id)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = (await query) as any
+    if (error) throw new Error(error.message)
+    return { success: true, data: data || [] }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Cập nhật trạng thái case kỷ luật
+export async function updateDisciplinaryCaseStatusAction(params: { case_id: string; status: string }) {
+  try {
+    const { supabase } = await checkAdminPermissions()
+    const { data, error } = await supabase
+      .from('student_disciplinary_cases')
+      .update({ status: params.status, updated_at: new Date().toISOString() })
+      .eq('id', params.case_id)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return { success: true, data }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+

@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 // Gender enum
-export const genderEnum = z.enum(['male', 'female', 'other'], {
+export const genderEnum = z.enum(['male', 'female'], {
   message: "Gender is required"
 })
 

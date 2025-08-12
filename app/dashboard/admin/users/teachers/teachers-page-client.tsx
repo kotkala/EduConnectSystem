@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Users, RefreshCw } from "lucide-react"
 import { UserTable } from "@/components/admin/user-table"
 import { TeacherForm } from "@/components/admin/teacher-form"
-import { getTeachersAction } from "@/lib/actions/user-actions"
+import { getTeachersAction, getTeacherStatsAction } from "@/lib/actions/user-actions"
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
 
 export default function TeachersPageClient() {
@@ -18,6 +18,8 @@ export default function TeachersPageClient() {
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<UserFilters>({ page: 1, limit: 10 })
+  const [homeroomCount, setHomeroomCount] = useState<number | null>(null)
+  const [newThisMonth, setNewThisMonth] = useState<number | null>(null)
   
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -29,14 +31,22 @@ export default function TeachersPageClient() {
     setError(null)
 
     try {
-      const result = await getTeachersAction(filters)
+      const [listRes, statsRes] = await Promise.all([
+        getTeachersAction(filters),
+        getTeacherStatsAction()
+      ])
 
-      if (result.success) {
-        setTeachers(result.data)
-        setTotal(result.total)
-        setCurrentPage(result.page || 1)
+      if (listRes.success) {
+        setTeachers(listRes.data)
+        setTotal(listRes.total)
+        setCurrentPage(listRes.page || 1)
       } else {
-        setError(result.error || "Không thể tải danh sách giáo viên")
+        setError(listRes.error || "Không thể tải danh sách giáo viên")
+      }
+
+      if (statsRes.success) {
+        setHomeroomCount(statsRes.homeroom ?? 0)
+        setNewThisMonth(statsRes.newThisMonth ?? 0)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
@@ -74,9 +84,7 @@ export default function TeachersPageClient() {
     fetchTeachers()
   }
 
-  const handleRefresh = () => {
-    fetchTeachers()
-  }
+
 
   if (loading && teachers.length === 0) {
     return (
@@ -126,7 +134,7 @@ export default function TeachersPageClient() {
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">
-              {teachers.filter(t => t.homeroom_enabled).length}
+              {homeroomCount ?? teachers.filter(t => t.homeroom_enabled).length}
             </div>
             <p className="text-xs text-muted-foreground">
               Giáo viên có quyền GVCN
@@ -141,11 +149,13 @@ export default function TeachersPageClient() {
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">
-              {teachers.filter(t => {
-                const created = new Date(t.created_at)
+              {newThisMonth ?? ((): number => {
                 const now = new Date()
-                return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
-              }).length}
+                return teachers.filter(t => {
+                  const created = new Date(t.created_at)
+                  return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+                }).length
+              })()}
             </div>
             <p className="text-xs text-muted-foreground">
               Giáo viên được thêm trong tháng này
@@ -171,7 +181,6 @@ export default function TeachersPageClient() {
         onPageChange={handlePageChange}
         onFiltersChange={handleFiltersChange}
         onEdit={handleEdit}
-        onRefresh={handleRefresh}
       />
 
       {/* Create Teacher Dialog */}

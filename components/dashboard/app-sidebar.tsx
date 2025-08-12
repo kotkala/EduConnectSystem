@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import {
   Home,
   Users,
@@ -11,13 +12,11 @@ import {
   Calendar,
   MessageSquare,
   Award,
-
   Building,
   Bell,
   Clock,
   ChevronUp,
   User2,
-  Zap,
   BarChart3,
   ArrowLeftRight,
   ClipboardList,
@@ -26,6 +25,8 @@ import {
   LogOut,
   Settings,
   MessageCircle,
+  FileBarChart,
+  BookCheck,
 } from "lucide-react"
 import {
   Sidebar,
@@ -57,6 +58,7 @@ import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
 import { useNotificationCount } from '@/hooks/use-notification-count'
 import { Badge } from '@/components/ui/badge'
 import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
+import ViolationAlertBadge from '@/components/admin/violations/violation-alert-badge'
 
 // Platform item type
 interface PlatformItem {
@@ -78,6 +80,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
@@ -91,6 +94,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
     { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
@@ -99,6 +103,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch giảng dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
     { title: "Bảng điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
+    { title: "Báo cáo học tập", url: "/dashboard/teacher/reports", icon: BookCheck },
     { title: "Họp phụ huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Học sinh chủ nhiệm", url: "/dashboard/teacher/homeroom-students", icon: Heart },
     { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
@@ -116,6 +121,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Trợ lý AI", url: "#", icon: Bot, isSpecial: true },
     { title: "Trợ lý AI - Mở rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
     { title: "Bảng điểm con em", url: "/dashboard/parent/grades", icon: Award },
+    { title: "Báo cáo học tập", url: "/dashboard/parent/reports", icon: BookCheck },
     { title: "Phản hồi học tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Vi phạm con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
     { title: "Lịch họp", url: "/dashboard/parent/meetings", icon: Calendar },
@@ -181,9 +187,16 @@ export function AppSidebar({ role }: AppSidebarProps) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-3 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          {/* Logo Icon - Contained properly */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 shrink-0">
-            <Zap className="h-4 w-4 text-white" />
+          {/* Logo Icon - EduConnect Dashboard Logo */}
+          <div className="flex h-8 w-8 items-center justify-center rounded-md shrink-0">
+            <Image
+              src="/edu_connect_dashboard.png"
+              alt="EduConnect Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+              priority
+            />
           </div>
 
           {/* Brand Text - Hidden when collapsed */}
@@ -231,6 +244,10 @@ export function AppSidebar({ role }: AppSidebarProps) {
                           <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
                             {notificationCounts.unread}
                           </Badge>
+                        )}
+                        {/* Show violation alert badge for admin violations */}
+                        {(item.title === "Vi phạm học sinh" && role === 'admin') && (
+                          <ViolationAlertBadge className="ml-auto h-5 w-5 flex items-center justify-center text-xs" />
                         )}
                       </a>
                     </SidebarMenuButton>

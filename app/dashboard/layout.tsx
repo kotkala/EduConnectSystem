@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { AppSidebar } from '@/components/dashboard/app-sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { ViolationAlertProvider } from '@/contexts/violation-alert-context'
 import { UserRole } from '@/lib/types'
 
 export default async function DashboardLayout({
@@ -32,12 +33,23 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <AppSidebar role={role} />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
+      {role === 'admin' ? (
+        <ViolationAlertProvider>
+          <div className="flex h-screen w-full">
+            <AppSidebar role={role} />
+            <main className="flex-1 overflow-auto">
+              {children}
+            </main>
+          </div>
+        </ViolationAlertProvider>
+      ) : (
+        <div className="flex h-screen w-full">
+          <AppSidebar role={role} />
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
+      )}
     </SidebarProvider>
   )
 }

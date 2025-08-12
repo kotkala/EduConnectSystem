@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import { 
   Search, 
   Filter, 
@@ -30,14 +30,15 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react"
-import { deleteAcademicYearAction, deleteSemesterAction } from "@/lib/actions/academic-actions"
-import { 
-  type AcademicYear, 
-  type Semester, 
+import {
+  type AcademicYear,
+  type Semester,
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
-  type AcademicFilters 
+  type AcademicFilters
 } from "@/lib/validations/academic-validations"
+import { AcademicEditDialog } from "./academic-edit-dialog"
+import { AcademicDeleteDialog } from "./academic-delete-dialog"
 
 interface AcademicTableProps {
   readonly data: AcademicYearWithSemesters[] | SemesterWithAcademicYear[]
@@ -47,7 +48,6 @@ interface AcademicTableProps {
   readonly limit?: number
   readonly onPageChange: (page: number) => void
   readonly onFiltersChange: (filters: Partial<AcademicFilters>) => void
-  readonly onEdit: (item: AcademicYear | Semester) => void
   readonly onRefresh: () => void
 }
 
@@ -59,12 +59,12 @@ export function AcademicTable({
   limit = 10,
   onPageChange,
   onFiltersChange,
-  onEdit,
   onRefresh
 }: AcademicTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<AcademicYear | Semester | null>(null)
 
   const totalPages = Math.ceil(total / limit)
 
@@ -73,29 +73,14 @@ export function AcademicTable({
     onFiltersChange({ search: value, page: 1 })
   }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-      return
-    }
+  const handleEdit = (item: AcademicYear | Semester) => {
+    setSelectedItem(item)
+    setEditModalOpen(true)
+  }
 
-    setDeletingId(id)
-    setDeleteError(null)
-
-    try {
-      const result = type === "academic-years" 
-        ? await deleteAcademicYearAction(id)
-        : await deleteSemesterAction(id)
-
-      if (result.success) {
-        onRefresh()
-      } else {
-        setDeleteError(result.error || "Failed to delete item")
-      }
-    } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : "An unexpected error occurred")
-    } finally {
-      setDeletingId(null)
-    }
+  const handleDelete = (item: AcademicYear | Semester) => {
+    setSelectedItem(item)
+    setDeleteModalOpen(true)
   }
 
   const formatDate = (dateString: string) => {
@@ -121,12 +106,7 @@ export function AcademicTable({
         </Button>
       </div>
 
-      {/* Error Alert */}
-      {deleteError && (
-        <Alert variant="destructive">
-          <AlertDescription>{deleteError}</AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Table */}
       <div className="border rounded-lg overflow-x-auto">
@@ -260,17 +240,16 @@ export function AcademicTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(item)}>
+                        <DropdownMenuItem onClick={() => handleEdit(item)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                          Chỉnh sửa
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(item.id, item.name)}
-                          disabled={deletingId === item.id}
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(item)}
                           className="text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -331,6 +310,24 @@ export function AcademicTable({
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <AcademicEditDialog
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        item={selectedItem}
+        type={type}
+        onSuccess={onRefresh}
+      />
+
+      {/* Delete Modal */}
+      <AcademicDeleteDialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        item={selectedItem}
+        type={type}
+        onSuccess={onRefresh}
+      />
     </div>
   )
 }

@@ -130,7 +130,7 @@ function renderViolationsContent(
             <TableCell>
               <div className="flex items-center gap-1 text-sm">
                 <User className="h-3 w-3" />
-                {violation.recorded_by_user?.full_name || 'Unknown'}
+                {violation.recorded_by_user?.full_name || 'Không xác định'}
               </div>
             </TableCell>
             <TableCell>
@@ -141,7 +141,7 @@ function renderViolationsContent(
                 className="flex items-center gap-1"
               >
                 <Send className="h-3 w-3" />
-                Send
+                Gửi GVCN
               </Button>
             </TableCell>
           </TableRow>
@@ -320,7 +320,7 @@ export default function SimpleViolationsTable() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search student name or ID..."
+                placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -329,10 +329,10 @@ export default function SimpleViolationsTable() {
 
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All severities" />
+                <SelectValue placeholder="Tất cả mức độ" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All severities</SelectItem>
+                <SelectItem value="all">Tất cả mức độ</SelectItem>
                 {violationSeverityLevels.map((severity) => (
                   <SelectItem key={severity} value={severity}>
                     <Badge className={getSeverityColor(severity)}>
@@ -345,10 +345,10 @@ export default function SimpleViolationsTable() {
 
             <Select value={classFilter} onValueChange={setClassFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="All classes" />
+                <SelectValue placeholder="Tất cả lớp" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All classes</SelectItem>
+                <SelectItem value="all">Tất cả lớp</SelectItem>
                 {classes.map((cls) => (
                   <SelectItem key={cls.id} value={cls.id}>
                     {cls.name}
@@ -358,13 +358,13 @@ export default function SimpleViolationsTable() {
             </Select>
 
             <Button variant="outline" onClick={clearFilters}>
-              Clear Filters
+              Xoá bộ lọc
             </Button>
           </div>
 
           <div className="flex justify-between items-center mt-4">
             <div className="text-sm text-muted-foreground">
-              Showing {violations.length} of {total} violations
+              Đang hiển thị {violations.length}/{total} vi phạm
             </div>
           </div>
         </CardContent>
@@ -375,10 +375,10 @@ export default function SimpleViolationsTable() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            All Violations
+            Tất cả vi phạm
           </CardTitle>
           <CardDescription>
-            Complete list of recorded student violations
+            Danh sách vi phạm học sinh đã ghi nhận
           </CardDescription>
         </CardHeader>
         <CardContent>

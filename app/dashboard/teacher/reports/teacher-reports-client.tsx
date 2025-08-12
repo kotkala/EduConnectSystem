@@ -1,0 +1,500 @@
+"use client"
+
+import React, { useState, useEffect, useCallback, useMemo, memo } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import {
+  Calendar,
+  Users,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  Eye,
+  Edit,
+  Send,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react"
+import { toast } from "sonner"
+import { 
+  getReportPeriodsAction,
+  type ReportPeriod 
+} from "@/lib/actions/report-period-actions"
+import { 
+  getStudentsForReportAction,
+  type StudentForReport
+} from "@/lib/actions/student-report-actions"
+import { StudentReportModal } from "@/components/teacher/reports/student-report-modal"
+
+// Utility function to format date range for dropdown
+const formatDateRange = (startDate: string, endDate: string): string => {
+  const start = new Date(startDate).toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+  const end = new Date(endDate).toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+  return `${start} - ${end}`
+}
+
+// Memoized student item component for performance
+const StudentItem = memo(function StudentItem({
+  student,
+  onStudentClick,
+  getStatusBadge
+}: {
+  student: StudentForReport
+  onStudentClick: (student: StudentForReport) => void
+  getStatusBadge: (student: StudentForReport) => React.ReactElement
+}) {
+  const handleClick = useCallback(() => {
+    onStudentClick(student)
+  }, [student, onStudentClick])
+
+  return (
+    <button
+      type="button"
+      className="w-full flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
+      onClick={handleClick}
+    >
+      <div className="flex-1">
+        <h4 className="font-medium">{student.full_name}</h4>
+        <p className="text-sm text-gray-500">
+          Mã HS: {student.student_id} • Lớp: {student.class_name}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        {getStatusBadge(student)}
+        <div className="flex items-center gap-1">
+          {student.report?.status === 'sent' ? (
+            <Eye className="h-4 w-4 text-blue-500" />
+          ) : (
+            <Edit className="h-4 w-4 text-gray-500" />
+          )}
+        </div>
+      </div>
+    </button>
+  )
+})
+
+// Memoized students list component for performance
+const StudentsList = memo(function StudentsList({
+  studentsLoading,
+  students,
+  handleStudentClick,
+  getStatusBadge
+}: {
+  studentsLoading: boolean
+  students: StudentForReport[]
+  handleStudentClick: (student: StudentForReport) => void
+  getStatusBadge: (student: StudentForReport) => React.ReactElement
+}) {
+  if (studentsLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="animate-pulse">
+            <div className="h-16 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (students.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Không có học sinh
+        </h3>
+        <p className="text-gray-600">
+          Không tìm thấy học sinh nào trong lớp chủ nhiệm của bạn.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {students.map((student) => (
+        <StudentItem
+          key={student.id}
+          student={student}
+          onStudentClick={handleStudentClick}
+          getStatusBadge={getStatusBadge}
+        />
+      ))}
+    </div>
+  )
+})
+
+function TeacherReportsClient() {
+  const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("")
+  const [students, setStudents] = useState<StudentForReport[]>([])
+  const [loading, setLoading] = useState(true)
+  const [studentsLoading, setStudentsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<StudentForReport | null>(null)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [bulkSending, setBulkSending] = useState(false)
+
+  const ITEMS_PER_PAGE = 10
+
+  // Memoized statistics and pagination for performance
+  const stats = useMemo(() => {
+    const total = students.length
+    const withReports = students.filter(s => s.report).length
+    const sentReports = students.filter(s => s.report?.status === 'sent').length
+    const draftReports = students.filter(s => s.report?.status === 'draft').length
+
+    return {
+      total,
+      withReports,
+      sentReports,
+      draftReports,
+      noReports: total - withReports
+    }
+  }, [students])
+
+  // Pagination logic
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    return students.slice(startIndex, endIndex)
+  }, [students, currentPage, ITEMS_PER_PAGE])
+
+  const totalPages = Math.ceil(students.length / ITEMS_PER_PAGE)
+
+
+
+  const loadReportPeriods = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const result = await getReportPeriodsAction()
+      
+      if (result.success) {
+        setReportPeriods(result.data || [])
+      } else {
+        setError(result.error || 'Failed to load report periods')
+      }
+    } catch (error) {
+      console.error('Error loading report periods:', error)
+      setError('Failed to load report periods')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const loadStudents = useCallback(async () => {
+    if (!selectedPeriod) return
+
+    try {
+      setStudentsLoading(true)
+      const result = await getStudentsForReportAction(selectedPeriod)
+      
+      if (result.success) {
+        setStudents(result.data || [])
+      } else {
+        toast.error(result.error || 'Failed to load students')
+      }
+    } catch (error) {
+      console.error('Error loading students:', error)
+      toast.error('Failed to load students')
+    } finally {
+      setStudentsLoading(false)
+    }
+  }, [selectedPeriod])
+
+  // Bulk send functionality
+  const handleBulkSend = useCallback(async () => {
+    const reportsToSend = students.filter(s => s.report?.status === 'draft')
+
+    if (reportsToSend.length === 0) {
+      toast.error('Không có báo cáo nào để gửi')
+      return
+    }
+
+    setBulkSending(true)
+    try {
+      // Import the bulk send action
+      const { bulkSendReportsAction } = await import('@/lib/actions/student-report-actions')
+
+      const result = await bulkSendReportsAction(selectedPeriod, reportsToSend.map(s => s.report!.id))
+
+      if (result.success) {
+        toast.success(`Đã gửi ${reportsToSend.length} báo cáo thành công`)
+        loadStudents() // Reload to get updated statuses
+      } else {
+        toast.error(result.error || 'Không thể gửi báo cáo')
+      }
+    } catch (error) {
+      console.error('Error bulk sending reports:', error)
+      toast.error('Không thể gửi báo cáo')
+    } finally {
+      setBulkSending(false)
+    }
+  }, [students, selectedPeriod, loadStudents])
+
+  const handleRefresh = useCallback(() => {
+    loadReportPeriods()
+    if (selectedPeriod) {
+      loadStudents()
+    }
+  }, [loadReportPeriods, selectedPeriod, loadStudents])
+
+  const handleStudentClick = useCallback((student: StudentForReport) => {
+    setSelectedStudent(student)
+    setShowReportModal(true)
+  }, [])
+
+
+
+  const getStatusBadge = useCallback((student: StudentForReport) => {
+    if (!student.report) {
+      return <Badge variant="secondary">Chưa tạo</Badge>
+    }
+    
+    if (student.report.status === 'sent') {
+      return <Badge className="bg-green-100 text-green-800">Đã gửi</Badge>
+    }
+    
+    return <Badge variant="outline">Bản nháp</Badge>
+  }, [])
+
+  useEffect(() => {
+    loadReportPeriods()
+  }, [loadReportPeriods])
+
+  useEffect(() => {
+    if (selectedPeriod) {
+      loadStudents()
+    }
+  }, [selectedPeriod, loadStudents])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Report Period Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Calendar className="h-5 w-5" />
+            Chọn kỳ báo cáo
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="w-full md:flex-1">
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="h-11 text-base">
+                  <SelectValue placeholder="Chọn kỳ báo cáo" />
+                </SelectTrigger>
+                <SelectContent className="max-h-80 text-base">
+                  {reportPeriods.map((period) => (
+                    <SelectItem key={period.id} value={period.id} className="py-3 text-base">
+                      {period.name} ({formatDateRange(period.start_date, period.end_date)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" onClick={handleRefresh} className="h-11 text-base">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Làm mới
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Statistics Overview */}
+      {selectedPeriod && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Tổng học sinh</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+                <Users className="h-8 w-8 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Đã gửi</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.sentReports}</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Bản nháp</p>
+                  <p className="text-2xl font-bold text-yellow-600">{stats.draftReports}</p>
+                </div>
+                <Edit className="h-8 w-8 text-yellow-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Chưa tạo</p>
+                  <p className="text-2xl font-bold text-red-600">{stats.noReports}</p>
+                </div>
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Student Reports List */}
+      {selectedPeriod && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Danh sách học sinh</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Bulk Actions */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button
+                    onClick={handleBulkSend}
+                    disabled={bulkSending || stats.draftReports === 0}
+                    className="flex items-center gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    {bulkSending ? 'Đang gửi...' : `Gửi tất cả (${stats.draftReports})`}
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Gửi tất cả báo cáo bản nháp cho phụ huynh
+                  </span>
+                </div>
+
+                {/* Pagination Info */}
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    Trang {currentPage} / {totalPages} ({students.length} học sinh)
+                  </div>
+                )}
+              </div>
+
+              <StudentsList
+                studentsLoading={studentsLoading}
+                students={paginatedStudents}
+                handleStudentClick={handleStudentClick}
+                getStatusBadge={getStatusBadge}
+              />
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Trước
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <Button
+                        key={page}
+                        variant={page === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Sau
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Student Report Modal */}
+      {selectedStudent && (
+        <StudentReportModal
+          open={showReportModal}
+          onOpenChange={setShowReportModal}
+          student={selectedStudent}
+          reportPeriodId={selectedPeriod}
+        />
+      )}
+    </div>
+  )
+}
+
+// Export memoized component for performance
+export default memo(TeacherReportsClient)

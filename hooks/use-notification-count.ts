@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { UserRole } from '@/lib/types'
+import { getUnreadNotificationCountAction } from '@/lib/actions/notification-actions'
 
 interface NotificationCounts {
   unread: number
@@ -29,35 +30,13 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
     // Move notification counting logic inside useEffect (Context7 pattern)
     const fetchNotificationCounts = async () => {
       try {
-        const supabase = createClient()
-        
-        // Query unread notifications for the current user
-        const { data: unreadData, error: unreadError } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('recipient_id', userId)
-          .eq('is_read', false)
-
-        if (unreadError) {
-          console.error('Error fetching unread notifications:', unreadError)
-          return
+        // Use server action which already applies role-based filters and read status
+        const result = await getUnreadNotificationCountAction()
+        if (result.success && typeof result.data === 'number') {
+          setCounts({ unread: result.data, total: result.data })
+        } else {
+          setCounts({ unread: 0, total: 0 })
         }
-
-        // Query total notifications for the current user
-        const { data: totalData, error: totalError } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('recipient_id', userId)
-
-        if (totalError) {
-          console.error('Error fetching total notifications:', totalError)
-          return
-        }
-
-        setCounts({
-          unread: unreadData?.length || 0,
-          total: totalData?.length || 0
-        })
       } catch (error) {
         console.error('Error in fetchNotificationCounts:', error)
       } finally {

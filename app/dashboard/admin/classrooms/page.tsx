@@ -66,10 +66,7 @@ export default function ClassroomsPage() {
     setFormDialogOpen(true)
   }
 
-  const handleEditClassroom = (classroom: Classroom) => {
-    setEditingClassroom(classroom)
-    setFormDialogOpen(true)
-  }
+
 
   const handleFormSuccess = () => {
     setFormDialogOpen(false)
@@ -192,7 +189,6 @@ export default function ClassroomsPage() {
             limit={filters.limit}
             onPageChange={handlePageChange}
             onFiltersChange={handleFiltersChange}
-            onEdit={handleEditClassroom}
             onRefresh={handleRefresh}
           />
         </CardContent>

@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+
 import {
   Search,
   MoreHorizontal,
@@ -37,11 +37,13 @@ import {
   MapPin
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { deleteClassroomAction, type Classroom } from "@/lib/actions/classroom-actions"
-import { 
+import { type Classroom } from "@/lib/actions/classroom-actions"
+import {
   type ClassroomFilters,
-  ROOM_TYPES 
+  ROOM_TYPES
 } from "@/lib/validations/timetable-validations"
+import { ClassroomEditDialog } from "./classroom-edit-dialog"
+import { ClassroomDeleteDialog } from "./classroom-delete-dialog"
 
 interface ClassroomTableProps {
   readonly data: Classroom[]
@@ -50,7 +52,6 @@ interface ClassroomTableProps {
   readonly limit?: number
   readonly onPageChange: (page: number) => void
   readonly onFiltersChange: (filters: Partial<ClassroomFilters>) => void
-  readonly onEdit: (classroom: Classroom) => void
   readonly onRefresh: () => void
 }
 
@@ -61,15 +62,15 @@ export function ClassroomTable({
   limit = 10,
   onPageChange,
   onFiltersChange,
-  onEdit,
   onRefresh
 }: ClassroomTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [buildingFilter, setBuildingFilter] = useState("")
   const [roomTypeFilter, setRoomTypeFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedClassroom, setSelectedClassroom] = useState<Classroom | null>(null)
 
   const totalPages = Math.ceil(total / limit)
 
@@ -96,26 +97,14 @@ export function ClassroomTable({
     })
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this classroom? This action cannot be undone.')) {
-      return
-    }
+  const handleEdit = (classroom: Classroom) => {
+    setSelectedClassroom(classroom)
+    setEditModalOpen(true)
+  }
 
-    setDeletingId(id)
-    setError(null)
-
-    try {
-      const result = await deleteClassroomAction(id)
-      if (result.success) {
-        onRefresh()
-      } else {
-        setError(result.error || 'Failed to delete classroom')
-      }
-    } catch {
-      setError('Failed to delete classroom')
-    } finally {
-      setDeletingId(null)
-    }
+  const handleDelete = (classroom: Classroom) => {
+    setSelectedClassroom(classroom)
+    setDeleteModalOpen(true)
   }
 
   const getRoomTypeColor = (roomType: string) => {
@@ -158,11 +147,7 @@ export function ClassroomTable({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -304,25 +289,24 @@ export function ClassroomTable({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           className="h-8 w-8 p-0"
-                          disabled={deletingId === classroom.id}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(classroom)}>
+                        <DropdownMenuItem onClick={() => handleEdit(classroom)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                          Chỉnh sửa
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(classroom.id)}
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(classroom)}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -377,6 +361,22 @@ export function ClassroomTable({
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <ClassroomEditDialog
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        classroom={selectedClassroom}
+        onSuccess={onRefresh}
+      />
+
+      {/* Delete Modal */}
+      <ClassroomDeleteDialog
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        classroom={selectedClassroom}
+        onSuccess={onRefresh}
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AlertTriangle, Send, Clock, Filter, Search, Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,6 +13,7 @@ import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, v
 import { toast } from 'sonner'
 import { format, endOfWeek } from 'date-fns'
 import { getWeekStartDate } from '@/components/timetable-calendar/data-mappers'
+import TeacherDisciplinaryCases from '@/components/teacher/violations/teacher-disciplinary-cases'
 
 interface TeacherViolationsPageClientProps {
   homeroomClass: {
@@ -49,6 +51,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
   const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
   const [semesters, setSemesters] = useState<Semester[]>([])
   const [selectedSemester, setSelectedSemester] = useState<string>('')
+  const [activeTab, setActiveTab] = useState('violations')
   const supabase = createClient()
 
   useEffect(() => {
@@ -344,32 +347,50 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vi Phạm Học Sinh</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Vi phạm lớp học</h1>
           <p className="text-muted-foreground">
-            Lớp: {homeroomClass?.name} • {violations.length} vi phạm
-            {selectedWeek && (
-              <span className="text-primary ml-2">
-                • Tuần {selectedWeek}
-              </span>
-            )}
+            {isHomeroomTeacher && homeroomClass
+              ? `Quản lý vi phạm cho lớp chủ nhiệm: ${homeroomClass.name}`
+              : "Xem vi phạm cho các lớp của bạn"}
           </p>
-        </div>
-        <div className="flex gap-2">
-          {filteredViolations.length > 0 && (
-            <Button
-              onClick={handleSendAllToParents}
-              className="flex items-center gap-2"
-              variant="default"
-            >
-              <Send className="h-4 w-4" />
-              Gửi Tất Cả Cho Phụ Huynh ({filteredViolations.length})
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="violations">Vi phạm lớp</TabsTrigger>
+          <TabsTrigger value="discipline">Xử lý kỷ luật</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="violations" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Vi phạm học sinh</h2>
+              <p className="text-muted-foreground">
+                Lớp: {homeroomClass?.name} • {violations.length} vi phạm
+                {selectedWeek && (
+                  <span className="text-primary ml-2">
+                    • Tuần {selectedWeek}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {filteredViolations.length > 0 && (
+                <Button
+                  onClick={handleSendAllToParents}
+                  className="flex items-center gap-2"
+                  variant="default"
+                >
+                  <Send className="h-4 w-4" />
+                  Gửi tất cả cho phụ huynh ({filteredViolations.length})
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Filters */}
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -570,6 +591,12 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
           )}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="discipline" className="space-y-6">
+          <TeacherDisciplinaryCases />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

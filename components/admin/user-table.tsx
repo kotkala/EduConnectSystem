@@ -7,14 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   Search,
   Filter,
   MoreHorizontal,
   Edit,
-  Trash2,
   Phone,
   Mail,
   User,
@@ -23,7 +21,6 @@ import {
   ChevronRight
 } from "lucide-react"
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
-import { deleteTeacherAction, deleteStudentAction } from "@/lib/actions/user-actions"
 
 interface UserTableProps {
   readonly users: (TeacherProfile | StudentWithParent)[]
@@ -34,7 +31,6 @@ interface UserTableProps {
   readonly onPageChange: (page: number) => void
   readonly onFiltersChange: (filters: Partial<UserFilters>) => void
   readonly onEdit: (user: TeacherProfile | StudentWithParent) => void
-  readonly onRefresh: () => void
 }
 
 export function UserTable({
@@ -45,13 +41,11 @@ export function UserTable({
   limit,
   onPageChange,
   onFiltersChange,
-  onEdit,
-  onRefresh
+  onEdit
 }: UserTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [genderFilter, setGenderFilter] = useState<string>("")
-  const [isDeleting, setIsDeleting] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+
 
   const totalPages = Math.ceil(total / limit)
 
@@ -62,57 +56,34 @@ export function UserTable({
 
   const handleGenderFilter = (value: string) => {
     setGenderFilter(value)
-    onFiltersChange({ 
-      gender: value === "all" ? undefined : value as "male" | "female" | "other",
-      page: 1 
+    onFiltersChange({
+      gender: value === "all" ? undefined : (value as "male" | "female"),
+      page: 1
     })
   }
 
-  const handleDelete = async (userId: string) => {
-    if (!confirm(`Are you sure you want to delete this ${userType}? This action cannot be undone.`)) {
-      return
-    }
 
-    setIsDeleting(userId)
-    setDeleteError(null)
-
-    try {
-      let result
-      if (userType === "teacher") {
-        result = await deleteTeacherAction(userId)
-      } else {
-        result = await deleteStudentAction(userId)
-      }
-
-      if (result.success) {
-        onRefresh()
-      } else {
-        setDeleteError(result.error || "Failed to delete user")
-      }
-    } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : "Failed to delete user")
-    } finally {
-      setIsDeleting(null)
-    }
-  }
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A"
+    if (!dateString) return "Không có"
     return new Date(dateString).toLocaleDateString()
   }
 
   const getGenderBadge = (gender: string | null) => {
-    if (!gender) return <Badge variant="secondary">N/A</Badge>
-    
+    if (!gender) return <Badge variant="secondary">Không có</Badge>
+
     const variants = {
       male: "default",
-      female: "secondary", 
-      other: "outline"
+      female: "secondary"
     } as const
+
+    let label = "Không rõ"
+    if (gender === "male") label = "Nam"
+    else if (gender === "female") label = "Nữ"
 
     return (
       <Badge variant={variants[gender as keyof typeof variants] || "secondary"}>
-        {gender.charAt(0).toUpperCase() + gender.slice(1)}
+        {label}
       </Badge>
     )
   }
@@ -124,14 +95,14 @@ export function UserTable({
           <div>
             <CardTitle className="flex items-center gap-2">
               {userType === "teacher" ? <User className="h-5 w-5" /> : <Users className="h-5 w-5" />}
-              {userType === "teacher" ? "Teachers" : "Students & Parents"}
+              {userType === "teacher" ? "Giáo viên" : "Học sinh & Phụ huynh"}
             </CardTitle>
             <CardDescription>
-              Manage {userType === "teacher" ? "teacher" : "student and parent"} accounts
+              {userType === "teacher" ? "Quản lý tài khoản giáo viên" : "Quản lý tài khoản học sinh và phụ huynh"}
             </CardDescription>
           </div>
           <div className="text-sm text-muted-foreground">
-            Total: {total} {userType}s
+            Tổng: {total} {userType === "teacher" ? "giáo viên" : "học sinh"}
           </div>
         </div>
       </CardHeader>
@@ -141,7 +112,7 @@ export function UserTable({
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={`Tìm kiếm ${userType} theo tên, email, hoặc Mã...`}
+              placeholder={`Tìm kiếm ${userType === "teacher" ? "giáo viên" : "học sinh"} theo tên, email hoặc mã`}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
@@ -157,33 +128,25 @@ export function UserTable({
                 <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="male">Nam</SelectItem>
                 <SelectItem value="female">Nữ</SelectItem>
-                <SelectItem value="other">Khác</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-
-        {/* Error Alert */}
-        {deleteError && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{deleteError}</AlertDescription>
-          </Alert>
-        )}
 
         {/* Table */}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Gender</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                {userType === "student" && <TableHead>Parent</TableHead>}
-                {userType === "teacher" && <TableHead>Homeroom</TableHead>}
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Mã</TableHead>
+                <TableHead>Họ và tên</TableHead>
+                <TableHead>Liên hệ</TableHead>
+                <TableHead>Giới tính</TableHead>
+                <TableHead>Ngày sinh</TableHead>
+                {userType === "student" && <TableHead>Phụ huynh</TableHead>}
+                {userType === "teacher" && <TableHead>GVCN</TableHead>}
+                <TableHead>Ngày tạo</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -192,7 +155,7 @@ export function UserTable({
                   <TableCell colSpan={userType === "teacher" ? 8 : 9} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2">
                       {userType === "teacher" ? <User className="h-8 w-8 text-muted-foreground" /> : <Users className="h-8 w-8 text-muted-foreground" />}
-                      <p className="text-muted-foreground">No {userType}s found</p>
+                      <p className="text-muted-foreground">Không có dữ liệu {userType === "teacher" ? "giáo viên" : "học sinh"}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -237,7 +200,7 @@ export function UserTable({
                             </div>
                           </div>
                         ) : (
-                          <Badge variant="destructive">No Parent</Badge>
+                          <Badge variant="destructive">Chưa có phụ huynh</Badge>
                         )}
                       </TableCell>
                     )}
@@ -259,16 +222,9 @@ export function UserTable({
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => onEdit(user)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit
+                            Chỉnh sửa
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(user.id)}
-                            disabled={isDeleting === user.id}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {isDeleting === user.id ? "Deleting..." : "Delete"}
-                          </DropdownMenuItem>
+
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

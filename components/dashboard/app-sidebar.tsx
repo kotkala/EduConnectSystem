@@ -27,6 +27,7 @@ import {
   MessageCircle,
   FileBarChart,
   BookCheck,
+  Calculator,
 } from "lucide-react"
 import {
   Sidebar,
@@ -79,7 +80,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
-    { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
@@ -93,7 +94,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
     { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
-    { title: "Bảng điểm", url: "/dashboard/admin/grade-reports", icon: ClipboardList },
+    { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
     { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },

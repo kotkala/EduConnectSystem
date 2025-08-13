@@ -166,7 +166,7 @@ export default function ParentChatbot({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Initialize conversation and parent ID
+  // Initialize conversation and parent ID - fixed infinite loop
   useEffect(() => {
     const initializeChat = async () => {
       // Get current user (parent) ID from auth
@@ -193,7 +193,8 @@ export default function ParentChatbot({
     if (isOpen) {
       initializeChat()
     }
-  }, [isOpen, currentConversationId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]) // Removed currentConversationId to prevent infinite loop
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {

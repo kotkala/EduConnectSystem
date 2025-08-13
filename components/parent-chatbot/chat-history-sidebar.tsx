@@ -23,12 +23,12 @@ import {
 } from "@/lib/actions/chat-history-actions"
 
 interface ChatHistorySidebarProps {
-  parentId: string
-  currentConversationId?: string | null
-  onConversationSelect: (conversationId: string) => void
-  onNewConversation: () => void
-  isOpen: boolean
-  onClose: () => void
+  readonly parentId: string
+  readonly currentConversationId?: string | null
+  readonly onConversationSelect: (conversationId: string) => void
+  readonly onNewConversation: () => void
+  readonly isOpen: boolean
+  readonly onClose: () => void
 }
 
 export function ChatHistorySidebar({
@@ -51,13 +51,16 @@ export function ChatHistorySidebar({
   }[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   const loadConversations = useCallback(async () => {
+    if (hasLoaded) return // Prevent multiple loads
     setIsLoading(true)
     try {
       const result = await getConversations(parentId, 50)
       if (result.success && result.data) {
         setConversations(result.data)
+        setHasLoaded(true)
       } else {
         toast.error('Không thể tải lịch sử chat')
       }
@@ -67,14 +70,15 @@ export function ChatHistorySidebar({
     } finally {
       setIsLoading(false)
     }
-  }, [parentId])
+  }, [parentId, hasLoaded])
 
-  // Load conversations
+  // Load conversations - fixed to prevent infinite reload loop
   useEffect(() => {
-    if (isOpen && parentId) {
+    if (isOpen && parentId && !hasLoaded) {
       loadConversations()
     }
-  }, [isOpen, parentId, loadConversations])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, parentId, hasLoaded]) // Load only once when conditions are met
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
@@ -140,15 +144,15 @@ export function ChatHistorySidebar({
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
 
     if (diffInHours < 24) {
-      return date.toLocaleTimeString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
       })
     } else if (diffInHours < 24 * 7) {
-      return date.toLocaleDateString('vi-VN', { 
+      return date.toLocaleDateString('vi-VN', {
         weekday: 'short',
-        hour: '2-digit', 
-        minute: '2-digit' 
+        hour: '2-digit',
+        minute: '2-digit'
       })
     } else {
       return date.toLocaleDateString('vi-VN', {
@@ -159,10 +163,86 @@ export function ChatHistorySidebar({
     }
   }
 
+  // Render conversation content to avoid nested ternary
+  const renderConversationContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        </div>
+      )
+    }
+
+    if (conversations.length > 0) {
+      return (
+        <div className="space-y-2">
+          {conversations.map((conversation) => (
+            <div
+              key={conversation.id}
+              className={`group relative p-3 rounded-lg transition-colors ${
+                conversation.id === currentConversationId
+                  ? 'bg-blue-50 border border-blue-200'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              <button
+                type="button"
+                className="w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                onClick={() => onConversationSelect(conversation.id)}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">
+                      {conversation.title || 'Cuộc trò chuyện'}
+                    </div>
+                    {conversation.last_message && (
+                      <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                        {conversation.last_message}
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-2 mt-2">
+                      <div className="flex items-center space-x-1 text-xs text-gray-400">
+                        <MessageCircle className="h-3 w-3" />
+                        <span>{conversation.message_count || 0}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-xs text-gray-400">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatDate(conversation.updated_at)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleArchive(conversation.id)
+                }}
+                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Archive className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">Chưa có cuộc trò chuyện nào</p>
+        <p className="text-xs mt-1">Bắt đầu chat để tạo lịch sử</p>
+      </div>
+    )
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-y-0 left-0 z-50 w-80 bg-white border-r shadow-lg">
+    <div className="h-full w-full bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
@@ -215,9 +295,10 @@ export function ChatHistorySidebar({
             </h3>
             <div className="space-y-2">
               {searchResults.map((result) => (
-                <div
+                <button
                   key={result.id}
-                  className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100"
+                  type="button"
+                  className="w-full text-left p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onClick={() => onConversationSelect(result.conversation_id)}
                 >
                   <div className="text-sm font-medium mb-1">
@@ -234,72 +315,14 @@ export function ChatHistorySidebar({
                       {formatDate(result.created_at)}
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         ) : (
           /* Conversation List */
           <div className="p-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-              </div>
-            ) : conversations.length > 0 ? (
-              <div className="space-y-2">
-                {conversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      conversation.id === currentConversationId
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => onConversationSelect(conversation.id)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">
-                          {conversation.title || 'Cuộc trò chuyện'}
-                        </div>
-                        {conversation.last_message && (
-                          <div className="text-xs text-gray-600 mt-1 line-clamp-2">
-                            {conversation.last_message}
-                          </div>
-                        )}
-                        <div className="flex items-center space-x-2 mt-2">
-                          <div className="flex items-center space-x-1 text-xs text-gray-400">
-                            <MessageCircle className="h-3 w-3" />
-                            <span>{conversation.message_count || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1 text-xs text-gray-400">
-                            <Clock className="h-3 w-3" />
-                            <span>{formatDate(conversation.updated_at)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleArchive(conversation.id)
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Archive className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Chưa có cuộc trò chuyện nào</p>
-                <p className="text-xs mt-1">Bắt đầu chat để tạo lịch sử</p>
-              </div>
-            )}
+            {renderConversationContent()}
           </div>
         )}
       </div>

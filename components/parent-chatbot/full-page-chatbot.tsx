@@ -12,7 +12,8 @@ import {
   Sparkles,
   Copy,
   Share,
-  AlertTriangle
+  AlertTriangle,
+  Gauge
 } from "lucide-react"
 // Import shared components and utilities to eliminate duplication
 import { ChatAvatar, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
@@ -74,8 +75,8 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
   const [fontSize, setFontSize] = useState([14]) // Font size setting
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
 
-  // Get parentId from user context
-  const parentId = user?.id || null
+  // Get parentId from user context - memoized to prevent reloads
+  const parentId = useMemo(() => user?.id || null, [user?.id])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -114,23 +115,8 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
     ))
   }, [])
 
-  // Initialize conversation and parent ID
-  useEffect(() => {
-    const initializeChat = async () => {
-      if (user && !currentConversationId) {
-        const result = await createConversation({
-          parent_id: user.id,
-          title: 'Cuộc trò chuyện mới'
-        })
-
-        if (result.success && result.data) {
-          setCurrentConversationId(result.data.id)
-        }
-      }
-    }
-
-    initializeChat()
-  }, [user, currentConversationId])
+  // Removed automatic conversation creation to prevent infinite loop
+  // Conversations will be created when user sends first message
 
   // Chat history handlers with useCallback optimization
   const handleConversationSelect = useCallback(async (conversationId: string) => {
@@ -197,7 +183,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
     <div className={`flex h-screen bg-white text-gray-900 ${className}`}>
       {/* Chat History Sidebar - Always visible */}
       {parentId && (
-        <div className="w-80 bg-gray-50 border-r border-gray-200 flex-shrink-0">
+        <div className="w-80 bg-gray-50 flex-shrink-0">
           <ChatHistorySidebar
             parentId={parentId}
             currentConversationId={currentConversationId}
@@ -286,6 +272,22 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                         <div className="flex items-center space-x-2 text-xs text-blue-700">
                           <Sparkles className="h-3 w-3" />
                           <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prompt strength indicator for assistant messages */}
+                    {message.role === 'assistant' && message.promptStrength !== undefined && (
+                      <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center space-x-2 text-xs text-green-700">
+                          <Gauge className="h-3 w-3" />
+                          <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-1.5 ml-2">
+                            <div
+                              className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${message.promptStrength * 100}%` }}
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     )}

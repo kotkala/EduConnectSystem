@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Users, Eye, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import dynamic from 'next/dynamic'
@@ -90,32 +88,38 @@ function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload,
   }
 
   return (
-    <button
-      type="button"
-      className={`w-full text-left p-3 border rounded-lg cursor-pointer transition-colors ${
+    <div
+      className={`w-full p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
         isSelected
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg shadow-blue-500/20'
+          : 'border-gray-200 hover:border-blue-300 hover:shadow-md bg-white'
       }`}
       onClick={handleClick}
     >
       <div className="flex justify-between items-start">
-        <div>
-          <h4 className="font-medium">{submission.semester.name} - {submission.academic_year.name}</h4>
-          <p className="text-sm text-gray-500">
-            Lớp: {submission.class.name} • GVCN: {submission.class.homeroom_teacher.full_name}
-          </p>
-          <p className="text-sm text-gray-500">
-            {submission.grades.length} môn học • {new Date(submission.created_at).toLocaleDateString('vi-VN')}
-          </p>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-white" />
+            </div>
+            <h4 className="font-bold text-gray-900">{submission.semester.name} - {submission.academic_year.name}</h4>
+          </div>
+          <div className="space-y-1 ml-11">
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Lớp:</span> {submission.class.name} • <span className="font-medium">GVCN:</span> {submission.class.homeroom_teacher.full_name}
+            </p>
+            <p className="text-sm text-gray-500">
+              {submission.grades.length} môn học • {new Date(submission.created_at).toLocaleDateString('vi-VN')}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-4">
           <Button
             onClick={handleViewClick}
             disabled={loading}
             size="sm"
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg border-gray-300 hover:border-blue-400 hover:bg-blue-50"
           >
             <Eye className="h-4 w-4" />
             Xem nhanh
@@ -125,17 +129,19 @@ function SubmissionItem({ submission, isSelected, loading, onSelect, onDownload,
             disabled={loading}
             size="sm"
             variant="outline"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg border-gray-300 hover:border-emerald-400 hover:bg-emerald-50"
           >
             <Download className="h-4 w-4" />
             Tải Excel
           </Button>
           {isSelected && (
-            <Badge variant="default">Đang xem</Badge>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              Đang xem
+            </span>
           )}
         </div>
       </div>
-    </button>
+    </div>
   )
 }
 
@@ -152,18 +158,25 @@ interface StudentGroupProps {
 
 function StudentGroup({ student, submissions, selectedSubmissionId, loading, onSelectSubmission, onDownloadSubmission, onViewSubmission }: StudentGroupProps) {
   return (
-    <div className="border rounded-lg p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold">{student.full_name}</h3>
-          <p className="text-sm text-gray-500">Mã học sinh: {student.student_id}</p>
+    <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/50 p-6 shadow-lg shadow-gray-500/5">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">{student.full_name}</h3>
+            <p className="text-sm text-gray-600">Mã học sinh: <span className="font-mono font-medium">{student.student_id}</span></p>
+          </div>
         </div>
-        <Badge variant="outline">
-          {submissions.length} bảng điểm
-        </Badge>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            {submissions.length} bảng điểm
+          </span>
+        </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {submissions.map((submission) => (
           <SubmissionItem
             key={submission.id}
@@ -307,43 +320,60 @@ export default function ParentGradesClient() {
     return 'text-red-600'
   }
 
-  const getGradeBadgeVariant = (grade: number | null) => {
-    if (!grade) return 'secondary'
-    if (grade >= 8.5) return 'default'
-    if (grade >= 7.0) return 'secondary'
-    if (grade >= 5.0) return 'outline'
-    return 'destructive'
+  const getGradeBadgeColor = (grade: number | null) => {
+    if (!grade) return 'bg-gray-100 text-gray-800'
+    if (grade >= 8.5) return 'bg-emerald-100 text-emerald-800'
+    if (grade >= 7.0) return 'bg-blue-100 text-blue-800'
+    if (grade >= 5.0) return 'bg-yellow-100 text-yellow-800'
+    return 'bg-red-100 text-red-800'
   }
 
   // Use memoized grouped submissions for better performance
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Bảng Điểm Con Em
-          </CardTitle>
-          <CardDescription>
-            Xem bảng điểm và thành tích học tập của con bạn
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(() => {
-            if (loadingStates.submissions) {
-              return <div className="text-center py-8">Đang tải...</div>
-            }
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="space-y-8">
+          {/* Modern Header */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center">
+                <Award className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                  Bảng Điểm Con Em
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Theo dõi thành tích học tập và tiến bộ của con em qua từng kỳ học
+                </p>
+              </div>
+            </div>
+          </div>
 
-            if (groupedSubmissions.length === 0) {
-              return (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
-                  <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
-                </div>
-              )
-            }
+          {/* Main Content */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+            {(() => {
+              if (loadingStates.submissions) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600 font-medium">Đang tải bảng điểm...</p>
+                  </div>
+                )
+              }
+
+              if (groupedSubmissions.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <Award className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Chưa có bảng điểm</h3>
+                    <p className="text-gray-500 text-center">Chưa có bảng điểm nào được gửi từ giáo viên.</p>
+                  </div>
+                )
+              }
 
             return (
             <div className="space-y-6">
@@ -361,40 +391,39 @@ export default function ParentGradesClient() {
               ))}
             </div>
             )
-          })()}
-        </CardContent>
-      </Card>
+            })()}
+          </div>
 
-      {/* Selected Submission Details */}
-      {selectedSubmission && (
-        <>
-          {/* Statistics Card */}
-          {gradeStats && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
-                      Thống Kê Điểm Số
-                    </CardTitle>
-                    <CardDescription>
-                      {selectedSubmission.student.full_name} - {selectedSubmission.semester.name}
-                    </CardDescription>
+          {/* Selected Submission Details */}
+          {selectedSubmission && (
+            <>
+              {/* Modern Statistics Card */}
+              {gradeStats && (
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                        <BarChart3 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Thống Kê Điểm Số</h2>
+                        <p className="text-gray-600">
+                          {selectedSubmission.student.full_name} - {selectedSubmission.semester.name}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleCloseDetails}
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-lg hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Đóng
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleCloseDetails}
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    Đóng
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
                       {gradeStats.averageGrade?.toFixed(1) || 'N/A'}
@@ -441,20 +470,23 @@ export default function ParentGradesClient() {
                     <div className="text-lg font-semibold text-red-600">{gradeStats.belowAverageCount}</div>
                     <div className="text-xs text-gray-500">Yếu (&lt;5.0)</div>
                   </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
           )}
 
-          {/* Detailed Grades Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Chi Tiết Điểm Số</CardTitle>
-              <CardDescription>
-                {selectedSubmission.student.full_name} - {selectedSubmission.class.name} - {selectedSubmission.semester.name}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          {/* Modern Detailed Grades Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Chi Tiết Điểm Số</h2>
+                <p className="text-gray-600">
+                  {selectedSubmission.student.full_name} - {selectedSubmission.class.name} - {selectedSubmission.semester.name}
+                </p>
+              </div>
+            </div>
               {loadingStates.details ? (
                 <div className="text-center py-8">Đang tải chi tiết...</div>
               ) : (
@@ -483,46 +515,45 @@ export default function ParentGradesClient() {
                         </div>
                         <div>
                           <div className="text-sm text-gray-500">Trung bình</div>
-                          <Badge variant={getGradeBadgeVariant(grade.average_grade)}>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getGradeBadgeColor(grade.average_grade)}`}>
                             {grade.average_grade?.toFixed(1) || 'N/A'}
-                          </Badge>
+                          </span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* AI Feedback Card */}
+          {/* Modern AI Feedback Card */}
           {selectedSubmission.ai_feedback && (
-            <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-purple-800">
-                  <Sparkles className="h-5 w-5" />
-                  Nhận Xét Từ Giáo Viên Chủ Nhiệm
-                </CardTitle>
-                <CardDescription>
-                  {selectedSubmission.class.homeroom_teacher.full_name} • {new Date(selectedSubmission.ai_feedback.created_at).toLocaleDateString('vi-VN')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white rounded-lg p-4 border border-purple-200/50">
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {selectedSubmission.ai_feedback.text}
-                  </div>
-                  {selectedSubmission.ai_feedback.rating && (
-                    <div className="mt-3 pt-3 border-t border-purple-200/50">
-                      <div className="flex items-center gap-2 text-sm text-purple-600">
-                        <Award className="h-4 w-4" />
-                        <span>Đánh giá: {selectedSubmission.ai_feedback.rating}/5</span>
-                      </div>
-                    </div>
-                  )}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-2xl p-6 sm:p-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <h3 className="text-xl font-bold text-purple-800">Nhận Xét Từ Giáo Viên Chủ Nhiệm</h3>
+                  <p className="text-sm text-purple-600">
+                    {selectedSubmission.class.homeroom_teacher.full_name} • {new Date(selectedSubmission.ai_feedback.created_at).toLocaleDateString('vi-VN')}
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-purple-200/50">
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedSubmission.ai_feedback.text}
+                </div>
+                {selectedSubmission.ai_feedback.rating && (
+                  <div className="mt-3 pt-3 border-t border-purple-200/50">
+                    <div className="flex items-center gap-2 text-sm text-purple-600">
+                      <Award className="h-4 w-4" />
+                      <span>Đánh giá: {selectedSubmission.ai_feedback.rating}/5</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </>
       )}
@@ -533,6 +564,8 @@ export default function ParentGradesClient() {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
       />
+        </div>
+      </div>
     </div>
   )
 }

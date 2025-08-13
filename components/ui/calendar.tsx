@@ -1,11 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -26,18 +22,18 @@ const CalendarRoot = ({ className, rootRef, ...props }: React.ComponentProps<"di
 const CalendarChevron = ({ className, orientation, ...props }: { className?: string; size?: number; disabled?: boolean; orientation?: "left" | "right" | "down" | "up" }) => {
   if (orientation === "left") {
     return (
-      <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+      <ChevronLeft className={cn("size-4", className)} {...props} />
     )
   }
 
   if (orientation === "right") {
     return (
-      <ChevronRightIcon className={cn("size-4", className)} {...props} />
+      <ChevronRight className={cn("size-4", className)} {...props} />
     )
   }
 
   return (
-    <ChevronDownIcon className={cn("size-4", className)} {...props} />
+    <ChevronDown className={cn("size-4", className)} {...props} />
   )
 }
 

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { clientAuth } from '@/lib/auth'
 import { toast } from 'sonner'
 import { Mail, ArrowLeft, Loader2 } from 'lucide-react'
+import { GoogleOAuthButton } from '@/components/auth/google-oauth-button'
 import { OtpInput } from '@/components/ui/otp-input'
 
 interface AuthModalProps {
@@ -98,7 +99,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </p>
           </DialogHeader>
 
-          <div className="mt-4 sm:mt-6">
+          <div className="mt-4 sm:mt-6 space-y-4">
             {step === 'email' ? (
               <EmailStep onSubmit={handleSendOtp} loading={loading} />
             ) : (
@@ -108,6 +109,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 onBack={handleBack}
                 loading={loading}
               />
+            )}
+            {step === 'email' && (
+              <div className="pt-2">
+                <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12" />
+              </div>
             )}
           </div>
         </DialogContent>
@@ -135,7 +141,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           </div>
         </DialogHeader>
 
-        <div className="px-6 pb-8">
+        <div className="px-6 pb-8 space-y-4">
           {step === 'email' ? (
             <EmailStep onSubmit={handleSendOtp} loading={loading} />
           ) : (
@@ -145,6 +151,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               onBack={handleBack}
               loading={loading}
             />
+          )}
+          {step === 'email' && (
+            <div className="pt-2">
+              <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12" />
+            </div>
           )}
         </div>
       </DialogContent>

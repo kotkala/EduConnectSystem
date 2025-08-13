@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { UserRole } from '@/lib/types'
-import { getUnreadNotificationCountAction } from '@/lib/actions/notification-actions'
 
 interface NotificationCounts {
   unread: number
@@ -17,6 +16,7 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
   })
   const [loading, setLoading] = useState(true)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const debounceRef = useRef<number | null>(null)
 
 
 
@@ -27,16 +27,13 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
       return
     }
 
-    // Move notification counting logic inside useEffect (Context7 pattern)
+    // Fetch unread count from API route to avoid calling server action on client
     const fetchNotificationCounts = async () => {
       try {
-        // Use server action which already applies role-based filters and read status
-        const result = await getUnreadNotificationCountAction()
-        if (result.success && typeof result.data === 'number') {
-          setCounts({ unread: result.data, total: result.data })
-        } else {
-          setCounts({ unread: 0, total: 0 })
-        }
+        const res = await fetch('/api/notifications/unread-count', { cache: 'no-store' })
+        const json = await res.json()
+        const unread = typeof json?.unread === 'number' ? json.unread : 0
+        setCounts({ unread, total: unread })
       } catch (error) {
         console.error('Error in fetchNotificationCounts:', error)
       } finally {
@@ -48,31 +45,36 @@ export function useNotificationCount(_role: UserRole, userId?: string) {
 
     // Set up real-time subscription for notification updates
     const supabase = createClient()
+    const scheduleRefresh = () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
+      // Debounce to avoid burst refetches
+      debounceRef.current = window.setTimeout(() => {
+        fetchNotificationCounts()
+      }, 400)
+    }
+    // Subscribe to updates; notifications table has no per-user recipient field
     const subscription = supabase
-      .channel('notification_changes')
+      .channel(`notification_changes_${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'notifications'
+          table: 'notifications',
         },
-        () => {
-          // Refetch counts when notifications change
-          fetchNotificationCounts()
-        }
+        scheduleRefresh
       )
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'notification_reads'
+          table: 'notification_reads',
+          filter: `user_id=eq.${userId}`,
         },
-        () => {
-          // Refetch counts when read status changes
-          fetchNotificationCounts()
-        }
+        scheduleRefresh
       )
       .subscribe()
 

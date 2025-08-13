@@ -217,7 +217,7 @@ export default function ParentChatbot({
                   Xem lịch sử
                 </Button>
 
-                <Link href="/dashboard/parent/chatbot">
+                <Link href="/parent/chatbot">
                   <Button
                     size="sm"
                     className="bg-blue-500 hover:bg-blue-600 text-white"

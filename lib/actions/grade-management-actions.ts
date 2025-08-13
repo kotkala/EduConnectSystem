@@ -8,22 +8,10 @@ import { serverAuth } from '@/lib/auth-server'
 import {
   gradeReportingPeriodSchema,
   updateGradeReportingPeriodSchema,
-  studentGradeSchema,
-  bulkGradeImportSchema,
-  gradeAuditLogSchema,
-  gradeFiltersSchema,
-  gradeStatsSchema,
   type GradeReportingPeriodFormData,
   type UpdateGradeReportingPeriodFormData,
-  type StudentGradeFormData,
-  type BulkGradeImportFormData,
-  type GradeAuditLogFormData,
   type GradeFiltersFormData,
-  type GradeStatsFormData,
-  type GradeReportingPeriod,
-  type StudentGrade,
-  type GradeAuditLog,
-  type GradeImportResult
+  type GradeReportingPeriod
 } from '@/lib/validations/grade-management-validations'
 
 // Helper function to check if current time is within deadline

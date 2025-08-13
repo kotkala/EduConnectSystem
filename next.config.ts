@@ -1,20 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable experimental features for better performance
-  experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-icons',
-      'framer-motion',
-      '@supabase/supabase-js',
-      'recharts',
-      '@emotion/react',
-      '@emotion/styled',
-      '@emotion/is-prop-valid'
-    ],
-
-  },
+  // Disable optimizePackageImports to avoid potential multiple React instances / hook issues
+  experimental: {},
 
 
 

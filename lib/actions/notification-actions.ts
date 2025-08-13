@@ -200,8 +200,8 @@ export async function createNotificationAction(data: NotificationFormData) {
   }
 }
 
-// Get notifications for current user
-export async function getUserNotificationsAction(): Promise<{ success: boolean; data?: Notification[]; error?: string }> {
+// Get notifications for current user with server-side pagination
+export async function getUserNotificationsAction(page?: number, limit?: number): Promise<{ success: boolean; data?: Notification[]; pagination?: { page: number; limit: number; total: number; totalPages: number }; error?: string }> {
   try {
     const supabase = await createClient()
 
@@ -222,6 +222,9 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
     }
 
     // Build query with role-based filtering
+    const effectivePage = Math.max(1, page ?? 1)
+    const effectiveLimit = Math.max(1, Math.min(50, limit ?? 10))
+    const offset = (effectivePage - 1) * effectiveLimit
     let query = supabase
       .from('notifications')
       .select(`
@@ -245,7 +248,9 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
       // This ensures parents and students see notifications targeted to their role
     }
 
-    query = query.order('created_at', { ascending: false })
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + effectiveLimit - 1)
 
     const { data: notifications, error } = await query
 
@@ -259,7 +264,33 @@ export async function getUserNotificationsAction(): Promise<{ success: boolean; 
       is_read: notification.notification_reads.some((read: { user_id: string }) => read.user_id === user.id)
     })) || []
 
-    return { success: true, data: notificationsWithReadStatus }
+    // Get total count for pagination (head: true for count only) with same filters
+    let countQuery = supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true)
+
+    if (profile.role === 'admin') {
+      countQuery = countQuery.or(`target_roles.cs.{${profile.role}},sender_id.eq.${user.id}`)
+    } else {
+      countQuery = countQuery.contains('target_roles', [profile.role])
+    }
+
+    const { count, error: countError } = await countQuery
+    if (countError) {
+      // Fallback to current page length if count fails
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      null
+    }
+
+    const total = (count ?? notificationsWithReadStatus.length)
+    const totalPages = Math.ceil(total / effectiveLimit) || 1
+
+    return {
+      success: true,
+      data: notificationsWithReadStatus,
+      pagination: { page: effectivePage, limit: effectiveLimit, total, totalPages }
+    }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }

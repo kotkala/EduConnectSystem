@@ -885,8 +885,8 @@ export function GradeEditor({ period }: GradeEditorProps) {
                   }> = []
 
                   // Parse rows (skip header row)
-                  worksheet.eachRow((row, rowNumber) => {
-                    if (rowNumber === 1) return // Skip header
+                        worksheet.eachRow((row, index) => {
+        if (index === 1) return // Skip header
 
                     const studentId = row.getCell(1).value?.toString()
                     const studentName = row.getCell(2).value?.toString()

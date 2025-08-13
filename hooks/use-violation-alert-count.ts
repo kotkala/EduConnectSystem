@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { getUnseenViolationAlertsCountAction } from '@/lib/actions/violation-actions'
+// Switched to API route fetch to avoid calling server action inside client hook
 
 export function useViolationAlertCount() {
   const [alertCount, setAlertCount] = useState(0)
@@ -10,13 +10,10 @@ export function useViolationAlertCount() {
   const loadAlertCount = useCallback(async () => {
     setIsLoading(true)
     try {
-      const result = await getUnseenViolationAlertsCountAction()
-
-      if (result.success) {
-        setAlertCount(result.count || 0)
-      } else {
-        setAlertCount(0)
-      }
+      const res = await fetch('/api/violations/alerts-count', { cache: 'no-store' })
+      const json = await res.json()
+      if (json?.success) setAlertCount(json.count || 0)
+      else setAlertCount(0)
     } catch (error) {
       console.error('Lỗi tải số cảnh báo:', error)
       setAlertCount(0)

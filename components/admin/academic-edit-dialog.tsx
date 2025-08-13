@@ -81,8 +81,11 @@ export function AcademicEditDialog({
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toISOString().split('T')[0]
+  const formatDateISO = (dateString: string) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ''
+    return date.toISOString().split('T')[0]
   }
 
   return (
@@ -113,7 +116,7 @@ export function AcademicEditDialog({
               <Input
                 id="start_date"
                 type="date"
-                value={formatDate(formData.start_date)}
+                value={formatDateISO(formData.start_date)}
                 onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
                 required
               />
@@ -123,7 +126,7 @@ export function AcademicEditDialog({
               <Input
                 id="end_date"
                 type="date"
-                value={formatDate(formData.end_date)}
+                value={formatDateISO(formData.end_date)}
                 onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
                 required
               />

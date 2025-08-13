@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface ErrorPageProps {
   readonly error: Error & { digest?: string }
@@ -11,43 +12,36 @@ interface ErrorPageProps {
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error('Application error:', error)
   }, [error])
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-destructive">
-            Đã xảy ra lỗi!
-          </CardTitle>
-          <CardDescription>
-            Có lỗi không mong muốn xảy ra. Vui lòng thử lại.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <div className="min-h-screen flex flex-col">
+      {/* Brand header is global now; remove local duplication */}
+
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-2xl">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">ĐÃ XẢY RA LỖI</span>
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Có lỗi không mong muốn xảy ra. Hãy thử lại thao tác hoặc quay về trang chủ.
+          </p>
           {process.env.NODE_ENV === 'development' && (
-            <div className="p-3 bg-muted rounded-md">
-              <p className="text-sm font-mono text-muted-foreground">
-                {error.message}
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground font-mono">{error.message}</p>
           )}
-          <div className="flex gap-2">
-            <Button onClick={reset} className="flex-1">
-              Thử lại
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.location.href = '/'}
-              className="flex-1"
-            >
-              Về trang chủ
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={reset} size="lg">Thử lại</Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/">Về trang chủ</Link>
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
+
+      <footer className="w-full pb-6 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} EduConnect • Cổng thông tin trường học
+      </footer>
     </div>
   )
 }

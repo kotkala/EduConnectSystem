@@ -242,7 +242,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
     return (
       <Button
         variant="outline"
-        onClick={() => window.location.href = '/dashboard/parent/meetings'}
+        onClick={() => window.location.href = '/parent/meetings'}
         className="relative"
       >
         <Calendar className="mr-2 h-4 w-4" />

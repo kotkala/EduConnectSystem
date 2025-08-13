@@ -4,12 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SidebarLayout } from '@/components/dashboard/sidebar-layout'
 import { useAuth } from '@/hooks/use-auth'
 import { 
@@ -211,51 +210,68 @@ export default function LeaveApplicationPage() {
   }
 
   return (
-    <SidebarLayout role="parent" title="Đơn xin nghỉ">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard/parent')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Quay lại bảng điều khiển
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tạo đơn xin nghỉ</h1>
-            <p className="text-muted-foreground">
-              Gửi đơn xin nghỉ cho GVCN của con em bạn
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+        <div className="space-y-8">
+          {/* Modern Header */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/dashboard/parent')}
+                className="rounded-lg hover:bg-gray-100"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Quay lại bảng điều khiển
+              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                  Tạo đơn xin nghỉ
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Gửi đơn xin nghỉ cho GVCN của con em bạn
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-red-700 font-medium">{error}</p>
+              </div>
+            </div>
+          )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Biểu mẫu đơn xin nghỉ</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Modern Form */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Biểu mẫu đơn xin nghỉ</h2>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-8">
               {/* Student Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="student">Học sinh *</Label>
+              <div className="space-y-3">
+                <Label htmlFor="student" className="text-sm font-semibold text-gray-700">Học sinh *</Label>
                 <Select
                   value={formData.student_id}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, student_id: value }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 bg-white border-gray-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
                     <SelectValue placeholder="Chọn học sinh" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-lg border-gray-200">
                     {students.map(student => (
-                      <SelectItem key={student.id} value={student.id}>
+                      <SelectItem key={student.id} value={student.id} className="rounded-md">
                         {student.full_name} {student.current_class ? `- ${student.current_class.name}` : '(Chưa có lớp)'}
                       </SelectItem>
                     ))}
@@ -264,23 +280,23 @@ export default function LeaveApplicationPage() {
               </div>
 
               {/* Leave Type */}
-              <div className="space-y-2">
-                <Label htmlFor="leave_type">Loại đơn *</Label>
+              <div className="space-y-3">
+                <Label htmlFor="leave_type" className="text-sm font-semibold text-gray-700">Loại đơn *</Label>
                 <Select
                   value={formData.leave_type}
                   onValueChange={(value: 'sick' | 'family' | 'emergency' | 'vacation' | 'other') =>
                     setFormData(prev => ({ ...prev, leave_type: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-12 bg-white border-gray-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sick">Nghỉ ốm</SelectItem>
-                    <SelectItem value="family">Việc gia đình</SelectItem>
-                    <SelectItem value="emergency">Khẩn cấp</SelectItem>
-                    <SelectItem value="vacation">Nghỉ phép</SelectItem>
-                    <SelectItem value="other">Khác</SelectItem>
+                  <SelectContent className="rounded-lg border-gray-200">
+                    <SelectItem value="sick" className="rounded-md">Nghỉ ốm</SelectItem>
+                    <SelectItem value="family" className="rounded-md">Việc gia đình</SelectItem>
+                    <SelectItem value="emergency" className="rounded-md">Khẩn cấp</SelectItem>
+                    <SelectItem value="vacation" className="rounded-md">Nghỉ phép</SelectItem>
+                    <SelectItem value="other" className="rounded-md">Khác</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -395,9 +411,9 @@ export default function LeaveApplicationPage() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

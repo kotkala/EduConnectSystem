@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { getUnreadNotificationCountAction } from '@/lib/actions/notification-actions'
 import { createClient } from '@/utils/supabase/client'
 
 interface NotificationBadgeProps {
@@ -14,32 +13,47 @@ export function NotificationBadge({ className }: NotificationBadgeProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadUnreadCount()
-
-    // Set up real-time subscription instead of polling for better performance
+    let active = true
     const supabase = createClient()
 
-    const subscription = supabase
-      .channel('notifications')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications' },
-        () => {
-          loadUnreadCount() // Reload count when notifications change
-        }
-      )
-      .subscribe()
+    const init = async () => {
+      await loadUnreadCount()
+      const { data } = await supabase.auth.getUser()
+      const userId = data.user?.id
+      if (!userId || !active) return
+
+      const channel = supabase
+        .channel(`notification_badge_${userId}`)
+        // Notifications have no per-recipient column; listen broadly and refetch
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications' },
+          () => { loadUnreadCount() }
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'notification_reads', filter: `user_id=eq.${userId}` },
+          () => { loadUnreadCount() }
+        )
+        .subscribe()
+
+      return () => channel.unsubscribe()
+    }
+
+    const cleanupPromise = init()
 
     return () => {
-      subscription.unsubscribe()
+      active = false
+      cleanupPromise.then((cleanup) => {
+        if (typeof cleanup === 'function') cleanup()
+      }).catch(() => {})
     }
   }, [])
 
   const loadUnreadCount = async () => {
     try {
-      const result = await getUnreadNotificationCountAction()
-      if (result.success && typeof result.data === 'number') {
-        setUnreadCount(result.data)
-      }
+      const res = await fetch('/api/notifications/unread-count', { cache: 'no-store' })
+      const json = await res.json()
+      const unread = typeof json?.unread === 'number' ? json.unread : 0
+      setUnreadCount(unread)
     } catch (error) {
       console.error('Failed to load unread count:', error)
     } finally {

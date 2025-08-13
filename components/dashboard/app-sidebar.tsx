@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   Home,
   Users,
@@ -24,7 +25,6 @@ import {
   AlertTriangle,
   LogOut,
   Settings,
-  MessageCircle,
   FileBarChart,
   BookCheck,
   Calculator,
@@ -58,8 +58,9 @@ import { UserRole } from '@/lib/types'
 import { useExchangeRequestsCount } from '@/hooks/use-exchange-requests-count'
 import { useNotificationCount } from '@/hooks/use-notification-count'
 import { Badge } from '@/components/ui/badge'
-import ParentChatbot from '@/components/parent-chatbot/parent-chatbot'
+import dynamic from 'next/dynamic'
 import ViolationAlertBadge from '@/components/admin/violations/violation-alert-badge'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 // Platform item type
 interface PlatformItem {
@@ -69,36 +70,34 @@ interface PlatformItem {
   isSpecial?: boolean
 }
 
-// Platform items for each role
+// Enhanced platform items with better organization and Modern Minimalist design
 const platformItems: Record<string, PlatformItem[]> = {
   admin: [
+    // Core Dashboard
     { title: "Tổng quan", url: "/dashboard/admin", icon: Home },
-    { title: "Người dùng", url: "/dashboard/admin/users", icon: Users },
     { title: "Thông báo", url: "/dashboard/admin/notifications", icon: Bell },
-    { title: "Niên khóa", url: "/dashboard/admin/academic", icon: Calendar },
+
+    // User Management
+    { title: "Quản lý người dùng", url: "/dashboard/admin/users", icon: Users },
+
+    // Academic Structure
+    { title: "Niên khóa học", url: "/dashboard/admin/academic", icon: Calendar },
     { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
     { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
-    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
+
+    // Schedule & Timetable
+    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Clock },
+    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
+
+    // Academic Performance
     { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
+
+    // Student Management
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
-    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
   ],
-  admin_full: [
-    { title: "Tổng quan", url: "/dashboard/admin", icon: Home },
-    { title: "Người dùng", url: "/dashboard/admin/users", icon: Users },
-    { title: "Thông báo", url: "/dashboard/admin/notifications", icon: Bell },
-    { title: "Niên khóa", url: "/dashboard/admin/academic", icon: Calendar },
-    { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
-    { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
-    { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
-    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Calendar },
-    { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
-    { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
-    { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
-    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
-  ],
+
   teacher: [
     { title: "Tổng quan", url: "/dashboard/teacher", icon: Home },
     { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
@@ -110,26 +109,27 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
   ],
   student: [
-    { title: "Dashboard", url: "/dashboard/student", icon: Home },
-    { title: "Thông báo", url: "/dashboard/student/notifications", icon: Bell },
-    { title: "Khóa học của tôi", url: "/dashboard/student/courses", icon: BookOpen },
-    { title: "Bài tập", url: "/dashboard/student/assignments", icon: FileText },
-    { title: "Điểm số", url: "/dashboard/student/grades", icon: Award },
+    // NOTE: Student portal has moved out of /dashboard. Keep entries here only to preserve types,
+    // but they will not be rendered because students no longer use AppSidebar.
+    { title: "Dashboard", url: "/student", icon: Home },
+    { title: "Thông báo", url: "/student/notifications", icon: Bell },
+    { title: "Khóa học của tôi", url: "/student/courses", icon: BookOpen },
+    { title: "Bài tập", url: "/student/assignments", icon: FileText },
+    { title: "Điểm số", url: "/student/grades", icon: Award },
   ],
   parent: [
     { title: "Tổng quan", url: "/dashboard/parent", icon: Home },
     { title: "Thông báo", url: "/dashboard/parent/notifications", icon: Bell },
-    { title: "Trợ lý AI", url: "#", icon: Bot, isSpecial: true },
-    { title: "Trợ lý AI - Mở rộng", url: "/dashboard/parent/chatbot", icon: MessageCircle },
+    { title: "Trợ lý AI", url: "/dashboard/parent/chatbot", icon: Bot },
     { title: "Bảng điểm con em", url: "/dashboard/parent/grades", icon: Award },
     { title: "Báo cáo học tập", url: "/dashboard/parent/reports", icon: BookCheck },
     { title: "Phản hồi học tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
     { title: "Vi phạm con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
     { title: "Lịch họp", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Đơn xin nghỉ", url: "/dashboard/parent/leave-application", icon: FileText },
-    { title: "Trạng thái nghỉ", url: "/dashboard/parent/leave-status", icon: Clock },
-    { title: "Con của tôi", url: "/dashboard/parent/children", icon: Heart },
-    { title: "Tin nhắn", url: "/dashboard/parent/messages", icon: MessageSquare },
+    { title: "Trạng thái nghỉ", url: "/parent/leave-status", icon: Clock },
+    { title: "Con của tôi", url: "/parent/children", icon: Heart },
+    { title: "Tin nhắn", url: "/parent/messages", icon: MessageSquare },
   ],
 }
 
@@ -184,73 +184,124 @@ export function AppSidebar({ role }: AppSidebarProps) {
     }
   }
 
+  // Only create dynamic import for parent role to keep other bundles lean
+  const ParentChatbot = role === 'parent'
+    ? dynamic(() => import('@/components/parent-chatbot/parent-chatbot'), { ssr: false })
+    : null
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-3 border-b border-sidebar-border/50">
+      <SidebarHeader className="p-4 border-b border-sidebar-border/30">
         <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          {/* Logo Icon - EduConnect Dashboard Logo */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-md shrink-0">
+          {/* Logo Icon - Modern Minimalist Design */}
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-100 shrink-0">
             <Image
               src="/edu_connect_dashboard.png"
               alt="EduConnect Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8 object-contain"
-              priority
+              width={24}
+              height={24}
+              className="h-6 w-6 object-contain"
             />
           </div>
 
-          {/* Brand Text - Hidden when collapsed */}
+          {/* Brand Text - Modern Typography */}
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-sidebar-foreground">
+            <div className="space-y-1">
+              <h1 className="text-lg font-bold text-sidebar-foreground tracking-tight">
                 EduConnect
               </h1>
-              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                Portal
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-xl border border-orange-100">
+                  {role === 'admin' ? 'Admin Portal' : 'Portal'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2 py-2">
+        {/* Core Dashboard Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Nền tảng</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2 mb-1">
+            Dashboard
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
+            <SidebarMenu className="space-y-1">
+              {items.slice(0, 2).map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild className="rounded-xl h-11 px-3 hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800 transition-all duration-200">
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span className="font-medium">{item.title}</span>
+                      {/* Notification badge */}
+                      {(item.url.includes('/notifications') && notificationCounts.unread > 0) && (
+                        <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                          {notificationCounts.unread > 99 ? '99+' : notificationCounts.unread}
+                        </Badge>
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* User & Academic Management */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2 mb-1">
+            Quản lý học vụ
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {items.slice(2, 8).map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild className="rounded-xl h-11 px-3 hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800 transition-all duration-200">
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span className="font-medium">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Schedule & Performance */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2 mb-1">
+            Lịch trình & Đánh giá
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {items.slice(8).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   {/* Special handling for chatbot button */}
                   {item.isSpecial && item.title === "Trợ Lý AI" ? (
-                    <SidebarMenuButton onClick={handleChatbotClick} className="cursor-pointer">
+                    <SidebarMenuButton onClick={handleChatbotClick} className="cursor-pointer rounded-xl h-11 px-3 hover:bg-orange-50 hover:text-orange-700 transition-all duration-200">
                       <item.icon />
-                      <span>{item.title}</span>
+                      <span className="font-medium">{item.title}</span>
                       <div className="ml-auto">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                       </div>
                     </SidebarMenuButton>
                   ) : (
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
+                    <SidebarMenuButton asChild className="rounded-xl h-11 px-3 hover:bg-orange-50 hover:text-orange-700 data-[active=true]:bg-orange-100 data-[active=true]:text-orange-800 transition-all duration-200">
+                      <Link href={item.url}>
                         <item.icon />
-                        <span>{item.title}</span>
-                        {/* Show notification badge for exchange requests */}
-                        {(item.title === "Exchange Requests" && counts.pending > 0) && (
-                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
-                            {counts.pending}
+                        <span className="font-medium">{item.title}</span>
+                        {/* Exchange request badge */}
+                        {(item.url.includes('/exchange-requests') && counts.pending > 0) && (
+                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                            {counts.pending > 99 ? '99+' : counts.pending}
                           </Badge>
                         )}
-                        {/* Show notification badge for notifications */}
-                        {(item.title === "Notifications" && notificationCounts.unread > 0) && (
-                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center text-xs">
-                            {notificationCounts.unread}
-                          </Badge>
+                        {/* Violation alert badge */}
+                        {(item.url.includes('/violations') && role === 'admin') && (
+                          <ViolationAlertBadge className="ml-auto" />
                         )}
-                        {/* Show violation alert badge for admin violations */}
-                        {(item.title === "Vi phạm học sinh" && role === 'admin') && (
-                          <ViolationAlertBadge className="ml-auto h-5 w-5 flex items-center justify-center text-xs" />
-                        )}
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   )}
                 </SidebarMenuItem>
@@ -259,44 +310,66 @@ export function AppSidebar({ role }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-2 pb-6 group-data-[collapsible=icon]:pb-8">
+      <SidebarFooter className="p-4 border-t border-sidebar-border/30">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="h-12 p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-2">
-                  <Avatar className="h-8 w-8 shrink-0">
+                <SidebarMenuButton className="h-14 p-3 rounded-2xl hover:bg-orange-50 transition-all duration-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:mb-2">
+                  <Avatar className="h-10 w-10 shrink-0 ring-2 ring-orange-100">
                     <AvatarImage src={user?.user_metadata?.avatar_url} alt="Avatar" />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-orange-100 text-orange-700 font-semibold">
                       {profile?.full_name ? getInitials(profile.full_name) : 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start text-left min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                    <span className="text-sm font-medium truncate w-full">
+                  <div className="flex flex-col items-start text-left min-w-0 flex-1 group-data-[collapsible=icon]:hidden ml-3">
+                    <span className="text-sm font-semibold truncate w-full text-sidebar-foreground">
                       {profile?.full_name || 'User'}
                     </span>
                     <span className="text-xs text-muted-foreground truncate w-full">
                       {user?.email}
                     </span>
+                    <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg mt-1">
+                      {role === 'admin' ? 'Quản trị viên' : role === 'teacher' ? 'Giáo viên' : role === 'parent' ? 'Phụ huynh' : 'Học sinh'}
+                    </span>
                   </div>
-                  <ChevronUp className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden" />
+                  <ChevronUp className="ml-auto shrink-0 h-4 w-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 side="top"
-                className="w-[--radix-popper-anchor-width]"
+                className="w-[--radix-popper-anchor-width] rounded-2xl border-orange-100 shadow-lg"
               >
-                <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  <User2 className="mr-2 h-4 w-4" />
-                  <span>Hồ sơ</span>
+                <DropdownMenuItem
+                  onClick={() => router.push('/profile')}
+                  className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200"
+                >
+                  <User2 className="mr-3 h-4 w-4" />
+                  <span className="font-medium">Hồ sơ cá nhân</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push('/profile?tab=settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Cài đặt</span>
+
+                {/* Theme Toggle in Dropdown */}
+                <div className="mx-1 my-1 px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Giao diện</span>
+                    <ThemeToggle />
+                  </div>
+                </div>
+
+                <DropdownMenuItem
+                  onClick={() => router.push('/profile?tab=settings')}
+                  className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200"
+                >
+                  <Settings className="mr-3 h-4 w-4" />
+                  <span className="font-medium">Cài đặt</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Đăng xuất</span>
+                <div className="h-px bg-border mx-2 my-2" />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+                >
+                  <LogOut className="mr-3 h-4 w-4" />
+                  <span className="font-medium">Đăng xuất</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -305,7 +378,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
       </SidebarFooter>
 
       {/* Chatbot for parent role */}
-      {role === 'parent' && (
+      {role === 'parent' && ParentChatbot && (
         <ParentChatbot
           isOpen={isChatbotOpen}
           onClose={() => setIsChatbotOpen(false)}

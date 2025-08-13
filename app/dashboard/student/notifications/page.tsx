@@ -1,6 +1,6 @@
-import { SharedNotificationsPage } from '@/components/notifications/shared-notifications-page'
-import { NOTIFICATION_CONFIGS } from '@/components/notifications/notification-configs'
+import { redirect } from 'next/navigation'
 
 export default function StudentNotificationsPage() {
-  return <SharedNotificationsPage config={NOTIFICATION_CONFIGS.student} />
+  // Student portal moved to /student. Redirect old link.
+  redirect('/student/notifications')
 }

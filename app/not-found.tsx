@@ -1,45 +1,33 @@
-'use client'
-
 import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="mx-auto mb-4 text-6xl">🔍</div>
-          <CardTitle className="text-3xl">404</CardTitle>
-          <CardDescription className="text-lg">
-            Không tìm thấy trang
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Trang bạn đang tìm không tồn tại hoặc đã được di chuyển.
+    <div className="min-h-screen flex flex-col">
+      {/* Brand header provided globally; remove local header duplication */}
+
+      {/* Centered content */}
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center space-y-6 max-w-2xl">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">KHÔNG TÌM THẤY TRANG</span>
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Trang bạn truy cập không tồn tại hoặc đã được di chuyển. Vui lòng kiểm tra lại đường dẫn hoặc quay về trang chủ.
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button asChild className="flex-1">
-              <Link href="/">
-                Về trang chủ
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="flex-1">
-              <Link href="/dashboard">
-                Bảng điều khiển
-              </Link>
+          <div className="pt-2">
+            <Button asChild size="lg" className="px-6">
+              <Link href="/">Về trang chủ</Link>
             </Button>
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={() => window.history.back()}
-            className="w-full"
-          >
-            ← Quay lại
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full pb-6 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} EduConnect • Cổng thông tin trường học
+      </footer>
     </div>
   )
 }

@@ -15,27 +15,74 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status')
     const teacherId = searchParams.get('teacher_id')
+  const limitParam = searchParams.get('limit')
+  const offsetParam = searchParams.get('offset')
 
-    // Build query
-    let query = supabase
-      .from('schedule_exchange_requests')
-      .select(`
-        *,
+    // If this is a count-only request, short-circuit and return counts
+    const isCountOnly = searchParams.get('count') === 'true'
+
+    if (isCountOnly) {
+      // total count (optionally filtered by teacher)
+      let totalQuery = supabase
+        .from('schedule_exchange_requests')
+        .select('*', { count: 'exact', head: true })
+      if (teacherId) {
+        totalQuery = totalQuery.or(`requester_teacher_id.eq.${teacherId},target_teacher_id.eq.${teacherId}`)
+      }
+      const { count, error } = await totalQuery
+      if (error) {
+        console.error('Error counting exchange requests:', error)
+        return NextResponse.json({ success: false, error: 'Failed to count exchange requests' }, { status: 500 })
+      }
+      // Count pending as well
+      let pendingQuery = supabase
+        .from('schedule_exchange_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending')
+      if (teacherId) {
+        pendingQuery = pendingQuery.or(`requester_teacher_id.eq.${teacherId},target_teacher_id.eq.${teacherId}`)
+      }
+      const { count: pending, error: pendingError } = await pendingQuery
+      if (pendingError) {
+        console.error('Error counting pending exchange requests:', pendingError)
+      }
+      return NextResponse.json({ success: true, data: { total: count ?? 0, pending: pending ?? 0 } })
+    }
+
+  // Full detail path: fetch only necessary columns and paginate by default
+  let query = supabase
+    .from('schedule_exchange_requests')
+    .select(`
+        id,
+        timetable_event_id,
+        status,
+        created_at,
+        requester_teacher_id,
+        target_teacher_id,
+        admin_response,
+        approved_at,
+        approved_by,
+        exchange_date,
+        reason,
         requester:profiles!requester_teacher_id(full_name, email),
         target:profiles!target_teacher_id(full_name, email),
         approved_by_profile:profiles!approved_by(full_name)
       `)
 
-    // Apply filters
     if (status) {
       query = query.eq('status', status)
     }
-
     if (teacherId) {
       query = query.or(`requester_teacher_id.eq.${teacherId},target_teacher_id.eq.${teacherId}`)
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false })
+  // Pagination: default 50 rows if not specified
+  const limit = Math.min(Math.max(parseInt(limitParam || '50', 10) || 50, 1), 200)
+  const offset = Math.max(parseInt(offsetParam || '0', 10) || 0, 0)
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Error fetching exchange requests:', error)

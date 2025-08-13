@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 
-import { type CalendarEvent, type EventColor } from "@/components/event-calendar";
+import { type CalendarEvent } from "@/components/calendar";
 const EventCalendar = dynamic(
-  () => import("@/components/event-calendar").then((mod) => ({ default: mod.EventCalendar })),
+  () => import("@/components/calendar").then((mod) => ({ default: mod.EventCalendar })),
   {
     ssr: false,
     loading: () => (
@@ -20,7 +20,7 @@ const EventCalendar = dynamic(
   }
 );
 import { LoadingFallback } from "@/components/ui/loading-fallback"
-import { useCalendarContext } from "@/components/event-calendar/calendar-context";
+import { useCalendarContext } from "@/components/calendar";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-calendar/timetable-filters";
 import {
   StudySlotDialog,
@@ -38,73 +38,7 @@ import {
 } from "@/lib/actions/study-slot-actions";
 import { getTimetableEventsAction } from "@/lib/actions/timetable-actions";
 
-// Map subject categories to colors
-const getSubjectColor = (subjectCategory: string): EventColor => {
-  const categoryMap: Record<string, EventColor> = {
-    'math': 'blue',
-    'science': 'blue',
-    'language': 'emerald',
-    'literature': 'emerald',
-    'social_studies': 'orange',
-    'history': 'orange',
-    'geography': 'orange',
-    'arts': 'violet',
-    'physical_education': 'violet',
-    'music': 'violet',
-    'elective': 'rose',
-    'technology': 'rose',
-  };
-  
-  return categoryMap[subjectCategory.toLowerCase()] || 'blue';
-};
-
-// Convert StudySlot to CalendarEvent for display
-function studySlotToCalendarEvent(slot: StudySlot & {
-  subject_code?: string;
-  subject_name?: string;
-  subject_category?: string;
-  teacher_name?: string;
-  classroom_name?: string;
-}): CalendarEvent {
-  // Create a date for the slot based on day_of_week and week_number
-  const today = new Date();
-  const currentWeekStart = new Date(today);
-  currentWeekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-  
-  // Calculate the target date based on day_of_week
-  const targetDate = new Date(currentWeekStart);
-  targetDate.setDate(currentWeekStart.getDate() + slot.day_of_week);
-  
-  // Parse start and end times
-  const [startHours, startMinutes] = slot.start_time.split(':').map(Number);
-  const [endHours, endMinutes] = slot.end_time.split(':').map(Number);
-  
-  const startDate = new Date(targetDate);
-  startDate.setHours(startHours, startMinutes, 0, 0);
-  
-  const endDate = new Date(targetDate);
-  endDate.setHours(endHours, endMinutes, 0, 0);
-
-  // Determine color based on subject category
-  const color = getSubjectColor(slot.subject_category || 'elective');
-
-  return {
-    id: slot.id || `temp-${Date.now()}`,
-    title: slot.subject_name || 'Môn học',
-    description: (() => {
-      const timeInfo = `${slot.start_time} - ${slot.end_time}`
-      const teacherInfo = `Giáo viên: ${slot.teacher_name || 'TBD'}`
-      const roomInfo = `Phòng: ${slot.classroom_name || 'TBD'}`
-      const notesInfo = slot.notes ? `\nGhi chú: ${slot.notes}` : ''
-      return `${timeInfo}\n${teacherInfo}\n${roomInfo}${notesInfo}`
-    })(),
-    start: startDate,
-    end: endDate,
-    allDay: false,
-    color: color,
-    location: slot.classroom_name || 'TBD',
-  };
-}
+import { studySlotToCalendarEvent } from "@/components/calendar/mappers";
 
 // UUID validation function using regex
 const isValidUUID = (value: string): boolean => {

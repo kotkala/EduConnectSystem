@@ -84,7 +84,10 @@ export function AcademicTable({
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN')
+    if (!dateString) return ""
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return ""
+    return date.toLocaleDateString('vi-VN')
   }
 
   return (

@@ -6,11 +6,16 @@ export default async function DashboardPage() {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  if (!user) {
+    // Ensure authenticated access only
+    redirect('/')
+  }
+
   // Get user profile to determine role
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
-    .eq('id', user?.id)
+    .eq('id', user.id)
     .single()
 
   if (!profile) {
@@ -18,16 +23,16 @@ export default async function DashboardPage() {
     redirect('/pending-approval')
   }
 
-  // Redirect to role-specific dashboard
+  // Only teacher/admin stay under /dashboard. Student and parent go to their portals.
   if (profile.role === 'admin') {
     redirect('/dashboard/admin')
   } else if (profile.role === 'teacher') {
     redirect('/dashboard/teacher')
   } else if (profile.role === 'student') {
-    redirect('/dashboard/student')
+    redirect('/student')
   } else if (profile.role === 'parent') {
     redirect('/dashboard/parent')
   } else {
-    redirect('/dashboard/student')
+    redirect('/')
   }
 }

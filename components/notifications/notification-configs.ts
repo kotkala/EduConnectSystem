@@ -7,14 +7,14 @@ export const NOTIFICATION_CONFIGS: Record<string, NotificationPageConfig> = {
     title: 'Thông báo',
     description: 'Xem thông báo về con em từ giáo viên và nhà trường',
     emptyStateMessage: 'Bạn sẽ thấy thông báo về con em tại đây',
-    dashboardPath: '/dashboard/parent'
+    dashboardPath: '/parent'
   },
   student: {
     role: 'student',
     title: 'Thông báo',
     description: 'Xem thông báo từ giáo viên và nhà trường',
     emptyStateMessage: 'Bạn sẽ thấy thông báo từ giáo viên tại đây',
-    dashboardPath: '/dashboard/student'
+    dashboardPath: '/student'
   },
   teacher: {
     role: 'teacher',

@@ -13,8 +13,8 @@ import {
   WeekView,
   DayView,
   type CalendarView,
-} from "@/components/event-calendar";
-import { useCalendarContext } from "@/components/event-calendar/calendar-context";
+} from "@/components/calendar";
+import { useCalendarContext } from "@/components/calendar";
 import { CalendarNavigationButtons } from "@/components/shared/calendar-navigation";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-filters";
 import {
@@ -34,51 +34,7 @@ import {
 import { getTimetableEventsAction } from "@/lib/actions/timetable-actions";
 
 // Convert StudySlot to CalendarEvent for display
-function studySlotToCalendarEvent(slot: StudySlot & {
-  subject_code?: string;
-  subject_name?: string;
-  teacher_name?: string;
-  classroom_name?: string;
-}): CalendarEvent {
-  // Create a date for the slot based on day_of_week and week_number
-  // Get the current date from the calendar context instead of today
-  const today = new Date();
-  const currentWeekStart = new Date(today);
-  const dayOfWeek = currentWeekStart.getDay();
-  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday (0), go back 6 days to Monday
-  currentWeekStart.setDate(currentWeekStart.getDate() + daysToMonday);
-
-  // Calculate the target date based on day_of_week (1 = Monday, 7 = Sunday)
-  const targetDate = new Date(currentWeekStart);
-  targetDate.setDate(currentWeekStart.getDate() + (slot.day_of_week - 1));
-  
-  // Parse start and end times
-  const [startHours, startMinutes] = slot.start_time.split(':').map(Number);
-  const [endHours, endMinutes] = slot.end_time.split(':').map(Number);
-  
-  const startDate = new Date(targetDate);
-  startDate.setHours(startHours, startMinutes, 0, 0);
-  
-  const endDate = new Date(targetDate);
-  endDate.setHours(endHours, endMinutes, 0, 0);
-
-  return {
-    id: slot.id || `temp-${Date.now()}`,
-    title: slot.subject_name || 'Môn học',
-    description: (() => {
-      const timeInfo = `${slot.start_time} - ${slot.end_time}`
-      const teacherInfo = `Giáo viên: ${slot.teacher_name || 'TBD'}`
-      const roomInfo = `Phòng: ${slot.classroom_name || 'TBD'}`
-      const notesInfo = slot.notes ? `\nGhi chú: ${slot.notes}` : ''
-      return `${timeInfo}\n${teacherInfo}\n${roomInfo}${notesInfo}`
-    })(),
-    start: startDate,
-    end: endDate,
-    allDay: false,
-    color: "blue", // Default color for study slots
-    location: slot.classroom_name || 'TBD',
-  };
-}
+import { studySlotToCalendarEvent } from "@/components/calendar/mappers";
 
 // UUID validation function using Zod
 const isValidUUID = (value: string): boolean => {

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
 // Lazy load heavy calendar components to improve initial page load
-const EventCalendar = dynamic(() => import("@/components/event-calendar").then(mod => ({ default: mod.EventCalendar })), {
+const EventCalendar = dynamic(() => import("@/components/calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
     <LoadingFallback size="lg" className="flex items-center justify-center">
@@ -28,8 +28,8 @@ const ExchangeRequestsList = dynamic(() => import("@/components/schedule-exchang
 import {
   type CalendarEvent,
   type EventColor,
-} from "@/components/event-calendar";
-import { useCalendarContext } from "@/components/event-calendar/calendar-context";
+} from "@/components/calendar";
+import { useCalendarContext } from "@/components/calendar";
 import { TeacherTimetableFilters, type TeacherTimetableFilters as TeacherTimetableFiltersType } from "./teacher-timetable/teacher-timetable-filters";
 import {
   TeacherTimetableEventDialog,

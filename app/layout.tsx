@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import Providers from "./providers";
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
   title: "EduConnect - Nền tảng giáo dục",
   description: "Nền tảng giáo dục toàn diện với quyền truy cập theo vai trò cho học sinh, giáo viên, phụ huynh và quản trị viên.",
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/edu_connect_dashboard.png',
+    shortcut: '/edu_connect_dashboard.png',
+    apple: '/edu_connect_dashboard.png',
   },
 };
 
@@ -48,12 +48,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Toaster />
+        <Providers>
+          {children}
+        </Providers>
         {isProd && isVercel && (
           <>
             <Analytics />

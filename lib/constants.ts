@@ -26,7 +26,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   ADMIN_DASHBOARD: '/dashboard/admin',
   TEACHER_DASHBOARD: '/dashboard/teacher',
-  STUDENT_DASHBOARD: '/dashboard/student',
+  STUDENT_DASHBOARD: '/student',
   PARENT_DASHBOARD: '/dashboard/parent',
   AUTH_ERROR: '/auth/auth-code-error',
   CALLBACK: '/auth/callback',

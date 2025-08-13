@@ -1,28 +1,13 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import nextDynamic from 'next/dynamic'
-
-// Lazy load heavy components to reduce initial bundle size
-import { LoadingFallback } from '@/components/ui/loading-fallback'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Spinner } from '@/components/ui/spinner'
-const MotionDiv = nextDynamic(() => import('framer-motion').then(mod => mod.motion.div), {
-  ssr: false,
-  loading: () => <LoadingFallback size="md" />
-})
-
-// Performance optimization: Lazy load framer-motion to reduce initial bundle
-
-// Create a motion object for consistent usage
-const motion = {
-  div: MotionDiv,
-  section: MotionDiv, // Reuse MotionDiv for sections to reduce bundle size
-}
 import { Button } from '@/components/ui/button'
 import {
-  Users, GraduationCap, BookOpen, Heart, Brain, Phone,
+  Users, GraduationCap, Heart, Brain, Phone,
   Smartphone, BarChart3, FileEdit, Settings, Monitor, CheckCircle, Star,
   ArrowRight, Play, MessageCircle, TrendingUp,
   X, FileX, AlertCircle, ChevronDown, ChevronUp, Mail, MapPin, MessageSquare,
@@ -30,7 +15,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { AuthModal } from '@/components/auth/auth-modal'
-import { GoogleOAuthButton } from '@/components/auth/google-oauth-button'
 import type { AuthUser, UserProfile } from '@/lib/types'
 
 // Animated Counter Component
@@ -96,7 +80,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
         <div className="text-center">
           <Spinner size={32} className="mx-auto" />
           <p className="mt-2 text-sm text-gray-600">Đang tải...</p>
@@ -111,71 +95,50 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 scroll-smooth">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 scroll-smooth">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative">
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-              </div>
-              <span className="text-lg sm:text-xl font-bold text-gray-900">EduConnect</span>
+              <Image
+                src="/edu_connect_dashboard.png"
+                alt="EduConnect Logo"
+                width={32}
+                height={32}
+                className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
+              />
+              <span className="text-lg sm:text-xl font-bold text-foreground">EduConnect</span>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden xl:flex items-center space-x-6">
-              <Link href="#features" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap">
-                Tính năng
+              <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
+                Chức năng
               </Link>
-              <Link href="#solutions" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap">
-                Giải pháp
+              <Link href="#roles" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
+                Vai trò
               </Link>
-              <Link href="#pricing" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap">
-                Bảng giá
+              <Link href="#docs" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
+                Hướng dẫn
               </Link>
-              <Link href="#about" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap">
-                Về chúng tôi
+              <Link href="#about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
+                Về hệ thống
               </Link>
-              <Link href="#contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors whitespace-nowrap">
+              <Link href="#contact" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
                 Liên hệ
               </Link>
             </div>
 
-            {/* Desktop Auth Buttons */}
-            <div className="hidden lg:flex items-center space-x-2">
+            {/* Desktop Auth Button (single) */}
+            <div className="hidden xl:flex items-center space-x-2">
               <Button
                 onClick={() => setAuthModalOpen(true)}
-                variant="ghost"
-                className="min-h-[44px] px-3 py-2 text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap"
+                className="min-h-[44px] px-4 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
               >
                 Đăng nhập
-              </Button>
-              <GoogleOAuthButton className="min-h-[44px] text-sm whitespace-nowrap" />
-              <Button
-                onClick={() => setAuthModalOpen(true)}
-                className="min-h-[44px] px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
-              >
-                Dùng thử miễn phí
               </Button>
             </div>
 
-            {/* Tablet Auth Buttons (simplified) */}
-            <div className="hidden md:flex lg:hidden items-center space-x-2">
-              <Button
-                onClick={() => setAuthModalOpen(true)}
-                variant="ghost"
-                className="min-h-[44px] px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
-              >
-                Đăng nhập
-              </Button>
-              <Button
-                onClick={() => setAuthModalOpen(true)}
-                className="min-h-[44px] px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Dùng thử
-              </Button>
-            </div>
 
             {/* Mobile Menu Button */}
             <div className="xl:hidden">
@@ -191,75 +154,68 @@ export default function Home() {
           </nav>
 
           {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="xl:hidden mt-4 pb-4 border-t border-gray-200"
-            >
-              <div className="flex flex-col space-y-4 pt-4">
-                <Link
-                  href="#features"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Tính năng
-                </Link>
-                <Link
-                  href="#solutions"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Giải pháp
-                </Link>
-                <Link
-                  href="#pricing"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Bảng giá
-                </Link>
-                <Link
-                  href="#about"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Về chúng tôi
-                </Link>
-                <Link
-                  href="#contact"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Liên hệ
-                </Link>
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                style={{ willChange: 'transform' }}
+                className="xl:hidden absolute left-0 right-0 top-full mx-4 sm:mx-6 mt-2 bg-card dark:bg-card rounded-lg border border-border shadow-lg"
+              >
+                <div className="flex flex-col py-2">
+              <Link
+                href="#features"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Chức năng
+              </Link>
+              <Link
+                href="#roles"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Vai trò
+              </Link>
+              <Link
+                href="#docs"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Hướng dẫn
+              </Link>
+              <Link
+                href="#about"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Về hệ thống
+              </Link>
+              <Link
+                href="#contact"
+                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Liên hệ
+              </Link>
 
-                <div className="flex flex-col space-y-3 pt-4 border-t border-gray-100">
+                <div className="px-3 pt-2 border-t border-border">
                   <Button
                     onClick={() => {
                       setAuthModalOpen(true)
                       setMobileMenuOpen(false)
                     }}
-                    variant="ghost"
-                    className="justify-start text-gray-600 hover:text-gray-900"
+                    className="w-full h-10 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
                   >
                     Đăng nhập
                   </Button>
-                  <GoogleOAuthButton className="w-full" />
-                  <Button
-                    onClick={() => {
-                      setAuthModalOpen(true)
-                      setMobileMenuOpen(false)
-                    }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Dùng thử miễn phí
-                  </Button>
                 </div>
-              </div>
-            </motion.div>
-          )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
@@ -276,7 +232,7 @@ export default function Home() {
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
                 Kết Nối Giáo Dục{' '}
-                <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                   Thông Minh Với AI
                 </span>
               </h1>
@@ -301,18 +257,21 @@ export default function Home() {
                 <Button
                   onClick={() => setAuthModalOpen(true)}
                   size="lg"
-                  className="h-12 px-8 text-base font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
+                  className="h-12 px-8 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
                 >
-                  Dùng thử miễn phí 30 ngày
+                  Đăng nhập
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button
                   variant="outline"
                   size="lg"
+                  asChild
                   className="h-12 px-8 text-base font-semibold border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  Xem Demo Live
+                  <Link href="#docs">
+                    <Play className="w-4 h-4 mr-2" />
+                    Hướng dẫn
+                  </Link>
                 </Button>
               </div>
 
@@ -322,16 +281,14 @@ export default function Home() {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <GoogleOAuthButton
-                className="w-full h-12 text-base font-semibold"
-              />
+              {/* OAuth nằm trong AuthModal để giảm nhiễu giao diện */}
             </div>
 
             {/* Trust Indicator */}
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((num) => (
-                  <div key={`trust-indicator-${num}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-emerald-500 border-2 border-white flex items-center justify-center">
+                  <div key={`trust-indicator-${num}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-orange-600 border-2 border-white flex items-center justify-center">
                     <GraduationCap className="w-4 h-4 text-white" />
                   </div>
                 ))}
@@ -351,7 +308,7 @@ export default function Home() {
               {/* Mock Chat Interface */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center">
                     <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -372,10 +329,10 @@ export default function Home() {
                   </div>
 
                   <div className="flex gap-3 justify-end">
-                    <div className="bg-blue-600 rounded-lg p-3 max-w-xs">
+                    <div className="bg-primary rounded-lg p-3 max-w-xs">
                       <p className="text-sm text-white">Điểm kiểm tra Toán của em Nguyễn Văn A lớp 10A1: 8.5 điểm. Bài kiểm tra ngày 15/11/2024.</p>
                     </div>
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                       <Brain className="w-4 h-4 text-white" />
                     </div>
                   </div>
@@ -395,7 +352,7 @@ export default function Home() {
             <motion.div
               animate={{ y: [10, -10, 10] }}
               transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
-              className="absolute -bottom-4 -left-4 bg-blue-500 text-white p-3 rounded-lg shadow-lg"
+              className="absolute -bottom-4 -left-4 bg-primary text-primary-foreground p-3 rounded-lg shadow-lg"
             >
               <MessageSquare className="w-5 h-5" />
             </motion.div>
@@ -458,8 +415,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Solution Overview Section */}
-      <section id="solutions" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      {/* Overview Section */}
+      <section id="overview" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -469,16 +426,16 @@ export default function Home() {
           >
             <div className="space-y-4">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-                EduConnect - Giải Pháp AI Toàn Diện
+                Tổng quan cổng thông tin trường
               </h2>
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Trợ lý ảo thông minh tích hợp vào hệ thống hiện có, tự động xử lý 80% câu hỏi thường gặp
+                Cổng thông tin tập trung cho giáo viên, học sinh, phụ huynh và quản trị, tích hợp trợ lý AI để hỗ trợ tra cứu nhanh.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { icon: MessageCircle, title: "Tự động trả lời 24/7", color: "bg-blue-100 text-blue-600" },
+                { icon: MessageCircle, title: "Tự động trả lời 24/7", color: "bg-orange-100 text-primary" },
                 { icon: Smartphone, title: "Tích hợp đa nền tảng", color: "bg-emerald-100 text-emerald-600" },
                 { icon: TrendingUp, title: "Học hỏi và cải thiện liên tục", color: "bg-purple-100 text-purple-600" }
               ].map((benefit, index) => (
@@ -504,7 +461,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative"
           >
-            <div className="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-2xl p-8 border border-gray-200">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8 border border-border">
               <div className="space-y-6">
                 <div className="text-center">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Demo Tương Tác</h3>
@@ -513,7 +470,7 @@ export default function Home() {
 
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center">
                       <Brain className="w-4 h-4 text-white" />
                     </div>
                     <span className="font-medium text-gray-900">EduConnect AI</span>
@@ -559,7 +516,7 @@ export default function Home() {
               title: "Trí Tuệ Nhân Tạo Tiên Tiến",
               description: "Sử dụng NLP và Machine Learning để hiểu và trả lời chính xác các câu hỏi về học tập, lịch trình, điểm số",
               benefits: ["Độ chính xác 95%", "Học từ dữ liệu trường", "Cập nhật liên tục"],
-              color: "from-blue-500 to-blue-600"
+              color: "from-primary to-orange-600"
             },
             {
               icon: Smartphone,
@@ -612,8 +569,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      {/* Docs/How It Works Section */}
+      <section id="docs" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
             EduConnect Hoạt Động Như Thế Nào?
@@ -630,7 +587,7 @@ export default function Home() {
               icon: Settings,
               title: "Tích Hợp Hệ Thống",
               description: "Kết nối với hệ thống quản lý học sinh hiện có của trường",
-              color: "bg-blue-500"
+              color: "bg-primary"
             },
             {
               step: "02",
@@ -676,14 +633,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Target Audience Sections */}
-      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
+      {/* Role-based access Sections */}
+      <section id="roles" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            Giải Pháp Cho Mọi Đối Tượng
+            Quyền truy cập theo vai trò
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            EduConnect được thiết kế để phục vụ tất cả các thành viên trong cộng đồng giáo dục
+            Thiết kế phục vụ đồng thời Ban giám hiệu, giáo viên, học sinh và phụ huynh
           </p>
         </div>
 
@@ -766,7 +723,7 @@ export default function Home() {
           >
             <div className="lg:order-2 space-y-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Dành Cho Giáo Viên</h3>
@@ -792,16 +749,16 @@ export default function Home() {
                   { icon: TrendingUp, title: "Student progress tracking" }
                 ].map((feature) => (
                   <div key={feature.title} className="text-center p-4 bg-gray-50 rounded-lg">
-                    <feature.icon className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                    <feature.icon className="w-6 h-6 text-primary mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-900">{feature.title}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="lg:order-1 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8">
+            <div className="lg:order-1 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8">
               <div className="text-center">
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                   <GraduationCap className="w-8 h-8 text-white" />
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2">Giao Diện Giáo Viên</h4>
@@ -894,20 +851,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* General Info Section */}
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            Được Tin Dùng Bởi Cộng Đồng Giáo Dục
+            Thông tin chung về hệ thống
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Hàng trăm trường học đã chọn EduConnect để cải thiện giao tiếp giáo dục
+            Số liệu minh họa và phạm vi sử dụng của cổng thông tin
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { number: "100+", label: "Trường THPT", icon: GraduationCap, color: "text-blue-600" },
+            { number: "100+", label: "Trường THPT", icon: GraduationCap, color: "text-primary" },
             { number: "50,000+", label: "Phụ huynh", icon: Heart, color: "text-emerald-600" },
             { number: "1,000+", label: "Giáo viên", icon: Users, color: "text-purple-600" },
             { number: "95%", label: "Mức độ hài lòng", icon: Star, color: "text-orange-600" }
@@ -931,14 +888,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* User Shares Section */}
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            Phản Hồi Từ Khách Hàng
+            Chia sẻ từ người dùng
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Những chia sẻ chân thực từ cộng đồng giáo dục đang sử dụng EduConnect
+            Những câu chuyện thực tế trong quá trình vận hành cổng thông tin
           </p>
         </div>
 
@@ -984,7 +941,7 @@ export default function Home() {
               </blockquote>
 
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-xl">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-primary-foreground text-xl">
                   {testimonial.avatar}
                 </div>
                 <div>
@@ -1056,7 +1013,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-gradient-to-br from-blue-600 to-emerald-600 text-white">
+      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-gradient-to-br from-primary to-purple-600 text-white">
         <div className="text-center max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1065,279 +1022,46 @@ export default function Home() {
             className="space-y-6"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Sẵn Sàng Cải Thiện Giao Tiếp Giáo Dục?
+              Truy cập cổng thông tin của trường
             </h2>
             <p className="text-lg sm:text-xl opacity-90 leading-relaxed">
-              Tham gia cùng hàng trăm trường đã tin dùng EduConnect để nâng cao chất lượng giao tiếp
+              Đăng nhập để xem thông báo, thời khóa biểu, kết quả học tập và trao đổi với nhà trường
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                onClick={() => setAuthModalOpen(true)}
-                size="lg"
-                className="h-14 px-8 text-lg font-semibold bg-white text-blue-600 hover:bg-gray-100 shadow-lg"
-              >
-                Dùng thử miễn phí 30 ngày
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-14 px-8 text-lg font-semibold border-white text-white hover:bg-white hover:text-blue-600"
-              >
-                Đặt lịch demo 1-on-1
-              </Button>
-            </div>
+             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+               <Button
+                 onClick={() => setAuthModalOpen(true)}
+                 size="lg"
+                 className="h-14 px-8 text-lg font-semibold bg-white text-primary hover:bg-gray-100 shadow-lg"
+               >
+                 Đăng nhập
+                 <ArrowRight className="w-5 h-5 ml-2" />
+               </Button>
+               <Button
+                 asChild
+                 variant="outline"
+                 size="lg"
+                 className="h-14 px-8 text-lg font-semibold bg-white text-primary hover:bg-gray-100 shadow-lg"
+               >
+                 <Link href="#docs">Hướng dẫn</Link>
+               </Button>
+             </div>
 
             <div className="flex flex-wrap justify-center gap-6 text-sm opacity-80">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Không yêu cầu thẻ tín dụng</span>
+                <span>Bảo mật theo chuẩn</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Hỗ trợ 24/7</span>
+                <span>Tích hợp tài khoản trường</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Đảm bảo hoàn tiền</span>
+                <span>Hỗ trợ kỹ thuật</span>
               </div>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
-          >
-            <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-                Về Chúng Tôi
-              </h2>
-              <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                EduConnect được phát triển bởi đội ngũ chuyên gia giáo dục và công nghệ với sứ mệnh cách mạng hóa giao tiếp trong giáo dục
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 lg:gap-12 text-left">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Sứ Mệnh</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Tạo ra một hệ sinh thái giáo dục thông minh, kết nối hiệu quả giữa nhà trường, giáo viên, học sinh và phụ huynh thông qua công nghệ AI tiên tiến.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Tầm Nhìn</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Trở thành nền tảng AI giáo dục hàng đầu Việt Nam, góp phần nâng cao chất lượng giáo dục và tạo ra môi trường học tập tốt nhất cho thế hệ tương lai.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Giá Trị Cốt Lõi</h3>
-                  <div className="space-y-3">
-                    {[
-                      "🎯 Tập trung vào người dùng",
-                      "🚀 Đổi mới không ngừng",
-                      "🤝 Hợp tác minh bạch",
-                      "📚 Cam kết chất lượng giáo dục"
-                    ].map((value) => (
-                      <div key={value} className="flex items-center gap-3">
-                        <span className="text-gray-700">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Đội Ngũ</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    20+ chuyên gia giáo dục, kỹ sư AI và nhà phát triển sản phẩm với kinh nghiệm 10+ năm trong lĩnh vực EdTech.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 lg:mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-              Liên Hệ Với Chúng Tôi
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              Sẵn sàng hỗ trợ bạn triển khai EduConnect tại trường học. Liên hệ ngay để được tư vấn miễn phí!
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Contact Info */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Thông Tin Liên Hệ</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Địa chỉ</p>
-                      <p className="text-gray-600">123 Đường ABC, Quận 1, TP.HCM</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Điện thoại</p>
-                      <p className="text-gray-600">0901 234 567</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Email</p>
-                      <p className="text-gray-600">hello@educonnect.vn</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Giờ làm việc</p>
-                      <p className="text-gray-600">Thứ 2 - Thứ 6: 8:00 - 17:00</p>
-                      <p className="text-gray-600">Thứ 7: 8:00 - 12:00</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Theo Dõi Chúng Tôi</h3>
-                <div className="flex gap-3">
-                  {[
-                    { icon: ExternalLink, label: "LinkedIn", color: "bg-blue-600" },
-                    { icon: ExternalLink, label: "Facebook", color: "bg-blue-500" },
-                    { icon: ExternalLink, label: "YouTube", color: "bg-red-600" },
-                    { icon: MessageSquare, label: "Zalo", color: "bg-blue-400" }
-                  ].map((social) => (
-                    <Link
-                      key={social.label}
-                      href="#"
-                      className={`w-10 h-10 ${social.color} rounded-lg flex items-center justify-center text-white hover:opacity-80 transition-opacity`}
-                      title={social.label}
-                    >
-                      <social.icon className="w-5 h-5" />
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8"
-            >
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Gửi Tin Nhắn</h3>
-              <form className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Họ và tên *
-                    </label>
-                    <input
-                      id="contact-name"
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Nhập họ và tên"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      id="contact-email"
-                      type="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Nhập email"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="contact-phone" className="block text-sm font-medium text-gray-700 mb-2">
-                      Số điện thoại
-                    </label>
-                    <input
-                      id="contact-phone"
-                      type="tel"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Nhập số điện thoại"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="contact-school" className="block text-sm font-medium text-gray-700 mb-2">
-                      Tên trường
-                    </label>
-                    <input
-                      id="contact-school"
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Nhập tên trường"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Tin nhắn *
-                  </label>
-                  <textarea
-                    id="contact-message"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Nhập tin nhắn của bạn..."
-                  ></textarea>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                >
-                  Gửi Tin Nhắn
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </form>
-            </motion.div>
-          </div>
         </div>
       </section>
 
@@ -1348,15 +1072,19 @@ export default function Home() {
             {/* Company Info */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-white" />
-                </div>
+                <Image
+                  src="/edu_connect_dashboard.png"
+                  alt="EduConnect Logo"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 object-contain"
+                />
                 <span className="text-xl font-bold">EduConnect</span>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-gray-300 text-sm leading-relaxed">
                 Giải pháp AI hàng đầu cho giáo dục Việt Nam
               </p>
-              <div className="space-y-2 text-sm text-gray-400">
+              <div className="space-y-2 text-sm text-gray-300">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   <span>123 Đường ABC, Quận 1, TP.HCM</span>
@@ -1375,10 +1103,10 @@ export default function Home() {
             {/* Quick Links */}
             <div className="space-y-4">
               <h4 className="font-semibold">Liên Kết Nhanh</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                {["Tính năng", "Bảng giá", "Tài liệu", "Hỗ trợ", "Blog"].map((link) => (
+              <div className="space-y-2 text-sm text-gray-300">
+                {["Đăng nhập", "Hướng dẫn sử dụng", "Liên hệ hỗ trợ", "Thông báo", "Tin tức"].map((link) => (
                   <div key={link}>
-                    <Link href="#" className="hover:text-white transition-colors">{link}</Link>
+                    <Link href="#" className="hover:text-primary transition-colors">{link}</Link>
                   </div>
                 ))}
               </div>
@@ -1387,10 +1115,10 @@ export default function Home() {
             {/* Legal Links */}
             <div className="space-y-4">
               <h4 className="font-semibold">Pháp Lý</h4>
-              <div className="space-y-2 text-sm text-gray-400">
+              <div className="space-y-2 text-sm text-gray-300">
                 {["Chính sách bảo mật", "Điều khoản sử dụng", "Cookie Policy"].map((link) => (
                   <div key={link}>
-                    <Link href="#" className="hover:text-white transition-colors">{link}</Link>
+                    <Link href="#" className="hover:text-primary transition-colors">{link}</Link>
                   </div>
                 ))}
               </div>
@@ -1409,7 +1137,7 @@ export default function Home() {
                   <Link
                     key={social.label}
                     href={social.href}
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors"
+                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition-colors"
                     title={social.label}
                   >
                     <social.icon className="w-5 h-5" />
@@ -1419,9 +1147,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-            <p className="text-sm text-gray-400">
-              © 2024 EduConnect. All rights reserved.
+          <div className="border-t border-gray-700 mt-8 pt-8 text-center">
+            <p className="text-sm text-gray-300">
+              © 2025 EduConnect. All rights reserved.
             </p>
           </div>
         </div>
@@ -1447,35 +1175,15 @@ function AuthenticatedLandingPage({ user, profile }: AuthenticatedLandingPagePro
     switch (role) {
       case 'admin': return '/dashboard/admin'
       case 'teacher': return '/dashboard/teacher'
-      case 'student': return '/dashboard/student'
+      case 'student': return '/student'
       case 'parent': return '/dashboard/parent'
       default: return '/dashboard'
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
-        <nav className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-lg flex items-center justify-center">
-              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-            </div>
-            <span className="text-lg sm:text-xl font-bold">EduConnect</span>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-            <span className="text-xs sm:text-sm text-muted-foreground text-center">
-              Welcome back, {profile?.full_name || user.email}
-            </span>
-            <Button className="min-h-[44px] px-4 py-2 text-sm sm:text-base" asChild>
-              <Link href={getDashboardPath(profile?.role)}>
-                Go to Dashboard
-              </Link>
-            </Button>
-          </div>
-        </nav>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Header moved to global layout to avoid duplication */}
 
       {/* Welcome Section */}
       <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 text-center">

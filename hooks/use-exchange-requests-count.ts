@@ -17,22 +17,23 @@ export function useExchangeRequestsCount(role: string, userId?: string) {
     const fetchCounts = async () => {
       setLoading(true)
       try {
-        let url = '/api/exchange-requests'
-
+        // Use lightweight count on primary endpoint with query params
+        const url = new URL('/api/exchange-requests', window.location.origin)
+        url.searchParams.set('count', 'true')
         if (role === 'teacher') {
-          // Teacher sees only their requests
-          url += `?teacher_id=${userId}`
+          url.searchParams.set('teacher_id', userId)
         } else if (role !== 'admin') {
+          setLoading(false)
           return
         }
 
-        const response = await fetch(url)
+        const response = await fetch(url.toString(), { cache: 'no-store' })
         const result = await response.json()
 
-        if (result.success && result.data) {
-          const requests = result.data as Record<string, unknown>[]
-          const pending = requests.filter(req => req.status === 'pending').length
-          setCounts({ pending, total: requests.length })
+        if (result.success && typeof result.data?.total === 'number') {
+          const total: number = result.data.total
+          const pending: number = result.data.pending ?? 0
+          setCounts({ pending, total })
         }
       } catch (error) {
         console.error('Error fetching exchange requests count:', error)
@@ -43,8 +44,8 @@ export function useExchangeRequestsCount(role: string, userId?: string) {
 
     fetchCounts()
 
-    // Set up polling for real-time updates (every 30 seconds)
-    const interval = setInterval(fetchCounts, 30000)
+    // Back off polling further to reduce network usage
+    const interval = setInterval(fetchCounts, 180000)
 
     return () => clearInterval(interval)
   }, [role, userId])

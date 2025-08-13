@@ -127,13 +127,6 @@ export function ExcelImportDialog({
     }
   })
 
-  // Load classes and subjects when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadClassesAndSubjects()
-    }
-  }, [open])
-
   const loadClassesAndSubjects = useCallback(async () => {
     try {
       setLoadingData(true)
@@ -155,12 +148,19 @@ export function ExcelImportDialog({
         toast.error(subjectsResult.error || "Không thể tải danh sách môn học")
       }
 
-    } catch (error) {
+    } catch {
       toast.error("Không thể tải dữ liệu")
     } finally {
       setLoadingData(false)
     }
   }, [])
+
+  // Load classes and subjects when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadClassesAndSubjects()
+    }
+  }, [open, loadClassesAndSubjects])
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

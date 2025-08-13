@@ -232,7 +232,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
       loadNotifications()
     }
     // Only depend on primitives and stable callback to avoid loops
-  }, [loading, user?.id, profile?.role, config.role, loadNotifications])
+  }, [loading, user, profile?.role, config.role, loadNotifications])
 
   const handleMarkAsRead = async (notificationId: string) => {
     const result = await markNotificationAsReadAction(notificationId)

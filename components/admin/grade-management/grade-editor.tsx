@@ -90,8 +90,6 @@ export function GradeEditor({ period }: GradeEditorProps) {
   const [students, setStudents] = useState<Array<{id: string, full_name: string, student_id: string, class?: {name: string}}>>([])
   const [subjects, setSubjects] = useState<Array<{id: string, name_vietnamese: string, code: string}>>([])
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
-  const [loadingData, setLoadingData] = useState(false)
-
 
   // Memoized check if period allows editing
   const canEditGrades = useCallback(() => {
@@ -133,7 +131,6 @@ export function GradeEditor({ period }: GradeEditorProps) {
   // Load dropdown data
   const loadDropdownData = useCallback(async () => {
     try {
-      setLoadingData(true)
 
       const [
         { getStudentsForGradeInputAction },
@@ -166,7 +163,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
       console.error('Error loading dropdown data:', error)
       toast.error('Không thể tải dữ liệu dropdown')
     } finally {
-      setLoadingData(false)
+      // Loading completed
     }
   }, [])
 
@@ -303,7 +300,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
       })
 
       // Add borders to all cells
-      worksheet.eachRow((row, rowNumber) => {
+      worksheet.eachRow((row) => {
         row.eachCell((cell) => {
           cell.border = {
             top: { style: 'thin' },

@@ -88,3 +88,41 @@ export interface Subject {
   created_at: string
   updated_at: string
 }
+
+// Chat history types
+export interface ChatConversation {
+  id: string
+  parent_id: string
+  title: string | null
+  created_at: string
+  updated_at: string
+  is_archived: boolean
+  message_count?: number
+  last_message?: string
+}
+
+export interface ChatMessage {
+  id: string
+  conversation_id: string
+  role: 'user' | 'assistant'
+  content: string
+  context_used?: Record<string, unknown>
+  function_calls: number
+  prompt_strength: number
+  created_at: string
+  updated_at: string
+  feedback?: ChatFeedback
+}
+
+export interface ChatFeedback {
+  id: string
+  message_id: string
+  parent_id: string
+  is_helpful: boolean
+  rating: 'excellent' | 'good' | 'average' | 'poor' | 'very_poor'
+  comment?: string
+  user_question: string
+  ai_response: string
+  created_at: string
+  updated_at: string
+}

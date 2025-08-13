@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import {
@@ -11,10 +11,30 @@ import {
   Send,
   Sparkles,
   Copy,
-  Share
+  Share,
+  AlertTriangle
 } from "lucide-react"
 // Import shared components and utilities to eliminate duplication
 import { ChatAvatar, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
+import { ChatHistorySidebar } from "./chat-history-sidebar"
+import { FeedbackDialog } from "./feedback-dialog"
+import { createConversation, getMessages } from "@/lib/actions/chat-history-actions"
+
+// Type guard for context used
+function isContextUsed(contextUsed: unknown): contextUsed is {
+  studentsCount: number
+  feedbackCount: number
+  gradesCount: number
+  violationsCount: number
+} {
+  return contextUsed !== null &&
+    typeof contextUsed === 'object' &&
+    contextUsed !== undefined &&
+    'studentsCount' in contextUsed &&
+    'feedbackCount' in contextUsed &&
+    'gradesCount' in contextUsed &&
+    'violationsCount' in contextUsed
+}
 import { useChatStreaming } from "./useChatStreaming"
 
 interface Message {
@@ -27,14 +47,19 @@ interface Message {
     feedbackCount: number
     gradesCount: number
     violationsCount: number
-  }
+  } | Record<string, unknown>
+  functionCalls?: number
+  promptStrength?: number
+  conversationId?: string
+  hasFeedback?: boolean
 }
 
 interface FullPageChatbotProps {
   readonly className?: string
 }
 
-export default function FullPageChatbot({ className }: FullPageChatbotProps) {
+function FullPageChatbot({ className }: FullPageChatbotProps) {
+  const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -47,6 +72,10 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [fontSize, setFontSize] = useState([14]) // Font size setting
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+
+  // Get parentId from user context
+  const parentId = user?.id || null
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -67,31 +96,121 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
     setMessages,
     setInputMessage,
     setIsLoading,
-    setIsStreaming
+    setIsStreaming,
+    conversationId: currentConversationId,
+    parentId: parentId
   })
 
-  const sendMessage = async () => {
+  // Memoized event handlers for performance
+  const sendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return
     await sendStreamingMessage(inputMessage.trim())
-  }
+  }, [inputMessage, isLoading, isStreaming, sendStreamingMessage])
 
+  // Handle feedback submission
+  const handleFeedbackSubmitted = useCallback((messageId: string) => {
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, hasFeedback: true } : msg
+    ))
+  }, [])
 
+  // Initialize conversation and parent ID
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (user && !currentConversationId) {
+        const result = await createConversation({
+          parent_id: user.id,
+          title: 'Cuộc trò chuyện mới'
+        })
 
-  // Suggested prompts for parents
-  const suggestedPrompts = [
+        if (result.success && result.data) {
+          setCurrentConversationId(result.data.id)
+        }
+      }
+    }
+
+    initializeChat()
+  }, [user, currentConversationId])
+
+  // Chat history handlers with useCallback optimization
+  const handleConversationSelect = useCallback(async (conversationId: string) => {
+    setCurrentConversationId(conversationId)
+
+    // Load messages for selected conversation
+    const result = await getMessages(conversationId)
+    if (result.success && result.data) {
+      const loadedMessages: Message[] = result.data.map((msg: {
+        id: string
+        role: 'user' | 'assistant'
+        content: string
+        created_at: string
+        context_used?: Record<string, unknown>
+        function_calls: number
+        prompt_strength: number
+        conversation_id: string
+        feedback?: { id: string }[]
+      }) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+        contextUsed: msg.context_used,
+        functionCalls: msg.function_calls,
+        promptStrength: msg.prompt_strength,
+        conversationId: msg.conversation_id,
+        hasFeedback: msg.feedback && msg.feedback.length > 0
+      }))
+      setMessages(loadedMessages)
+    }
+  }, [])
+
+  const handleNewConversation = useCallback(async () => {
+    if (!user) return
+
+    const result = await createConversation({
+      parent_id: user.id,
+      title: 'Cuộc trò chuyện mới'
+    })
+
+    if (result.success && result.data) {
+      setCurrentConversationId(result.data.id)
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
+        timestamp: new Date()
+      }])
+    }
+  }, [user])
+
+  // Memoized suggested prompts for performance
+  const suggestedPrompts = useMemo(() => [
     "Điểm số gần đây của con em như thế nào?",
     "Con em có cần cải thiện môn nào không?",
     "Phản hồi từ giáo viên tuần này ra sao?",
     "Con em có tiến bộ gì đáng chú ý không?",
     "Môn nào con em học tốt nhất?",
     "Tôi nên hỗ trợ con em học tập như thế nào?"
-  ]
+  ], [])
 
   return (
     <div className={`flex h-screen bg-white text-gray-900 ${className}`}>
-      {/* Main Content - No separate sidebar, use existing layout */}
+      {/* Chat History Sidebar - Always visible */}
+      {parentId && (
+        <div className="w-80 bg-gray-50 border-r border-gray-200 flex-shrink-0">
+          <ChatHistorySidebar
+            parentId={parentId}
+            currentConversationId={currentConversationId}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+            isOpen={true}
+            onClose={() => {}} // Sidebar always visible
+          />
+        </div>
+      )}
+
+      {/* Main Content */}
       <div className="flex-1 flex">
-        {/* Chat Area */}
         {/* Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Top Bar */}
@@ -136,7 +255,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white max-h-[calc(100vh-200px)]">
             {messages.map((message) => (
               <div key={message.id} className="group">
                 <div className="flex items-start space-x-4">
@@ -162,7 +281,7 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                     </div>
                     
                     {/* Context info for assistant messages */}
-                    {message.role === 'assistant' && message.contextUsed && (
+                    {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
                       <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="flex items-center space-x-2 text-xs text-blue-700">
                           <Sparkles className="h-3 w-3" />
@@ -182,6 +301,17 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                         <Copy className="h-3 w-3 mr-1" />
                         Copy
                       </Button>
+
+                      {/* Feedback button for assistant messages */}
+                      {message.role === 'assistant' && parentId && !message.hasFeedback && (
+                        <FeedbackDialog
+                          messageId={message.id}
+                          parentId={parentId}
+                          userQuestion={messages[messages.findIndex(m => m.id === message.id) - 1]?.content || ''}
+                          aiResponse={message.content}
+                          onFeedbackSubmitted={() => handleFeedbackSubmitted(message.id)}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -310,9 +440,32 @@ export default function FullPageChatbot({ className }: FullPageChatbotProps) {
                 </div>
               </div>
             </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">⚠️ LƯU Ý QUAN TRỌNG</h3>
+              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                <div className="space-y-2 text-xs text-yellow-800">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Thông tin tham khảo:</p>
+                      <p>AI cung cấp thông tin dựa trên dữ liệu có sẵn. Vui lòng liên hệ trực tiếp với giáo viên để có thông tin chính xác nhất.</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-yellow-200">
+                    <p className="text-xs">• Dữ liệu được cập nhật định kỳ</p>
+                    <p className="text-xs">• Phản hồi của bạn giúp cải thiện AI</p>
+                    <p className="text-xs">• Bảo mật thông tin được đảm bảo</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   )
 }
+
+// Export memoized component for performance optimization
+export default memo(FullPageChatbot)

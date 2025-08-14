@@ -22,6 +22,7 @@ import {
   adminBulkSendReportsAction,
   sendTeacherRemindersAction,
   generateStudentReportsAction,
+  resetReportsToDraftAction,
   type ReportPeriod,
   type ClassProgress
 } from "@/lib/actions/report-period-actions"
@@ -43,6 +44,7 @@ export default function ReportPeriodsPage() {
   const [sendingNotifications, setSendingNotifications] = useState(false)
   const [bulkSending, setBulkSending] = useState(false)
   const [generatingReports, setGeneratingReports] = useState(false)
+  const [resettingReports, setResettingReports] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -233,7 +235,30 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, loadClassProgress])
 
+  // Reset reports to draft handler (for testing)
+  const handleResetReports = useCallback(async () => {
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
+      return
+    }
 
+    setResettingReports(true)
+    try {
+      const result = await resetReportsToDraftAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
+        loadClassProgress() // Reload to get updated data
+      } else {
+        toast.error(result.error || 'Không thể reset báo cáo')
+      }
+    } catch (error) {
+      console.error('Error resetting reports:', error)
+      toast.error('Có lỗi xảy ra khi reset báo cáo')
+    } finally {
+      setResettingReports(false)
+    }
+  }, [selectedPeriod, loadClassProgress])
 
   // Memoized toggle handler to prevent unnecessary re-renders
   const handleTestModeToggle = useCallback((checked: boolean) => {
@@ -459,6 +484,32 @@ export default function ReportPeriodsPage() {
                         <>
                           <Plus className="h-4 w-4 mr-2" />
                           Tạo báo cáo học sinh
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Reset Reports Button (for testing) */}
+                {selectedPeriod && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      Reset báo cáo đã gửi về trạng thái draft (để test gửi lại)
+                    </div>
+                    <Button
+                      onClick={handleResetReports}
+                      disabled={resettingReports}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      {resettingReports ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Đang reset...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Reset để test lại
                         </>
                       )}
                     </Button>

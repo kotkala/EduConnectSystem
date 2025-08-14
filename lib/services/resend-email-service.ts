@@ -70,17 +70,17 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
         <!-- Header with Logo -->
         <div style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 30px 40px; text-align: center;">
           <div style="background-color: #ffffff; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <span style="font-size: 32px; font-weight: bold; color: #2563eb;">📚</span>
+            <span style="font-size: 32px; font-weight: bold; color: #2563eb;">E</span>
           </div>
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">EduConnect Portal</h1>
-          <p style="color: #e0e7ff; margin: 8px 0 0 0; font-size: 16px;">Hệ thống quản lý giáo dục thông minh</p>
+          <p style="color: #e0e7ff; margin: 8px 0 0 0; font-size: 16px;">Hệ thống quản lý giáo dục</p>
         </div>
 
         <!-- Content -->
         <div style="padding: 40px;">
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #92400e; margin: 0 0 10px 0; font-size: 20px; display: flex; align-items: center;">
-              ⏰ Thông báo nhắc nhở quan trọng
+            <h2 style="color: #92400e; margin: 0 0 10px 0; font-size: 20px;">
+              Thông báo nhắc nhở quan trọng
             </h2>
             <p style="margin: 0; color: #78350f; font-size: 16px;">Cần hoàn thành báo cáo học sinh trước thời hạn</p>
           </div>
@@ -95,7 +95,7 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
 
           <div style="background-color: #fee2e2; border: 1px solid #fecaca; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <p style="margin: 0; font-size: 16px; color: #991b1b;">
-              <strong>📅 Thời hạn nộp báo cáo:</strong> ${new Date(data.endDate).toLocaleDateString('vi-VN', {
+              <strong>Thời hạn nộp báo cáo:</strong> ${new Date(data.endDate).toLocaleDateString('vi-VN', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -105,7 +105,7 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
           </div>
 
           <h3 style="color: #1f2937; font-size: 18px; margin: 30px 0 20px 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
-            📊 Tình hình hoàn thành báo cáo theo lớp
+            Tình hình hoàn thành báo cáo theo lớp
           </h3>
 
           <div style="overflow-x: auto; margin: 20px 0;">
@@ -125,7 +125,7 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
 
           <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 20px; border-radius: 8px; margin: 30px 0;">
             <p style="margin: 0; font-size: 16px; color: #0c4a6e; line-height: 1.6;">
-              <strong>💡 Lưu ý:</strong> Để đảm bảo chất lượng giáo dục và sự phối hợp giữa nhà trường và gia đình,
+              <strong>Lưu ý:</strong> Để đảm bảo chất lượng giáo dục và sự phối hợp giữa nhà trường và gia đình,
               Thầy/Cô vui lòng hoàn thành báo cáo đánh giá cho tất cả học sinh trong các lớp được phân công trước thời hạn quy định.
             </p>
           </div>
@@ -143,7 +143,7 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
                       font-size: 16px;
                       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
                       transition: all 0.3s ease;">
-              🚀 Truy cập hệ thống ngay
+              Truy cập hệ thống ngay
             </a>
           </div>
         </div>
@@ -156,8 +156,8 @@ function createTeacherReminderTemplate(data: TeacherReminderEmailData): string {
           </p>
           <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="color: #94a3b8; font-size: 12px; margin: 0;">
-              📧 Email này được gửi tự động từ hệ thống EduConnect Portal<br>
-              🌐 <a href="https://edu-connect-system.vercel.app" style="color: #2563eb; text-decoration: none;">edu-connect-system.vercel.app</a>
+              Email này được gửi tự động từ hệ thống EduConnect Portal<br>
+              <a href="https://edu-connect-system.vercel.app" style="color: #2563eb; text-decoration: none;">edu-connect-system.vercel.app</a>
             </p>
           </div>
         </div>
@@ -183,7 +183,7 @@ function createParentReportTemplate(data: ParentReportEmailData): string {
         <!-- Header with Logo -->
         <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px 40px; text-align: center;">
           <div style="background-color: #ffffff; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <span style="font-size: 32px; font-weight: bold; color: #059669;">📋</span>
+            <span style="font-size: 32px; font-weight: bold; color: #059669;">E</span>
           </div>
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">EduConnect Portal</h1>
           <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Báo cáo học tập đã sẵn sàng</p>
@@ -192,8 +192,8 @@ function createParentReportTemplate(data: ParentReportEmailData): string {
         <!-- Content -->
         <div style="padding: 40px;">
           <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #047857; margin: 0 0 10px 0; font-size: 20px; display: flex; align-items: center;">
-              🎓 Báo cáo học tập mới
+            <h2 style="color: #047857; margin: 0 0 10px 0; font-size: 20px;">
+              Báo cáo học tập mới
             </h2>
             <p style="margin: 0; color: #065f46; font-size: 16px;">Thông tin chi tiết về quá trình học tập của con em</p>
           </div>
@@ -208,8 +208,8 @@ function createParentReportTemplate(data: ParentReportEmailData): string {
 
           <!-- Report Period Info Card -->
           <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; padding: 25px; border-radius: 12px; margin: 25px 0;">
-            <h3 style="margin: 0 0 15px 0; color: #0c4a6e; font-size: 18px; display: flex; align-items: center;">
-              📅 Thông tin kỳ báo cáo
+            <h3 style="margin: 0 0 15px 0; color: #0c4a6e; font-size: 18px;">
+              Thông tin kỳ báo cáo
             </h3>
             <div style="display: grid; gap: 10px;">
               <p style="margin: 0; font-size: 15px; color: #0f172a;"><strong>Kỳ báo cáo:</strong> <span style="color: #2563eb;">${data.reportPeriodName}</span></p>
@@ -230,7 +230,7 @@ function createParentReportTemplate(data: ParentReportEmailData): string {
 
           <div style="background-color: #fef3c7; border: 1px solid #fcd34d; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <p style="margin: 0; font-size: 16px; color: #92400e; line-height: 1.6;">
-              <strong>📖 Nội dung báo cáo bao gồm:</strong><br>
+              <strong>Nội dung báo cáo bao gồm:</strong><br>
               • Đánh giá về điểm mạnh và điểm cần cải thiện<br>
               • Tình hình học tập các môn học<br>
               • Đánh giá về ý thức kỷ luật và thái độ học tập<br>
@@ -251,13 +251,13 @@ function createParentReportTemplate(data: ParentReportEmailData): string {
                       font-size: 18px;
                       box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
                       transition: all 0.3s ease;">
-              📖 Xem báo cáo chi tiết
+              Xem báo cáo chi tiết
             </a>
           </div>
 
           <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 20px; border-radius: 8px; margin: 30px 0;">
             <p style="margin: 0; font-size: 15px; color: #0c4a6e; line-height: 1.6;">
-              <strong>💡 Hướng dẫn:</strong> Sau khi xem báo cáo, Quý phụ huynh có thể để lại phản hồi và trao đổi với giáo viên
+              <strong>Hướng dẫn:</strong> Sau khi xem báo cáo, Quý phụ huynh có thể để lại phản hồi và trao đổi với giáo viên
               chủ nhiệm để cùng hỗ trợ con em phát triển tốt nhất. Mọi thắc mắc xin liên hệ trực tiếp với nhà trường.
             </p>
           </div>
@@ -298,7 +298,7 @@ function createParentReminderTemplate(data: ParentReminderEmailData): string {
         <!-- Header with Logo -->
         <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px 40px; text-align: center;">
           <div style="background-color: #ffffff; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <span style="font-size: 32px; font-weight: bold; color: #f59e0b;">⏰</span>
+            <span style="font-size: 32px; font-weight: bold; color: #f59e0b;">E</span>
           </div>
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">EduConnect Portal</h1>
           <p style="color: #fef3c7; margin: 8px 0 0 0; font-size: 16px;">Nhắc nhở quan trọng từ nhà trường</p>
@@ -307,8 +307,8 @@ function createParentReminderTemplate(data: ParentReminderEmailData): string {
         <!-- Content -->
         <div style="padding: 40px;">
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #92400e; margin: 0 0 10px 0; font-size: 20px; display: flex; align-items: center;">
-              📋 Nhắc nhở xem báo cáo học tập
+            <h2 style="color: #92400e; margin: 0 0 10px 0; font-size: 20px;">
+              Nhắc nhở xem báo cáo học tập
             </h2>
             <p style="margin: 0; color: #78350f; font-size: 16px;">Báo cáo của con em đã sẵn sàng và đang chờ Quý phụ huynh xem xét</p>
           </div>
@@ -324,12 +324,12 @@ function createParentReminderTemplate(data: ParentReminderEmailData): string {
 
           <!-- Report Status Card -->
           <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fcd34d; padding: 25px; border-radius: 12px; margin: 25px 0;">
-            <h3 style="margin: 0 0 15px 0; color: #92400e; font-size: 18px; display: flex; align-items: center;">
-              📊 Trạng thái báo cáo
+            <h3 style="margin: 0 0 15px 0; color: #92400e; font-size: 18px;">
+              Trạng thái báo cáo
             </h3>
             <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #f59e0b;">
               <p style="margin: 0; font-size: 15px; color: #0f172a;">
-                <strong>📅 Báo cáo đã sẵn sàng từ:</strong>
+                <strong>Báo cáo đã sẵn sàng từ:</strong>
                 <span style="color: #dc2626; font-weight: bold;">
                   ${new Date(data.endDate).toLocaleDateString('vi-VN', {
                     weekday: 'long',
@@ -340,14 +340,14 @@ function createParentReminderTemplate(data: ParentReminderEmailData): string {
                 </span>
               </p>
               <p style="margin: 10px 0 0 0; font-size: 15px; color: #7c2d12;">
-                <strong>⏳ Thời gian chờ:</strong> ${Math.ceil((Date.now() - new Date(data.endDate).getTime()) / (1000 * 60 * 60 * 24))} ngày
+                <strong>Thời gian chờ:</strong> ${Math.ceil((Date.now() - new Date(data.endDate).getTime()) / (1000 * 60 * 60 * 24))} ngày
               </p>
             </div>
           </div>
 
           <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 20px; border-radius: 8px; margin: 25px 0;">
             <p style="margin: 0; font-size: 16px; color: #0c4a6e; line-height: 1.6;">
-              <strong>🎯 Tầm quan trọng của việc xem báo cáo:</strong><br>
+              <strong>Tầm quan trọng của việc xem báo cáo:</strong><br>
               • Nắm bắt tình hình học tập và phát triển của con em<br>
               • Phối hợp với nhà trường trong việc giáo dục<br>
               • Kịp thời điều chỉnh phương pháp hỗ trợ con em<br>
@@ -368,13 +368,13 @@ function createParentReminderTemplate(data: ParentReminderEmailData): string {
                       font-size: 18px;
                       box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
                       transition: all 0.3s ease;">
-              📖 Xem báo cáo ngay bây giờ
+              Xem báo cáo ngay bây giờ
             </a>
           </div>
 
           <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 20px; border-radius: 8px; margin: 30px 0;">
             <p style="margin: 0; font-size: 15px; color: #065f46; line-height: 1.6;">
-              <strong>💬 Phản hồi từ phụ huynh:</strong> Sau khi xem báo cáo, Quý phụ huynh có thể để lại ý kiến phản hồi
+              <strong>Phản hồi từ phụ huynh:</strong> Sau khi xem báo cáo, Quý phụ huynh có thể để lại ý kiến phản hồi
               và trao đổi trực tiếp với giáo viên chủ nhiệm thông qua hệ thống. Điều này giúp tạo nên sự phối hợp tốt nhất
               trong việc giáo dục và phát triển con em.
             </p>

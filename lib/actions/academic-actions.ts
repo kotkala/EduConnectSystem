@@ -345,7 +345,8 @@ export async function getAcademicYearsLightAction() {
 
     const { data, error } = await supabase
       .from("academic_years")
-      .select("id, name")
+      .select("id, name, is_current")
+      .order("is_current", { ascending: false })
       .order("name", { ascending: false })
       .limit(20)
 
@@ -355,7 +356,7 @@ export async function getAcademicYearsLightAction() {
 
     return {
       success: true,
-      data: data as Array<{ id: string; name: string }>
+      data: data as Array<{ id: string; name: string; is_current: boolean }>
     }
   } catch (error) {
     console.error("Get academic years light error:", error)

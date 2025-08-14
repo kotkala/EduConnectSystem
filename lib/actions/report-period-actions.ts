@@ -518,7 +518,7 @@ export async function adminBulkSendReportsAction(reportPeriodId: string) {
       })
     })
 
-    // Create parent response records and send email notifications
+    // Create parent response records, notifications, and send email notifications
     const responsePromises = reports.map(async (report) => {
       const student = studentMap.get(report.student_id)
       const parents = parentsByStudent.get(report.student_id) || []
@@ -533,6 +533,17 @@ export async function adminBulkSendReportsAction(reportPeriodId: string) {
         await supabase
           .from('parent_report_responses')
           .insert(responses)
+
+        // Create notifications for parents (this was missing!)
+        const notifications = parents.map(parent => ({
+          student_report_id: report.id,
+          parent_id: parent.parent_id,
+          homeroom_teacher_id: report.homeroom_teacher_id
+        }))
+
+        await supabase
+          .from('report_notifications')
+          .insert(notifications)
 
         // Send email notifications to parents using Resend
         const emailPromises = parents.map(async (parent) => {

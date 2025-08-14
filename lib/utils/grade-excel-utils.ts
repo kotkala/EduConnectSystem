@@ -5,28 +5,36 @@ import {
   gradeValueSchema 
 } from '@/lib/validations/grade-management-validations'
 
-// VNedu Excel format structure
+// VNedu Excel format structure - Enhanced for comprehensive grading
 export interface VnEduExcelFormat {
   headers: {
     stt: string
     ma_hoc_sinh: string
     ho_ten: string
+    thuong_xuyen?: string
+    giua_ky: string
+    cuoi_ky: string
+    ca_nam: string
     diem_so: string
     ghi_chu: string
   }
   startRow: number
 }
 
-// Default VNedu format configuration
+// Default VNedu format configuration - Enhanced for comprehensive grading
 export const DEFAULT_VNEDU_FORMAT: VnEduExcelFormat = {
   headers: {
     stt: 'STT',
     ma_hoc_sinh: 'Mã học sinh',
     ho_ten: 'Họ và tên',
+    thuong_xuyen: 'Thường xuyên',
+    giua_ky: 'Giữa kỳ',
+    cuoi_ky: 'Cuối kỳ',
+    ca_nam: 'Cả năm',
     diem_so: 'Điểm số',
-    ghi_chu: 'Ghi chú'
+    ghi_chu: 'Nhận xét sự tiến bộ, ưu điểm nổi bật, hạn chế chủ yếu'
   },
-  startRow: 2 // Data starts from row 2 (after header)
+  startRow: 6 // Data starts from row 6 (after title and headers)
 }
 
 // Excel processing result
@@ -139,10 +147,11 @@ export async function parseExcelFile(
     // Find column indices based on headers
     const columnIndices = findColumnIndices(headerRow, format.headers)
     
-    // Validate required columns exist
+    // Validate required columns exist - Updated for VNedu format
+    const requiredColumns = ['stt', 'ho_ten', 'diem_so'] // Only essential columns required
     const missingColumns = Object.entries(format.headers)
-      .filter(([key]) => key !== 'ghi_chu') // ghi_chu is optional
-      .filter(([, header]) => !headerRow.some(h => 
+      .filter(([key]) => requiredColumns.includes(key))
+      .filter(([, header]) => !headerRow.some(h =>
         h && h.toString().toLowerCase().includes(header.toLowerCase())
       ))
       .map(([, header]) => header)
@@ -165,12 +174,12 @@ export async function parseExcelFile(
       }
 
       try {
-        // Extract data based on column indices
+        // Extract data based on column indices - Enhanced for VNedu format
         const rowData = {
           stt: row[columnIndices.stt] || rowNumber - format.startRow + 1,
-          ma_hoc_sinh: row[columnIndices.ma_hoc_sinh]?.toString().trim() || '',
+          ma_hoc_sinh: row[columnIndices.ma_hoc_sinh]?.toString().trim() || `HS${String(rowNumber - format.startRow + 1).padStart(3, '0')}`,
           ho_ten: row[columnIndices.ho_ten]?.toString().trim() || '',
-          diem_so: row[columnIndices.diem_so],
+          diem_so: row[columnIndices.diem_so] || row[columnIndices.cuoi_ky] || row[columnIndices.ca_nam], // Try multiple grade columns
           ghi_chu: row[columnIndices.ghi_chu]?.toString().trim() || ''
         }
 
@@ -234,52 +243,157 @@ function findColumnIndices(
   return indices as Record<keyof VnEduExcelFormat['headers'], number>
 }
 
-// Generate Excel template for VNedu format
+// Generate Excel template for VNedu format with borders and formatting
 export function generateExcelTemplate(
   students: Array<{ student_id: string; full_name: string }>,
+  classInfo: { className: string; subjectName: string; gradeType: string },
   format: VnEduExcelFormat = DEFAULT_VNEDU_FORMAT
 ): ArrayBuffer {
   // Create workbook
   const workbook = XLSX.utils.book_new()
-  
+
   // Create worksheet data
   const worksheetData: unknown[][] = []
-  
-  // Add header row
+
+  // Add title rows - VNedu style
+  worksheetData.push([`Môn Nội dung giáo dục của địa phương Lớp ${classInfo.className} (dùng cho môn học đánh giá bằng nhận xét)`])
+  worksheetData.push([]) // Empty row
+  worksheetData.push([`Môn học: ${classInfo.subjectName} - ${classInfo.gradeType}`])
+  worksheetData.push([]) // Empty row
+
+  // Add main header row
   worksheetData.push([
     format.headers.stt,
-    format.headers.ma_hoc_sinh,
     format.headers.ho_ten,
-    format.headers.diem_so,
+    'Mục đánh giá',
+    '',
+    '',
+    '',
+    'Mục đánh giá lại Đạt(D)',
     format.headers.ghi_chu
   ])
-  
-  // Add student rows
+
+  // Add sub-header row for grading columns
+  worksheetData.push([
+    '',
+    '',
+    format.headers.thuong_xuyen || 'Thường xuyên',
+    format.headers.giua_ky,
+    format.headers.cuoi_ky,
+    format.headers.ca_nam,
+    'Học kỳ',
+    'Cả năm'
+  ])
+
+  // Add student rows - VNedu style with comprehensive grading columns
   students.forEach((student, index) => {
     worksheetData.push([
-      index + 1,
-      student.student_id,
-      student.full_name,
-      '', // Empty grade field for input
-      '' // Empty notes field
+      index + 1, // STT
+      student.full_name, // Họ và tên
+      '', // Thường xuyên
+      '', // Giữa kỳ
+      '', // Cuối kỳ
+      '', // Cả năm
+      '', // Mục đánh giá lại - Học kỳ
+      '' // Nhận xét
     ])
   })
-  
+
   // Create worksheet
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-  
-  // Set column widths
+
+  // Set column widths - VNedu style
   worksheet['!cols'] = [
-    { width: 5 },  // STT
-    { width: 15 }, // Mã học sinh
-    { width: 25 }, // Họ tên
-    { width: 10 }, // Điểm số
-    { width: 20 }  // Ghi chú
+    { width: 8 },  // STT
+    { width: 25 }, // Họ và tên
+    { width: 12 }, // Thường xuyên
+    { width: 12 }, // Giữa kỳ
+    { width: 12 }, // Cuối kỳ
+    { width: 12 }, // Cả năm
+    { width: 12 }, // Mục đánh giá lại
+    { width: 40 }  // Nhận xét
   ]
-  
+
+  // Apply formatting and borders
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1')
+
+  // Style for title rows (rows 1-3)
+  for (let row = 0; row <= 2; row++) {
+    const cellRef = XLSX.utils.encode_cell({ r: row, c: 0 })
+    if (!worksheet[cellRef]) worksheet[cellRef] = { t: 's', v: '' }
+    worksheet[cellRef].s = {
+      font: { bold: true, size: 14 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      fill: { fgColor: { rgb: 'E6F3FF' } }
+    }
+  }
+
+  // Style for header row (row 5, index 4)
+  const headerRowIndex = 4
+  for (let col = range.s.c; col <= range.e.c; col++) {
+    const cellRef = XLSX.utils.encode_cell({ r: headerRowIndex, c: col })
+    if (!worksheet[cellRef]) worksheet[cellRef] = { t: 's', v: '' }
+    worksheet[cellRef].s = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: '4472C4' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+      }
+    }
+  }
+
+  // Style for data rows (starting from row 6, index 5)
+  for (let row = headerRowIndex + 1; row <= range.e.r; row++) {
+    for (let col = range.s.c; col <= range.e.c; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: row, c: col })
+      if (!worksheet[cellRef]) worksheet[cellRef] = { t: 's', v: '' }
+
+      // Apply borders to all data cells
+      worksheet[cellRef].s = {
+        border: {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } }
+        },
+        alignment: {
+          horizontal: col === 0 ? 'center' : col === 3 ? 'center' : 'left',
+          vertical: 'center'
+        }
+      }
+
+      // Special formatting for grade column (column 3)
+      if (col === 3) {
+        worksheet[cellRef].s.fill = { fgColor: { rgb: 'FFF2CC' } }
+        worksheet[cellRef].s.font = { bold: true }
+      }
+    }
+  }
+
+  // Merge title cells - VNedu style
+  worksheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, // Main title
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, // Subject info
+    { s: { r: 4, c: 0 }, e: { r: 5, c: 0 } }, // STT column merge
+    { s: { r: 4, c: 1 }, e: { r: 5, c: 1 } }, // Họ và tên column merge
+    { s: { r: 4, c: 2 }, e: { r: 4, c: 5 } }, // Mục đánh giá header merge
+    { s: { r: 4, c: 6 }, e: { r: 4, c: 7 } }  // Mục đánh giá lại header merge
+  ]
+
+  // Set print settings
+  worksheet['!printHeader'] = '1:4' // Print title rows on every page
+  worksheet['!margins'] = {
+    left: 0.7, right: 0.7, top: 0.75, bottom: 0.75,
+    header: 0.3, footer: 0.3
+  }
+
   // Add worksheet to workbook
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm')
-  
+
   // Generate buffer
   return XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })
 }

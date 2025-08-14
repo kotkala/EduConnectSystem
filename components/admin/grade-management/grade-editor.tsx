@@ -77,7 +77,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
     subject_id: '',
     class_id: '',
     grade_value: '',
-    grade_type: 'midterm',
+    grade_type: 'semester1',
     notes: ''
   })
 
@@ -500,10 +500,9 @@ export function GradeEditor({ period }: GradeEditorProps) {
                     <TableCell>{grade.subject?.name_vietnamese}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {grade.grade_type === 'midterm' && 'Giữa kỳ'}
-                        {grade.grade_type === 'final' && 'Cuối kỳ'}
-                        {grade.grade_type === 'quiz' && 'Kiểm tra'}
-                        {grade.grade_type === 'assignment' && 'Bài tập'}
+                        {grade.grade_type === 'semester1' && 'Cuối học kỳ 1'}
+                        {grade.grade_type === 'semester2' && 'Cuối học kỳ 2'}
+                        {grade.grade_type === 'full_year' && 'Cả năm học'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -675,10 +674,9 @@ export function GradeEditor({ period }: GradeEditorProps) {
                   <SelectValue placeholder="Chọn loại điểm" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="midterm">Điểm giữa kỳ</SelectItem>
-                  <SelectItem value="final">Điểm cuối kỳ</SelectItem>
-                  <SelectItem value="quiz">Điểm kiểm tra</SelectItem>
-                  <SelectItem value="assignment">Điểm bài tập</SelectItem>
+                  <SelectItem value="semester1">Cuối học kỳ 1</SelectItem>
+                  <SelectItem value="semester2">Cuối học kỳ 2</SelectItem>
+                  <SelectItem value="full_year">Cả năm học</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -719,7 +717,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
                   subject_id: '',
                   class_id: '',
                   grade_value: '',
-                  grade_type: 'midterm',
+                  grade_type: 'semester1',
                   notes: ''
                 })
               }}
@@ -765,7 +763,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
                       subject_id: '',
                       class_id: '',
                       grade_value: '',
-                      grade_type: 'midterm',
+                      grade_type: 'semester1',
                       notes: ''
                     })
                     // Reload grades to show the new grade

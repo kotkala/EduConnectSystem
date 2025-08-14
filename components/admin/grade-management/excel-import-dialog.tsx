@@ -43,6 +43,7 @@ import {
   type ExcelProcessingResult
 } from '@/lib/utils/grade-excel-utils'
 import { bulkImportGradesAction, getClassesAction, getSubjectsAction } from '@/lib/actions/grade-management-actions'
+import { generateGradeTemplateAction } from '@/lib/actions/excel-template-actions'
 
 interface ExcelImportDialogProps {
   open: boolean
@@ -105,7 +106,7 @@ export function ExcelImportDialog({
   onOpenChange,
   period,
   onSuccess
-}: ExcelImportDialogProps) {
+}: Readonly<ExcelImportDialogProps>) {
   const [currentStep, setCurrentStep] = useState<ImportStep['id']>('upload')
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -123,7 +124,7 @@ export function ExcelImportDialog({
       period_id: period.id,
       class_id: '',
       subject_id: '',
-      grade_type: 'midterm'
+      grade_type: 'semester1'
     }
   })
 
@@ -267,10 +268,55 @@ export function ExcelImportDialog({
   }
 
   // Download template
-  const handleDownloadTemplate = () => {
-    // TODO: Implement template download
-    // This would generate and download an Excel template
-    toast.info("Chức năng tải template sẽ được triển khai")
+  const handleDownloadTemplate = async () => {
+    const formData = form.getValues()
+
+    // Validate required fields
+    if (!formData.class_id || !formData.subject_id || !formData.grade_type) {
+      toast.error("Vui lòng chọn lớp học, môn học và loại điểm trước khi tải template")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const result = await generateGradeTemplateAction({
+        class_id: formData.class_id,
+        subject_id: formData.subject_id,
+        grade_type: formData.grade_type
+      })
+
+      if (result.success && result.data) {
+        // Convert base64 to blob
+        const binaryString = atob(result.data.content)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+
+        const blob = new Blob([bytes], {
+          type: result.data.mimeType
+        })
+
+        // Create download link
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = result.data.filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        toast.success("Tải template Excel thành công")
+      } else {
+        toast.error(result.error || "Không thể tạo template Excel")
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra khi tạo template Excel")
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Reset dialog state
@@ -412,10 +458,9 @@ export function ExcelImportDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="midterm">Giữa kỳ</SelectItem>
-                          <SelectItem value="final">Cuối kỳ</SelectItem>
-                          <SelectItem value="quiz">Kiểm tra</SelectItem>
-                          <SelectItem value="assignment">Bài tập</SelectItem>
+                          <SelectItem value="semester1">Cuối học kỳ 1</SelectItem>
+                          <SelectItem value="semester2">Cuối học kỳ 2</SelectItem>
+                          <SelectItem value="full_year">Cả năm học</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -529,8 +574,8 @@ export function ExcelImportDialog({
                 {processingResult.errorRows.length > 0 && (
                   <div className="max-h-40 overflow-y-auto border rounded-lg p-4">
                     <h4 className="font-medium mb-2">Chi tiết lỗi:</h4>
-                    {processingResult.errorRows.slice(0, 5).map((errorRow, index) => (
-                      <div key={index} className="text-sm mb-2">
+                    {processingResult.errorRows.slice(0, 5).map((errorRow) => (
+                      <div key={`error-${errorRow.rowNumber}`} className="text-sm mb-2">
                         <Badge variant="destructive" className="mr-2">
                           Dòng {errorRow.rowNumber}
                         </Badge>

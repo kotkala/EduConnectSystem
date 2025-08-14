@@ -13,6 +13,7 @@ import {
   type GradeFiltersFormData,
   type GradeReportingPeriod
 } from '@/lib/validations/grade-management-validations'
+import { sendGradeNotificationAction } from '@/lib/actions/notification-actions'
 
 // Helper function to check if current time is within deadline
 function isWithinDeadline(deadline: string): boolean {
@@ -448,7 +449,7 @@ export async function getGradesForPeriodAction(
   }
 }
 
-// Get students for grade input with pagination
+// Get students for grade input with pagination (OPTIMIZED)
 export async function getStudentsForGradeInputAction(options?: {
   page?: number
   limit?: number
@@ -459,46 +460,72 @@ export async function getStudentsForGradeInputAction(options?: {
     await checkAdminPermissions()
     const supabase = await createClient()
 
+    // Optimized query using student_class_assignments to avoid over-fetching
     let query = supabase
-      .from('profiles')
+      .from('student_class_assignments')
       .select(`
-        id,
-        full_name,
-        student_id,
-        class_id,
-        class:classes!profiles_class_id_fkey(name)
+        student:profiles!student_class_assignments_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!student_class_assignments_class_id_fkey(
+          id,
+          name
+        )
       `, { count: 'exact' })
-      .eq('role', 'student')
       .eq('is_active', true)
-      .order('full_name')
+      .in('assignment_type', ['main', 'homeroom'])
+      .order('student(full_name)')
 
-    // Apply filters
-    if (options?.search) {
-      query = query.or(`full_name.ilike.%${options.search}%,student_id.ilike.%${options.search}%`)
-    }
-
+    // Apply class filter first (most selective)
     if (options?.class_id) {
       query = query.eq('class_id', options.class_id)
     }
 
-    // Apply pagination
-    const page = options?.page || 1
-    const limit = Math.min(options?.limit || 50, 100) // Max 100 per page
+    // Apply search filter on student data
+    if (options?.search) {
+      const searchTerm = options.search.trim()
+      if (searchTerm) {
+        query = query.or(`student.full_name.ilike.%${searchTerm}%,student.student_id.ilike.%${searchTerm}%`)
+      }
+    }
+
+    // Apply pagination with reasonable limits
+    const page = Math.max(options?.page || 1, 1)
+    const limit = Math.min(Math.max(options?.limit || 20, 1), 50) // Max 50 per page for performance
     const offset = (page - 1) * limit
 
-    const { data: students, error, count } = await query
+    const { data: assignments, error, count } = await query
       .range(offset, offset + limit - 1)
 
     if (error) {
       throw new Error(error.message)
     }
 
+    // Transform the data to match expected format (OPTIMIZED)
+    const students = assignments?.filter(assignment => {
+      const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
+      return student?.id && student?.full_name && student?.student_id
+    }).map(assignment => {
+      const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
+      const classInfo = Array.isArray(assignment.class) ? assignment.class[0] : assignment.class
+      return {
+        id: student.id,
+        full_name: student.full_name,
+        student_id: student.student_id,
+        class_id: classInfo?.id,
+        class: classInfo
+      }
+    }) || []
+
     return {
       success: true,
-      data: students || [],
+      data: students,
       total: count || 0,
       page,
-      limit
+      limit,
+      totalPages: Math.ceil((count || 0) / limit)
     }
   } catch (error) {
     console.error('Error getting students:', error)
@@ -509,22 +536,23 @@ export async function getStudentsForGradeInputAction(options?: {
   }
 }
 
-// Get subjects for grade input
+// Get subjects for grade input (OPTIMIZED)
 export async function getSubjectsForGradeInputAction() {
   try {
     await checkAdminPermissions()
     const supabase = await createClient()
 
+    // Optimized query with only necessary fields
     const { data: subjects, error } = await supabase
       .from('subjects')
       .select(`
         id,
         name_vietnamese,
-        code,
-        is_active
+        code
       `)
       .eq('is_active', true)
       .order('name_vietnamese')
+      .limit(100) // Reasonable limit to prevent over-fetching
 
     if (error) {
       throw new Error(error.message)
@@ -543,22 +571,31 @@ export async function getSubjectsForGradeInputAction() {
   }
 }
 
-// Get classes for grade input
-export async function getClassesForGradeInputAction() {
+// Get classes for grade input (OPTIMIZED)
+export async function getClassesForGradeInputAction(academicYearId?: string) {
   try {
     await checkAdminPermissions()
     const supabase = await createClient()
 
-    const { data: classes, error } = await supabase
+    // Optimized query with academic year filtering
+    let query = supabase
       .from('classes')
       .select(`
         id,
         name,
         academic_year_id,
-        is_active
+        current_students
       `)
       .eq('is_active', true)
       .order('name')
+      .limit(100) // Reasonable limit
+
+    // Filter by academic year if provided
+    if (academicYearId) {
+      query = query.eq('academic_year_id', academicYearId)
+    }
+
+    const { data: classes, error } = await query
 
     if (error) {
       throw new Error(error.message)
@@ -655,6 +692,14 @@ export async function createStudentGradeAction(gradeData: {
 
     if (error) {
       throw new Error(error.message)
+    }
+
+    // Send notification to parent
+    try {
+      await sendGradeNotificationAction(grade.id, 'grade_added')
+    } catch (notificationError) {
+      console.warn('Failed to send grade notification:', notificationError)
+      // Don't fail the grade creation if notification fails
     }
 
     revalidateGradeManagement()
@@ -765,6 +810,14 @@ export async function updateStudentGradeAction(formData: {
         changed_at: new Date().toISOString()
       })
 
+    // Send notification to parent about grade update
+    try {
+      await sendGradeNotificationAction(formData.grade_id, 'grade_updated')
+    } catch (notificationError) {
+      console.warn('Failed to send grade update notification:', notificationError)
+      // Don't fail the grade update if notification fails
+    }
+
     revalidateGradeManagement()
 
     return {
@@ -872,6 +925,23 @@ export async function bulkImportGradesAction(importData: {
 
     if (error) {
       throw new Error(error.message)
+    }
+
+    // Send notifications to parents for all imported grades
+    if (insertedGrades && insertedGrades.length > 0) {
+      try {
+        // Send notifications in parallel but don't wait for all to complete
+        const notificationPromises = insertedGrades.map(grade =>
+          sendGradeNotificationAction(grade.id, 'grade_added').catch(error => {
+            console.warn(`Failed to send notification for grade ${grade.id}:`, error)
+          })
+        )
+
+        // Fire and forget - don't wait for notifications to complete
+        Promise.allSettled(notificationPromises)
+      } catch (notificationError) {
+        console.warn('Failed to send bulk grade notifications:', notificationError)
+      }
     }
 
     revalidateGradeManagement()

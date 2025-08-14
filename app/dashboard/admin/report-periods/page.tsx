@@ -22,8 +22,6 @@ import {
   adminBulkSendReportsAction,
   sendTeacherRemindersAction,
   generateStudentReportsAction,
-  resetReportsToDraftAction,
-  testEmailAction,
   type ReportPeriod,
   type ClassProgress
 } from "@/lib/actions/report-period-actions"
@@ -45,8 +43,6 @@ export default function ReportPeriodsPage() {
   const [sendingNotifications, setSendingNotifications] = useState(false)
   const [bulkSending, setBulkSending] = useState(false)
   const [generatingReports, setGeneratingReports] = useState(false)
-  const [resettingReports, setResettingReports] = useState(false)
-  const [testingEmail, setTestingEmail] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -237,49 +233,7 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, loadClassProgress])
 
-  // Test email handler
-  const handleTestEmail = useCallback(async () => {
-    setTestingEmail(true)
-    try {
-      const result = await testEmailAction()
 
-      if (result.success) {
-        toast.success(result.data?.message || 'Email test thành công!')
-      } else {
-        toast.error(result.error || 'Email test thất bại')
-      }
-    } catch (error) {
-      console.error('Error testing email:', error)
-      toast.error('Có lỗi xảy ra khi test email')
-    } finally {
-      setTestingEmail(false)
-    }
-  }, [])
-
-  // Reset reports to draft handler
-  const handleResetReports = useCallback(async () => {
-    if (!selectedPeriod) {
-      toast.error('Vui lòng chọn kỳ báo cáo')
-      return
-    }
-
-    setResettingReports(true)
-    try {
-      const result = await resetReportsToDraftAction(selectedPeriod)
-
-      if (result.success) {
-        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
-        loadClassProgress() // Reload to get updated data
-      } else {
-        toast.error(result.error || 'Không thể reset báo cáo')
-      }
-    } catch (error) {
-      console.error('Error resetting reports:', error)
-      toast.error('Có lỗi xảy ra khi reset báo cáo')
-    } finally {
-      setResettingReports(false)
-    }
-  }, [selectedPeriod, loadClassProgress])
 
   // Memoized toggle handler to prevent unnecessary re-renders
   const handleTestModeToggle = useCallback((checked: boolean) => {
@@ -510,56 +464,6 @@ export default function ReportPeriodsPage() {
                     </Button>
                   </div>
                 )}
-
-                {/* Reset Reports Button */}
-                {selectedPeriod && (
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-muted-foreground">
-                      Reset báo cáo đã gửi về trạng thái draft (để gửi lại)
-                    </div>
-                    <Button
-                      onClick={handleResetReports}
-                      disabled={resettingReports}
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                    >
-                      {resettingReports ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Đang reset...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Reset báo cáo về Draft
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                {/* Test Email Button */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm text-muted-foreground">
-                    Test email configuration (gửi email thử nghiệm)
-                  </div>
-                  <Button
-                    onClick={handleTestEmail}
-                    disabled={testingEmail}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {testingEmail ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Đang test...
-                      </>
-                    ) : (
-                      <>
-                        <Bell className="h-4 w-4 mr-2" />
-                        Test Email
-                      </>
-                    )}
-                  </Button>
-                </div>
 
                 {/* Send Notifications Button */}
                 {incompleteClasses.length > 0 && (

@@ -27,11 +27,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
   Save,
-  Send,
   MessageSquare,
   AlertCircle,
   Loader2,
-  RefreshCw,
   Sparkles,
   Edit,
   ArrowLeft
@@ -92,10 +90,14 @@ export default function StudentReportEditor({
   const isViewMode = student?.report?.status === 'sent' && !isEditMode
   const reportExists = !!student?.report
 
-  // Track changes for unsaved warning
+  // Track changes for unsaved warning - only after initial load
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false)
+
   useEffect(() => {
-    setHasUnsavedChanges(true)
-  }, [strengths, weaknesses, academicPerformance, disciplineStatus])
+    if (initialDataLoaded) {
+      setHasUnsavedChanges(true)
+    }
+  }, [strengths, weaknesses, academicPerformance, disciplineStatus, initialDataLoaded])
 
   const loadStudentData = useCallback(async () => {
     try {
@@ -117,7 +119,11 @@ export default function StudentReportEditor({
             setAcademicPerformance(report.academic_performance || "")
             setDisciplineStatus(report.discipline_status || "")
             setHasUnsavedChanges(false) // Reset unsaved changes after loading
+            setInitialDataLoaded(true) // Mark initial data as loaded
           }
+        } else {
+          // No existing report, mark as loaded anyway
+          setInitialDataLoaded(true)
         }
       } else {
         setError(result.error || 'Không thể tải thông tin học sinh')
@@ -308,7 +314,7 @@ export default function StudentReportEditor({
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="w-full px-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -379,6 +385,33 @@ export default function StudentReportEditor({
         </CardContent>
       </Card>
 
+      {/* Usage Instructions */}
+      {!isViewMode && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-blue-800 text-lg">📋 Hướng dẫn sử dụng</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+              <div>
+                <h5 className="font-medium mb-2">🎨 Dropdown Phong cách:</h5>
+                <p>Chọn giọng văn phù hợp để thể hiện thái độ giao tiếp với phụ huynh (gần gũi, nghiêm túc, khích lệ, thấu hiểu).</p>
+              </div>
+              <div>
+                <h5 className="font-medium mb-2">📏 Dropdown Độ dài văn bản:</h5>
+                <p>Chọn độ dài mong muốn cho mỗi phần báo cáo (ngắn gọn 1-2 câu, trung bình 3-5 câu, dài 6+ câu).</p>
+              </div>
+              <div className="md:col-span-2">
+                <h5 className="font-medium mb-2">🤖 Lưu ý về AI:</h5>
+                <p className="text-blue-600">
+                  <strong>Thông tin chỉ mang tính chất tham khảo.</strong> Giáo viên cần kiểm tra và chỉnh sửa nội dung cho phù hợp với tình hình thực tế của học sinh.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Report Content */}
       <Card>
         <CardHeader>
@@ -402,12 +435,12 @@ export default function StudentReportEditor({
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="strengths">Ưu điểm *</Label>
                 {!isViewMode && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Select value={strengthsStyle} onValueChange={setStrengthsStyle}>
-                      <SelectTrigger className="w-[180px] h-8">
+                      <SelectTrigger className="w-[250px] h-8">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[250px] z-50" side="bottom" align="start">
                         <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
                         <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
                         <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
@@ -415,10 +448,10 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={strengthsLength} onValueChange={setStrengthsLength}>
-                      <SelectTrigger className="w-[160px] h-8">
+                      <SelectTrigger className="w-[230px] h-8">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[230px] z-50" side="bottom" align="start">
                         <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
                         <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
                         <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
@@ -437,7 +470,7 @@ export default function StudentReportEditor({
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
-                      Tạo AI
+                      Tạo bằng AI
                     </Button>
                   </div>
                 )}
@@ -447,8 +480,8 @@ export default function StudentReportEditor({
                 value={strengths}
                 onChange={(e) => setStrengths(e.target.value)}
                 placeholder="Nhập ưu điểm của học sinh..."
-                className="mt-1"
-                rows={3}
+                className="mt-1 min-h-[80px]"
+                rows={strengths ? Math.max(3, Math.ceil(strengths.length / 80)) : 3}
                 disabled={isViewMode}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -462,12 +495,12 @@ export default function StudentReportEditor({
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="weaknesses">Khuyết điểm *</Label>
                 {!isViewMode && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Select value={weaknessesStyle} onValueChange={setWeaknessesStyle}>
-                      <SelectTrigger className="w-[180px] h-8">
+                      <SelectTrigger className="w-[250px] h-8">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[250px] z-50" side="bottom" align="start">
                         <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
                         <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
                         <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
@@ -475,10 +508,10 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={weaknessesLength} onValueChange={setWeaknessesLength}>
-                      <SelectTrigger className="w-[160px] h-8">
+                      <SelectTrigger className="w-[230px] h-8">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[230px] z-50" side="bottom" align="start">
                         <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
                         <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
                         <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
@@ -497,7 +530,7 @@ export default function StudentReportEditor({
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
-                      Tạo AI
+                      Tạo bằng AI
                     </Button>
                   </div>
                 )}
@@ -507,8 +540,8 @@ export default function StudentReportEditor({
                 value={weaknesses}
                 onChange={(e) => setWeaknesses(e.target.value)}
                 placeholder="Nhập khuyết điểm của học sinh..."
-                className="mt-1"
-                rows={3}
+                className="mt-1 min-h-[80px]"
+                rows={weaknesses ? Math.max(3, Math.ceil(weaknesses.length / 80)) : 3}
                 disabled={isViewMode}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -522,12 +555,12 @@ export default function StudentReportEditor({
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="academic">Tình hình học tập</Label>
                 {!isViewMode && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Select value={academicStyle} onValueChange={setAcademicStyle}>
-                      <SelectTrigger className="w-[180px] h-8">
+                      <SelectTrigger className="w-[250px] h-8">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[250px] z-50" side="bottom" align="start">
                         <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
                         <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
                         <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
@@ -535,10 +568,10 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={academicLength} onValueChange={setAcademicLength}>
-                      <SelectTrigger className="w-[160px] h-8">
+                      <SelectTrigger className="w-[230px] h-8">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[230px] z-50" side="bottom" align="start">
                         <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
                         <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
                         <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
@@ -555,9 +588,9 @@ export default function StudentReportEditor({
                       {regeneratingAcademic ? (
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                       ) : (
-                        <RefreshCw className="h-3 w-3 mr-1" />
+                        <Sparkles className="h-3 w-3 mr-1" />
                       )}
-                      Tạo lại AI
+                      Tạo bằng AI
                     </Button>
                   </div>
                 )}
@@ -567,8 +600,8 @@ export default function StudentReportEditor({
                 value={academicPerformance}
                 onChange={(e) => setAcademicPerformance(e.target.value)}
                 placeholder="Tóm tắt AI về phản hồi học tập trong 4 tuần..."
-                className="mt-1"
-                rows={4}
+                className="mt-1 min-h-[100px]"
+                rows={academicPerformance ? Math.max(4, Math.ceil(academicPerformance.length / 80)) : 4}
                 disabled={isViewMode}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -582,12 +615,12 @@ export default function StudentReportEditor({
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="discipline">Tình hình tuân thủ nội quy</Label>
                 {!isViewMode && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Select value={disciplineStyle} onValueChange={setDisciplineStyle}>
-                      <SelectTrigger className="w-[180px] h-8">
+                      <SelectTrigger className="w-[250px] h-8">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[250px] z-50" side="bottom" align="start">
                         <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
                         <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
                         <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
@@ -595,10 +628,10 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={disciplineLength} onValueChange={setDisciplineLength}>
-                      <SelectTrigger className="w-[160px] h-8">
+                      <SelectTrigger className="w-[230px] h-8">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-[230px] z-50" side="bottom" align="start">
                         <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
                         <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
                         <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
@@ -615,9 +648,9 @@ export default function StudentReportEditor({
                       {regeneratingDiscipline ? (
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                       ) : (
-                        <RefreshCw className="h-3 w-3 mr-1" />
+                        <Sparkles className="h-3 w-3 mr-1" />
                       )}
-                      Tạo lại AI
+                      Tạo bằng AI
                     </Button>
                   </div>
                 )}
@@ -627,8 +660,8 @@ export default function StudentReportEditor({
                 value={disciplineStatus}
                 onChange={(e) => setDisciplineStatus(e.target.value)}
                 placeholder="Danh sách vi phạm trong kỳ báo cáo..."
-                className="mt-1"
-                rows={4}
+                className="mt-1 min-h-[100px]"
+                rows={disciplineStatus ? Math.max(4, Math.ceil(disciplineStatus.length / 80)) : 4}
                 disabled={isViewMode}
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -652,17 +685,6 @@ export default function StudentReportEditor({
                     )}
                     Lưu
                   </Button>
-
-                  {student.report?.status === 'draft' && (
-                    <Button
-                      onClick={() => {}} // Will add handler later
-                      disabled={false}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Nộp cho Admin
-                    </Button>
-                  )}
                 </>
               )}
             </div>

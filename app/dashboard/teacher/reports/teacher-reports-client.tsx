@@ -305,14 +305,14 @@ function TeacherReportsClient() {
 
   const getStatusBadge = useCallback((student: StudentForReport) => {
     if (!student.report) {
-      return <Badge variant="secondary">Chưa tạo báo cáo</Badge>
+      return <Badge variant="secondary">Chưa tạo</Badge>
     }
 
     if (student.report.status === 'sent') {
-      return <Badge className="bg-green-100 text-green-800">Đã tạo báo cáo</Badge>
+      return <Badge className="bg-green-100 text-green-800">Đã gửi</Badge>
     }
 
-    return <Badge variant="outline">Đã tạo báo cáo</Badge>
+    return <Badge variant="outline">Bản nháp</Badge>
   }, [])
 
   useEffect(() => {

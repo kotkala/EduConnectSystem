@@ -11,6 +11,23 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -77,6 +94,19 @@ export function StudentReportModal({
   const [resendReason, setResendReason] = useState("")
   const [showResendDialog, setShowResendDialog] = useState(false)
 
+  // AI Generation Style and Length Settings
+  const [strengthsStyle, setStrengthsStyle] = useState("friendly")
+  const [strengthsLength, setStrengthsLength] = useState("medium")
+  const [weaknessesStyle, setWeaknessesStyle] = useState("friendly")
+  const [weaknessesLength, setWeaknessesLength] = useState("medium")
+  const [academicStyle, setAcademicStyle] = useState("friendly")
+  const [academicLength, setAcademicLength] = useState("medium")
+  const [disciplineStyle, setDisciplineStyle] = useState("friendly")
+  const [disciplineLength, setDisciplineLength] = useState("medium")
+
+  // Verification dialog state
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
+
   const [isEditMode, setIsEditMode] = useState(false)
   const isViewMode = student.report?.status === 'sent' && !isEditMode
   const reportExists = !!student.report
@@ -112,12 +142,15 @@ export function StudentReportModal({
     }
   }, [student.report, isViewMode])
 
-  const handleSave = useCallback(async () => {
+  const handleSaveClick = useCallback(() => {
     if (!strengths.trim() || !weaknesses.trim()) {
       toast.error('Vui lòng điền đầy đủ ưu điểm và khuyết điểm')
       return
     }
+    setShowVerificationDialog(true)
+  }, [strengths, weaknesses])
 
+  const handleSave = useCallback(async () => {
     try {
       setSaving(true)
       setError(null)
@@ -133,6 +166,7 @@ export function StudentReportModal({
 
       if (result.success) {
         toast.success('Báo cáo đã được lưu thành công')
+        setShowVerificationDialog(false)
         // Don't call onSuccess() here to prevent page reload
         // Let user manually close the modal with "Đóng" button
       } else {
@@ -151,7 +185,7 @@ export function StudentReportModal({
       setRegeneratingAcademic(true)
       setError(null)
 
-      const result = await regenerateAcademicSummaryAction(student.id, reportPeriodId)
+      const result = await regenerateAcademicSummaryAction(student.id, reportPeriodId, academicStyle, academicLength)
       if (result.success) {
         setAcademicPerformance(result.data || '')
         toast.success('Đã tạo lại tóm tắt tình hình học tập')
@@ -166,14 +200,14 @@ export function StudentReportModal({
     } finally {
       setRegeneratingAcademic(false)
     }
-  }, [student.id, reportPeriodId])
+  }, [student.id, reportPeriodId, academicStyle, academicLength])
 
   const handleRegenerateDiscipline = useCallback(async () => {
     try {
       setRegeneratingDiscipline(true)
       setError(null)
 
-      const result = await regenerateDisciplineSummaryAction(student.id, reportPeriodId)
+      const result = await regenerateDisciplineSummaryAction(student.id, reportPeriodId, disciplineStyle, disciplineLength)
       if (result.success) {
         setDisciplineStatus(result.data || '')
         toast.success('Đã tạo lại tóm tắt tình hình kỷ luật')
@@ -188,14 +222,14 @@ export function StudentReportModal({
     } finally {
       setRegeneratingDiscipline(false)
     }
-  }, [student.id, reportPeriodId])
+  }, [student.id, reportPeriodId, disciplineStyle, disciplineLength])
 
   const handleGenerateStrengths = useCallback(async () => {
     try {
       setGeneratingStrengths(true)
       setError(null)
 
-      const result = await generateStrengthsSummaryAction(student.id, reportPeriodId)
+      const result = await generateStrengthsSummaryAction(student.id, reportPeriodId, strengthsStyle, strengthsLength)
       if (result.success) {
         setStrengths(result.data || '')
         toast.success('Đã tạo ưu điểm bằng AI')
@@ -210,14 +244,14 @@ export function StudentReportModal({
     } finally {
       setGeneratingStrengths(false)
     }
-  }, [student.id, reportPeriodId])
+  }, [student.id, reportPeriodId, strengthsStyle, strengthsLength])
 
   const handleGenerateWeaknesses = useCallback(async () => {
     try {
       setGeneratingWeaknesses(true)
       setError(null)
 
-      const result = await generateWeaknessesSummaryAction(student.id, reportPeriodId)
+      const result = await generateWeaknessesSummaryAction(student.id, reportPeriodId, weaknessesStyle, weaknessesLength)
       if (result.success) {
         setWeaknesses(result.data || '')
         toast.success('Đã tạo khuyết điểm bằng AI')
@@ -232,7 +266,7 @@ export function StudentReportModal({
     } finally {
       setGeneratingWeaknesses(false)
     }
-  }, [student.id, reportPeriodId])
+  }, [student.id, reportPeriodId, weaknessesStyle, weaknessesLength])
 
   const handleSend = useCallback(async () => {
     if (!student.report?.id) {
@@ -312,7 +346,7 @@ export function StudentReportModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isViewMode ? (
@@ -398,21 +432,44 @@ export function StudentReportModal({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="strengths">Ưu điểm *</Label>
                     {!isViewMode && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateStrengths}
-                        disabled={generatingStrengths}
-                        className="h-8 px-3"
-                      >
-                        {generatingStrengths ? (
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-3 w-3 mr-1" />
-                        )}
-                        Tạo AI
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Select value={strengthsStyle} onValueChange={setStrengthsStyle}>
+                          <SelectTrigger className="w-[180px] h-8">
+                            <SelectValue placeholder="Phong cách" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách lắng nghe, thấu hiểu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={strengthsLength} onValueChange={setStrengthsLength}>
+                          <SelectTrigger className="w-[160px] h-8">
+                            <SelectValue placeholder="Độ dài" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
+                            <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
+                            <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateStrengths}
+                          disabled={generatingStrengths}
+                          className="h-8 px-3"
+                        >
+                          {generatingStrengths ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 mr-1" />
+                          )}
+                          Tạo AI
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <Textarea
@@ -434,21 +491,44 @@ export function StudentReportModal({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="weaknesses">Khuyết điểm *</Label>
                     {!isViewMode && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateWeaknesses}
-                        disabled={generatingWeaknesses}
-                        className="h-8 px-3"
-                      >
-                        {generatingWeaknesses ? (
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-3 w-3 mr-1" />
-                        )}
-                        Tạo AI
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Select value={weaknessesStyle} onValueChange={setWeaknessesStyle}>
+                          <SelectTrigger className="w-[180px] h-8">
+                            <SelectValue placeholder="Phong cách" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách lắng nghe, thấu hiểu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={weaknessesLength} onValueChange={setWeaknessesLength}>
+                          <SelectTrigger className="w-[160px] h-8">
+                            <SelectValue placeholder="Độ dài" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
+                            <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
+                            <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateWeaknesses}
+                          disabled={generatingWeaknesses}
+                          className="h-8 px-3"
+                        >
+                          {generatingWeaknesses ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 mr-1" />
+                          )}
+                          Tạo AI
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <Textarea
@@ -470,21 +550,44 @@ export function StudentReportModal({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="academic">Tình hình học tập</Label>
                     {!isViewMode && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRegenerateAcademic}
-                        disabled={regeneratingAcademic}
-                        className="h-8 px-3"
-                      >
-                        {regeneratingAcademic ? (
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                        )}
-                        Tạo lại AI
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Select value={academicStyle} onValueChange={setAcademicStyle}>
+                          <SelectTrigger className="w-[180px] h-8">
+                            <SelectValue placeholder="Phong cách" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách lắng nghe, thấu hiểu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={academicLength} onValueChange={setAcademicLength}>
+                          <SelectTrigger className="w-[160px] h-8">
+                            <SelectValue placeholder="Độ dài" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
+                            <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
+                            <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRegenerateAcademic}
+                          disabled={regeneratingAcademic}
+                          className="h-8 px-3"
+                        >
+                          {regeneratingAcademic ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          Tạo lại AI
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <Textarea
@@ -506,21 +609,44 @@ export function StudentReportModal({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="discipline">Tình hình tuân thủ nội quy</Label>
                     {!isViewMode && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRegenerateDiscipline}
-                        disabled={regeneratingDiscipline}
-                        className="h-8 px-3"
-                      >
-                        {regeneratingDiscipline ? (
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                        )}
-                        Tạo lại AI
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Select value={disciplineStyle} onValueChange={setDisciplineStyle}>
+                          <SelectTrigger className="w-[180px] h-8">
+                            <SelectValue placeholder="Phong cách" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách lắng nghe, thấu hiểu</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={disciplineLength} onValueChange={setDisciplineLength}>
+                          <SelectTrigger className="w-[160px] h-8">
+                            <SelectValue placeholder="Độ dài" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
+                            <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
+                            <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRegenerateDiscipline}
+                          disabled={regeneratingDiscipline}
+                          className="h-8 px-3"
+                        >
+                          {regeneratingDiscipline ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          Tạo lại AI
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <Textarea
@@ -592,7 +718,7 @@ export function StudentReportModal({
               {!isViewMode && (
                 <>
                   <Button
-                    onClick={handleSave}
+                    onClick={handleSaveClick}
                     disabled={saving || !strengths.trim() || !weaknesses.trim()}
                   >
                     {saving ? (
@@ -607,14 +733,14 @@ export function StudentReportModal({
                     <Button
                       onClick={handleSend}
                       disabled={sending}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
                       {sending ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       ) : (
                         <Send className="h-4 w-4 mr-2" />
                       )}
-                      Gửi
+                      Nộp cho Admin
                     </Button>
                   )}
 
@@ -698,6 +824,32 @@ export function StudentReportModal({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Verification Dialog */}
+      <AlertDialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận lưu báo cáo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vui lòng xem lại nội dung báo cáo trước khi lưu.
+              <br /><br />
+              <strong>Lưu ý:</strong> Nội dung được tạo bởi AI chỉ mang tính chất tham khảo.
+              Giáo viên cần kiểm tra và chỉnh sửa cho phù hợp với tình hình thực tế của học sinh.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Xác nhận lưu
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

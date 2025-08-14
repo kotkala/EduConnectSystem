@@ -1,9 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -33,7 +35,7 @@ import {
   getStudentsForReportAction,
   type StudentForReport
 } from "@/lib/actions/student-report-actions"
-import { StudentReportModal } from "@/components/teacher/reports/student-report-modal"
+// Removed StudentReportModal import - now using dedicated page
 
 // Utility function to format date range for dropdown
 const formatDateRange = (startDate: string, endDate: string): string => {
@@ -143,16 +145,21 @@ const StudentsList = memo(function StudentsList({
 })
 
 function TeacherReportsClient() {
+  const router = useRouter()
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
   const [students, setStudents] = useState<StudentForReport[]>([])
   const [loading, setLoading] = useState(true)
   const [studentsLoading, setStudentsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [selectedStudent, setSelectedStudent] = useState<StudentForReport | null>(null)
-  const [showReportModal, setShowReportModal] = useState(false)
+  // Remove modal state - we'll navigate to dedicated page instead
   const [currentPage, setCurrentPage] = useState(1)
   const [bulkSending, setBulkSending] = useState(false)
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [parentFeedbackFilter, setParentFeedbackFilter] = useState<string>("all")
 
   const ITEMS_PER_PAGE = 10
 
@@ -172,14 +179,44 @@ function TeacherReportsClient() {
     }
   }, [students])
 
-  // Pagination logic
+  // Filter students based on search term and filters
+  const filteredStudents = useMemo(() => {
+    let filtered = students
+
+    // Search by name
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(student =>
+        student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    // Filter by report status
+    if (statusFilter !== "all") {
+      if (statusFilter === "created") {
+        filtered = filtered.filter(student => student.report)
+      } else if (statusFilter === "not_created") {
+        filtered = filtered.filter(student => !student.report)
+      }
+    }
+
+    // Filter by parent feedback (placeholder for future implementation)
+    if (parentFeedbackFilter !== "all") {
+      // TODO: Add parent feedback filtering logic when parent feedback is implemented
+      // For now, this is a placeholder
+    }
+
+    return filtered
+  }, [students, searchTerm, statusFilter, parentFeedbackFilter])
+
+  // Pagination logic using filtered students
   const paginatedStudents = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
     const endIndex = startIndex + ITEMS_PER_PAGE
-    return students.slice(startIndex, endIndex)
-  }, [students, currentPage, ITEMS_PER_PAGE])
+    return filteredStudents.slice(startIndex, endIndex)
+  }, [filteredStudents, currentPage, ITEMS_PER_PAGE])
 
-  const totalPages = Math.ceil(students.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE)
 
 
 
@@ -261,22 +298,21 @@ function TeacherReportsClient() {
   }, [loadReportPeriods, selectedPeriod, loadStudents])
 
   const handleStudentClick = useCallback((student: StudentForReport) => {
-    setSelectedStudent(student)
-    setShowReportModal(true)
-  }, [])
+    router.push(`/dashboard/teacher/reports/${student.id}/${selectedPeriod}`)
+  }, [router, selectedPeriod])
 
 
 
   const getStatusBadge = useCallback((student: StudentForReport) => {
     if (!student.report) {
-      return <Badge variant="secondary">Chưa tạo</Badge>
+      return <Badge variant="secondary">Chưa tạo báo cáo</Badge>
     }
-    
+
     if (student.report.status === 'sent') {
-      return <Badge className="bg-green-100 text-green-800">Đã gửi</Badge>
+      return <Badge className="bg-green-100 text-green-800">Đã tạo báo cáo</Badge>
     }
-    
-    return <Badge variant="outline">Bản nháp</Badge>
+
+    return <Badge variant="outline">Đã tạo báo cáo</Badge>
   }, [])
 
   useEffect(() => {
@@ -408,6 +444,42 @@ function TeacherReportsClient() {
             <CardTitle>Danh sách học sinh</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <Input
+                  placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Lọc theo trạng thái báo cáo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="created">Đã tạo báo cáo</SelectItem>
+                    <SelectItem value="not_created">Chưa tạo báo cáo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={parentFeedbackFilter} onValueChange={setParentFeedbackFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Lọc theo ý kiến phụ huynh" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả ý kiến</SelectItem>
+                    <SelectItem value="agree">Phụ huynh đồng ý</SelectItem>
+                    <SelectItem value="disagree">Phụ huynh không đồng ý</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-4">
               {/* Bulk Actions */}
               <div className="flex items-center justify-between">
@@ -418,17 +490,17 @@ function TeacherReportsClient() {
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
-                    {bulkSending ? 'Đang gửi...' : `Gửi tất cả (${stats.draftReports})`}
+                    {bulkSending ? 'Đang nộp...' : `Nộp tất cả cho Admin (${stats.draftReports})`}
                   </Button>
                   <span className="text-sm text-gray-600">
-                    Gửi tất cả báo cáo bản nháp cho phụ huynh
+                    Nộp tất cả báo cáo bản nháp cho Admin để duyệt
                   </span>
                 </div>
 
                 {/* Pagination Info */}
                 {totalPages > 1 && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Trang {currentPage} / {totalPages} ({students.length} học sinh)
+                    Trang {currentPage} / {totalPages} ({filteredStudents.length} học sinh)
                   </div>
                 )}
               </div>
@@ -483,15 +555,7 @@ function TeacherReportsClient() {
         </Card>
       )}
 
-      {/* Student Report Modal */}
-      {selectedStudent && (
-        <StudentReportModal
-          open={showReportModal}
-          onOpenChange={setShowReportModal}
-          student={selectedStudent}
-          reportPeriodId={selectedPeriod}
-        />
-      )}
+      {/* Modal removed - now using dedicated page navigation */}
     </div>
   )
 }

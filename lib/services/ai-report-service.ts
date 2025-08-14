@@ -6,6 +6,36 @@ const genAI = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
 })
 
+// Helper function to get style instructions
+function getStyleInstructions(style: string): string {
+  switch (style) {
+    case 'friendly':
+      return 'Sử dụng phong cách gần gũi, thân thiện, ấm áp như một người thầy quan tâm đến học sinh.'
+    case 'serious':
+      return 'Sử dụng phong cách nghiêm túc, kỷ luật, trang trọng phù hợp với môi trường giáo dục.'
+    case 'encouraging':
+      return 'Sử dụng phong cách khích lệ, động viên, tích cực để tạo động lực cho học sinh.'
+    case 'understanding':
+      return 'Sử dụng phong cách lắng nghe, thấu hiểu, đồng cảm với hoàn cảnh của học sinh.'
+    default:
+      return 'Sử dụng phong cách gần gũi, thân thiện, ấm áp như một người thầy quan tâm đến học sinh.'
+  }
+}
+
+// Helper function to get length instructions
+function getLengthInstructions(length: string): string {
+  switch (length) {
+    case 'short':
+      return 'Viết ngắn gọn trong 1-2 câu (20-40 từ), tập trung vào điểm chính nhất.'
+    case 'medium':
+      return 'Viết trung bình trong 3-5 câu (60-100 từ), cung cấp thông tin cần thiết.'
+    case 'long':
+      return 'Viết chi tiết trong 6 câu trở lên (120-200 từ), phân tích sâu và đầy đủ.'
+    default:
+      return 'Viết trung bình trong 3-5 câu (60-100 từ), cung cấp thông tin cần thiết.'
+  }
+}
+
 // Interface for feedback data
 interface FeedbackData {
   rating: number
@@ -30,8 +60,10 @@ interface ViolationData {
  * Analyzes 4 weeks of teacher feedback and creates comprehensive Vietnamese summary
  */
 export async function generateAIAcademicSummary(
-  studentId: string, 
-  reportPeriodId: string
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
 ): Promise<string> {
   try {
     const supabase = await createClient()
@@ -155,14 +187,14 @@ PHÂN TÍCH THEO MÔN HỌC:
 ${subjectBreakdown}
 
 YÊU CẦU PHÂN TÍCH CHI TIẾT:
-1. Viết bằng tiếng Việt, phong cách trang trọng, phù hợp cho báo cáo giáo dục
-2. Bắt đầu bằng việc nêu rõ kỳ báo cáo và thời gian cụ thể
-3. Tóm tắt TẤT CẢ feedback từ giáo viên trong kỳ báo cáo này
-4. Phân tích cụ thể từng môn học với điểm mạnh và điểm yếu
-5. So sánh kết quả giữa các môn học, xác định môn mạnh và môn cần cải thiện
-6. Đưa ra nhận xét về xu hướng học tập và thái độ học tập trong kỳ này
-7. Đề xuất ngắn gọn các biện pháp cải thiện chính
-8. Tóm tắt trong 80-120 từ, viết ngắn gọn, súc tích
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
+2. ${getLengthInstructions(length)}
+3. Bắt đầu bằng việc nêu rõ kỳ báo cáo và thời gian cụ thể
+4. Tóm tắt TẤT CẢ feedback từ giáo viên trong kỳ báo cáo này
+5. Phân tích cụ thể từng môn học với điểm mạnh và điểm yếu
+6. So sánh kết quả giữa các môn học, xác định môn mạnh và môn cần cải thiện
+7. Đưa ra nhận xét về xu hướng học tập và thái độ học tập trong kỳ này
+8. Đề xuất ngắn gọn các biện pháp cải thiện chính
 9. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
 10. Tập trung vào những điểm chính, không cần chi tiết quá mức
 
@@ -219,8 +251,10 @@ Tóm tắt chi tiết tình hình học tập:
  * Analyzes violations in the report period and creates comprehensive Vietnamese summary
  */
 export async function generateAIDisciplineSummary(
-  studentId: string, 
-  reportPeriodId: string
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
 ): Promise<string> {
   try {
     const supabase = await createClient()
@@ -327,11 +361,11 @@ ${violationSummary.map(v => `- ${v.date}: ${v.type} - ${v.description} (${v.poin
 
 YÊU CẦU BẮT BUỘC:
 1. CHỈ viết bằng tiếng Việt, TUYỆT ĐỐI KHÔNG dùng từ tiếng Anh
-2. Liệt kê cụ thể từng loại vi phạm và số lần vi phạm
-3. Phân tích xu hướng và mức độ nghiêm trọng
-4. Đưa ra nhận định về ý thức kỷ luật của học sinh
-5. Sử dụng ngôn ngữ trang trọng, phù hợp với báo cáo giáo dục
-6. Tóm tắt trong 60-80 từ, ngắn gọn nhưng đầy đủ thông tin
+2. ${getStyleInstructions(style)}
+3. ${getLengthInstructions(length)}
+4. Liệt kê cụ thể từng loại vi phạm và số lần vi phạm
+5. Phân tích xu hướng và mức độ nghiêm trọng
+6. Đưa ra nhận định về ý thức kỷ luật của học sinh
 7. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
 8. Không sử dụng các từ như: "performance", "behavior", "discipline" - thay bằng "thành tích", "hành vi", "kỷ luật"
 
@@ -435,7 +469,9 @@ function generateBasicDisciplineSummary(violations: Array<{ type: string; index:
  */
 export async function generateAIStrengthsSummary(
   studentId: string,
-  reportPeriodId: string
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
 ): Promise<string> {
   try {
     const supabase = await createClient()
@@ -492,8 +528,8 @@ PHẢN HỒI TÍCH CỰC:
 ${positiveFeedback.map(f => `- ${f.subject}: ${f.rating}/5 điểm - ${f.comment}`).join('\n')}
 
 YÊU CẦU:
-1. Viết bằng tiếng Việt, phong cách trang trọng
-2. Tóm tắt trong 40-60 từ, ngắn gọn
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
+2. ${getLengthInstructions(length)}
 3. Tập trung vào những ưu điểm nổi bật nhất
 4. Viết theo cách tích cực, khuyến khích
 5. Đảm bảo chính xác dựa trên dữ liệu
@@ -526,7 +562,9 @@ YÊU CẦU:
  */
 export async function generateAIWeaknessesSummary(
   studentId: string,
-  reportPeriodId: string
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
 ): Promise<string> {
   try {
     const supabase = await createClient()
@@ -611,8 +649,8 @@ VI PHẠM:
 ${violationData.map(v => `- ${v.type}: ${v.description} (${v.points} điểm)`).join('\n')}
 
 YÊU CẦU:
-1. Viết bằng tiếng Việt, phong cách trang trọng
-2. Tóm tắt trong 40-60 từ, ngắn gọn
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
+2. ${getLengthInstructions(length)}
 3. Tập trung vào những khuyết điểm cần cải thiện nhất
 4. Viết theo cách xây dựng, khuyến khích cải thiện
 5. Đảm bảo chính xác dựa trên dữ liệu

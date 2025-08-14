@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo, memo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -146,6 +146,7 @@ const StudentsList = memo(function StudentsList({
 
 function TeacherReportsClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
   const [students, setStudents] = useState<StudentForReport[]>([])
@@ -193,8 +194,10 @@ function TeacherReportsClient() {
 
     // Filter by report status
     if (statusFilter !== "all") {
-      if (statusFilter === "created") {
-        filtered = filtered.filter(student => student.report)
+      if (statusFilter === "sent") {
+        filtered = filtered.filter(student => student.report?.status === 'sent')
+      } else if (statusFilter === "draft") {
+        filtered = filtered.filter(student => student.report?.status === 'draft')
       } else if (statusFilter === "not_created") {
         filtered = filtered.filter(student => !student.report)
       }
@@ -318,6 +321,18 @@ function TeacherReportsClient() {
   useEffect(() => {
     loadReportPeriods()
   }, [loadReportPeriods])
+
+  // Handle URL parameter for selected period
+  useEffect(() => {
+    const periodParam = searchParams.get('period')
+    if (periodParam && reportPeriods.length > 0) {
+      // Check if the period exists in the loaded periods
+      const periodExists = reportPeriods.some(p => p.id === periodParam)
+      if (periodExists) {
+        setSelectedPeriod(periodParam)
+      }
+    }
+  }, [searchParams, reportPeriods])
 
   useEffect(() => {
     if (selectedPeriod) {
@@ -461,8 +476,9 @@ function TeacherReportsClient() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="created">Đã tạo báo cáo</SelectItem>
-                    <SelectItem value="not_created">Chưa tạo báo cáo</SelectItem>
+                    <SelectItem value="sent">Đã gửi</SelectItem>
+                    <SelectItem value="draft">Bản nháp</SelectItem>
+                    <SelectItem value="not_created">Chưa tạo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

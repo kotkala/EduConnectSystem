@@ -1,7 +1,8 @@
 "use client"
 
-import { memo, useMemo } from "react"
+import { memo, useMemo, useState } from "react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -18,21 +19,42 @@ interface ClassProgressTableProps {
   readonly loading?: boolean
 }
 
+const ITEMS_PER_PAGE = 10
+
 function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps) {
+  const [currentPage, setCurrentPage] = useState(1)
+
   // Memoize expensive calculations
   const summaryStats = useMemo(() => {
     const totalClasses = data.length
     const completeClasses = data.filter(c => c.status === 'complete').length
     const incompleteClasses = totalClasses - completeClasses
     const totalStudents = data.reduce((sum, c) => sum + c.total_students, 0)
+    const totalResponses = data.reduce((sum, c) => sum + c.parent_responses, 0)
+    const totalAgreements = data.reduce((sum, c) => sum + c.parent_agreements, 0)
+    const overallAgreementPercentage = totalResponses > 0
+      ? Math.round((totalAgreements / totalResponses) * 100)
+      : 0
 
     return {
       totalClasses,
       completeClasses,
       incompleteClasses,
-      totalStudents
+      totalStudents,
+      totalResponses,
+      totalAgreements,
+      overallAgreementPercentage
     }
   }, [data])
+
+  // Pagination logic
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    return data.slice(startIndex, endIndex)
+  }, [data, currentPage])
+
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE)
 
   const getStatusIcon = (status: 'complete' | 'incomplete') => {
     if (status === 'complete') {
@@ -99,11 +121,12 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
               <TableHead className="min-w-[150px]">Class</TableHead>
               <TableHead className="hidden sm:table-cell min-w-[180px]">Homeroom Teacher</TableHead>
               <TableHead className="min-w-[120px]">Progress</TableHead>
+              <TableHead className="min-w-[120px]">Parent Agreement</TableHead>
               <TableHead className="min-w-[100px]">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((classItem) => {
+            {paginatedData.map((classItem) => {
               const percentage = getProgressPercentage(classItem.sent_reports, classItem.total_students)
               
               return (
@@ -137,19 +160,40 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
                           {percentage}%
                         </span>
                       </div>
-                      
+
                       {/* Progress bar */}
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all duration-300 ${
-                            classItem.status === 'complete' 
-                              ? 'bg-green-500' 
+                            classItem.status === 'complete'
+                              ? 'bg-green-500'
                               : 'bg-red-500'
                           }`}
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">
+                          {classItem.parent_agreements}/{classItem.parent_responses}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {classItem.agreement_percentage}%
+                        </span>
+                      </div>
+
+                      {/* Agreement bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-300 bg-blue-500"
+                          style={{ width: `${classItem.agreement_percentage}%` }}
+                        />
+                      </div>
+
                       {/* Mobile: Show status */}
                       <div className="sm:hidden">
                         {getStatusBadge(classItem.status)}
@@ -170,9 +214,39 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
         </Table>
       </div>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, data.length)} of {data.length} classes
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
           <div>
             <p className="text-sm text-muted-foreground">Total Classes</p>
             <p className="text-lg font-semibold">{summaryStats.totalClasses}</p>
@@ -193,6 +267,12 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
             <p className="text-sm text-muted-foreground">Total Students</p>
             <p className="text-lg font-semibold">
               {summaryStats.totalStudents}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Parent Agreement</p>
+            <p className="text-lg font-semibold text-blue-600">
+              {summaryStats.overallAgreementPercentage}%
             </p>
           </div>
         </div>

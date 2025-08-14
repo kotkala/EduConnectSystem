@@ -140,14 +140,14 @@ export default function StudentReportEditor({
     if (hasUnsavedChanges) {
       setShowUnsavedWarning(true)
     } else {
-      router.push('/dashboard/teacher/reports')
+      router.push(`/dashboard/teacher/reports?period=${reportPeriodId}`)
     }
-  }, [hasUnsavedChanges, router])
+  }, [hasUnsavedChanges, router, reportPeriodId])
 
   const handleConfirmBack = useCallback(() => {
     setShowUnsavedWarning(false)
-    router.push('/dashboard/teacher/reports')
-  }, [router])
+    router.push(`/dashboard/teacher/reports?period=${reportPeriodId}`)
+  }, [router, reportPeriodId])
 
   const handleSaveClick = useCallback(() => {
     if (!strengths.trim() || !weaknesses.trim()) {
@@ -177,8 +177,13 @@ export default function StudentReportEditor({
         toast.success('Báo cáo đã được lưu thành công')
         setShowVerificationDialog(false)
         setHasUnsavedChanges(false)
-        // Reload student data to get updated report
-        loadStudentData()
+        // Update student report status without full reload
+        if (student && result.data) {
+          setStudent({
+            ...student,
+            report: result.data
+          })
+        }
       } else {
         setError(result.error || 'Không thể lưu báo cáo')
       }
@@ -188,7 +193,7 @@ export default function StudentReportEditor({
     } finally {
       setSaving(false)
     }
-  }, [student, reportPeriodId, strengths, weaknesses, academicPerformance, disciplineStatus, loadStudentData])
+  }, [student, reportPeriodId, strengths, weaknesses, academicPerformance, disciplineStatus])
 
   // AI Generation Handlers
   const handleGenerateStrengths = useCallback(async () => {
@@ -305,7 +310,7 @@ export default function StudentReportEditor({
         <p className="text-gray-600 mb-4">
           Không thể tải thông tin học sinh hoặc kỳ báo cáo.
         </p>
-        <Button onClick={() => router.push('/dashboard/teacher/reports')}>
+        <Button onClick={() => router.push(`/dashboard/teacher/reports?period=${reportPeriodId}`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Quay lại
         </Button>

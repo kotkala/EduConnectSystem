@@ -19,9 +19,15 @@ import { ClassProgressTable } from "@/components/admin/report-periods/class-prog
 import {
   getReportPeriodsAction,
   getClassProgressAction,
+  adminBulkSendReportsAction,
+  sendTeacherRemindersAction,
+  generateStudentReportsAction,
+  resetReportsToDraftAction,
+  testEmailAction,
   type ReportPeriod,
   type ClassProgress
 } from "@/lib/actions/report-period-actions"
+
 import { getAcademicYearsLightAction } from "@/lib/actions/academic-actions"
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
@@ -37,7 +43,12 @@ export default function ReportPeriodsPage() {
   const [progressLoading, setProgressLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sendingNotifications, setSendingNotifications] = useState(false)
+  const [bulkSending, setBulkSending] = useState(false)
+  const [generatingReports, setGeneratingReports] = useState(false)
+  const [resettingReports, setResettingReports] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadInitialData = useCallback(async () => {
@@ -99,11 +110,23 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, selectedClassBlock])
 
-  const handleCreateSuccess = useCallback(() => {
+  const handleCreateSuccess = useCallback(async () => {
     setShowCreateForm(false)
-    loadInitialData()
-    toast.success('Report period created successfully')
-  }, [loadInitialData])
+
+    // Only reload report periods data, not the entire page
+    try {
+      const result = await getReportPeriodsAction()
+      if (result.success) {
+        setReportPeriods(result.data || [])
+        toast.success('Report period created successfully')
+      } else {
+        toast.error(result.error || 'Failed to refresh report periods')
+      }
+    } catch (error) {
+      console.error('Error refreshing report periods:', error)
+      toast.error('Failed to refresh report periods')
+    }
+  }, [])
 
   const handleRefresh = useCallback(() => {
     loadInitialData()
@@ -134,36 +157,134 @@ export default function ReportPeriodsPage() {
       return
     }
 
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
+      return
+    }
+
     setSendingNotifications(true)
     try {
-      // Create notification for incomplete classes
-      const teacherIds = incompleteClasses.map(c => c.homeroom_teacher_id).filter(Boolean)
-      const uniqueTeacherIds = [...new Set(teacherIds)]
+      const result = await sendTeacherRemindersAction(selectedPeriod, incompleteClasses)
 
-      if (uniqueTeacherIds.length === 0) {
-        toast.error('Không tìm thấy giáo viên chủ nhiệm')
-        return
+      if (result.success) {
+        toast.success(result.data?.message || 'Đã gửi thông báo thành công')
+      } else {
+        toast.error(result.error || 'Không thể gửi thông báo')
       }
-
-      // Here you would call your notification action with the data
-      // const selectedPeriodData = reportPeriods.find(p => p.id === selectedPeriod)
-      // const notificationData = {
-      //   title: `Nhắc nhở nộp báo cáo ${selectedPeriodData?.name}`,
-      //   content: `Kính gửi thầy/cô, lớp của thầy/cô chưa hoàn thành báo cáo cho kỳ ${selectedPeriodData?.name}. Vui lòng hoàn thành báo cáo trước thời hạn.`,
-      //   target_roles: ['teacher'],
-      //   target_user_ids: uniqueTeacherIds,
-      //   priority: 'high'
-      // }
-      // const result = await sendNotificationAction(notificationData)
-
-      toast.success(`Đã gửi thông báo tới ${uniqueTeacherIds.length} giáo viên chủ nhiệm`)
     } catch (error) {
       console.error('Error sending notifications:', error)
       toast.error('Có lỗi xảy ra khi gửi thông báo')
     } finally {
       setSendingNotifications(false)
     }
-  }, [incompleteClasses])
+  }, [incompleteClasses, selectedPeriod])
+
+  const handleBulkSendReports = useCallback(async () => {
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
+      return
+    }
+
+    // In test mode, allow sending even if not 100% complete
+    if (!testModeEnabled) {
+      const allComplete = stats.incomplete === 0 && stats.total > 0
+      if (!allComplete) {
+        toast.error('Tất cả các lớp phải hoàn thành 100% báo cáo trước khi gửi cho phụ huynh')
+        return
+      }
+    }
+
+    setBulkSending(true)
+    try {
+      const result = await adminBulkSendReportsAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(result.data?.message || 'Đã gửi tất cả báo cáo cho phụ huynh thành công')
+        loadClassProgress() // Reload to get updated data
+      } else {
+        toast.error(result.error || 'Không thể gửi báo cáo')
+      }
+    } catch (error) {
+      console.error('Error bulk sending reports:', error)
+      toast.error('Có lỗi xảy ra khi gửi báo cáo')
+    } finally {
+      setBulkSending(false)
+    }
+  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress])
+
+  // Generate student reports handler
+  const handleGenerateReports = useCallback(async () => {
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
+      return
+    }
+
+    setGeneratingReports(true)
+    try {
+      const result = await generateStudentReportsAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(result.data?.message || 'Đã tạo báo cáo học sinh thành công')
+        loadClassProgress() // Reload to get updated data
+      } else {
+        toast.error(result.error || 'Không thể tạo báo cáo học sinh')
+      }
+    } catch (error) {
+      console.error('Error generating reports:', error)
+      toast.error('Có lỗi xảy ra khi tạo báo cáo học sinh')
+    } finally {
+      setGeneratingReports(false)
+    }
+  }, [selectedPeriod, loadClassProgress])
+
+  // Test email handler
+  const handleTestEmail = useCallback(async () => {
+    setTestingEmail(true)
+    try {
+      const result = await testEmailAction()
+
+      if (result.success) {
+        toast.success(result.data?.message || 'Email test thành công!')
+      } else {
+        toast.error(result.error || 'Email test thất bại')
+      }
+    } catch (error) {
+      console.error('Error testing email:', error)
+      toast.error('Có lỗi xảy ra khi test email')
+    } finally {
+      setTestingEmail(false)
+    }
+  }, [])
+
+  // Reset reports to draft handler
+  const handleResetReports = useCallback(async () => {
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
+      return
+    }
+
+    setResettingReports(true)
+    try {
+      const result = await resetReportsToDraftAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
+        loadClassProgress() // Reload to get updated data
+      } else {
+        toast.error(result.error || 'Không thể reset báo cáo')
+      }
+    } catch (error) {
+      console.error('Error resetting reports:', error)
+      toast.error('Có lỗi xảy ra khi reset báo cáo')
+    } finally {
+      setResettingReports(false)
+    }
+  }, [selectedPeriod, loadClassProgress])
+
+  // Memoized toggle handler to prevent unnecessary re-renders
+  const handleTestModeToggle = useCallback((checked: boolean) => {
+    setTestModeEnabled(checked)
+  }, [])
 
   useEffect(() => {
     loadInitialData()
@@ -302,32 +423,170 @@ export default function ReportPeriodsPage() {
               )}
             </div>
 
-            {/* Send Notifications Button */}
-            {selectedPeriod && incompleteClasses.length > 0 && (
+            {/* Test Mode Toggle */}
+            {selectedPeriod && (
               <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm text-muted-foreground">
+                    Test Mode: Cho phép gửi báo cáo khi chưa hoàn thành 100%
+                  </div>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={testModeEnabled}
+                      onChange={(e) => handleTestModeToggle(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      testModeEnabled ? 'bg-green-600' : 'bg-gray-200'
+                    }`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        testModeEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </div>
+                    <span className="ml-2 text-sm font-medium">
+                      {testModeEnabled ? 'Bật' : 'Tắt'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {selectedPeriod && (
+              <div className="space-y-3">
+                {/* Bulk Send Reports Button */}
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    {incompleteClasses.length} lớp chưa hoàn thành báo cáo
+                    {(() => {
+                      if (stats.complete === stats.total && stats.total > 0) {
+                        return 'Tất cả lớp đã hoàn thành báo cáo - có thể gửi cho phụ huynh'
+                      }
+                      const testModeText = testModeEnabled ? '(Test mode: có thể gửi)' : '(Cần hoàn thành 100%)'
+                      return `${stats.incomplete} lớp chưa hoàn thành báo cáo ${testModeText}`
+                    })()}
                   </div>
                   <Button
-                    onClick={handleSendNotifications}
-                    disabled={sendingNotifications}
-                    variant="outline"
-                    className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                    onClick={handleBulkSendReports}
+                    disabled={bulkSending || stats.total === 0 || (!testModeEnabled && stats.incomplete > 0)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {sendingNotifications ? (
+                    {bulkSending ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Đang gửi...
                       </>
                     ) : (
                       <>
                         <Bell className="h-4 w-4 mr-2" />
-                        Gửi thông báo nhắc nhở
+                        Gửi tất cả báo cáo cho phụ huynh
                       </>
                     )}
                   </Button>
                 </div>
+
+                {/* Generate Reports Button */}
+                {selectedPeriod && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      Tạo báo cáo học sinh cho tất cả lớp chính
+                    </div>
+                    <Button
+                      onClick={handleGenerateReports}
+                      disabled={generatingReports}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {generatingReports ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Đang tạo...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Tạo báo cáo học sinh
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Reset Reports Button */}
+                {selectedPeriod && (
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">
+                      Reset báo cáo đã gửi về trạng thái draft (để gửi lại)
+                    </div>
+                    <Button
+                      onClick={handleResetReports}
+                      disabled={resettingReports}
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      {resettingReports ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Đang reset...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Reset báo cáo về Draft
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Test Email Button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-muted-foreground">
+                    Test email configuration (gửi email thử nghiệm)
+                  </div>
+                  <Button
+                    onClick={handleTestEmail}
+                    disabled={testingEmail}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {testingEmail ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Đang test...
+                      </>
+                    ) : (
+                      <>
+                        <Bell className="h-4 w-4 mr-2" />
+                        Test Email
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Send Notifications Button */}
+                {incompleteClasses.length > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Nhắc nhở {incompleteClasses.length} giáo viên chưa hoàn thành
+                    </div>
+                    <Button
+                      onClick={handleSendNotifications}
+                      disabled={sendingNotifications}
+                      variant="outline"
+                      className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                    >
+                      {sendingNotifications ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                          Đang gửi...
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-4 w-4 mr-2" />
+                          Gửi thông báo nhắc nhở
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

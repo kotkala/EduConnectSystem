@@ -69,7 +69,6 @@ interface DetailedGradeRecord {
   class_id: string
   component_type: GradeComponentType
   grade_value: number | null
-  notes?: string
   is_locked: boolean
   created_at: string
   student?: { full_name: string; student_id: string }
@@ -89,7 +88,6 @@ interface NewGradeEntry {
   class_id: string
   grade_value: string
   grade_type: string
-  notes: string
 }
 
 export function GradeEditor({ period }: GradeEditorProps) {
@@ -110,8 +108,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
     subject_id: '',
     class_id: '',
     grade_value: '',
-    grade_type: 'semester1',
-    notes: ''
+    grade_type: 'semester1'
   })
 
   // Excel import states
@@ -270,8 +267,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
 
       const result = await updateDetailedGradeAction({
         grade_id: editingGrade.id,
-        grade_value: newGradeValue,
-        notes: editingGrade.reason
+        grade_value: newGradeValue
       })
 
       if (result.success) {
@@ -839,16 +835,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="grade-notes">Ghi chú (tùy chọn)</Label>
-              <Textarea
-                id="grade-notes"
-                value={newGrade.notes}
-                onChange={(e) => setNewGrade(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Ghi chú về điểm số..."
-                rows={3}
-              />
-            </div>
+
           </div>
 
           <DialogFooter>
@@ -861,8 +848,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
                   subject_id: '',
                   class_id: '',
                   grade_value: '',
-                  grade_type: 'semester1',
-                  notes: ''
+                  grade_type: 'semester1'
                 })
               }}
             >
@@ -895,8 +881,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
                     subject_id: newGrade.subject_id,
                     class_id: selectedClass.id,
                     grade_value: parseFloat(newGrade.grade_value),
-                    grade_type: newGrade.grade_type,
-                    notes: newGrade.notes || undefined
+                    grade_type: newGrade.grade_type
                   })
 
                   if (result.success) {
@@ -907,8 +892,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
                       subject_id: '',
                       class_id: '',
                       grade_value: '',
-                      grade_type: 'semester1',
-                      notes: ''
+                      grade_type: 'semester1'
                     })
                     // Reload grades to show the new grade
                     loadGrades()

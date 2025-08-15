@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Plus, FileSpreadsheet, Edit, Trash2, Eye, Search, Calendar, Users, BookOpen } from 'lucide-react'
-import Link from 'next/link'
+import { Plus, FileSpreadsheet, Edit, Trash2, Search, Calendar, Users, BookOpen } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,8 +14,10 @@ import {
   getClassesForGradeInputAction,
   getSubjectsForGradeInputAction
 } from '@/lib/actions/grade-management-actions'
-import { getDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
+
 import { GradeReportingPeriodForm } from '@/components/admin/grade-management/grade-reporting-period-form'
+import { ExcelImportDialog } from '@/components/admin/grade-management/excel-import-dialog'
+import { ViewGradesClient } from './view-grades/view-grades-client'
 
 
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -23,36 +25,20 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { GradeReportingPeriod } from '@/lib/validations/grade-management-validations'
 
-interface StudentRecord {
-  id: string
-  full_name: string
-  student_id: string
-  class: {
-    id: string
-    name: string
-  }
-  grade_count: number
-  subjects: Array<{
-    id: string
-    name_vietnamese: string
-    code: string
-  }>
-}
+
 
 export function GradeManagementClient() {
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
   const [subjects, setSubjects] = useState<Array<{id: string, name_vietnamese: string, code: string}>>([])
-  const [students, setStudents] = useState<StudentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPeriod, setSelectedPeriod] = useState<GradeReportingPeriod | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
+  const [showExcelImport, setShowExcelImport] = useState(false)
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [activeTab, setActiveTab] = useState('periods')
-  const [totalGrades, setTotalGrades] = useState(0)
-  const [searchTerm, setSearchTerm] = useState('')
 
 
   // Load grade reporting periods - Memoized to prevent unnecessary re-renders
@@ -89,57 +75,7 @@ export function GradeManagementClient() {
         setSubjects(subjectsResult.data as unknown as Array<{id: string, name_vietnamese: string, code: string}>)
       }
 
-      // Load students with grade counts if there's an active period
-      const activePeriod = periods.find(p => p.is_active)
-      if (activePeriod) {
-        const gradesResult = await getDetailedGradesAction(activePeriod.id, { limit: 1000 })
-        if (gradesResult.success && gradesResult.data) {
-          setTotalGrades(gradesResult.count || 0)
-
-          // Group grades by student to create student records
-          const gradeData = gradesResult.data as Array<{
-            student_id: string
-            class_id: string
-            subject_id: string
-            student?: { full_name: string; student_id: string }
-            class?: { name: string }
-            subject?: { name_vietnamese: string; code: string }
-          }>
-          const studentMap = new Map<string, StudentRecord>()
-
-          gradeData.forEach((grade) => {
-            const studentId = grade.student_id
-            if (!studentMap.has(studentId)) {
-              studentMap.set(studentId, {
-                id: studentId,
-                full_name: grade.student?.full_name || 'N/A',
-                student_id: grade.student?.student_id || 'N/A',
-                class: {
-                  id: grade.class_id,
-                  name: grade.class?.name || 'N/A'
-                },
-                grade_count: 0,
-                subjects: []
-              })
-            }
-
-            const student = studentMap.get(studentId)!
-            student.grade_count++
-
-            // Add subject if not already added
-            const subjectExists = student.subjects.some(s => s.id === grade.subject_id)
-            if (!subjectExists && grade.subject) {
-              student.subjects.push({
-                id: grade.subject_id,
-                name_vietnamese: grade.subject.name_vietnamese,
-                code: grade.subject.code
-              })
-            }
-          })
-
-          setStudents(Array.from(studentMap.values()))
-        }
-      }
+      // Students are now handled by ViewGradesClient component
     } catch (error) {
       console.error('Error loading statistics:', error)
     }
@@ -290,17 +226,7 @@ export function GradeManagementClient() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Eye className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Điểm số</p>
-                <p className="text-2xl font-bold">{totalGrades}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* VNedu Disclaimer */}
@@ -379,16 +305,6 @@ export function GradeManagementClient() {
           <Plus className="h-6 w-6" />
           <span>Tạo kỳ báo cáo mới</span>
         </Button>
-        <Link href="/dashboard/admin/grade-management/view-grades">
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex items-center space-x-3 px-8 py-4 text-lg"
-          >
-            <Search className="h-6 w-6" />
-            <span>Xem điểm số</span>
-          </Button>
-        </Link>
       </div>
 
       {/* Simplified Tabs */}
@@ -399,8 +315,8 @@ export function GradeManagementClient() {
             <span>Quản lý kỳ báo cáo</span>
           </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Quản lý học sinh</span>
+            <Search className="h-4 w-4" />
+            <span>Xem điểm số</span>
           </TabsTrigger>
         </TabsList>
 
@@ -467,6 +383,18 @@ export function GradeManagementClient() {
 
                           {/* Action Buttons */}
                           <div className="flex flex-col space-y-2 ml-6">
+                            {period.canImport && (
+                              <Button
+                                onClick={() => {
+                                  setSelectedPeriod(period)
+                                  setShowExcelImport(true)
+                                }}
+                                className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                Nhập điểm từ Excel
+                              </Button>
+                            )}
 
                             <Button
                               variant="outline"
@@ -502,86 +430,9 @@ export function GradeManagementClient() {
           </Card>
         </TabsContent>
 
-        {/* Students Tab */}
+        {/* View Grades Tab */}
         <TabsContent value="students" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Danh sách học sinh</CardTitle>
-                  <CardDescription>
-                    Xem và quản lý điểm số của từng học sinh. Click vào học sinh để xem chi tiết điểm số.
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Tìm kiếm học sinh..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {students.length === 0 ? (
-                <EmptyState
-                  icon={Users}
-                  title="Chưa có dữ liệu học sinh"
-                  description="Vui lòng tạo kỳ báo cáo và nhập điểm để xem danh sách học sinh."
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {students
-                    .filter(student =>
-                      student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      student.student_id.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((student) => (
-                      <Link
-                        key={student.id}
-                        href={`/dashboard/admin/grade-management/student/${student.id}`}
-                        className="block"
-                      >
-                        <Card className="hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-blue-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg text-gray-900">
-                                  {student.full_name}
-                                </h3>
-                                <p className="text-sm text-gray-600 mb-2">
-                                  Mã HS: {student.student_id}
-                                </p>
-                                <p className="text-sm text-gray-600 mb-3">
-                                  Lớp: {student.class.name}
-                                </p>
-
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-xs">
-                                      {student.grade_count} điểm
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      {student.subjects.length} môn
-                                    </Badge>
-                                  </div>
-                                  <Eye className="h-4 w-4 text-gray-400" />
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ViewGradesClient />
         </TabsContent>
 
 
@@ -627,6 +478,19 @@ export function GradeManagementClient() {
           onConfirm={handleDeletePeriod}
           confirmText="Xóa"
           variant="destructive"
+        />
+      )}
+
+      {showExcelImport && selectedPeriod && (
+        <ExcelImportDialog
+          open={showExcelImport}
+          onOpenChange={setShowExcelImport}
+          period={selectedPeriod}
+          onSuccess={() => {
+            setShowExcelImport(false)
+            setSelectedPeriod(null)
+            // Optionally refresh data
+          }}
         />
       )}
     </div>

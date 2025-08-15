@@ -63,7 +63,6 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
         .from('student_detailed_grades')
         .update({
           grade_value: validatedData.grade_value,
-          notes: validatedData.notes,
           updated_at: new Date().toISOString()
         })
         .eq('id', existingGrade.id)
@@ -75,7 +74,6 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
           class_id,
           component_type,
           grade_value,
-          notes,
           is_locked,
           created_by,
           created_at,
@@ -112,7 +110,6 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
           class_id,
           component_type,
           grade_value,
-          notes,
           is_locked,
           created_by,
           created_at,
@@ -288,7 +285,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
             class_id: validatedData.class_id,
             component_type: 'semester_1' as GradeComponentType,
             grade_value: studentGrade.semester_1_grade,
-            notes: studentGrade.notes,
+
             created_by: userId
           })
         }
@@ -301,7 +298,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
             class_id: validatedData.class_id,
             component_type: 'semester_2' as GradeComponentType,
             grade_value: studentGrade.semester_2_grade,
-            notes: studentGrade.notes,
+
             created_by: userId
           })
         }
@@ -314,7 +311,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
             class_id: validatedData.class_id,
             component_type: 'yearly' as GradeComponentType,
             grade_value: studentGrade.yearly_grade,
-            notes: studentGrade.notes,
+
             created_by: userId
           })
         }
@@ -331,7 +328,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
                 class_id: validatedData.class_id,
                 component_type: componentType,
                 grade_value: grade,
-                notes: studentGrade.notes,
+
                 created_by: userId
               })
             }
@@ -346,7 +343,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
             class_id: validatedData.class_id,
             component_type: 'midterm' as GradeComponentType,
             grade_value: studentGrade.midterm_grade,
-            notes: studentGrade.notes,
+
             created_by: userId
           })
         }
@@ -359,7 +356,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
             class_id: validatedData.class_id,
             component_type: 'final' as GradeComponentType,
             grade_value: studentGrade.final_grade,
-            notes: studentGrade.notes,
+
             created_by: userId
           })
         }
@@ -469,7 +466,6 @@ export async function debugGradesAction() {
 export async function updateDetailedGradeAction(data: {
   grade_id: string
   grade_value: number
-  notes?: string
 }) {
   try {
     await checkAdminPermissions()
@@ -479,7 +475,6 @@ export async function updateDetailedGradeAction(data: {
       .from('student_detailed_grades')
       .update({
         grade_value: data.grade_value,
-        notes: data.notes,
         updated_at: new Date().toISOString()
       })
       .eq('id', data.grade_id)
@@ -491,7 +486,6 @@ export async function updateDetailedGradeAction(data: {
         class_id,
         component_type,
         grade_value,
-        notes,
         is_locked,
         created_at,
         updated_at,

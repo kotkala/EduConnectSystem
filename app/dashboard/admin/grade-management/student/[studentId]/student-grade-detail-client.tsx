@@ -1,24 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ArrowLeft, Edit, Save, X, Send, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Save, X, Send } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
 import { toast } from 'sonner'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { EmptyState } from '@/components/ui/empty-state'
+
 import { getDetailedGradesAction, createDetailedGradeAction, sendGradesToHomeroomTeacherAction, checkClassGradeCompletionAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsAction } from '@/lib/actions/grade-management-actions'
 
@@ -51,20 +42,71 @@ interface GradeReportingPeriod {
 }
 
 interface StudentGradeDetailClientProps {
-  studentId: string
+  readonly studentId: string
 }
 
-const COMPONENT_TYPES = [
-  { value: 'regular_1', label: 'Điểm thường xuyên 1' },
-  { value: 'regular_2', label: 'Điểm thường xuyên 2' },
-  { value: 'regular_3', label: 'Điểm thường xuyên 3' },
-  { value: 'regular_4', label: 'Điểm thường xuyên 4' },
-  { value: 'midterm', label: 'Điểm giữa kỳ' },
-  { value: 'final', label: 'Điểm cuối kỳ' },
-  { value: 'semester_1', label: 'Điểm học kỳ 1' },
-  { value: 'semester_2', label: 'Điểm học kỳ 2' },
-  { value: 'yearly', label: 'Điểm cả năm' }
-]
+
+
+// Helper function to organize grades by component type for table display
+const organizeGradesForTable = (subjectGrades: StudentGrade[]) => {
+  const organized = {
+    regular: [] as StudentGrade[],
+    midterm: null as StudentGrade | null,
+    final: null as StudentGrade | null,
+    semester: [] as StudentGrade[],
+    yearly: null as StudentGrade | null
+  }
+
+  subjectGrades.forEach(grade => {
+    if (grade.component_type.startsWith('regular_')) {
+      organized.regular.push(grade)
+    } else if (grade.component_type === 'midterm') {
+      organized.midterm = grade
+    } else if (grade.component_type === 'final') {
+      organized.final = grade
+    } else if (grade.component_type.startsWith('semester_')) {
+      organized.semester.push(grade)
+    } else if (grade.component_type === 'yearly') {
+      organized.yearly = grade
+    }
+  })
+
+  return organized
+}
+
+// Calculate TBM (Trung Bình Môn) according to Vietnamese formula
+const calculateTBM = (organized: ReturnType<typeof organizeGradesForTable>, editingGrades: Record<string, string>) => {
+  const allGrades: number[] = []
+
+  // Add regular grades (Điểm miệng)
+  organized.regular.forEach(grade => {
+    const editedValue = editingGrades[grade.id]
+    const value = editedValue ? parseFloat(editedValue) : grade.grade_value
+    if (!isNaN(value)) allGrades.push(value)
+  })
+
+  // Add midterm grade (Điểm giữa kì)
+  if (organized.midterm) {
+    const editedValue = editingGrades[organized.midterm.id]
+    const value = editedValue ? parseFloat(editedValue) : organized.midterm.grade_value
+    if (!isNaN(value)) allGrades.push(value)
+  }
+
+  // Add final grade (Điểm cuối kì)
+  if (organized.final) {
+    const editedValue = editingGrades[organized.final.id]
+    const value = editedValue ? parseFloat(editedValue) : organized.final.grade_value
+    if (!isNaN(value)) allGrades.push(value)
+  }
+
+  // Calculate average: sum of all grades / total number of grades
+  if (allGrades.length === 0) return null
+
+  const sum = allGrades.reduce((acc, grade) => acc + grade, 0)
+  const average = sum / allGrades.length
+
+  return Math.round(average * 10) / 10 // Round to 1 decimal place
+}
 
 export function StudentGradeDetailClient({ studentId }: StudentGradeDetailClientProps) {
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null)
@@ -72,8 +114,8 @@ export function StudentGradeDetailClient({ studentId }: StudentGradeDetailClient
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
   const [loading, setLoading] = useState(true)
-  const [editingGrade, setEditingGrade] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState<string>('')
+  const [editingGrades, setEditingGrades] = useState<Record<string, string>>({})
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sendingToTeacher, setSendingToTeacher] = useState(false)
 
@@ -180,57 +222,103 @@ export function StudentGradeDetailClient({ studentId }: StudentGradeDetailClient
     }
   }, [selectedPeriod, loadStudentData])
 
-  // Handle edit grade
-  const handleEditGrade = (gradeId: string, currentValue: number) => {
-    setEditingGrade(gradeId)
-    setEditValue(currentValue.toString())
+  // Handle grade value change with validation
+  const handleGradeChange = (gradeId: string, value: string) => {
+    // Allow empty string for clearing
+    if (value === '') {
+      setEditingGrades(prev => ({
+        ...prev,
+        [gradeId]: value
+      }))
+      setHasUnsavedChanges(true)
+      return
+    }
+
+    // Validate decimal format (up to 2 decimal places)
+    const decimalRegex = /^\d+(\.\d{0,2})?$/
+    if (!decimalRegex.test(value)) {
+      return // Don't update if invalid format
+    }
+
+    const numValue = parseFloat(value)
+
+    // Validate range (0 to 10)
+    if (numValue < 0 || numValue > 10) {
+      return // Don't update if out of range
+    }
+
+    setEditingGrades(prev => ({
+      ...prev,
+      [gradeId]: value
+    }))
+    setHasUnsavedChanges(true)
   }
 
-  // Handle save grade
-  const handleSaveGrade = async (gradeId: string) => {
-    if (!studentInfo) return
+  // Handle save all grades
+  const handleSaveAllGrades = async () => {
+    if (!studentInfo || Object.keys(editingGrades).length === 0) return
 
     try {
       setSaving(true)
-      const newValue = parseFloat(editValue)
-      
-      if (isNaN(newValue) || newValue < 0 || newValue > 10) {
-        toast.error('Điểm số phải từ 0 đến 10')
-        return
+      const savePromises = []
+
+      for (const [gradeId, value] of Object.entries(editingGrades)) {
+        const newValue = parseFloat(value)
+
+        // Validate range and format
+        if (isNaN(newValue) || newValue < 0 || newValue > 10) {
+          toast.error(`Điểm số phải từ 0 đến 10 (Điểm: ${value})`)
+          return
+        }
+
+        // Validate decimal places (max 2 decimal places)
+        const decimalPlaces = (value.split('.')[1] || '').length
+        if (decimalPlaces > 2) {
+          toast.error(`Điểm số chỉ được có tối đa 2 chữ số thập phân (Điểm: ${value})`)
+          return
+        }
+
+        const grade = grades.find(g => g.id === gradeId)
+        if (!grade) continue
+
+        // Round to 1 decimal place for storage
+        const roundedValue = Math.round(newValue * 10) / 10
+
+        const savePromise = createDetailedGradeAction({
+          period_id: selectedPeriod,
+          student_id: studentInfo.id,
+          subject_id: grade.subject.id,
+          class_id: studentInfo.class.id,
+          component_type: grade.component_type as 'regular_1' | 'regular_2' | 'regular_3' | 'regular_4' | 'midterm' | 'final' | 'semester_1' | 'semester_2' | 'yearly',
+          grade_value: roundedValue
+        })
+
+        savePromises.push(savePromise)
       }
 
-      const grade = grades.find(g => g.id === gradeId)
-      if (!grade) return
+      const results = await Promise.all(savePromises)
+      const failedSaves = results.filter(result => !result.success)
 
-      const result = await createDetailedGradeAction({
-        period_id: selectedPeriod,
-        student_id: studentInfo.id,
-        subject_id: grade.subject.id,
-        class_id: studentInfo.class.id,
-        component_type: grade.component_type as 'regular_1' | 'regular_2' | 'regular_3' | 'regular_4' | 'midterm' | 'final' | 'semester_1' | 'semester_2' | 'yearly',
-        grade_value: newValue
-      })
-
-      if (result.success) {
-        toast.success('Cập nhật điểm số thành công')
-        setEditingGrade(null)
-        setEditValue('')
+      if (failedSaves.length === 0) {
+        toast.success(`Đã lưu thành công ${results.length} điểm số`)
+        setEditingGrades({})
+        setHasUnsavedChanges(false)
         await loadStudentData()
       } else {
-        toast.error(result.error || 'Không thể cập nhật điểm số')
+        toast.error(`Lưu thất bại ${failedSaves.length}/${results.length} điểm số`)
       }
     } catch (error) {
-      console.error('Error saving grade:', error)
-      toast.error('Có lỗi xảy ra khi cập nhật điểm số')
+      console.error('Error saving grades:', error)
+      toast.error('Có lỗi xảy ra khi lưu điểm số')
     } finally {
       setSaving(false)
     }
   }
 
-  // Handle cancel edit
-  const handleCancelEdit = () => {
-    setEditingGrade(null)
-    setEditValue('')
+  // Handle cancel all edits
+  const handleCancelAllEdits = () => {
+    setEditingGrades({})
+    setHasUnsavedChanges(false)
   }
 
   // Send to homeroom teacher
@@ -275,6 +363,11 @@ export function StudentGradeDetailClient({ studentId }: StudentGradeDetailClient
     return acc
   }, {} as Record<string, { subject: { id: string, name_vietnamese: string, code: string }, grades: StudentGrade[] }>)
 
+  // Check if all subjects have complete grades (at least one grade per subject)
+  const isAllSubjectsComplete = Object.values(gradesBySubject).every(({ grades: subjectGrades }) =>
+    subjectGrades.length > 0
+  )
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -285,184 +378,217 @@ export function StudentGradeDetailClient({ studentId }: StudentGradeDetailClient
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/admin/grade-management">
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Quay lại
-          </Button>
-        </Link>
-        
-        {/* Period Selection */}
-        <select
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Chọn kỳ báo cáo</option>
-          {periods.map(period => (
-            <option key={period.id} value={period.id}>
-              {period.name}
-            </option>
-          ))}
-        </select>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Header Section */}
+        <div className="flex items-center justify-between border-b pb-4">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/admin/grade-management/view-grades">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Quay lại danh sách
+              </Button>
+            </Link>
 
-        {/* Send to Teacher Button */}
-        {studentInfo && (
-          <Button
-            onClick={handleSendToTeacher}
-            disabled={sendingToTeacher}
-            className="flex items-center gap-2 ml-auto"
-          >
-            {sendingToTeacher ? (
-              <LoadingSpinner size="sm" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Gửi cho GVCN
-          </Button>
-        )}
-      </div>
+            {/* Period Selection */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Kỳ báo cáo:</span>
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-3 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                <option value="">Chọn kỳ báo cáo</option>
+                {periods.map(period => (
+                  <option key={period.id} value={period.id}>
+                    {period.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {!selectedPeriod ? (
-        <EmptyState
-          icon={CheckCircle}
-          title="Chọn kỳ báo cáo"
-          description="Vui lòng chọn kỳ báo cáo để xem điểm số của học sinh."
-        />
-      ) : !studentInfo ? (
-        <EmptyState
-          icon={CheckCircle}
-          title="Không tìm thấy dữ liệu"
-          description="Không tìm thấy thông tin học sinh hoặc điểm số trong kỳ báo cáo này."
-        />
-      ) : (
-        <>
-          {/* Student Info Card */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src="" alt={studentInfo.full_name} />
-                  <AvatarFallback className="text-lg font-bold">
-                    {studentInfo.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-2xl">{studentInfo.full_name}</CardTitle>
-                  <CardDescription className="text-lg">
-                    Mã HS: {studentInfo.student_id} • Lớp: {studentInfo.class.name}
-                  </CardDescription>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="outline">
-                      {Object.keys(gradesBySubject).length} môn học
-                    </Badge>
-                    <Badge variant="outline">
-                      {grades.length} điểm số
-                    </Badge>
-                  </div>
+          {/* Action Buttons */}
+          {studentInfo && (
+            <div className="flex items-center gap-2">
+              {hasUnsavedChanges && (
+                <>
+                  <Button
+                    onClick={handleSaveAllGrades}
+                    disabled={saving}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    {saving ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    Lưu tất cả ({Object.keys(editingGrades).length})
+                  </Button>
+                  <Button
+                    onClick={handleCancelAllEdits}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Hủy
+                  </Button>
+                </>
+              )}
+              <Button
+                onClick={handleSendToTeacher}
+                disabled={sendingToTeacher || !isAllSubjectsComplete || hasUnsavedChanges}
+                className="flex items-center gap-2"
+              >
+                {sendingToTeacher ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Gửi cho GVCN
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {!selectedPeriod ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Chọn kỳ báo cáo</h3>
+              <p className="text-gray-600">Vui lòng chọn kỳ báo cáo để xem điểm số của học sinh.</p>
+            </div>
+          </div>
+        ) : !studentInfo ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Không tìm thấy dữ liệu</h3>
+              <p className="text-gray-600">Không tìm thấy thông tin học sinh hoặc điểm số trong kỳ báo cáo này.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Student Info */}
+            <div className="border-b pb-4 mb-6">
+              <h1 className="text-2xl font-bold mb-2">{studentInfo.full_name}</h1>
+              <p className="text-gray-600">
+                Mã HS: {studentInfo.student_id} • Lớp: {studentInfo.class.name}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                {Object.keys(gradesBySubject).length} môn học • {grades.length} điểm số
+                {isAllSubjectsComplete ? ' • Hoàn thành' : ' • Chưa đủ điểm'}
+              </p>
+            </div>
+
+            {/* Grades Table */}
+            {Object.keys(gradesBySubject).length === 0 ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <h3 className="text-lg font-medium mb-2">Chưa có điểm số</h3>
+                  <p className="text-gray-600">Học sinh chưa có điểm số nào trong kỳ báo cáo này.</p>
                 </div>
               </div>
-            </CardHeader>
-          </Card>
-
-          {/* Grades by Subject */}
-          {Object.keys(gradesBySubject).length === 0 ? (
-            <EmptyState
-              icon={CheckCircle}
-              title="Chưa có điểm số"
-              description="Học sinh chưa có điểm số nào trong kỳ báo cáo này."
-            />
-          ) : (
-            <div className="space-y-6">
-              {Object.values(gradesBySubject).map(({ subject, grades: subjectGrades }) => (
-                <Card key={subject.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {subject.name_vietnamese}
-                      <Badge variant="outline">{subject.code}</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Loại điểm</TableHead>
-                          <TableHead>Điểm số</TableHead>
-                          <TableHead>Trạng thái</TableHead>
-                          <TableHead>Thao tác</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {subjectGrades.map((grade) => (
-                          <TableRow key={grade.id}>
-                            <TableCell>
-                              {COMPONENT_TYPES.find(ct => ct.value === grade.component_type)?.label || grade.component_type}
-                            </TableCell>
-                            <TableCell>
-                              {editingGrade === grade.id ? (
-                                <div className="flex items-center gap-2">
+            ) : (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Môn học</TableHead>
+                      <TableHead>Điểm miệng</TableHead>
+                      <TableHead>Điểm giữa kì</TableHead>
+                      <TableHead>Điểm cuối kì</TableHead>
+                      <TableHead>TBM</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.values(gradesBySubject).map(({ subject, grades: subjectGrades }) => {
+                      const organized = organizeGradesForTable(subjectGrades)
+                      return (
+                        <TableRow key={subject.id}>
+                          <TableCell className="font-medium">
+                            <div>
+                              <div>{subject.name_vietnamese}</div>
+                              <div className="text-xs text-gray-500">{subject.code}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {organized.regular.map((grade) => (
+                              <div key={grade.id} className="inline-flex items-center gap-1 mr-2">
+                                {!grade.is_locked ? (
                                   <Input
                                     type="number"
                                     min="0"
                                     max="10"
-                                    step="0.1"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="w-20"
+                                    step="0.01"
+                                    value={editingGrades[grade.id] ?? grade.grade_value.toString()}
+                                    onChange={(e) => handleGradeChange(grade.id, e.target.value)}
+                                    className="w-16 h-6 text-xs"
                                   />
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleSaveGrade(grade.id)}
-                                    disabled={saving}
-                                  >
-                                    {saving ? <LoadingSpinner size="sm" /> : <Save className="h-4 w-4" />}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleCancelEdit}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                ) : (
+                                  <span className="text-gray-500 px-1">
+                                    {grade.grade_value.toFixed(1)}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </TableCell>
+                          <TableCell>
+                            {organized.midterm && (
+                              !organized.midterm.is_locked ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  step="0.01"
+                                  value={editingGrades[organized.midterm.id] ?? organized.midterm.grade_value.toString()}
+                                  onChange={(e) => organized.midterm && handleGradeChange(organized.midterm.id, e.target.value)}
+                                  className="w-16 h-6 text-xs"
+                                />
                               ) : (
-                                <span className="font-medium text-lg">
-                                  {grade.grade_value.toFixed(1)}
+                                <span className="text-gray-500 px-1">
+                                  {organized.midterm.grade_value.toFixed(1)}
                                 </span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {grade.is_locked ? (
-                                <Badge variant="secondary">Đã khóa</Badge>
+                              )
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {organized.final && (
+                              !organized.final.is_locked ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  step="0.01"
+                                  value={editingGrades[organized.final.id] ?? organized.final.grade_value.toString()}
+                                  onChange={(e) => organized.final && handleGradeChange(organized.final.id, e.target.value)}
+                                  className="w-16 h-6 text-xs"
+                                />
                               ) : (
-                                <Badge variant="default">Có thể sửa</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {!grade.is_locked && editingGrade !== grade.id && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditGrade(grade.id, grade.grade_value)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+                                <span className="text-gray-500 px-1">
+                                  {organized.final.grade_value.toFixed(1)}
+                                </span>
+                              )
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {(() => {
+                              const calculatedTBM = calculateTBM(organized, editingGrades)
+                              return (
+                                <span className="font-medium text-blue-600 px-1">
+                                  {calculatedTBM ? calculatedTBM.toFixed(1) : '-'}
+                                </span>
+                              )
+                            })()}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

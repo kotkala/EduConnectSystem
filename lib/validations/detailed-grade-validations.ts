@@ -16,8 +16,7 @@ export const detailedGradeSchema = z.object({
   subject_id: z.string().uuid(),
   class_id: z.string().uuid(),
   component_type: z.enum(gradeComponentTypes),
-  grade_value: z.number().min(0).max(10).nullable(),
-  notes: z.string().optional()
+  grade_value: z.number().min(0).max(10).nullable()
 })
 
 export type DetailedGradeFormData = z.infer<typeof detailedGradeSchema>
@@ -35,8 +34,7 @@ export const bulkDetailedGradeSchema = z.object({
     final_grade: z.number().min(0).max(10).nullable().optional(),
     semester_1_grade: z.number().min(0).max(10).nullable().optional(),
     semester_2_grade: z.number().min(0).max(10).nullable().optional(),
-    yearly_grade: z.number().min(0).max(10).nullable().optional(),
-    notes: z.string().optional()
+    yearly_grade: z.number().min(0).max(10).nullable().optional()
   }))
 })
 

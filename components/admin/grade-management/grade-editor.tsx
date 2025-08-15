@@ -270,8 +270,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
 
       const result = await updateDetailedGradeAction({
         grade_id: editingGrade.id,
-        grade_value: newGradeValue,
-        notes: editingGrade.reason
+        grade_value: newGradeValue
       })
 
       if (result.success) {

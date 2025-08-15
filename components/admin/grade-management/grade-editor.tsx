@@ -131,7 +131,6 @@ export function GradeEditor({ period }: GradeEditorProps) {
   // Load dropdown data
   const loadDropdownData = useCallback(async () => {
     try {
-
       const [
         { getStudentsForGradeInputAction },
         { getSubjectsForGradeInputAction },
@@ -150,14 +149,20 @@ export function GradeEditor({ period }: GradeEditorProps) {
 
       if (studentsResult.success && studentsResult.data) {
         setStudents(studentsResult.data as unknown as Array<{id: string; full_name: string; student_id: string; class?: {name: string}}>)
+      } else {
+        toast.error(`Không thể tải danh sách học sinh: ${studentsResult.error}`)
       }
 
       if (subjectsResult.success && subjectsResult.data) {
         setSubjects(subjectsResult.data as unknown as Array<{id: string; name_vietnamese: string; code: string}>)
+      } else {
+        toast.error(`Không thể tải danh sách môn học: ${subjectsResult.error}`)
       }
 
       if (classesResult.success && classesResult.data) {
         setClasses(classesResult.data as unknown as Array<{id: string; name: string}>)
+      } else {
+        toast.error(`Không thể tải danh sách lớp học: ${classesResult.error}`)
       }
     } catch (error) {
       console.error('Error loading dropdown data:', error)

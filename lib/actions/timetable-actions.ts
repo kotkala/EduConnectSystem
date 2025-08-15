@@ -367,7 +367,7 @@ export async function getTimetableDropdownDataAction() {
 
     // Get all data in parallel for better performance
     const [classesResult, subjectsResult, teachersResult, classroomsResult, semestersResult] = await Promise.all([
-      // Get active classes with academic year info
+      // Get classes with academic year info
       supabase
         .from('classes')
         .select(`
@@ -377,7 +377,6 @@ export async function getTimetableDropdownDataAction() {
           semester:semesters(name),
           class_block:class_blocks(display_name)
         `)
-        .eq('is_active', true)
         .order('name'),
 
       // Get active subjects

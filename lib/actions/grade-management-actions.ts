@@ -579,7 +579,6 @@ export async function getClassesForGradeInputAction(academicYearId?: string) {
         academic_year_id,
         current_students
       `)
-      .eq('is_active', true)
       .order('name')
       .limit(100) // Reasonable limit
 

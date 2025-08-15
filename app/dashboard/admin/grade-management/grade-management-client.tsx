@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Plus, FileSpreadsheet, Edit, Trash2, Eye } from 'lucide-react'
+import { Plus, FileSpreadsheet, Edit, Trash2, Eye, Search } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -216,8 +217,8 @@ export function GradeManagementClient() {
         </CardContent>
       </Card>
 
-      {/* Main Action Button */}
-      <div className="flex justify-center">
+      {/* Main Action Buttons */}
+      <div className="flex justify-center gap-4">
         <Button
           onClick={() => setShowCreateForm(true)}
           size="lg"
@@ -226,6 +227,16 @@ export function GradeManagementClient() {
           <Plus className="h-6 w-6" />
           <span>Tạo kỳ báo cáo mới</span>
         </Button>
+        <Link href="/dashboard/admin/grade-management/view-grades">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex items-center space-x-3 px-8 py-4 text-lg"
+          >
+            <Search className="h-6 w-6" />
+            <span>Xem điểm số</span>
+          </Button>
+        </Link>
       </div>
 
       {/* Simplified Tabs */}

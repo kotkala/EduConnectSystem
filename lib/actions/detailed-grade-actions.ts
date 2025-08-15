@@ -141,6 +141,15 @@ export async function getDetailedGradesAction(
     await checkAdminPermissions()
     const supabase = await createClient()
 
+    console.log('getDetailedGradesAction called with:', { periodId, filters })
+
+    // Quick check for debugging
+    const { count: totalGrades } = await supabase
+      .from('student_detailed_grades')
+      .select('*', { count: 'exact', head: true })
+
+    console.log('Total grades in database:', totalGrades)
+
     let query = supabase
       .from('student_detailed_grades')
       .select(`
@@ -154,20 +163,22 @@ export async function getDetailedGradesAction(
         notes,
         is_locked,
         created_at,
-        student:profiles!student_detailed_grades_student_id_fkey!inner(
+        student:profiles!student_detailed_grades_student_id_fkey(
           full_name,
           student_id
         ),
-        subject:subjects!student_detailed_grades_subject_id_fkey!inner(
+        subject:subjects!student_detailed_grades_subject_id_fkey(
           name_vietnamese,
           code
         ),
-        class:classes!student_detailed_grades_class_id_fkey!inner(
+        class:classes!student_detailed_grades_class_id_fkey(
           name
         )
       `, { count: 'exact' })
       .eq('period_id', periodId)
       .order('created_at', { ascending: false })
+
+    console.log('Base query created for period:', periodId)
 
     // Apply filters
     if (filters?.class_id) {
@@ -192,9 +203,18 @@ export async function getDetailedGradesAction(
 
     const { data: grades, error, count } = await query
 
+    console.log('Query executed. Results:', {
+      gradesCount: grades?.length || 0,
+      totalCount: count,
+      error: error?.message
+    })
+
     if (error) {
+      console.error('Database error:', error)
       throw new Error(error.message)
     }
+
+    console.log('Returning grades data:', grades)
 
     return {
       success: true,
@@ -344,6 +364,65 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể nhập điểm số hàng loạt'
+    }
+  }
+}
+
+// Debug function to check grades data
+export async function debugGradesAction() {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    // Check total grades
+    const { data: allGrades, count: totalGrades } = await supabase
+      .from('student_detailed_grades')
+      .select(`
+        id,
+        period_id,
+        student_id,
+        subject_id,
+        class_id,
+        component_type,
+        grade_value,
+        student:profiles!student_detailed_grades_student_id_fkey(full_name, student_id),
+        subject:subjects!student_detailed_grades_subject_id_fkey(name_vietnamese, code),
+        class:classes!student_detailed_grades_class_id_fkey(name)
+      `, { count: 'exact' })
+      .limit(20)
+
+    // Check periods
+    const { data: periods } = await supabase
+      .from('grade_reporting_periods')
+      .select('id, name, start_date, end_date')
+
+    // Check for specific subject "Âm nhạc"
+    const { data: musicSubject } = await supabase
+      .from('subjects')
+      .select('id, name_vietnamese, code')
+      .ilike('name_vietnamese', '%âm nhạc%')
+
+    // Check for class "10A2"
+    const { data: class10A2 } = await supabase
+      .from('classes')
+      .select('id, name')
+      .ilike('name', '%10A2%')
+
+    return {
+      success: true,
+      data: {
+        totalGrades,
+        sampleGrades: allGrades,
+        periods,
+        musicSubject,
+        class10A2
+      }
+    }
+  } catch (error) {
+    console.error('Debug error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Debug failed'
     }
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Filter, Download, Eye, Calendar, Users, BookOpen } from 'lucide-react'
+import { Search, Filter, Download, Eye, Calendar, Users, BookOpen, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -37,8 +37,8 @@ interface GradeRecord {
   id: string
   grade_value: number
   component_type: string
-  notes?: string
   is_locked: boolean
+  created_by: string
   created_at: string
   updated_at: string
   student: {
@@ -91,6 +91,7 @@ interface GradeReportingPeriod {
   name: string
   start_date: string
   end_date: string
+  is_active: boolean
   academic_year: { name: string }
   semester: { name: string }
 }
@@ -100,18 +101,21 @@ export function ViewGradesClient() {
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
   const [subjects, setSubjects] = useState<Array<{id: string, name_vietnamese: string, code: string}>>([])
-  
+
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
   const [selectedClass, setSelectedClass] = useState<string>('all')
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
   const [selectedComponentType, setSelectedComponentType] = useState<string>('all')
-  
+
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalRecords, setTotalRecords] = useState(0)
   const limit = 50
+
+  // Error boundary state
+  const [hasError, setHasError] = useState(false)
 
   // Load initial data
   const loadInitialData = useCallback(async () => {
@@ -121,10 +125,15 @@ export function ViewGradesClient() {
         getClassesForGradeInputAction(),
         getSubjectsForGradeInputAction()
       ])
-
       if (periodsResult.success && periodsResult.data) {
-        console.log('Loaded periods:', periodsResult.data)
-        setPeriods(periodsResult.data as unknown as GradeReportingPeriod[])
+        const periodsData = periodsResult.data as unknown as GradeReportingPeriod[]
+        setPeriods(periodsData)
+
+        // Auto-select the active period if available
+        const activePeriod = periodsData.find((period) => period.is_active === true)
+        if (activePeriod && selectedPeriod === 'all') {
+          setSelectedPeriod(activePeriod.id)
+        }
       } else {
         console.error('Failed to load periods:', periodsResult.error)
       }
@@ -139,8 +148,9 @@ export function ViewGradesClient() {
     } catch (error) {
       console.error('Error loading initial data:', error)
       toast.error('Không thể tải dữ liệu ban đầu')
+      setHasError(true)
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load grades with filters
   const loadGrades = useCallback(async () => {
@@ -154,20 +164,18 @@ export function ViewGradesClient() {
     try {
       setLoading(true)
 
-      console.log('Loading grades for period:', selectedPeriod)
-
-      const result = await getDetailedGradesAction(selectedPeriod, {
+      const filters = {
         class_id: selectedClass === 'all' ? undefined : selectedClass,
         subject_id: selectedSubject === 'all' ? undefined : selectedSubject,
+        component_type: selectedComponentType === 'all' ? undefined : selectedComponentType,
         student_search: searchTerm || undefined,
         page: currentPage,
         limit
-      })
+      }
 
-      console.log('Grades result:', result)
+      const result = await getDetailedGradesAction(selectedPeriod, filters)
 
       if (result.success && result.data) {
-        console.log('Grades data:', result.data)
         setGrades(result.data as unknown as GradeRecord[])
         setTotalRecords(result.count || 0)
         setTotalPages(Math.ceil((result.count || 0) / limit))
@@ -184,10 +192,11 @@ export function ViewGradesClient() {
       setGrades([])
       setTotalRecords(0)
       setTotalPages(1)
+      setHasError(true)
     } finally {
       setLoading(false)
     }
-  }, [selectedPeriod, selectedClass, selectedSubject, searchTerm, currentPage])
+  }, [selectedPeriod, selectedClass, selectedSubject, selectedComponentType, searchTerm, currentPage])
 
   // Reset page when filters change
   useEffect(() => {
@@ -203,6 +212,8 @@ export function ViewGradesClient() {
   useEffect(() => {
     loadInitialData()
   }, [loadInitialData])
+
+
 
   // Format date for display
   const formatDate = useCallback((dateString: string) => {
@@ -232,7 +243,6 @@ export function ViewGradesClient() {
         { header: 'Môn học', key: 'subject_name', width: 20 },
         { header: 'Loại điểm', key: 'component_type', width: 20 },
         { header: 'Điểm số', key: 'grade_value', width: 10 },
-        { header: 'Ghi chú', key: 'notes', width: 30 },
         { header: 'Ngày tạo', key: 'created_at', width: 20 }
       ]
 
@@ -245,18 +255,23 @@ export function ViewGradesClient() {
         fgColor: { argb: 'FFE6F3FF' }
       }
 
-      // Add data rows
+      // Add data rows with null safety
       grades.forEach((grade, index) => {
         const row = worksheet.getRow(index + 2)
         row.values = [
-          grade.student.full_name,
-          grade.student.student_id,
-          grade.class.name,
-          grade.subject.name_vietnamese,
+          grade.student?.full_name || 'N/A',
+          grade.student?.student_id || 'N/A',
+          grade.class?.name || 'N/A',
+          grade.subject?.name_vietnamese || 'N/A',
           getComponentTypeDisplay(grade.component_type),
           formatGradeValue(grade.grade_value),
-          grade.notes || '',
-          formatDate(grade.created_at)
+          new Date(grade.created_at).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
         ]
       })
 
@@ -292,10 +307,32 @@ export function ViewGradesClient() {
       console.error('Error exporting to Excel:', error)
       toast.error('Có lỗi xảy ra khi xuất file Excel')
     }
-  }, [grades, formatDate])
+  }, [grades])
 
-  return (
-    <div className="space-y-6">
+  // Error boundary fallback
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-red-600">Có lỗi xảy ra</h2>
+          <p className="text-muted-foreground mt-2">Vui lòng tải lại trang hoặc liên hệ quản trị viên</p>
+          <Button
+            onClick={() => {
+              setHasError(false)
+              window.location.reload()
+            }}
+            className="mt-4"
+          >
+            Tải lại trang
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  try {
+    return (
+      <div className="space-y-6">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -340,7 +377,12 @@ export function ViewGradesClient() {
               <Eye className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Điểm số</p>
-                <p className="text-2xl font-bold">{totalRecords}</p>
+                <p className="text-2xl font-bold">
+                  {selectedPeriod === 'all' ? '-' : totalRecords}
+                </p>
+                {selectedPeriod === 'all' && (
+                  <p className="text-xs text-muted-foreground">Chọn kỳ để xem</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -450,18 +492,35 @@ export function ViewGradesClient() {
               </div>
             </div>
 
-            {/* Export Button */}
+            {/* Action Buttons */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Xuất dữ liệu</label>
-              <Button
-                onClick={exportToExcel}
-                disabled={grades.length === 0}
-                variant="outline"
-                className="w-full flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Xuất Excel
-              </Button>
+              <label className="text-sm font-medium">Thao tác</label>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setCurrentPage(1)
+                    loadGrades()
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  Làm mới
+                </Button>
+                <Button
+                  onClick={exportToExcel}
+                  disabled={grades.length === 0}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Xuất Excel
+                </Button>
+
+              </div>
             </div>
           </div>
         </CardContent>
@@ -510,7 +569,7 @@ export function ViewGradesClient() {
             <EmptyState
               icon={Calendar}
               title="Chọn kỳ báo cáo"
-              description="Vui lòng chọn kỳ báo cáo để xem điểm số đã được nhập"
+              description={`Vui lòng chọn kỳ báo cáo để xem điểm số đã được nhập. Hiện có ${periods.length} kỳ báo cáo khả dụng.`}
             />
           ) : loading ? (
             <div className="flex items-center justify-center py-8">
@@ -532,7 +591,6 @@ export function ViewGradesClient() {
                   <TableHead>Môn học</TableHead>
                   <TableHead>Loại điểm</TableHead>
                   <TableHead>Điểm số</TableHead>
-                  <TableHead>Ghi chú</TableHead>
                   <TableHead>Ngày tạo</TableHead>
                   <TableHead>Trạng thái</TableHead>
                 </TableRow>
@@ -542,18 +600,18 @@ export function ViewGradesClient() {
                   <TableRow key={grade.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{grade.student.full_name}</div>
+                        <div className="font-medium">{grade.student?.full_name || 'N/A'}</div>
                         <div className="text-sm text-muted-foreground">
-                          {grade.student.student_id}
+                          {grade.student?.student_id || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{grade.class.name}</TableCell>
+                    <TableCell>{grade.class?.name || 'N/A'}</TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{grade.subject.name_vietnamese}</div>
+                        <div className="font-medium">{grade.subject?.name_vietnamese || 'N/A'}</div>
                         <div className="text-sm text-muted-foreground">
-                          {grade.subject.code}
+                          {grade.subject?.code || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
@@ -566,9 +624,6 @@ export function ViewGradesClient() {
                       <span className="font-medium text-lg">
                         {formatGradeValue(grade.grade_value)}
                       </span>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {grade.notes || '-'}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(grade.created_at)}
@@ -588,5 +643,10 @@ export function ViewGradesClient() {
         </CardContent>
       </Card>
     </div>
-  )
+    )
+  } catch (error) {
+    console.error('ViewGradesClient error:', error)
+    setHasError(true)
+    return null
+  }
 }

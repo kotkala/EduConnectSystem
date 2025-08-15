@@ -72,7 +72,7 @@ export async function getParentChildrenAction(): Promise<{
       .from('parent_student_relationships')
       .select(`
         student_id,
-        profiles!parent_student_relationships_student_id_fkey(
+        profiles!student_id(
           id,
           full_name,
           student_id,
@@ -188,7 +188,7 @@ export async function getStudentFeedbackForParentAction(
       .from('parent_student_relationships')
       .select(`
         student_id,
-        profiles!parent_student_relationships_student_id_fkey(
+        profiles!student_id(
           id,
           full_name,
           student_id,

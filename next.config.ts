@@ -50,6 +50,7 @@ const nextConfig: NextConfig = {
 
 
   // Webpack optimization with conditional bundle analyzer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webpack: (config: any) => {
     // Exclude experiment folders from build
     config.module.rules.push({

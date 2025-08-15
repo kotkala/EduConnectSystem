@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { checkAdminPermissions } from '@/lib/utils/permission-utils'
+import { GoogleGenAI } from '@google/genai'
 import {
   detailedGradeSchema,
   bulkDetailedGradeSchema,
@@ -11,6 +11,31 @@ import {
   type DetailedGradeFormData,
   type BulkDetailedGradeFormData
 } from '@/lib/validations/detailed-grade-validations'
+
+// Interface for AI feedback generation
+interface StudentGradeData {
+  student?: {
+    full_name: string
+    student_id: string
+  }
+  subjects: {
+    [subjectCode: string]: {
+      subject?: {
+        name_vietnamese: string
+        code: string
+        category: string
+      }
+      grades: Array<{
+        component_type: GradeComponentType
+        grade_value: number | null
+      }>
+    }
+  }
+}
+
+interface StudentGradesCollection {
+  [studentId: string]: StudentGradeData
+}
 
 // Create or update detailed grade
 export async function createDetailedGradeAction(formData: DetailedGradeFormData) {
@@ -55,15 +80,15 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
           created_by,
           created_at,
           updated_at,
-          student:profiles!student_detailed_grades_student_id_fkey!inner(
+          student:profiles!student_id(
             full_name,
             student_id
           ),
-          subject:subjects!student_detailed_grades_subject_id_fkey!inner(
+          subject:subjects!subject_id(
             name_vietnamese,
             code
           ),
-          class:classes!student_detailed_grades_class_id_fkey!inner(
+          class:classes!class_id(
             name
           )
         `)
@@ -92,15 +117,15 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
           created_by,
           created_at,
           updated_at,
-          student:profiles!student_detailed_grades_student_id_fkey!inner(
+          student:profiles!student_id(
             full_name,
             student_id
           ),
-          subject:subjects!student_detailed_grades_subject_id_fkey!inner(
+          subject:subjects!subject_id(
             name_vietnamese,
             code
           ),
-          class:classes!student_detailed_grades_class_id_fkey!inner(
+          class:classes!class_id(
             name
           )
         `)
@@ -132,6 +157,7 @@ export async function getDetailedGradesAction(
   filters?: {
     class_id?: string
     subject_id?: string
+    component_type?: string
     student_search?: string
     page?: number
     limit?: number
@@ -139,17 +165,11 @@ export async function getDetailedGradesAction(
 ) {
   try {
     await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    console.log('getDetailedGradesAction called with:', { periodId, filters })
 
-    // Quick check for debugging
-    const { count: totalGrades } = await supabase
-      .from('student_detailed_grades')
-      .select('*', { count: 'exact', head: true })
 
-    console.log('Total grades in database:', totalGrades)
-
+    // Use explicit foreign key syntax for multiple relationships
     let query = supabase
       .from('student_detailed_grades')
       .select(`
@@ -160,33 +180,36 @@ export async function getDetailedGradesAction(
         class_id,
         component_type,
         grade_value,
-        notes,
         is_locked,
+        created_by,
         created_at,
-        student:profiles!student_detailed_grades_student_id_fkey(
+        updated_at,
+        student:profiles!student_id(
           full_name,
           student_id
         ),
-        subject:subjects!student_detailed_grades_subject_id_fkey(
+        subject:subjects!subject_id(
           name_vietnamese,
           code
         ),
-        class:classes!student_detailed_grades_class_id_fkey(
+        class:classes!class_id(
           name
         )
       `, { count: 'exact' })
       .eq('period_id', periodId)
       .order('created_at', { ascending: false })
 
-    console.log('Base query created for period:', periodId)
-
     // Apply filters
-    if (filters?.class_id) {
+    if (filters?.class_id && filters.class_id !== 'all') {
       query = query.eq('class_id', filters.class_id)
     }
 
-    if (filters?.subject_id) {
+    if (filters?.subject_id && filters.subject_id !== 'all') {
       query = query.eq('subject_id', filters.subject_id)
+    }
+
+    if (filters?.component_type && filters.component_type !== 'all') {
+      query = query.eq('component_type', filters.component_type)
     }
 
     if (filters?.student_search) {
@@ -203,22 +226,17 @@ export async function getDetailedGradesAction(
 
     const { data: grades, error, count } = await query
 
-    console.log('Query executed. Results:', {
-      gradesCount: grades?.length || 0,
-      totalCount: count,
-      error: error?.message
-    })
-
     if (error) {
       console.error('Database error:', error)
       throw new Error(error.message)
     }
 
-    console.log('Returning grades data:', grades)
+    // Data is already properly aliased, no transformation needed
+    const transformedGrades = grades || []
 
     return {
       success: true,
-      data: grades || [],
+      data: transformedGrades,
       count: count || 0,
       page,
       limit,
@@ -228,7 +246,9 @@ export async function getDetailedGradesAction(
     console.error('Error fetching detailed grades:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Không thể lấy danh sách điểm số'
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách điểm số',
+      data: [],
+      count: 0
     }
   }
 }
@@ -240,6 +260,14 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
     const validatedData = bulkDetailedGradeSchema.parse(formData)
     
     const supabase = createAdminClient()
+
+    console.log('bulkImportDetailedGradesAction called with:', {
+      period_id: validatedData.period_id,
+      class_id: validatedData.class_id,
+      subject_id: validatedData.subject_id,
+      grade_type: validatedData.grade_type,
+      gradesCount: validatedData.grades.length
+    })
 
     // Process each student's grades
     const gradeEntries = []
@@ -346,8 +374,13 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
         throw new Error(error.message)
       }
 
+      console.log(`Successfully imported ${gradeEntries.length} grade entries:`, grades?.length)
+
       revalidatePath('/dashboard/admin/grade-management')
-      
+      revalidatePath('/dashboard/admin/grade-management/view-grades')
+      revalidatePath('/dashboard/teacher/grade-reports')
+      revalidatePath('/dashboard/parent')
+
       return {
         success: true,
         data: grades,
@@ -372,7 +405,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
 export async function debugGradesAction() {
   try {
     await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Check total grades
     const { data: allGrades, count: totalGrades } = await supabase
@@ -385,9 +418,9 @@ export async function debugGradesAction() {
         class_id,
         component_type,
         grade_value,
-        student:profiles!student_detailed_grades_student_id_fkey(full_name, student_id),
-        subject:subjects!student_detailed_grades_subject_id_fkey(name_vietnamese, code),
-        class:classes!student_detailed_grades_class_id_fkey(name)
+        student:profiles!student_id(full_name, student_id),
+        subject:subjects!subject_id(name_vietnamese, code),
+        class:classes!class_id(name)
       `, { count: 'exact' })
       .limit(20)
 
@@ -423,6 +456,438 @@ export async function debugGradesAction() {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Debug failed'
+    }
+  }
+}
+
+// Update detailed grade action
+export async function updateDetailedGradeAction(data: {
+  grade_id: string
+  grade_value: number
+  notes?: string
+}) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    const { data: updatedGrade, error } = await supabase
+      .from('student_detailed_grades')
+      .update({
+        grade_value: data.grade_value,
+        notes: data.notes,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', data.grade_id)
+      .select(`
+        id,
+        period_id,
+        student_id,
+        subject_id,
+        class_id,
+        component_type,
+        grade_value,
+        notes,
+        is_locked,
+        created_at,
+        updated_at,
+        student:profiles!student_detailed_grades_student_id_fkey(
+          full_name,
+          student_id
+        ),
+        subject:subjects!student_detailed_grades_subject_id_fkey(
+          name_vietnamese,
+          code
+        ),
+        class:classes!student_detailed_grades_class_id_fkey(
+          name
+        )
+      `)
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-management/view-grades')
+    revalidatePath('/dashboard/teacher/grade-reports')
+    revalidatePath('/dashboard/parent')
+
+    return {
+      success: true,
+      data: updatedGrade,
+      message: 'Cập nhật điểm số thành công'
+    }
+  } catch (error) {
+    console.error('updateDetailedGradeAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể cập nhật điểm số'
+    }
+  }
+}
+
+// Check if all subjects are completed for a class in a period
+export async function checkClassGradeCompletionAction(
+  periodId: string,
+  classId: string
+) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Get all subjects that should have grades for this class
+    const { data: classSubjects, error: subjectsError } = await supabase
+      .from('class_subjects')
+      .select(`
+        subject_id,
+        subject:subjects!class_subjects_subject_id_fkey(
+          id,
+          name_vietnamese,
+          code
+        )
+      `)
+      .eq('class_id', classId)
+
+    if (subjectsError) {
+      throw new Error(subjectsError.message)
+    }
+
+    // Get all students in this class
+    const { data: classStudents, error: studentsError } = await supabase
+      .from('class_students')
+      .select('student_id')
+      .eq('class_id', classId)
+
+    if (studentsError) {
+      throw new Error(studentsError.message)
+    }
+
+    // Check completion for each subject
+    const completionStatus = []
+
+    for (const classSubject of classSubjects || []) {
+      const subjectId = classSubject.subject_id
+      const studentCount = classStudents?.length || 0
+
+      // Count how many students have grades for this subject
+      const { count: gradeCount } = await supabase
+        .from('student_detailed_grades')
+        .select('*', { count: 'exact', head: true })
+        .eq('period_id', periodId)
+        .eq('class_id', classId)
+        .eq('subject_id', subjectId)
+        .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
+
+      const isCompleted = (gradeCount || 0) >= studentCount
+
+      completionStatus.push({
+        subject_id: subjectId,
+        subject: classSubject.subject,
+        total_students: studentCount,
+        students_with_grades: gradeCount || 0,
+        is_completed: isCompleted,
+        completion_percentage: studentCount > 0 ? Math.round(((gradeCount || 0) / studentCount) * 100) : 0
+      })
+    }
+
+    const allCompleted = completionStatus.every(status => status.is_completed)
+    const overallCompletion = completionStatus.length > 0
+      ? Math.round(completionStatus.reduce((sum, status) => sum + status.completion_percentage, 0) / completionStatus.length)
+      : 0
+
+    return {
+      success: true,
+      data: {
+        class_id: classId,
+        period_id: periodId,
+        all_completed: allCompleted,
+        overall_completion: overallCompletion,
+        subjects: completionStatus
+      }
+    }
+  } catch (error) {
+    console.error('checkClassGradeCompletionAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể kiểm tra tình trạng hoàn thành điểm số'
+    }
+  }
+}
+
+// Send completed grades to homeroom teacher
+export async function sendGradesToHomeroomTeacherAction(
+  periodId: string,
+  classId: string
+) {
+  try {
+    const { userId } = await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // First check if grades are completed
+    const completionResult = await checkClassGradeCompletionAction(periodId, classId)
+    if (!completionResult.success || !completionResult.data?.all_completed) {
+      return {
+        success: false,
+        error: 'Chưa hoàn thành điểm số cho tất cả môn học của lớp này'
+      }
+    }
+
+    // Get homeroom teacher for this class
+    const { data: classInfo, error: classError } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        name,
+        homeroom_teacher_id,
+        homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `)
+      .eq('id', classId)
+      .single()
+
+    if (classError || !classInfo?.homeroom_teacher_id) {
+      throw new Error('Không tìm thấy giáo viên chủ nhiệm cho lớp này')
+    }
+
+    // Create grade submission record
+    const { data: submission, error: submissionError } = await supabase
+      .from('grade_submissions')
+      .insert({
+        period_id: periodId,
+        class_id: classId,
+        homeroom_teacher_id: classInfo.homeroom_teacher_id,
+        status: 'pending_review',
+        sent_by: userId,
+        sent_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (submissionError) {
+      throw new Error(submissionError.message)
+    }
+
+    // Create notification for homeroom teacher
+    await supabase
+      .from('notifications')
+      .insert({
+        user_id: classInfo.homeroom_teacher_id,
+        title: 'Bảng điểm mới cần xem xét',
+        message: `Bảng điểm lớp ${classInfo.name} đã được gửi để bạn xem xét và tạo phản hồi.`,
+        type: 'grade_review',
+        related_id: submission.id,
+        created_at: new Date().toISOString()
+      })
+
+    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/teacher/grade-reports')
+
+    // Extract teacher name safely
+    const teacherName = classInfo.homeroom_teacher && typeof classInfo.homeroom_teacher === 'object'
+      ? (classInfo.homeroom_teacher as { full_name?: string }).full_name || 'Giáo viên chủ nhiệm'
+      : 'Giáo viên chủ nhiệm'
+
+    return {
+      success: true,
+      data: submission,
+      message: `Đã gửi bảng điểm lớp ${classInfo.name} tới ${teacherName}`
+    }
+  } catch (error) {
+    console.error('sendGradesToHomeroomTeacherAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể gửi bảng điểm tới giáo viên chủ nhiệm'
+    }
+  }
+}
+
+// Generate AI feedback for class grades
+export async function generateAIFeedbackForGradesAction(
+  submissionId: string
+) {
+  try {
+    const supabase = createAdminClient()
+
+    // Get submission details
+    const { data: submission, error: submissionError } = await supabase
+      .from('grade_submissions')
+      .select(`
+        id,
+        period_id,
+        class_id,
+        homeroom_teacher_id,
+        status,
+        class:classes!grade_submissions_class_id_fkey(
+          name
+        ),
+        period:grade_reporting_periods!grade_submissions_period_id_fkey(
+          name,
+          start_date,
+          end_date
+        )
+      `)
+      .eq('id', submissionId)
+      .single()
+
+    if (submissionError || !submission) {
+      throw new Error('Không tìm thấy bảng điểm')
+    }
+
+    // Get all grades for this class and period
+    const { data: grades, error: gradesError } = await supabase
+      .from('student_detailed_grades')
+      .select(`
+        id,
+        component_type,
+        grade_value,
+        student:profiles!student_id(
+          full_name,
+          student_id
+        ),
+        subject:subjects!subject_id(
+          name_vietnamese,
+          code,
+          category
+        )
+      `)
+      .eq('period_id', submission.period_id)
+      .eq('class_id', submission.class_id)
+      .not('grade_value', 'is', null)
+      .order('student_id')
+
+    if (gradesError) {
+      throw new Error(gradesError.message)
+    }
+
+    if (!grades || grades.length === 0) {
+      throw new Error('Không có điểm số để tạo phản hồi')
+    }
+
+    // Group grades by student
+    const studentGrades: StudentGradesCollection = grades.reduce((acc, grade) => {
+      const student = Array.isArray(grade.student) ? grade.student[0] : grade.student
+      const studentId = student?.student_id || 'unknown'
+      const studentKey = studentId as string
+
+      if (!acc[studentKey]) {
+        acc[studentKey] = {
+          student: student,
+          subjects: {}
+        }
+      }
+
+      const subject = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+      const subjectCode = subject?.code || 'unknown'
+      const subjectKey = subjectCode as string
+
+      if (!acc[studentKey].subjects[subjectKey]) {
+        acc[studentKey].subjects[subjectKey] = {
+          subject: subject,
+          grades: []
+        }
+      }
+
+      acc[studentKey].subjects[subjectKey].grades.push({
+        component_type: grade.component_type,
+        grade_value: grade.grade_value
+      })
+
+      return acc
+    }, {} as StudentGradesCollection)
+
+    // Generate AI feedback
+    const genAI = new GoogleGenAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!
+    })
+
+    // Prepare data for AI analysis
+    const classStats = {
+      totalStudents: Object.keys(studentGrades).length,
+      totalSubjects: new Set(grades.map(g => {
+        const subject = Array.isArray(g.subject) ? g.subject[0] : g.subject
+        return subject?.code
+      })).size,
+      averageGrade: grades.reduce((sum, g) => sum + (g.grade_value || 0), 0) / grades.length,
+      gradeDistribution: grades.reduce((acc, g) => {
+        const grade = g.grade_value || 0
+        if (grade >= 8) acc.excellent++
+        else if (grade >= 6.5) acc.good++
+        else if (grade >= 5) acc.average++
+        else acc.poor++
+        return acc
+      }, { excellent: 0, good: 0, average: 0, poor: 0 })
+    }
+
+    // Extract class and period names safely
+    const className = submission.class && typeof submission.class === 'object'
+      ? (submission.class as { name?: string }).name || 'Lớp học'
+      : 'Lớp học'
+    const periodName = submission.period && typeof submission.period === 'object'
+      ? (submission.period as { name?: string }).name || 'Kỳ học'
+      : 'Kỳ học'
+
+    const prompt = `Bạn là một giáo viên chủ nhiệm có kinh nghiệm. Hãy tạo nhận xét tổng quan về kết quả học tập của lớp ${className} trong ${periodName}.
+
+THÔNG TIN LỚP HỌC:
+- Tổng số học sinh: ${classStats.totalStudents}
+- Số môn học: ${classStats.totalSubjects}
+- Điểm trung bình lớp: ${classStats.averageGrade.toFixed(2)}
+- Phân bố điểm:
+  + Giỏi (8.0-10): ${classStats.gradeDistribution.excellent} học sinh
+  + Khá (6.5-7.9): ${classStats.gradeDistribution.good} học sinh
+  + Trung bình (5.0-6.4): ${classStats.gradeDistribution.average} học sinh
+  + Yếu (<5.0): ${classStats.gradeDistribution.poor} học sinh
+
+YÊU CẦU:
+- Viết nhận xét tích cực, khuyến khích
+- Nêu điểm mạnh của lớp
+- Đưa ra gợi ý cải thiện nếu cần
+- Độ dài: 150-200 từ
+- Giọng điệu: Chuyên nghiệp, ấm áp của giáo viên
+- Kết thúc bằng lời động viên
+
+LƯU Ý: Đây là nhận xét được tạo bằng AI chỉ mang tính chất tham khảo, giáo viên có thể chỉnh sửa trước khi gửi phụ huynh.
+
+Nhận xét tổng quan về lớp:`
+
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.0-flash-001',
+      contents: prompt,
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 300,
+        topP: 0.9,
+        topK: 40
+      }
+    })
+
+    const aiFeedback = response.text?.trim()
+
+    if (!aiFeedback) {
+      throw new Error('Không thể tạo phản hồi AI')
+    }
+
+    // Add disclaimer
+    const feedbackWithDisclaimer = `${aiFeedback}\n\n---\n*Nhận xét này được tạo bằng AI chỉ mang tính chất tham khảo. Giáo viên có thể chỉnh sửa trước khi gửi phụ huynh.*`
+
+    return {
+      success: true,
+      data: {
+        ai_feedback: feedbackWithDisclaimer,
+        class_stats: classStats,
+        student_count: classStats.totalStudents
+      },
+      message: 'Tạo phản hồi AI thành công'
+    }
+  } catch (error) {
+    console.error('generateAIFeedbackForGradesAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể tạo phản hồi AI'
     }
   }
 }

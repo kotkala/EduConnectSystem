@@ -36,13 +36,45 @@ import { toast } from 'sonner'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
-  type GradeReportingPeriod,
-  type StudentGrade
+  type GradeReportingPeriod
 } from '@/lib/validations/grade-management-validations'
+import { type GradeComponentType } from '@/lib/validations/detailed-grade-validations'
 import { formatGradeValue, parseGradeInput } from '@/lib/utils/grade-excel-utils'
+
+// Component type display mapping
+const getComponentTypeDisplay = (componentType: string): string => {
+  const mapping: Record<string, string> = {
+    'regular_1': 'Điểm thường xuyên 1',
+    'regular_2': 'Điểm thường xuyên 2',
+    'regular_3': 'Điểm thường xuyên 3',
+    'regular_4': 'Điểm thường xuyên 4',
+    'midterm': 'Điểm giữa kỳ',
+    'final': 'Điểm cuối kỳ',
+    'semester_1': 'Điểm học kỳ 1',
+    'semester_2': 'Điểm học kỳ 2',
+    'yearly': 'Điểm cả năm'
+  }
+  return mapping[componentType] || componentType
+}
 
 interface GradeEditorProps {
   period: GradeReportingPeriod
+}
+
+interface DetailedGradeRecord {
+  id: string
+  period_id: string
+  student_id: string
+  subject_id: string
+  class_id: string
+  component_type: GradeComponentType
+  grade_value: number | null
+  notes?: string
+  is_locked: boolean
+  created_at: string
+  student?: { full_name: string; student_id: string }
+  subject?: { name_vietnamese: string; code: string }
+  class?: { name: string }
 }
 
 interface EditingGrade {
@@ -61,11 +93,12 @@ interface NewGradeEntry {
 }
 
 export function GradeEditor({ period }: GradeEditorProps) {
-  const [grades, setGrades] = useState<StudentGrade[]>([])
+  const [grades, setGrades] = useState<DetailedGradeRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedClass, setSelectedClass] = useState<string>('all')
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
+  const [selectedComponentType, setSelectedComponentType] = useState<string>('all')
   const [editingGrade, setEditingGrade] = useState<EditingGrade | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -103,19 +136,41 @@ export function GradeEditor({ period }: GradeEditorProps) {
     try {
       setLoading(true)
 
-      // Import the action function
-      const { getGradesForPeriodAction } = await import('@/lib/actions/grade-management-actions')
+      // DEBUG: Log current filter states
+      console.log('🔍 GradeEditor loadGrades called with filters:', {
+        period_id: period.id,
+        selectedClass,
+        selectedSubject,
+        selectedComponentType,
+        searchTerm
+      })
 
-      const result = await getGradesForPeriodAction(period.id, {
+      // Import the detailed grades action function
+      const { getDetailedGradesAction } = await import('@/lib/actions/detailed-grade-actions')
+
+      const filters = {
         class_id: selectedClass === 'all' ? undefined : selectedClass,
         subject_id: selectedSubject === 'all' ? undefined : selectedSubject,
+        component_type: selectedComponentType === 'all' ? undefined : selectedComponentType,
         student_search: searchTerm || undefined
+      }
+
+      console.log('🔍 Calling getDetailedGradesAction with filters:', filters)
+
+      const result = await getDetailedGradesAction(period.id, filters)
+
+      console.log('🔍 getDetailedGradesAction result:', {
+        success: result.success,
+        dataLength: result.data?.length || 0,
+        error: result.error,
+        sampleData: result.data?.[0]
       })
 
       if (result.success && result.data) {
-        setGrades(result.data as unknown as StudentGrade[])
+        console.log('✅ Setting grades data:', result.data.length, 'records')
+        setGrades(result.data as unknown as DetailedGradeRecord[])
       } else {
-        console.error('Error loading grades:', result.error)
+        console.error('❌ Error loading grades:', result.error)
         toast.error(result.error || 'Không thể tải danh sách điểm số')
         setGrades([])
       }
@@ -126,7 +181,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
     } finally {
       setLoading(false)
     }
-  }, [period.id, selectedClass, selectedSubject, searchTerm])
+  }, [period.id, selectedClass, selectedSubject, selectedComponentType, searchTerm])
 
   // Load dropdown data
   const loadDropdownData = useCallback(async () => {
@@ -154,13 +209,17 @@ export function GradeEditor({ period }: GradeEditorProps) {
       }
 
       if (subjectsResult.success && subjectsResult.data) {
-        setSubjects(subjectsResult.data as unknown as Array<{id: string; name_vietnamese: string; code: string}>)
+        const subjectData = subjectsResult.data as unknown as Array<{id: string; name_vietnamese: string; code: string}>
+        console.log('📖 Loaded subjects:', subjectData.map(s => ({id: s.id, name: s.name_vietnamese})))
+        setSubjects(subjectData)
       } else {
         toast.error(`Không thể tải danh sách môn học: ${subjectsResult.error}`)
       }
 
       if (classesResult.success && classesResult.data) {
-        setClasses(classesResult.data as unknown as Array<{id: string; name: string}>)
+        const classData = classesResult.data as unknown as Array<{id: string; name: string}>
+        console.log('📚 Loaded classes:', classData.map(c => ({id: c.id, name: c.name})))
+        setClasses(classData)
       } else {
         toast.error(`Không thể tải danh sách lớp học: ${classesResult.error}`)
       }
@@ -173,7 +232,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
   }, [])
 
   // Memoized edit grade handler
-  const handleEditGrade = useCallback((grade: StudentGrade) => {
+  const handleEditGrade = useCallback((grade: DetailedGradeRecord) => {
     if (!canEditGrades()) {
       toast.error("Đã hết hạn sửa điểm cho kỳ báo cáo này")
       return
@@ -181,7 +240,7 @@ export function GradeEditor({ period }: GradeEditorProps) {
 
     setEditingGrade({
       id: grade.id,
-      newValue: formatGradeValue(grade.grade_value),
+      newValue: grade.grade_value !== null ? formatGradeValue(grade.grade_value) : '',
       reason: ''
     })
     setShowEditDialog(true)
@@ -206,13 +265,13 @@ export function GradeEditor({ period }: GradeEditorProps) {
     try {
       setSaving(true)
 
-      // Import and call the real API
-      const { updateStudentGradeAction } = await import('@/lib/actions/grade-management-actions')
+      // Import and call the detailed grades API
+      const { updateDetailedGradeAction } = await import('@/lib/actions/detailed-grade-actions')
 
-      const result = await updateStudentGradeAction({
+      const result = await updateDetailedGradeAction({
         grade_id: editingGrade.id,
-        new_value: newGradeValue,
-        change_reason: editingGrade.reason
+        grade_value: newGradeValue,
+        notes: editingGrade.reason
       })
 
       if (result.success) {
@@ -235,19 +294,11 @@ export function GradeEditor({ period }: GradeEditorProps) {
     }
   }
 
-  // Memoized filtering for performance
+  // Server-side filtering handles all filters, so we just use the grades directly
   const filteredGrades = useMemo(() => {
-    return grades.filter(grade => {
-      const matchesSearch = !searchTerm ||
-        grade.student?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        grade.student?.student_id.toLowerCase().includes(searchTerm.toLowerCase())
-
-      const matchesClass = !selectedClass || selectedClass === 'all' || grade.class_id === selectedClass
-      const matchesSubject = !selectedSubject || selectedSubject === 'all' || grade.subject_id === selectedSubject
-
-      return matchesSearch && matchesClass && matchesSubject
-    })
-  }, [grades, searchTerm, selectedClass, selectedSubject])
+    console.log('📊 Using server-filtered grades directly:', grades.length, 'records')
+    return grades
+  }, [grades])
 
   // Memoized date formatting
   const formatDate = useCallback((dateString: string) => {
@@ -260,6 +311,18 @@ export function GradeEditor({ period }: GradeEditorProps) {
     })
   }, [])
 
+  // DEBUG: Track filter state changes
+  useEffect(() => {
+    console.log('🔄 Filter states changed:', {
+      selectedClass,
+      selectedSubject,
+      selectedComponentType,
+      searchTerm,
+      classesLoaded: classes.length,
+      subjectsLoaded: subjects.length
+    })
+  }, [selectedClass, selectedSubject, selectedComponentType, searchTerm, classes.length, subjects.length])
+
   useEffect(() => {
     loadGrades()
   }, [loadGrades])
@@ -267,6 +330,39 @@ export function GradeEditor({ period }: GradeEditorProps) {
   useEffect(() => {
     loadDropdownData()
   }, [loadDropdownData])
+
+  // DEBUG: Test direct query on component mount
+  useEffect(() => {
+    const testDirectQuery = async () => {
+      try {
+        console.log('🧪 Testing direct query...')
+        const { getDetailedGradesAction } = await import('@/lib/actions/detailed-grade-actions')
+
+        // Test with no filters first
+        const testResult = await getDetailedGradesAction(period.id, {})
+        console.log('🧪 Direct query test result (no filters):', {
+          success: testResult.success,
+          count: testResult.data?.length || 0,
+          error: testResult.error
+        })
+
+        // Test with known working IDs
+        const testWithFilters = await getDetailedGradesAction(period.id, {
+          class_id: '5eb54093-8ed6-4036-8b5e-74ecf0ed9ac3',
+          subject_id: 'cb4f9c11-03df-4369-973e-8d38ea664c20'
+        })
+        console.log('🧪 Direct query test result (with known IDs):', {
+          success: testWithFilters.success,
+          count: testWithFilters.data?.length || 0,
+          error: testWithFilters.error
+        })
+      } catch (error) {
+        console.error('🧪 Direct query test failed:', error)
+      }
+    }
+
+    testDirectQuery()
+  }, [period.id])
 
   // Download Excel template with borders
   const downloadExcelTemplate = useCallback(async () => {
@@ -422,24 +518,45 @@ export function GradeEditor({ period }: GradeEditorProps) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Lớp học</label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tất cả lớp" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả lớp</SelectItem>
-                  {classes.map((cls) => (
-                    <SelectItem key={cls.id} value={cls.id}>
-                      {cls.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={selectedClass} onValueChange={(value) => {
+                  console.log('🏫 Class selection changed:', value)
+                  setSelectedClass(value)
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tất cả lớp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả lớp</SelectItem>
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    console.log('🔄 Resetting all filters')
+                    setSelectedClass('all')
+                    setSelectedSubject('all')
+                    setSelectedComponentType('all')
+                    setSearchTerm('')
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Môn học</label>
-              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+              <Select value={selectedSubject} onValueChange={(value) => {
+                console.log('📚 Subject selection changed:', value)
+                setSelectedSubject(value)
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tất cả môn" />
                 </SelectTrigger>
@@ -450,6 +567,30 @@ export function GradeEditor({ period }: GradeEditorProps) {
                       {subject.name_vietnamese}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Loại điểm</label>
+              <Select value={selectedComponentType} onValueChange={(value) => {
+                console.log('📊 Component type selection changed:', value)
+                setSelectedComponentType(value)
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  <SelectItem value="regular_1">Điểm thường xuyên 1</SelectItem>
+                  <SelectItem value="regular_2">Điểm thường xuyên 2</SelectItem>
+                  <SelectItem value="regular_3">Điểm thường xuyên 3</SelectItem>
+                  <SelectItem value="regular_4">Điểm thường xuyên 4</SelectItem>
+                  <SelectItem value="midterm">Điểm giữa kỳ</SelectItem>
+                  <SelectItem value="final">Điểm cuối kỳ</SelectItem>
+                  <SelectItem value="semester_1">Điểm học kỳ 1</SelectItem>
+                  <SelectItem value="semester_2">Điểm học kỳ 2</SelectItem>
+                  <SelectItem value="yearly">Điểm cả năm</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -495,28 +636,26 @@ export function GradeEditor({ period }: GradeEditorProps) {
                   <TableRow key={grade.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{grade.student?.full_name}</div>
+                        <div className="font-medium">{grade.student?.full_name || 'N/A'}</div>
                         <div className="text-sm text-muted-foreground">
-                          {grade.student?.student_id}
+                          {grade.student?.student_id || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{grade.class?.name}</TableCell>
-                    <TableCell>{grade.subject?.name_vietnamese}</TableCell>
+                    <TableCell>{grade.class?.name || 'N/A'}</TableCell>
+                    <TableCell>{grade.subject?.name_vietnamese || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {grade.grade_type === 'semester1' && 'Cuối học kỳ 1'}
-                        {grade.grade_type === 'semester2' && 'Cuối học kỳ 2'}
-                        {grade.grade_type === 'full_year' && 'Cả năm học'}
+                        {getComponentTypeDisplay(grade.component_type)}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium text-lg">
-                        {formatGradeValue(grade.grade_value)}
+                        {grade.grade_value !== null ? formatGradeValue(grade.grade_value) : 'Chưa có điểm'}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(grade.updated_at)}
+                      {new Date(grade.created_at).toLocaleDateString('vi-VN')}
                     </TableCell>
                     <TableCell>
                       <Button

@@ -378,15 +378,15 @@ export async function getGradesForPeriodAction(
         notes,
         is_locked,
         created_at,
-        student:profiles!student_grades_student_id_fkey!inner(
+        student:profiles!student_id(
           full_name,
           student_id
         ),
-        subject:subjects!student_grades_subject_id_fkey!inner(
+        subject:subjects!subject_id(
           name_vietnamese,
           code
         ),
-        class:classes!student_grades_class_id_fkey!inner(
+        class:classes!class_id(
           name
         )
       `, { count: 'exact' })
@@ -991,15 +991,15 @@ export async function getGradeAuditLogsAction(filters?: {
           created_by,
           created_at,
           updated_at,
-          student:profiles!student_grades_student_id_fkey!inner(
+          student:profiles!student_id(
             full_name,
             student_id
           ),
-          subject:subjects!student_grades_subject_id_fkey!inner(
+          subject:subjects!subject_id(
             name_vietnamese,
             code
           ),
-          class:classes!student_grades_class_id_fkey!inner(
+          class:classes!class_id(
             name
           )
         )

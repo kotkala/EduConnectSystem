@@ -4,8 +4,20 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { debugGradesAction } from '@/lib/actions/detailed-grade-actions'
 
+interface DebugData {
+  success: boolean
+  data?: {
+    totalGrades: number | null
+    sampleGrades: unknown[] | null
+    periods: unknown[] | null
+    musicSubject: unknown[] | null
+    class10A2: unknown[] | null
+  }
+  error?: string
+}
+
 export default function DebugGradesPage() {
-  const [debugData, setDebugData] = useState<any>(null)
+  const [debugData, setDebugData] = useState<DebugData | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleDebug = async () => {
@@ -15,7 +27,7 @@ export default function DebugGradesPage() {
       setDebugData(result)
     } catch (error) {
       console.error('Debug error:', error)
-      setDebugData({ error: 'Failed to debug' })
+      setDebugData({ success: false, error: 'Failed to debug' })
     } finally {
       setLoading(false)
     }

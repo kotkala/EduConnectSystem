@@ -159,6 +159,7 @@ export async function getDetailedGradesAction(
     subject_id?: string
     component_type?: string
     student_search?: string
+    student_id?: string
     page?: number
     limit?: number
   }
@@ -214,6 +215,10 @@ export async function getDetailedGradesAction(
 
     if (filters?.student_search) {
       query = query.or(`student.full_name.ilike.%${filters.student_search}%,student.student_id.ilike.%${filters.student_search}%`)
+    }
+
+    if (filters?.student_id) {
+      query = query.eq('student_id', filters.student_id)
     }
 
     // Apply pagination

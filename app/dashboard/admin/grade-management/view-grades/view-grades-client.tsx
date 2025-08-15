@@ -2,19 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Filter, Download, Eye, Calendar, Users, BookOpen, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+
 import {
   Select,
   SelectContent,
@@ -35,6 +29,7 @@ import { formatGradeValue } from '@/lib/utils/grade-excel-utils'
 
 interface GradeRecord {
   id: string
+  student_id: string
   grade_value: number
   component_type: string
   is_locked: boolean
@@ -54,6 +49,19 @@ interface GradeRecord {
   }
 }
 
+interface StudentRecord {
+  id: string
+  full_name: string
+  student_id: string
+  class_name: string
+  total_grades: number
+  subjects: Array<{
+    id: string
+    name_vietnamese: string
+    code: string
+  }>
+}
+
 // Component type mapping for user-friendly display
 const getComponentTypeDisplay = (componentType: string): string => {
   const mapping: Record<string, string> = {
@@ -70,21 +78,7 @@ const getComponentTypeDisplay = (componentType: string): string => {
   return mapping[componentType] || componentType
 }
 
-// Component type color mapping
-const getComponentTypeColor = (componentType: string): string => {
-  const colorMapping: Record<string, string> = {
-    'regular_1': 'bg-blue-100 text-blue-800',
-    'regular_2': 'bg-blue-100 text-blue-800',
-    'regular_3': 'bg-blue-100 text-blue-800',
-    'regular_4': 'bg-blue-100 text-blue-800',
-    'midterm': 'bg-orange-100 text-orange-800',
-    'final': 'bg-red-100 text-red-800',
-    'semester_1': 'bg-green-100 text-green-800',
-    'semester_2': 'bg-green-100 text-green-800',
-    'yearly': 'bg-purple-100 text-purple-800'
-  }
-  return colorMapping[componentType] || 'bg-gray-100 text-gray-800'
-}
+
 
 interface GradeReportingPeriod {
   id: string
@@ -98,6 +92,7 @@ interface GradeReportingPeriod {
 
 export function ViewGradesClient() {
   const [grades, setGrades] = useState<GradeRecord[]>([])
+  const [studentList, setStudentList] = useState<StudentRecord[]>([])
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
   const [subjects, setSubjects] = useState<Array<{id: string, name_vietnamese: string, code: string}>>([])
@@ -156,6 +151,7 @@ export function ViewGradesClient() {
   const loadGrades = useCallback(async () => {
     if (selectedPeriod === 'all') {
       setGrades([])
+      setStudentList([])
       setTotalRecords(0)
       setTotalPages(1)
       return
@@ -176,13 +172,48 @@ export function ViewGradesClient() {
       const result = await getDetailedGradesAction(selectedPeriod, filters)
 
       if (result.success && result.data) {
-        setGrades(result.data as unknown as GradeRecord[])
+        const gradeData = result.data as unknown as GradeRecord[]
+        setGrades(gradeData)
         setTotalRecords(result.count || 0)
         setTotalPages(Math.ceil((result.count || 0) / limit))
+
+        // Transform grades into student records
+        const studentMap = new Map<string, StudentRecord>()
+
+        gradeData.forEach((grade) => {
+          const studentUUID = grade.student_id
+          const studentDisplayId = grade.student.student_id
+          if (!studentMap.has(studentUUID)) {
+            studentMap.set(studentUUID, {
+              id: studentUUID, // Use the actual UUID for the link
+              full_name: grade.student.full_name,
+              student_id: studentDisplayId, // Display ID like "SU002"
+              class_name: grade.class.name,
+              total_grades: 0,
+              subjects: []
+            })
+          }
+
+          const student = studentMap.get(studentUUID)!
+          student.total_grades++
+
+          // Add subject if not already added
+          const subjectExists = student.subjects.some(s => s.code === grade.subject.code)
+          if (!subjectExists) {
+            student.subjects.push({
+              id: grade.subject.code, // Using code as ID since we don't have subject ID
+              name_vietnamese: grade.subject.name_vietnamese,
+              code: grade.subject.code
+            })
+          }
+        })
+
+        setStudentList(Array.from(studentMap.values()))
       } else {
         console.error('Error loading grades:', result.error)
         toast.error(result.error || 'Không thể tải danh sách điểm số')
         setGrades([])
+        setStudentList([])
         setTotalRecords(0)
         setTotalPages(1)
       }
@@ -190,6 +221,7 @@ export function ViewGradesClient() {
       console.error('Error loading grades:', error)
       toast.error('Không thể tải danh sách điểm số')
       setGrades([])
+      setStudentList([])
       setTotalRecords(0)
       setTotalPages(1)
       setHasError(true)
@@ -215,16 +247,7 @@ export function ViewGradesClient() {
 
 
 
-  // Format date for display
-  const formatDate = useCallback((dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }, [])
+
 
 
 
@@ -576,69 +599,66 @@ export function ViewGradesClient() {
               <LoadingSpinner size="lg" />
               <span className="ml-2 text-muted-foreground">Đang tải điểm số...</span>
             </div>
-          ) : grades.length === 0 ? (
+          ) : studentList.length === 0 ? (
             <EmptyState
               icon={Eye}
-              title="Không có điểm số"
-              description="Không tìm thấy điểm số nào phù hợp với bộ lọc đã chọn"
+              title="Không có học sinh"
+              description="Không tìm thấy học sinh nào phù hợp với bộ lọc đã chọn"
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Học sinh</TableHead>
-                  <TableHead>Lớp</TableHead>
-                  <TableHead>Môn học</TableHead>
-                  <TableHead>Loại điểm</TableHead>
-                  <TableHead>Điểm số</TableHead>
-                  <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {grades.map((grade) => (
-                  <TableRow key={grade.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{grade.student?.full_name || 'N/A'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {grade.student?.student_id || 'N/A'}
+            <div className="space-y-4">
+              {studentList.map((student) => (
+                <Card key={student.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold text-lg">
+                              {student.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {student.full_name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Mã HS: {student.student_id} • Lớp: {student.class_name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              {student.total_grades} điểm
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {student.subjects.length} môn
+                            </Badge>
+                            {student.subjects.slice(0, 3).map(subject => (
+                              <Badge key={subject.id} variant="secondary" className="text-xs">
+                                {subject.code}
+                              </Badge>
+                            ))}
+                            {student.subjects.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{student.subjects.length - 3}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{grade.class?.name || 'N/A'}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{grade.subject?.name_vietnamese || 'N/A'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {grade.subject?.code || 'N/A'}
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <Link href={`/dashboard/admin/grade-management/student/${student.id}`}>
+                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            Xem điểm
+                          </Button>
+                        </Link>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={getComponentTypeColor(grade.component_type)}>
-                        {getComponentTypeDisplay(grade.component_type)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-lg">
-                        {formatGradeValue(grade.grade_value)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(grade.created_at)}
-                    </TableCell>
-                    <TableCell>
-                      {grade.is_locked ? (
-                        <Badge variant="secondary">Đã khóa</Badge>
-                      ) : (
-                        <Badge variant="default">Có thể sửa</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

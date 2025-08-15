@@ -31,12 +31,12 @@ export function GradeManagementClient() {
   const [activeTab, setActiveTab] = useState('periods')
 
 
-  // Load grade reporting periods
-  const loadPeriods = async () => {
+  // Load grade reporting periods - Memoized to prevent unnecessary re-renders
+  const loadPeriods = useCallback(async () => {
     try {
       setLoading(true)
       const result = await getGradeReportingPeriodsAction()
-      
+
       if (result.success) {
         setPeriods((result.data || []) as unknown as GradeReportingPeriod[])
       } else {
@@ -47,15 +47,15 @@ export function GradeManagementClient() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  // Handle delete period
-  const handleDeletePeriod = async () => {
+  // Handle delete period - Memoized to prevent unnecessary re-renders
+  const handleDeletePeriod = useCallback(async () => {
     if (!selectedPeriod) return
 
     try {
       const result = await deleteGradeReportingPeriodAction(selectedPeriod.id)
-      
+
       if (result.success) {
         toast.success(result.message)
         await loadPeriods()
@@ -68,7 +68,7 @@ export function GradeManagementClient() {
       setShowDeleteDialog(false)
       setSelectedPeriod(null)
     }
-  }
+  }, [selectedPeriod, loadPeriods])
 
   // Check if period allows operations
   const canImportGrades = useCallback((period: GradeReportingPeriod) => {
@@ -137,7 +137,7 @@ export function GradeManagementClient() {
 
   useEffect(() => {
     loadPeriods()
-  }, [])
+  }, [loadPeriods])
 
   if (loading) {
     return (

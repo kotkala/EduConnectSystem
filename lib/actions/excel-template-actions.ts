@@ -87,14 +87,14 @@ export async function generateGradeTemplateAction(params: {
     const gradeTypeMap: Record<string, string> = {
       'semester1': 'Cuối học kỳ 1',
       'semester2': 'Cuối học kỳ 2',
-      'full_year': 'Cả năm học'
+      'yearly': 'Cả năm học'
     }
 
     // Prepare data for template generation
     const templateData = {
       className: classInfo.name,
       subjectName: subjectInfo.name_vietnamese,
-      gradeType: gradeTypeMap[params.grade_type] || params.grade_type
+      gradeType: params.grade_type // Keep original English value for column structure logic
     }
 
     const studentData = validStudents.map(assignment => {

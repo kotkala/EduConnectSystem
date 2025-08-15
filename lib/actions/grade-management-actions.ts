@@ -115,20 +115,13 @@ export async function getGradeReportingPeriodsAction(filters?: Partial<GradeFilt
       .select(`
         id,
         name,
-        academic_year_id,
-        semester_id,
         start_date,
         end_date,
         import_deadline,
         edit_deadline,
-        description,
         is_active,
-        created_by,
-        created_at,
-        updated_at,
         academic_year:academic_years!inner(name),
-        semester:semesters!inner(name),
-        created_by_profile:profiles!created_by!inner(full_name)
+        semester:semesters!inner(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 
@@ -871,7 +864,6 @@ export async function bulkImportGradesAction(importData: {
         .select('id, student_id')
         .in('student_id', batch)
         .eq('role', 'student')
-        .eq('is_active', true)
 
       if (studentError) {
         throw new Error(`Không thể tìm thấy học sinh: ${studentError.message}`)

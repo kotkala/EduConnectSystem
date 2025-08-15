@@ -855,19 +855,20 @@ export async function generateStudentReportsAction(reportPeriodId: string) {
   }
 }
 
-// Interface for parent data
-interface ParentProfile {
-  email: string
-  full_name: string
-}
+// Interface for parent data (currently unused but kept for future implementation)
+// interface ParentProfile {
+//   email: string
+//   full_name: string
+// }
 
-// Send reminder emails to parents to check their children's reports
-// TODO: Fix TypeScript issues with Supabase relations
+
 export async function sendParentRemindersAction(reportPeriodId: string) {
   try {
     await checkAdminPermissions()
 
+    // TODO: Implement parent reminder functionality using reportPeriodId
     // Temporarily disabled due to TypeScript issues
+    console.log('Report period ID:', reportPeriodId)
     return {
       success: true,
       data: {

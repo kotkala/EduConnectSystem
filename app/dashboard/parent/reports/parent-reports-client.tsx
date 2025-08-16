@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { usePageTransition } from '@/components/ui/global-loading-provider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -57,7 +58,10 @@ interface ReportPeriodOption {
 }
 
 export default function ParentReportsClient() {
-  const [loading, setLoading] = useState(true)
+  // 🚀 MIGRATION: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  // 🧹 CLEANUP: Removed unused coordinatedLoading
+  
   const [notifications, setNotifications] = useState<ParentReportNotification[]>([])
   const [selectedStudent, setSelectedStudent] = useState<string>('all')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
@@ -67,7 +71,11 @@ export default function ParentReportsClient() {
     agreement_status: '',
     comments: ''
   })
-  const [submitting, setSubmitting] = useState(false)
+  
+  // 📊 Keep minimal loading state for specific actions only
+  const [sectionLoading, setSectionLoading] = useState({
+    submitting: false, // For form submissions (non-blocking)
+  })
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState({
     page: 1,
@@ -123,7 +131,7 @@ export default function ParentReportsClient() {
   // Load notifications with pagination and error handling
   const loadNotifications = useCallback(async (page: number = 1) => {
     try {
-      setLoading(true)
+      startPageTransition("Đang tải báo cáo...")
       setError(null)
 
       const result = await getParentReportNotificationsAction(page, pagination.limit)
@@ -140,9 +148,9 @@ export default function ParentReportsClient() {
       console.error('Error loading notifications:', error)
       setError('Có lỗi xảy ra khi tải báo cáo')
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [pagination.limit])
+  }, [pagination.limit, startPageTransition, stopLoading])
 
   // Load data on component mount
   useEffect(() => {
@@ -184,7 +192,7 @@ export default function ParentReportsClient() {
     }
 
     try {
-      setSubmitting(true)
+      setSectionLoading(prev => ({ ...prev, submitting: true }))
       
       const result = await submitParentResponseAction({
         student_report_id: selectedReport.student_report_id,
@@ -220,7 +228,7 @@ export default function ParentReportsClient() {
       console.error('Error submitting response:', error)
       toast.error('Có lỗi xảy ra khi gửi phản hồi')
     } finally {
-      setSubmitting(false)
+      setSectionLoading(prev => ({ ...prev, submitting: false }))
     }
   }, [selectedReport, responseForm])
 
@@ -233,14 +241,7 @@ export default function ParentReportsClient() {
     })
   }, [])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Đang tải báo cáo...</span>
-      </div>
-    )
-  }
+  // 🧹 CLEANUP: Removed loading state check - now handled by global system
 
   if (error) {
     return (
@@ -413,7 +414,7 @@ export default function ParentReportsClient() {
         responseForm={responseForm}
         setResponseForm={setResponseForm}
         onSubmit={handleSubmitResponse}
-        submitting={submitting}
+        submitting={sectionLoading.submitting}
         selectedReport={selectedReport}
       />
     </div>

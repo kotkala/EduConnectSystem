@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Download, Send, Users, FileText, Mail, Eye, Sparkles, Save } from 'lucide-react'
 import { toast } from 'sonner'
+// 🚀 MIGRATION: Add coordinated loading system
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 
 // Helper function to render summaries content
 function renderSummariesContent(
@@ -173,16 +175,23 @@ interface StudentSubmission {
 }
 
 export default function TeacherGradeReportsClient() {
-  const [loading, setLoading] = useState(false)
+  // 🚀 MIGRATION: Replace loading state with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [summaries, setSummaries] = useState<ClassGradeSummary[]>([])
   const [selectedSummary, setSelectedSummary] = useState<ClassGradeSummary | null>(null)
   const [submissions, setSubmissions] = useState<StudentSubmission[]>([])
+  
+  // 📊 Keep complex loading states for section-specific loading (non-blocking)
   const [loadingStates, setLoadingStates] = useState({
     summaries: false,
     details: false,
     sendingToParent: false,
     sendingToAllParents: false
   })
+  
+  // Keep action-specific loading states
   const [viewingStudent, setViewingStudent] = useState<StudentSubmission | null>(null)
   const [studentGradeData, setStudentGradeData] = useState<StudentGradeData | null>(null)
   const [aiFeedback, setAiFeedback] = useState<string>('')
@@ -191,10 +200,19 @@ export default function TeacherGradeReportsClient() {
 
   useEffect(() => {
     loadSummaries()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Don't add loadSummaries to deps to avoid infinite loop
 
   const loadSummaries = async () => {
-    setLoadingStates(prev => ({ ...prev, summaries: true }))
+    // 🎯 UX IMPROVEMENT: Use global loading for initial load, section loading for refreshes
+    const isInitialLoad = summaries.length === 0
+    
+    if (isInitialLoad) {
+      startPageTransition("Đang tải danh sách bảng điểm...")
+    } else {
+      setLoadingStates(prev => ({ ...prev, summaries: true }))
+    }
+    
     try {
       const result = await getClassGradeSummariesAction()
       if (result.success) {
@@ -205,7 +223,11 @@ export default function TeacherGradeReportsClient() {
     } catch {
       toast.error("Có lỗi xảy ra khi tải danh sách bảng điểm")
     } finally {
-      setLoadingStates(prev => ({ ...prev, summaries: false }))
+      if (isInitialLoad) {
+        stopLoading()
+      } else {
+        setLoadingStates(prev => ({ ...prev, summaries: false }))
+      }
     }
   }
 
@@ -229,7 +251,8 @@ export default function TeacherGradeReportsClient() {
   const handleDownloadClassExcel = async () => {
     if (!selectedSummary || submissions.length === 0) return
 
-    setLoading(true)
+    // 🎯 UX IMPROVEMENT: Use page transition for Excel download
+    startPageTransition("Đang tạo file Excel...")
     try {
       // Prepare data for Excel export
       const studentsData: StudentGradeData[] = submissions.map(submission => {
@@ -277,7 +300,7 @@ export default function TeacherGradeReportsClient() {
     } catch {
       toast.error("Có lỗi xảy ra khi tải file Excel")
     } finally {
-      setLoading(false)
+      stopLoading()
     }
   }
 
@@ -454,7 +477,7 @@ export default function TeacherGradeReportsClient() {
               <div className="flex gap-2">
                 <Button
                   onClick={handleDownloadClassExcel}
-                  disabled={loading || submissions.length === 0}
+                  disabled={coordinatedLoading.isLoading || submissions.length === 0}
                   variant="outline"
                   className="flex items-center gap-2"
                 >

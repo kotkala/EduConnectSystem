@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useCoordinatedLoading, usePageTransition } from '@/components/ui/global-loading-provider'
 import { Button } from '@/components/ui/button'
 import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Users, Eye, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -194,20 +195,25 @@ function StudentGroup({ student, submissions, selectedSubmissionId, loading, onS
 }
 
 export default function ParentGradesClient() {
-  const [loading, setLoading] = useState(false)
+  // 🚀 MIGRATION: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [submissions, setSubmissions] = useState<GradeSubmission[]>([])
   const [selectedSubmission, setSelectedSubmission] = useState<GradeSubmission | null>(null)
   const [gradeStats, setGradeStats] = useState<GradeStats | null>(null)
-  const [loadingStates, setLoadingStates] = useState({
-    submissions: false,
-    details: false,
-    stats: false
+  
+  // 📊 Keep minimal loading state for specific sections only
+  const [sectionLoading, setSectionLoading] = useState({
+    details: false, // For non-blocking detail loading
+    stats: false    // For secondary stats loading
   })
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [viewingSubmission, setViewingSubmission] = useState<GradeSubmission | null>(null)
 
   const loadGradeReports = useCallback(async () => {
-    setLoadingStates(prev => ({ ...prev, submissions: true }))
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải bảng điểm của con...")
     try {
       const result = await getChildrenGradeReportsAction()
       if (result.success) {
@@ -218,9 +224,9 @@ export default function ParentGradesClient() {
     } catch {
       toast.error("Có lỗi xảy ra khi tải bảng điểm")
     } finally {
-      setLoadingStates(prev => ({ ...prev, submissions: false }))
+      stopLoading()
     }
-  }, [])
+  }, [startPageTransition, stopLoading])
 
   useEffect(() => {
     loadGradeReports()
@@ -245,7 +251,7 @@ export default function ParentGradesClient() {
   }, [submissions])
 
   const loadSubmissionDetails = useCallback(async (submission: GradeSubmission) => {
-    setLoadingStates(prev => ({ ...prev, details: true, stats: true }))
+    setSectionLoading(prev => ({ ...prev, details: true, stats: true }))
     try {
       // Load detailed submission
       const detailResult = await getStudentGradeDetailAction(submission.id)
@@ -261,7 +267,7 @@ export default function ParentGradesClient() {
     } catch {
       toast.error("Có lỗi xảy ra khi tải chi tiết bảng điểm")
     } finally {
-      setLoadingStates(prev => ({ ...prev, details: false, stats: false }))
+      setSectionLoading(prev => ({ ...prev, details: false, stats: false }))
     }
   }, [])
 
@@ -276,7 +282,7 @@ export default function ParentGradesClient() {
   }, [])
 
   const handleDownloadExcel = useCallback(async (submission: GradeSubmission) => {
-    setLoading(true)
+    startPageTransition("Đang tải dữ liệu...")
     try {
       // Prepare data for Excel export
       const subjects = submission.grades.map(grade => ({
@@ -308,7 +314,7 @@ export default function ParentGradesClient() {
     } catch {
       toast.error("Có lỗi xảy ra khi tải file Excel")
     } finally {
-      setLoading(false)
+      stopLoading()
     }
   }, [])
 
@@ -354,7 +360,7 @@ export default function ParentGradesClient() {
           {/* Main Content */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
             {(() => {
-              if (loadingStates.submissions) {
+              if (coordinatedLoading.isLoading && submissions.length === 0) {
                 return (
                   <div className="flex flex-col items-center justify-center py-16">
                     <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
@@ -383,7 +389,7 @@ export default function ParentGradesClient() {
                   student={student}
                   submissions={studentSubmissions}
                   selectedSubmissionId={selectedSubmission?.id || null}
-                  loading={loading}
+                  loading={coordinatedLoading.isLoading}
                   onSelectSubmission={loadSubmissionDetails}
                   onDownloadSubmission={handleDownloadExcel}
                   onViewSubmission={handleViewSubmission}
@@ -487,7 +493,7 @@ export default function ParentGradesClient() {
                 </p>
               </div>
             </div>
-              {loadingStates.details ? (
+              {sectionLoading.details ? (
                 <div className="text-center py-8">Đang tải chi tiết...</div>
               ) : (
                 <div className="space-y-3">

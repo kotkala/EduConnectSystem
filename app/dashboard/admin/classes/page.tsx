@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useCoordinatedLoading, usePageTransition } from '@/components/ui/global-loading-provider'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -24,9 +25,12 @@ interface SimpleTeacher {
 }
 
 export default function ClassManagementPage() {
+  // 🚀 MIGRATION: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   // Classes State
   const [classes, setClasses] = useState<ClassWithDetails[]>([])
-  const [classesLoading, setClassesLoading] = useState(true)
   const [classesError, setClassesError] = useState<string | null>(null)
   const [classesTotal, setClassesTotal] = useState(0)
   const [classesPage, setClassesPage] = useState(1)
@@ -42,7 +46,8 @@ export default function ClassManagementPage() {
 
   // Fetch Classes
   const fetchClasses = useCallback(async () => {
-    setClassesLoading(true)
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải danh sách lớp học...")
     setClassesError(null)
 
     try {
@@ -62,9 +67,9 @@ export default function ClassManagementPage() {
       setClassesError(errorMessage)
       console.error("Classes fetch exception:", err)
     } finally {
-      setClassesLoading(false)
+      stopLoading()
     }
-  }, [classesFilters])
+  }, [classesFilters, startPageTransition, stopLoading])
 
   // Fetch Form Data with optimized loading
   const fetchFormData = useCallback(async () => {
@@ -138,7 +143,7 @@ export default function ClassManagementPage() {
     }
   }, [classes])
 
-  if (classesLoading && classes.length === 0) {
+  if (coordinatedLoading.isLoading && classes.length === 0) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center justify-center h-64">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useCoordinatedLoading, usePageTransition } from '@/components/ui/global-loading-provider'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -139,42 +140,7 @@ function getBadgeVariant(averageGrade: number): 'default' | 'secondary' | 'outli
   return 'outline'
 }
 
-// Helper function to create a generic data loader
-function createDataLoader<T>(
-  setData: (data: T) => void,
-  setLoadingState: (key: string, loading: boolean) => void,
-  loadingKey: string,
-  errorMessage: string
-) {
-  return async (apiCall: () => Promise<{ success: boolean; data?: unknown; error?: string }>) => {
-    setLoadingState(loadingKey, true);
-    try {
-      const result = await apiCall();
-      if (result.success && result.data) {
-        setData(result.data as T);
-      } else {
-        toast.error(result.error || errorMessage);
-      }
-    } catch {
-      toast.error(`Có lỗi xảy ra khi ${errorMessage.toLowerCase()}`);
-    } finally {
-      setLoadingState(loadingKey, false);
-    }
-  };
-}
-
-// Helper function to update loading states
-function createLoadingStateUpdater(setLoadingStates: React.Dispatch<React.SetStateAction<{
-  overall: boolean;
-  distribution: boolean;
-  classes: boolean;
-  subjects: boolean;
-  trends: boolean;
-}>>) {
-  return (key: string, loading: boolean) => {
-    setLoadingStates((prev) => ({ ...prev, [key]: loading }));
-  };
-}
+// 🧹 CLEANUP: Removed unused createDataLoader helper function
 
 // Statistics Cards Component
 function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats | null }) {
@@ -224,62 +190,23 @@ function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats
 }
 
 export default function AnalyticsClient() {
-  const [loading, setLoading] = useState(false)
+  // 🚀 MIGRATION: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [overallStats, setOverallStats] = useState<OverallStats | null>(null)
   const [gradeDistribution, setGradeDistribution] = useState<GradeDistribution[]>([])
   const [classPerformance, setClassPerformance] = useState<ClassPerformance[]>([])
   const [subjectAnalysis, setSubjectAnalysis] = useState<SubjectAnalysis[]>([])
   const [trendData, setTrendData] = useState<TrendData[]>([])
-  const [loadingStates, setLoadingStates] = useState({
-    overall: false,
-    distribution: false,
-    classes: false,
-    subjects: false,
-    trends: false
-  })
+  
+  // 🧹 CLEANUP: Removed unused sectionLoading state
   const [lastFetch, setLastFetch] = useState<number>(0)
 
   // Cache duration: 5 minutes
   const CACHE_DURATION = 5 * 60 * 1000
 
-  // Create loading state updater
-  const updateLoadingState = createLoadingStateUpdater(setLoadingStates)
-
-  // Create data loaders
-  const loadOverallStats = createDataLoader(
-    setOverallStats,
-    updateLoadingState,
-    'overall',
-    'Không thể tải thống kê tổng quan'
-  )
-
-  const loadGradeDistribution = createDataLoader(
-    setGradeDistribution,
-    updateLoadingState,
-    'distribution',
-    'Không thể tải phân bố điểm'
-  )
-
-  const loadClassPerformance = createDataLoader(
-    setClassPerformance,
-    updateLoadingState,
-    'classes',
-    'Không thể tải hiệu suất lớp'
-  )
-
-  const loadSubjectAnalysis = createDataLoader(
-    setSubjectAnalysis,
-    updateLoadingState,
-    'subjects',
-    'Không thể tải phân tích môn học'
-  )
-
-  const loadTrendAnalysis = createDataLoader(
-    setTrendData,
-    updateLoadingState,
-    'trends',
-    'Không thể tải xu hướng điểm'
-  )
+  // 🧹 CLEANUP: Removed old createDataLoader pattern - now using direct API calls
 
   const loadAllAnalytics = useCallback(async (forceRefresh = false) => {
     // Check cache validity
@@ -290,28 +217,46 @@ export default function AnalyticsClient() {
       return // Use cached data
     }
 
-    setLoading(true)
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải phân tích dữ liệu học tập...")
+    
     try {
-      // Load critical data first (overall stats and distribution)
-      await Promise.all([
-        loadOverallStats(getOverallGradeStatsAction),
-        loadGradeDistribution(getGradeDistributionAction)
+      // 🚀 PERFORMANCE: Load critical data first
+      const [statsResult, distributionResult] = await Promise.all([
+        getOverallGradeStatsAction(),
+        getGradeDistributionAction()
       ])
 
-      // Load secondary data with slight delay to improve perceived performance
+      // Update critical data immediately
+      if (statsResult.success) setOverallStats(statsResult.data)
+      if (distributionResult.success) setGradeDistribution(distributionResult.data)
+
+            // 📊 Load secondary data without blocking UI (asynchronous)
       setTimeout(async () => {
-        await Promise.all([
-          loadClassPerformance(getClassPerformanceAction),
-          loadSubjectAnalysis(getSubjectAnalysisAction),
-          loadTrendAnalysis(getTrendAnalysisAction)
-        ])
+        try {
+          const [classResult, subjectResult, trendResult] = await Promise.all([
+            getClassPerformanceAction(),
+            getSubjectAnalysisAction(), 
+            getTrendAnalysisAction()
+          ])
+
+          if (classResult.success && classResult.data) setClassPerformance(classResult.data)
+          if (subjectResult.success && subjectResult.data) setSubjectAnalysis(subjectResult.data)
+          if (trendResult.success && trendResult.data) setTrendData(trendResult.data)
+        } catch (error) {
+          console.error('Secondary data loading failed:', error)
+          toast.error("Một số dữ liệu phụ không tải được")
+        }
       }, 100)
 
       setLastFetch(now)
+    } catch (error) {
+      console.error('Analytics loading failed:', error)
+      toast.error("Không thể tải dữ liệu phân tích")
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [loadOverallStats, loadGradeDistribution, loadClassPerformance, loadSubjectAnalysis, loadTrendAnalysis, lastFetch, overallStats, CACHE_DURATION])
+  }, [startPageTransition, stopLoading, lastFetch, overallStats, CACHE_DURATION])
 
   useEffect(() => {
     loadAllAnalytics()
@@ -340,7 +285,7 @@ export default function AnalyticsClient() {
         <div className="flex gap-2">
           <Button
             onClick={() => loadAllAnalytics(true)}
-            disabled={loading}
+            disabled={coordinatedLoading.isLoading}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -349,7 +294,7 @@ export default function AnalyticsClient() {
           </Button>
           <Button
             onClick={handleExportReport}
-            disabled={loading}
+            disabled={coordinatedLoading.isLoading}
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -370,7 +315,7 @@ export default function AnalyticsClient() {
             <CardDescription>Tỷ lệ học sinh theo từng mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingStates.distribution ? (
+            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.gradeDistribution} />
@@ -385,7 +330,7 @@ export default function AnalyticsClient() {
             <CardDescription>Phần trăm học sinh theo mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingStates.distribution ? (
+            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <PieChartComponent data={chartData.gradeDistribution} colors={COLORS} />
@@ -400,7 +345,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình của các lớp</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingStates.classes ? (
+            {!classPerformance.length && coordinatedLoading.isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.classPerformance} />
@@ -415,7 +360,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình qua các kỳ học</CardDescription>
           </CardHeader>
           <CardContent>
-            {loadingStates.trends ? (
+            {!trendData.length && coordinatedLoading.isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ComposedChartComponent data={chartData.trendData} />
@@ -431,7 +376,7 @@ export default function AnalyticsClient() {
           <CardDescription>Hiệu suất chi tiết theo từng môn học</CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingStates.subjects ? (
+          {!subjectAnalysis.length && coordinatedLoading.isLoading ? (
             <div className="text-center py-8">Đang tải...</div>
           ) : (
             <div className="space-y-3">

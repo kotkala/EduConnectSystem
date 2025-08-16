@@ -19,7 +19,8 @@ import {
 import { createClient } from '@/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { LoadingFallback } from '@/components/ui/loading-fallback'
+// 🚀 MIGRATION: Replace LoadingFallback with coordinated system
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 
 interface Profile {
   id: string
@@ -55,7 +56,10 @@ interface RecentActivity {
 }
 
 export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: Profile }>) {
-  const [loading, setLoading] = useState(true)
+  // 🚀 MIGRATION: Replace useState loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [stats, setStats] = useState<WeeklyStats>({
     totalClasses: 0,
     upcomingClasses: 0,
@@ -208,7 +212,8 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   }, [profile.id, supabase])
 
   const loadDashboardData = useCallback(async () => {
-    setLoading(true)
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải bảng điều khiển giáo viên...")
     try {
       await Promise.all([
         loadWeeklyStats(),
@@ -219,9 +224,9 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       console.error('Error loading dashboard data:', error)
       toast.error('Không thể tải dữ liệu dashboard')
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities])
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startPageTransition, stopLoading])
 
   useEffect(() => {
     loadDashboardData()
@@ -245,21 +250,10 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
     }
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <LoadingFallback size="xs" className="w-1/3 mb-2" />
-          <LoadingFallback size="xs" className="w-1/2" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <LoadingFallback key={i} size="sm" />
-          ))}
-        </div>
-      </div>
-    )
-  }
+  // 🚀 MIGRATION: Loading now handled by CoordinatedLoadingOverlay
+  // Show placeholder content during initial load
+  const isInitialLoading = coordinatedLoading.isLoading && 
+    stats.totalClasses === 0 && upcomingClasses.length === 0 && recentActivities.length === 0
 
   return (
     <div className="space-y-6">
@@ -269,7 +263,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
           Chào mừng trở lại, {profile.full_name}!
         </h1>
         <p className="text-muted-foreground">
-          Tổng quan hoạt động giảng dạy trong tuần
+          {isInitialLoading ? 'Đang tải dữ liệu...' : 'Tổng quan hoạt động giảng dạy trong tuần'}
         </p>
       </div>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+// 🚀 OPTIMIZATION: Use LazyMotion for better performance
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,9 @@ export function useGlobalLoading() {
   }
   return context
 }
+
+// 🚀 RE-EXPORT: Coordinated loading hooks for backward compatibility
+export { useCoordinatedLoading, useLoadingUI } from '@/hooks/use-coordinated-loading'
 
 interface LoadingProviderProps {
   children: ReactNode
@@ -62,7 +66,8 @@ export function GlobalLoadingProvider({ children }: LoadingProviderProps) {
   return (
     <LoadingContext.Provider value={{ loading, setLoading, startLoading, stopLoading }}>
       {children}
-      <GlobalLoadingOverlay loading={loading} />
+      {/* 🎯 DISABLED: Old overlay replaced by CoordinatedLoadingOverlay */}
+      {/* <GlobalLoadingOverlay loading={loading} /> */}
     </LoadingContext.Provider>
   )
 }
@@ -83,12 +88,12 @@ function GlobalLoadingOverlay({ loading }: GlobalLoadingOverlayProps) {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15, ease: 'easeOut' }}
         className={cn(
-          "fixed inset-0 z-[9999] flex items-center justify-center",
+          "fixed inset-0 flex items-center justify-center",
           loading.type === 'page' && "bg-background/80 backdrop-blur-sm",
           loading.type === 'action' && "bg-black/20 backdrop-blur-[2px]",
           loading.type === 'component' && "bg-transparent"
         )}
-        style={{ willChange: 'opacity' }}
+        style={{ willChange: 'opacity', zIndex: 9999 }}
       >
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -127,7 +132,7 @@ function GlobalLoadingOverlay({ loading }: GlobalLoadingOverlayProps) {
   )
 }
 
-// Hook for page transitions
+// 🎯 SIMPLIFIED: Hook for page transitions (coordination handled by CoordinatedLoadingOverlay)
 export function usePageTransition() {
   const { startLoading, stopLoading } = useGlobalLoading()
 

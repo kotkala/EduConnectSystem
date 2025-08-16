@@ -3,8 +3,15 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Spinner } from '@/components/ui/spinner'
+// 🚀 OPTIMIZATION: Use LazyMotion for smaller bundle size
+import { LazyMotion, motion, AnimatePresence } from 'framer-motion'
+// 🧹 CLEANUP: Removed unused dynamic import
+
+// Lazy load motion features
+const loadFeatures = () => import('@/lib/motion-features').then(res => res.default)
+
+// 🧹 CLEANUP: Removed unused MotionDiv import
+// 🧹 CLEANUP: Removed unused Spinner import
 import { Button } from '@/components/ui/button'
 import {
   Users, GraduationCap, Heart, Brain, Phone,
@@ -73,21 +80,13 @@ function AnimatedCounter({ end, duration = 2000 }: { readonly end: string; reado
 }
 
 export default function Home() {
-  const { user, profile, loading } = useAuth()
+  const { user, profile } = useAuth() // 🧹 CLEANUP: Removed unused loading destructure
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center">
-          <Spinner size={32} className="mx-auto" />
-          <p className="mt-2 text-sm text-gray-600">Đang tải...</p>
-        </div>
-      </div>
-    )
-  }
+  // 🎯 FIXED: Removed individual loading UI - now handled by CoordinatedLoadingOverlay
+  // Context7 principle: Single loading indicator prevents cognitive overload
 
   // Conditional rendering based on auth state
   if (user && profile) {
@@ -95,7 +94,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 scroll-smooth">
+    <LazyMotion features={loadFeatures}>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 scroll-smooth" style={{ willChange: 'transform' }}>
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative">
           <nav className="flex items-center justify-between">
@@ -1161,6 +1161,7 @@ export default function Home() {
         onOpenChange={setAuthModalOpen}
       />
     </div>
+    </LazyMotion>
   )
 }
 

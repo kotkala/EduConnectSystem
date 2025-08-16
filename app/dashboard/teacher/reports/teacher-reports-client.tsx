@@ -35,6 +35,8 @@ import {
   getStudentsForReportAction,
   type StudentForReport
 } from "@/lib/actions/student-report-actions"
+// 🚀 MIGRATION: Add coordinated loading system
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 // Removed StudentReportModal import - now using dedicated page
 
 // Utility function to format date range for dropdown
@@ -147,10 +149,16 @@ const StudentsList = memo(function StudentsList({
 function TeacherReportsClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  
+  // 🚀 MIGRATION: Replace loading state with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
   const [students, setStudents] = useState<StudentForReport[]>([])
-  const [loading, setLoading] = useState(true)
+  
+  // 📊 Keep section loading for non-blocking student list updates  
   const [studentsLoading, setStudentsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Remove modal state - we'll navigate to dedicated page instead
@@ -225,7 +233,8 @@ function TeacherReportsClient() {
 
   const loadReportPeriods = useCallback(async () => {
     try {
-      setLoading(true)
+      // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+      startPageTransition("Đang tải danh sách kỳ báo cáo...")
       setError(null)
 
       const result = await getReportPeriodsAction()
@@ -239,9 +248,9 @@ function TeacherReportsClient() {
       console.error('Error loading report periods:', error)
       setError('Failed to load report periods')
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [])
+  }, [startPageTransition, stopLoading])
 
   const loadStudents = useCallback(async () => {
     if (!selectedPeriod) return
@@ -340,22 +349,9 @@ function TeacherReportsClient() {
     }
   }, [selectedPeriod, loadStudents])
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
-  }
+  // 🚀 MIGRATION: Loading now handled by CoordinatedLoadingOverlay
+  // Show initial state during initial load
+  const isInitialLoading = coordinatedLoading.isLoading && reportPeriods.length === 0
 
   return (
     <div className="space-y-6">

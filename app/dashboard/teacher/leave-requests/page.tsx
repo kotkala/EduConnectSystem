@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import { useAuth } from '@/hooks/use-auth'
+// 🚀 MIGRATION: Add coordinated loading system
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 import { 
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
@@ -33,8 +35,11 @@ export default function TeacherLeaveRequestsPage() {
   const router = useRouter()
   const { user, profile, loading } = useAuth()
   
+  // 🚀 MIGRATION: Replace isLoading with coordinated system  
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [applications, setApplications] = useState<LeaveApplication[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [responseText, setResponseText] = useState<{ [key: string]: string }>({})
@@ -48,7 +53,8 @@ export default function TeacherLeaveRequestsPage() {
 
   const fetchLeaveApplications = useCallback(async () => {
     try {
-      setIsLoading(true)
+      // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+      startPageTransition("Đang tải danh sách đơn xin nghỉ...")
       setError(null)
 
       const result = await getTeacherLeaveApplicationsAction()
@@ -71,9 +77,9 @@ export default function TeacherLeaveRequestsPage() {
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
-      setIsLoading(false)
+      stopLoading()
     }
-  }, [currentPage, pageSize]) // ✅ Add dependencies
+  }, [currentPage, pageSize, startPageTransition, stopLoading]) // ✅ Add all dependencies
 
   useEffect(() => {
     if (user && profile?.role === 'teacher') {
@@ -140,19 +146,9 @@ export default function TeacherLeaveRequestsPage() {
     return diffDays
   }
 
-  // Show loading state
-  if (loading || isLoading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Đang tải danh sách đơn xin nghỉ...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // 🚀 MIGRATION: Loading now handled by CoordinatedLoadingOverlay
+  // Show initial state during loading when no data loaded yet
+  const isInitialLoading = coordinatedLoading.isLoading && applications.length === 0
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'teacher') {

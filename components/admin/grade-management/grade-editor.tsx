@@ -873,32 +873,21 @@ export function GradeEditor({ period }: GradeEditorProps) {
                     return
                   }
 
-                  const { createStudentGradeAction } = await import('@/lib/actions/grade-management-actions')
+                  // DEPRECATED: Old grade system function removed
+                  // const { createStudentGradeAction } = await import('@/lib/actions/grade-management-actions')
 
-                  const result = await createStudentGradeAction({
-                    period_id: period.id,
-                    student_id: newGrade.student_id,
-                    subject_id: newGrade.subject_id,
-                    class_id: selectedClass.id,
-                    grade_value: parseFloat(newGrade.grade_value),
-                    grade_type: newGrade.grade_type
+                  // Mock success for now - this functionality is deprecated
+                  await new Promise(resolve => setTimeout(resolve, 1000))
+
+                  toast.error('Chức năng này đã được thay thế bởi hệ thống mới. Vui lòng sử dụng tính năng nhập điểm từ Excel.')
+                  setShowAddGradeDialog(false)
+                  setNewGrade({
+                    student_id: '',
+                    subject_id: '',
+                    class_id: '',
+                    grade_value: '',
+                    grade_type: 'semester1'
                   })
-
-                  if (result.success) {
-                    toast.success(result.message || 'Đã lưu điểm thành công!')
-                    setShowAddGradeDialog(false)
-                    setNewGrade({
-                      student_id: '',
-                      subject_id: '',
-                      class_id: '',
-                      grade_value: '',
-                      grade_type: 'semester1'
-                    })
-                    // Reload grades to show the new grade
-                    loadGrades()
-                  } else {
-                    toast.error(result.error || 'Không thể lưu điểm')
-                  }
                 } catch (error) {
                   console.error('Error saving grade:', error)
                   toast.error('Có lỗi xảy ra khi lưu điểm')

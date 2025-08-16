@@ -8,12 +8,133 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Send, Users, FileText, Eye } from 'lucide-react'
 import { toast } from 'sonner'
-import Link from 'next/link'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { EmptyState } from '@/components/ui/empty-state'
 
-import { getHomeroomDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
-import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
+// Helper function to render summaries content
+function renderSummariesContent(
+  loadingStates: { summaries: boolean },
+  summaries: ClassGradeSummary[],
+  selectedSummary: ClassGradeSummary | null,
+  loadSummaryDetails: (summary: ClassGradeSummary) => void
+) {
+  if (loadingStates.summaries) {
+    return <div className="text-center py-8">Đang tải...</div>
+  }
+
+  if (summaries.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có bảng điểm</h3>
+        <p className="text-gray-500">Chưa có bảng điểm nào được gửi từ admin.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {summaries.map((summary) => (
+        <button
+          key={summary.id}
+          type="button"
+          className={`w-full p-4 border rounded-lg text-left transition-colors ${
+            selectedSummary?.id === summary.id
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => loadSummaryDetails(summary)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              loadSummaryDetails(summary)
+            }
+          }}
+        >
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="font-medium">{summary.summary_name}</h4>
+              <p className="text-sm text-gray-500">
+                Lớp: {summary.class.name} • Gửi bởi: {summary.sent_by_profile.full_name}
+              </p>
+              <p className="text-sm text-gray-500">
+                {new Date(summary.sent_at).toLocaleString('vi-VN')}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">
+                {summary.submitted_students}/{summary.total_students} HS
+              </Badge>
+              {selectedSummary?.id === summary.id && (
+                <Badge variant="default">Đang xem</Badge>
+              )}
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Helper function to render submissions content
+function renderSubmissionsContent(
+  loadingStates: { details: boolean },
+  submissions: StudentSubmission[],
+  viewStudentGrades: (submission: StudentSubmission) => void,
+  handleSendToParent: (submission: StudentSubmission) => void,
+  sendingToParent: boolean
+) {
+  if (loadingStates.details) {
+    return <div className="text-center py-8">Đang tải chi tiết...</div>
+  }
+
+  if (submissions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Không có dữ liệu học sinh.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {submissions.map((submission) => (
+        <div
+          key={submission.id}
+          className="flex items-center justify-between p-3 border rounded-lg"
+        >
+          <div>
+            <h4 className="font-medium">{submission.student.full_name}</h4>
+            <p className="text-sm text-gray-500">
+              Mã HS: {submission.student.student_id} • {submission.grades.length} môn học
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => viewStudentGrades(submission)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Xem
+            </Button>
+            <Button
+              onClick={() => handleSendToParent(submission)}
+              disabled={sendingToParent}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Send className="h-4 w-4" />
+              Gửi PH
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+import { getClassGradeSummariesAction, getClassGradeDetailsAction, sendGradesToParentAction, getStudentParentsAction, sendAllGradesToParentsAction } from '@/lib/actions/teacher-grade-actions'
+import { createClassSummaryExcel, downloadExcelFile, type ClassSummaryData, type StudentGradeData, type SubjectGradeData } from '@/lib/utils/class-summary-excel-utils'
+import { saveAIFeedbackAction, getAIFeedbackAction, type SaveAIFeedbackRequest } from '@/lib/actions/ai-feedback-actions'
 
 interface GradeRecord {
   id: string
@@ -57,46 +178,122 @@ interface GradeReportingPeriod {
 }
 
 export default function TeacherGradeReportsClient() {
-  const [loading, setLoading] = useState(true)
-  const [students, setStudents] = useState<StudentRecord[]>([])
-  const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
-  const [sendingToAllParents, setSendingToAllParents] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [summaries, setSummaries] = useState<ClassGradeSummary[]>([])
+  const [selectedSummary, setSelectedSummary] = useState<ClassGradeSummary | null>(null)
+  const [submissions, setSubmissions] = useState<StudentSubmission[]>([])
+  const [loadingStates, setLoadingStates] = useState({
+    summaries: false,
+    details: false,
+    sendingToParent: false,
+    sendingToAllParents: false
+  })
+  const [viewingStudent, setViewingStudent] = useState<StudentSubmission | null>(null)
+  const [studentGradeData, setStudentGradeData] = useState<StudentGradeData | null>(null)
+  const [aiFeedback, setAiFeedback] = useState<string>('')
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false)
+  const [isSavingFeedback, setIsSavingFeedback] = useState(false)
 
-  // Load periods
-  const loadPeriods = useCallback(async () => {
-    try {
-      const result = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
-      if (result.success && result.data) {
-        const periodsData = result.data as unknown as GradeReportingPeriod[]
-        setPeriods(periodsData)
-        
-        // Auto-select the active period
-        const activePeriod = periodsData.find((period) => period.is_active === true)
-        if (activePeriod) {
-          setSelectedPeriod(activePeriod.id)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading periods:', error)
-      toast.error('Không thể tải danh sách kỳ báo cáo')
-    }
+  useEffect(() => {
+    loadSummaries()
   }, [])
 
-  // Load students with grades
-  const loadStudents = useCallback(async () => {
-    if (!selectedPeriod) {
-      setStudents([])
-      setLoading(false)
-      return
-    }
-
+  const loadSummaries = async () => {
+    setLoadingStates(prev => ({ ...prev, summaries: true }))
     try {
-      setLoading(true)
-      
-      const filters = {
-        page: 1,
-        limit: 1000
+      const result = await getClassGradeSummariesAction()
+      if (result.success) {
+        setSummaries(result.data as ClassGradeSummary[])
+      } else {
+        toast.error(result.error || "Không thể tải danh sách bảng điểm")
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra khi tải danh sách bảng điểm")
+    } finally {
+      setLoadingStates(prev => ({ ...prev, summaries: false }))
+    }
+  }
+
+  const loadSummaryDetails = async (summary: ClassGradeSummary) => {
+    setLoadingStates(prev => ({ ...prev, details: true }))
+    try {
+      const result = await getClassGradeDetailsAction(summary.id)
+      if (result.success && result.data) {
+        setSelectedSummary(summary)
+        setSubmissions(result.data.submissions as StudentSubmission[])
+      } else {
+        toast.error(result.error || "Không thể tải chi tiết bảng điểm")
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra khi tải chi tiết bảng điểm")
+    } finally {
+      setLoadingStates(prev => ({ ...prev, details: false }))
+    }
+  }
+
+  const handleDownloadClassExcel = async () => {
+    if (!selectedSummary || submissions.length === 0) return
+
+    setLoading(true)
+    try {
+      // Prepare data for Excel export
+      const studentsData: StudentGradeData[] = submissions.map(submission => {
+        const subjectsData: SubjectGradeData[] = submission.grades.map(grade => ({
+          subjectName: grade.subject.name_vietnamese,
+          midtermGrade: grade.midterm_grade || undefined,
+          finalGrade: grade.final_grade || undefined,
+          averageGrade: grade.average_grade || undefined
+        }))
+
+        // Calculate overall average
+        const validGrades = subjectsData.filter(s => s.averageGrade !== undefined)
+        const averageGrade = validGrades.length > 0 
+          ? Math.round((validGrades.reduce((sum, s) => sum + (s.averageGrade || 0), 0) / validGrades.length) * 10) / 10
+          : undefined
+
+        return {
+          studentId: submission.student.id,
+          studentName: submission.student.full_name,
+          studentCode: submission.student.student_id,
+          subjects: subjectsData,
+          averageGrade
+        }
+      })
+
+      // Sort by average grade for ranking
+      studentsData.sort((a, b) => (b.averageGrade || 0) - (a.averageGrade || 0))
+      studentsData.forEach((student, index) => {
+        student.rank = index + 1
+      })
+
+      const classData: ClassSummaryData = {
+        className: selectedSummary.class.name,
+        academicYear: selectedSummary.academic_year.name,
+        semester: selectedSummary.semester.name,
+        homeroomTeacher: selectedSummary.sent_by_profile.full_name,
+        students: studentsData
+      }
+
+      const excelBuffer = await createClassSummaryExcel(classData)
+      const filename = `BangDiem_${selectedSummary.class.name}_${selectedSummary.semester.name}.xlsx`
+
+      downloadExcelFile(excelBuffer, filename)
+      toast.success("Đã tải file Excel thành công")
+    } catch {
+      toast.error("Có lỗi xảy ra khi tải file Excel")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendToParent = async (submission: StudentSubmission) => {
+    setLoadingStates(prev => ({ ...prev, sendingToParent: true }))
+    try {
+      // Get parents for this student
+      const parentsResult = await getStudentParentsAction(submission.student_id)
+      if (!parentsResult.success || !parentsResult.data || parentsResult.data.length === 0) {
+        toast.error("Không tìm thấy phụ huynh của học sinh này")
+        return
       }
 
       const result = await getHomeroomDetailedGradesAction(selectedPeriod, filters)
@@ -225,8 +422,32 @@ export default function TeacherGradeReportsClient() {
             <div className="flex items-center space-x-2">
               <FileText className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Kỳ báo cáo</p>
-                <p className="text-2xl font-bold">{periods.length}</p>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Chi Tiết Bảng Điểm: {selectedSummary.class.name}
+                </CardTitle>
+                <CardDescription>
+                  {selectedSummary.semester.name} - {selectedSummary.academic_year.name}
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleDownloadClassExcel}
+                  disabled={loading || submissions.length === 0}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Tải Excel Lớp
+                </Button>
+                <Button
+                  onClick={handleSendToAllParents}
+                  disabled={loadingStates.sendingToAllParents || submissions.length === 0}
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="h-4 w-4" />
+                  Gửi Tất Cả PH
+                </Button>
               </div>
             </div>
           </CardContent>

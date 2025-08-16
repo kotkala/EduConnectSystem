@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -16,13 +17,16 @@ import { Users, GraduationCap, Calendar, Plus, AlertCircle, User, School } from 
 import { ParentMeetingSchedules } from '@/components/parent-dashboard/parent-meeting-schedules'
 
 export default function ParentDashboard() {
+  // 🚀 MIGRATION: Replace scattered loading with global system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const router = useRouter()
   const { user, profile, loading } = useAuth()
 
   const [students, setStudents] = useState<StudentInfo[]>([])
   const [academicYears, setAcademicYears] = useState<{ id: string; name: string; is_current: boolean }[]>([])
   const [selectedYear, setSelectedYear] = useState<string>('all')
-  const [studentsLoading, setStudentsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Redirect if user doesn't have permission
@@ -60,37 +64,31 @@ export default function ParentDashboard() {
   }
 
   const loadAllStudents = async () => {
-    setStudentsLoading(true)
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải thông tin học sinh...")
     const result = await getParentStudentsAction()
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
-    setStudentsLoading(false)
+    stopLoading()
   }
 
   const loadStudentsByYear = async (yearId: string) => {
-    setStudentsLoading(true)
+    // 🎯 UX IMPROVEMENT: Use global loading with year context
+    startPageTransition("Đang tải học sinh theo năm học...")
     const result = await getParentStudentsByYearAction(yearId)
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
-    setStudentsLoading(false)
+    stopLoading()
   }
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </div>
-    )
-  }
+  // 🎯 FIXED: Removed individual auth loading UI - handled by CoordinatedLoadingOverlay
+  // Context7 principle: Prevents triple loading conflict (auth + global + custom spinner)
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'parent') {
@@ -248,7 +246,7 @@ export default function ParentDashboard() {
             </div>
             <div className="p-6 sm:p-8">
               {(() => {
-                if (studentsLoading) {
+                if (coordinatedLoading.isLoading && students.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>

@@ -1,6 +1,17 @@
 'use client'
 
-import { motion } from 'framer-motion'
+// 🚀 OPTIMIZATION: Use LazyMotion pattern for better performance
+import { LazyMotion } from 'framer-motion'
+import dynamic from 'next/dynamic'
+
+// Lazy load motion component
+const MotionDiv = dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion.div })), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-100 rounded-lg" />
+})
+
+// Lazy load motion features
+const loadFeatures = () => import('@/lib/motion-features').then(res => res.default)
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Clock, Award, Calendar } from 'lucide-react'
 
@@ -21,11 +32,12 @@ export interface StatItem {
 
 export function AnimatedStatsGrid({ items }: { items: StatItem[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-      {items.map(({ icon, label, value }, idx) => {
-        const Icon = iconMap[icon]
-        return (
-          <motion.div
+    <LazyMotion features={loadFeatures}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6" style={{ willChange: 'transform' }}>
+        {items.map(({ icon, label, value }, idx) => {
+          const Icon = iconMap[icon]
+          return (
+            <MotionDiv
             key={label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -40,10 +52,11 @@ export function AnimatedStatsGrid({ items }: { items: StatItem[] }) {
                 <div className="text-xl sm:text-2xl font-bold">{value}</div>
               </CardContent>
             </Card>
-          </motion.div>
+          </MotionDiv>
         )
       })}
     </div>
+    </LazyMotion>
   )
 }
 

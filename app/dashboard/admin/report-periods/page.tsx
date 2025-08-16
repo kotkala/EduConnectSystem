@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { useCoordinatedLoading, usePageTransition } from '@/components/ui/global-loading-provider'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -38,9 +39,15 @@ export default function ReportPeriodsPage() {
   const [classBlocks, setClassBlocks] = useState<Array<{ id: string; name: string }>>([])
   const [selectedClassBlock, setSelectedClassBlock] = useState<string>("all-blocks")
   const [selectedCompletionStatus, setSelectedCompletionStatus] = useState<string>("all")
-  const [loading, setLoading] = useState(true)
-  const [progressLoading, setProgressLoading] = useState(false)
+  // 🚀 MIGRATION: Replace scattered loading with coordinated system  
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
   const [error, setError] = useState<string | null>(null)
+  // 📊 Section loading for non-blocking components
+  const [sectionLoading, setSectionLoading] = useState({
+    progress: false, // For class progress loading (non-blocking)
+  })
   const [sendingNotifications, setSendingNotifications] = useState(false)
   const [bulkSending, setBulkSending] = useState(false)
   const [generatingReports, setGeneratingReports] = useState(false)
@@ -50,8 +57,9 @@ export default function ReportPeriodsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadInitialData = useCallback(async () => {
+    // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Đang tải thông tin kỳ báo cáo...")
     try {
-      setLoading(true)
       setError(null)
 
       const [periodsResult, academicResult, blocksResult] = await Promise.all([
@@ -80,15 +88,16 @@ export default function ReportPeriodsPage() {
       console.error('Error loading initial data:', error)
       setError('Failed to load data')
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [])
+  }, [startPageTransition, stopLoading])
 
   const loadClassProgress = useCallback(async () => {
     if (!selectedPeriod) return
 
     try {
-      setProgressLoading(true)
+      // 📊 Use section loading for non-blocking progress loading
+      setSectionLoading(prev => ({ ...prev, progress: true }))
       const classBlockFilter = selectedClassBlock === "all-blocks" ? undefined : selectedClassBlock
       const result = await getClassProgressAction(
         selectedPeriod,
@@ -104,7 +113,7 @@ export default function ReportPeriodsPage() {
       console.error('Error loading class progress:', error)
       toast.error('Failed to load class progress')
     } finally {
-      setProgressLoading(false)
+      setSectionLoading(prev => ({ ...prev, progress: false }))
     }
   }, [selectedPeriod, selectedClassBlock])
 
@@ -287,7 +296,7 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, selectedClassBlock, loadClassProgress])
 
-  if (loading) {
+  if (coordinatedLoading.isLoading && reportPeriods.length === 0) {
     return (
       <div className="p-6">
         <div className="space-y-6">
@@ -597,7 +606,7 @@ export default function ReportPeriodsPage() {
             <CardContent>
               <ClassProgressTable
                 data={filteredClassProgress}
-                loading={progressLoading}
+                loading={sectionLoading.progress}
               />
             </CardContent>
           </Card>

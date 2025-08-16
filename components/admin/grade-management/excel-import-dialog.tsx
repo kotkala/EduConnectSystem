@@ -38,11 +38,14 @@ import {
   type GradeReportingPeriod
 } from '@/lib/validations/grade-management-validations'
 import {
-  parseExcelFile,
+  parseDetailedGradeExcelFile,
   validateExcelFormat,
   type ExcelProcessingResult
 } from '@/lib/utils/grade-excel-utils'
-import { bulkImportGradesAction, getClassesAction, getSubjectsAction } from '@/lib/actions/grade-management-actions'
+import { getClassesAction, getSubjectsAction } from '@/lib/actions/grade-management-actions'
+import { getStudentsByClassAction } from '@/lib/actions/violation-actions'
+import { bulkImportDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
+import { generateGradeTemplateAction } from '@/lib/actions/excel-template-actions'
 
 interface ExcelImportDialogProps {
   open: boolean
@@ -105,7 +108,7 @@ export function ExcelImportDialog({
   onOpenChange,
   period,
   onSuccess
-}: ExcelImportDialogProps) {
+}: Readonly<ExcelImportDialogProps>) {
   const [currentStep, setCurrentStep] = useState<ImportStep['id']>('upload')
   const [loading, setLoading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -123,18 +126,17 @@ export function ExcelImportDialog({
       period_id: period.id,
       class_id: '',
       subject_id: '',
-      grade_type: 'midterm'
+      grade_type: 'semester1',
+      file: undefined
     }
   })
 
-  // Load classes and subjects when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadClassesAndSubjects()
-    }
-  }, [open])
-
   const loadClassesAndSubjects = useCallback(async () => {
+    // Skip if data already loaded (performance optimization)
+    if (classes.length > 0 && subjects.length > 0) {
+      return
+    }
+
     try {
       setLoadingData(true)
 
@@ -155,12 +157,19 @@ export function ExcelImportDialog({
         toast.error(subjectsResult.error || "Không thể tải danh sách môn học")
       }
 
-    } catch (error) {
+    } catch {
       toast.error("Không thể tải dữ liệu")
     } finally {
       setLoadingData(false)
     }
-  }, [])
+  }, [classes.length, subjects.length])
+
+  // Load classes and subjects when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadClassesAndSubjects()
+    }
+  }, [open, loadClassesAndSubjects])
 
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,7 +184,7 @@ export function ExcelImportDialog({
     }
 
     setSelectedFile(file)
-    form.setValue('file', file)
+    form.setValue('file', file, { shouldValidate: true })
   }
 
   // Handle file processing
@@ -198,20 +207,54 @@ export function ExcelImportDialog({
         })
       }, 200)
 
-      // Process Excel file
-      const result = await parseExcelFile(selectedFile)
+      // Get form data for processing
+      const formData = form.getValues()
+
+      // Get subject name for detailed parsing
+      const selectedSubject = subjects.find(s => s.id === formData.subject_id)
+      if (!selectedSubject) {
+        throw new Error('Vui lòng chọn môn học')
+      }
+
+      // Process Excel file with new detailed parser
+      const result = await parseDetailedGradeExcelFile(
+        selectedFile,
+        formData.grade_type as 'semester1' | 'semester2' | 'yearly',
+        selectedSubject.name_vietnamese
+      )
 
       clearInterval(progressInterval)
       setUploadProgress(100)
 
       if (!result.success) {
-        throw new Error('Không thể xử lý file Excel')
+        throw new Error(result.errors?.[0] || 'Không thể xử lý file Excel')
       }
 
-      setProcessingResult(result)
+      // Store the detailed result for proper processing
+      const compatibleResult: ExcelProcessingResult = {
+        success: true,
+        totalRows: result.totalRows || 0,
+        validRows: result.data?.map((row, index) => ({
+          stt: index + 1,
+          ma_hoc_sinh: '', // Will be resolved from full_name
+          ho_ten: row.full_name,
+          diem_so: 0, // Not used in new system
+          ghi_chu: row.notes || '',
+          // Store detailed data for new import system
+          _detailedData: row
+        })) || [],
+        errorRows: [],
+        summary: {
+          processed: result.totalRows || 0,
+          valid: result.validRows || 0,
+          errors: result.invalidRows || 0
+        }
+      }
+
+      setProcessingResult(compatibleResult)
       setCurrentStep('preview')
 
-      toast.success(`Xử lý file thành công: ${result.summary.processed} dòng, ${result.summary.valid} hợp lệ, ${result.summary.errors} lỗi`)
+      toast.success(`Xử lý file thành công: ${result.validRows} dòng hợp lệ, ${result.invalidRows} lỗi`)
 
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Không thể xử lý file Excel")
@@ -219,7 +262,7 @@ export function ExcelImportDialog({
     } finally {
       setLoading(false)
     }
-  }, [selectedFile])
+  }, [selectedFile, form, subjects])
 
   // Handle import grades
   const handleImportGrades = async () => {
@@ -231,22 +274,59 @@ export function ExcelImportDialog({
 
       const formData = form.getValues()
 
-      // Transform valid rows to the format expected by the action
-      // Note: student_id should be resolved by matching student_code with database
-      const grades = processingResult.validRows.map(row => ({
-        student_id: '', // Will be resolved by the action using student_code
-        student_code: row.ma_hoc_sinh,
-        student_name: row.ho_ten,
-        grade_value: row.diem_so,
-        notes: row.ghi_chu
-      }))
+      // Get students in the selected class to resolve student IDs
+      const studentsResult = await getStudentsByClassAction(formData.class_id)
+      if (!studentsResult.success || !studentsResult.data) {
+        throw new Error('Không thể lấy danh sách học sinh trong lớp')
+      }
 
-      // Call the bulk import action
-      const result = await bulkImportGradesAction({
+      // Create a map of student names to IDs for matching
+      const studentMap = new Map<string, string>()
+      studentsResult.data.forEach(student => {
+        studentMap.set(student.full_name.trim().toLowerCase(), student.id)
+      })
+
+      // Transform detailed grade data to the new format with resolved student IDs
+      const grades = processingResult.validRows
+        .map(row => {
+          const detailedData = (row as { _detailedData?: {
+            full_name: string
+            regular_grades?: (number | null)[]
+            midterm_grade?: number | null
+            final_grade?: number | null
+            semester_1_grade?: number | null
+            semester_2_grade?: number | null
+            yearly_grade?: number | null
+            notes?: string
+          } })._detailedData
+          if (!detailedData) return null
+
+          // Resolve student ID by matching full name
+          const studentId = studentMap.get(detailedData.full_name.trim().toLowerCase())
+          if (!studentId) {
+            console.warn(`Không tìm thấy học sinh: ${detailedData.full_name}`)
+            return null
+          }
+
+          return {
+            student_id: studentId,
+            regular_grades: detailedData.regular_grades || [],
+            midterm_grade: detailedData.midterm_grade,
+            final_grade: detailedData.final_grade,
+            semester_1_grade: detailedData.semester_1_grade,
+            semester_2_grade: detailedData.semester_2_grade,
+            yearly_grade: detailedData.yearly_grade,
+            notes: detailedData.notes || ''
+          }
+        })
+        .filter((grade): grade is NonNullable<typeof grade> => grade !== null)
+
+      // Call the new detailed grade import action
+      const result = await bulkImportDetailedGradesAction({
         period_id: formData.period_id,
         class_id: formData.class_id,
         subject_id: formData.subject_id,
-        grade_type: formData.grade_type,
+        grade_type: formData.grade_type as 'semester1' | 'semester2' | 'yearly',
         grades
       })
 
@@ -267,10 +347,55 @@ export function ExcelImportDialog({
   }
 
   // Download template
-  const handleDownloadTemplate = () => {
-    // TODO: Implement template download
-    // This would generate and download an Excel template
-    toast.info("Chức năng tải template sẽ được triển khai")
+  const handleDownloadTemplate = async () => {
+    const formData = form.getValues()
+
+    // Validate required fields
+    if (!formData.class_id || !formData.subject_id || !formData.grade_type) {
+      toast.error("Vui lòng chọn lớp học, môn học và loại điểm trước khi tải template")
+      return
+    }
+
+    try {
+      setLoading(true)
+
+      const result = await generateGradeTemplateAction({
+        class_id: formData.class_id,
+        subject_id: formData.subject_id,
+        grade_type: formData.grade_type
+      })
+
+      if (result.success && result.data) {
+        // Convert base64 to blob
+        const binaryString = atob(result.data.content)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i)
+        }
+
+        const blob = new Blob([bytes], {
+          type: result.data.mimeType
+        })
+
+        // Create download link
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = result.data.filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        toast.success("Tải template Excel thành công")
+      } else {
+        toast.error(result.error || "Không thể tạo template Excel")
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra khi tạo template Excel")
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Reset dialog state
@@ -288,6 +413,44 @@ export function ExcelImportDialog({
     importSteps.findIndex(step => step.id === currentStep),
     [currentStep]
   )
+
+  // Memoized class options rendering
+  const classOptions = useMemo(() => {
+    if (loadingData) {
+      return <SelectItem value="loading" disabled>Đang tải...</SelectItem>
+    }
+    if (classes.length === 0) {
+      return <SelectItem value="empty" disabled>Không có lớp học nào</SelectItem>
+    }
+    return classes.map((classItem) => (
+      <SelectItem key={classItem.id} value={classItem.id}>
+        {classItem.name}
+        {classItem.academic_year?.[0] && classItem.semester?.[0] && (
+          <span className="text-muted-foreground ml-2">
+            ({classItem.academic_year[0].name} - {classItem.semester[0].name})
+          </span>
+        )}
+      </SelectItem>
+    ))
+  }, [loadingData, classes])
+
+  // Memoized subject options rendering
+  const subjectOptions = useMemo(() => {
+    if (loadingData) {
+      return <SelectItem value="loading" disabled>Đang tải...</SelectItem>
+    }
+    if (subjects.length === 0) {
+      return <SelectItem value="empty" disabled>Không có môn học nào</SelectItem>
+    }
+    return subjects.map((subject) => (
+      <SelectItem key={subject.id} value={subject.id}>
+        {subject.name_vietnamese}
+        <span className="text-muted-foreground ml-2">
+          ({subject.code})
+        </span>
+      </SelectItem>
+    ))
+  }, [loadingData, subjects])
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -334,29 +497,14 @@ export function ExcelImportDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Lớp học *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn lớp học" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {loadingData ? (
-                              <SelectItem value="loading" disabled>Đang tải...</SelectItem>
-                            ) : classes.length === 0 ? (
-                              <SelectItem value="empty" disabled>Không có lớp học nào</SelectItem>
-                            ) : (
-                              classes.map((classItem) => (
-                                <SelectItem key={classItem.id} value={classItem.id}>
-                                  {classItem.name}
-                                  {classItem.academic_year?.[0] && classItem.semester?.[0] && (
-                                    <span className="text-muted-foreground ml-2">
-                                      ({classItem.academic_year[0].name} - {classItem.semester[0].name})
-                                    </span>
-                                  )}
-                                </SelectItem>
-                              ))
-                            )}
+                            {classOptions}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -370,27 +518,14 @@ export function ExcelImportDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Môn học *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Chọn môn học" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {loadingData ? (
-                              <SelectItem value="loading" disabled>Đang tải...</SelectItem>
-                            ) : subjects.length === 0 ? (
-                              <SelectItem value="empty" disabled>Không có môn học nào</SelectItem>
-                            ) : (
-                              subjects.map((subject) => (
-                                <SelectItem key={subject.id} value={subject.id}>
-                                  {subject.name_vietnamese}
-                                  <span className="text-muted-foreground ml-2">
-                                    ({subject.code})
-                                  </span>
-                                </SelectItem>
-                              ))
-                            )}
+                            {subjectOptions}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -405,17 +540,16 @@ export function ExcelImportDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Loại điểm *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn loại điểm" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="midterm">Giữa kỳ</SelectItem>
-                          <SelectItem value="final">Cuối kỳ</SelectItem>
-                          <SelectItem value="quiz">Kiểm tra</SelectItem>
-                          <SelectItem value="assignment">Bài tập</SelectItem>
+                          <SelectItem value="semester1">Cuối học kỳ 1 (Thường xuyên theo môn + Giữa kì + Cuối kì)</SelectItem>
+                          <SelectItem value="semester2">Cuối học kỳ 2 (Thường xuyên theo môn + Giữa kì + Cuối kì)</SelectItem>
+                          <SelectItem value="yearly">Cả năm (Điểm học kì 1 + Điểm học kì 2 + Điểm cả năm)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -529,8 +663,8 @@ export function ExcelImportDialog({
                 {processingResult.errorRows.length > 0 && (
                   <div className="max-h-40 overflow-y-auto border rounded-lg p-4">
                     <h4 className="font-medium mb-2">Chi tiết lỗi:</h4>
-                    {processingResult.errorRows.slice(0, 5).map((errorRow, index) => (
-                      <div key={index} className="text-sm mb-2">
+                    {processingResult.errorRows.slice(0, 5).map((errorRow) => (
+                      <div key={`error-${errorRow.rowNumber}`} className="text-sm mb-2">
                         <Badge variant="destructive" className="mr-2">
                           Dòng {errorRow.rowNumber}
                         </Badge>

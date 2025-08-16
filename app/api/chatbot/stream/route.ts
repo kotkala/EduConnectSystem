@@ -156,12 +156,12 @@ export async function POST(request: NextRequest) {
         description,
         recorded_at,
         violation_date,
-        student:profiles!student_violations_student_id_fkey(full_name, student_id),
+        student:profiles!student_id(full_name, student_id),
         violation_type:violation_types(
           name,
           violation_categories(name)
         ),
-        recorded_by:profiles!student_violations_recorded_by_fkey(full_name)
+        recorded_by:profiles!recorded_by(full_name)
       `)
       .in('student_id', studentIds)
       .gte('recorded_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())

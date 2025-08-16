@@ -448,9 +448,17 @@ const ReportCard = React.memo(({
   return (
     <Card className={`transition-all hover:shadow-md ${!notification.is_read ? 'border-blue-500 bg-blue-50/50' : ''}`}>
       <CardContent className="p-6">
-        <button
+        <div
           onClick={handleCardClick}
-          className="w-full text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+          className="w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              handleCardClick()
+            }
+          }}
           aria-expanded={isExpanded}
           aria-label={`Báo cáo của ${report.student?.full_name}. ${isExpanded ? 'Thu gọn' : 'Mở rộng'} để xem chi tiết`}
         >
@@ -549,7 +557,7 @@ const ReportCard = React.memo(({
               )}
             </div>
           </div>
-        </button>
+        </div>
 
         {/* Expanded Content */}
         {isExpanded && (

@@ -12,7 +12,11 @@ interface Message {
     feedbackCount: number
     gradesCount: number
     violationsCount: number
-  }
+  } | Record<string, unknown>
+  functionCalls?: number
+  promptStrength?: number
+  conversationId?: string
+  hasFeedback?: boolean
 }
 
 interface ConversationHistoryItem {

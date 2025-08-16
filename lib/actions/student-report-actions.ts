@@ -167,11 +167,16 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
 }
 
 // Regenerate academic summary using AI
-export async function regenerateAcademicSummaryAction(studentId: string, reportPeriodId: string) {
+export async function regenerateAcademicSummaryAction(
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
+) {
   try {
     await checkHomeroomTeacherPermissions()
 
-    const summary = await generateAIAcademicSummary(studentId, reportPeriodId)
+    const summary = await generateAIAcademicSummary(studentId, reportPeriodId, style, length)
 
     return { success: true, data: summary }
   } catch (error) {
@@ -184,11 +189,16 @@ export async function regenerateAcademicSummaryAction(studentId: string, reportP
 }
 
 // Regenerate discipline summary using AI
-export async function regenerateDisciplineSummaryAction(studentId: string, reportPeriodId: string) {
+export async function regenerateDisciplineSummaryAction(
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
+) {
   try {
     await checkHomeroomTeacherPermissions()
 
-    const summary = await generateAIDisciplineSummary(studentId, reportPeriodId)
+    const summary = await generateAIDisciplineSummary(studentId, reportPeriodId, style, length)
 
     return { success: true, data: summary }
   } catch (error) {
@@ -201,11 +211,16 @@ export async function regenerateDisciplineSummaryAction(studentId: string, repor
 }
 
 // Generate strengths summary using AI
-export async function generateStrengthsSummaryAction(studentId: string, reportPeriodId: string) {
+export async function generateStrengthsSummaryAction(
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
+) {
   try {
     await checkHomeroomTeacherPermissions()
 
-    const summary = await generateAIStrengthsSummary(studentId, reportPeriodId)
+    const summary = await generateAIStrengthsSummary(studentId, reportPeriodId, style, length)
 
     return { success: true, data: summary }
   } catch (error) {
@@ -218,11 +233,16 @@ export async function generateStrengthsSummaryAction(studentId: string, reportPe
 }
 
 // Generate weaknesses summary using AI
-export async function generateWeaknessesSummaryAction(studentId: string, reportPeriodId: string) {
+export async function generateWeaknessesSummaryAction(
+  studentId: string,
+  reportPeriodId: string,
+  style: string = 'friendly',
+  length: string = 'medium'
+) {
   try {
     await checkHomeroomTeacherPermissions()
 
-    const summary = await generateAIWeaknessesSummary(studentId, reportPeriodId)
+    const summary = await generateAIWeaknessesSummary(studentId, reportPeriodId, style, length)
 
     return { success: true, data: summary }
   } catch (error) {
@@ -230,6 +250,80 @@ export async function generateWeaknessesSummaryAction(studentId: string, reportP
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate weaknesses summary'
+    }
+  }
+}
+
+// Get student data for report editing
+export async function getStudentForReportAction(studentId: string, reportPeriodId: string) {
+  try {
+    const { userId } = await checkHomeroomTeacherPermissions()
+    const supabase = await createClient()
+
+    // Get student with class assignment data (following same pattern as getStudentsForReportAction)
+    const { data: studentData, error: studentError } = await supabase
+      .from('student_class_assignments')
+      .select(`
+        student:profiles!student_id(
+          id,
+          full_name,
+          student_id,
+          email
+        ),
+        class:classes!class_id(
+          id,
+          name,
+          homeroom_teacher_id
+        )
+      `)
+      .eq('is_active', true)
+      .eq('student_id', studentId)
+      .eq('classes.homeroom_teacher_id', userId)
+      .single()
+
+    if (studentError) {
+      return {
+        success: false,
+        error: 'Không tìm thấy học sinh hoặc bạn không có quyền truy cập'
+      }
+    }
+
+    if (!studentData || !studentData.student || !studentData.class) {
+      return {
+        success: false,
+        error: 'Không tìm thấy thông tin học sinh'
+      }
+    }
+
+    // Get existing report for this student and period
+    const { data: existingReport } = await supabase
+      .from('student_reports')
+      .select('*')
+      .eq('report_period_id', reportPeriodId)
+      .eq('student_id', studentId)
+      .eq('homeroom_teacher_id', userId)
+      .single()
+
+    // Format the response to match StudentForReport type
+    const student = Array.isArray(studentData.student) ? studentData.student[0] : studentData.student
+    const classData = Array.isArray(studentData.class) ? studentData.class[0] : studentData.class
+
+    const formattedStudent: StudentForReport = {
+      id: student.id,
+      student_id: student.student_id,
+      full_name: student.full_name,
+      email: student.email || '',
+      class_id: classData.id,
+      class_name: classData.name,
+      report: existingReport || undefined
+    }
+
+    return { success: true, data: formattedStudent }
+  } catch (error) {
+    console.error('Error in getStudentForReportAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get student data'
     }
   }
 }

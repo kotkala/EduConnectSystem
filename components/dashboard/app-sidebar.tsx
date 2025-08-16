@@ -81,7 +81,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Quản lý người dùng", url: "/dashboard/admin/users", icon: Users },
 
     // Academic Structure
-    { title: "Niên khóa học", url: "/dashboard/admin/academic", icon: Calendar },
+    { title: "Năm học", url: "/dashboard/admin/academic-years", icon: Calendar },
     { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
     { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
     { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },

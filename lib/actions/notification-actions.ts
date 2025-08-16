@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export interface NotificationFormData {
@@ -410,5 +411,104 @@ export async function uploadNotificationImageAction(file: File): Promise<{ succe
     return { success: true, data: { url: publicUrl, path: filePath } }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// GRADE NOTIFICATION FUNCTIONS
+
+// Send grade notification to parent
+export async function sendGradeNotificationAction(gradeId: string, notificationType: 'grade_added' | 'grade_updated' | 'grade_locked') {
+  try {
+    const supabase = createAdminClient()
+
+    // Get grade information with student and parent details
+    const { data: gradeInfo, error: gradeError } = await supabase
+      .from('student_grades')
+      .select(`
+        id,
+        grade_value,
+        grade_type,
+        notes,
+        student:profiles!student_grades_student_id_fkey!inner(
+          id,
+          full_name,
+          student_id
+        ),
+        subject:subjects!student_grades_subject_id_fkey!inner(
+          name_vietnamese,
+          code
+        ),
+        class:classes!student_grades_class_id_fkey!inner(
+          name
+        ),
+        period:grade_reporting_periods!student_grades_period_id_fkey!inner(
+          name
+        )
+      `)
+      .eq('id', gradeId)
+      .single()
+
+    if (gradeError || !gradeInfo) {
+      return {
+        success: false,
+        error: 'Không tìm thấy thông tin điểm số'
+      }
+    }
+
+    // Get parent information separately to avoid type issues
+    const studentData = Array.isArray(gradeInfo.student) ? gradeInfo.student[0] : gradeInfo.student
+
+    const { data: parentInfo, error: parentError } = await supabase
+      .from('profiles')
+      .select('parent_id')
+      .eq('id', studentData.id)
+      .single()
+
+    if (parentError || !parentInfo?.parent_id) {
+      return {
+        success: false,
+        error: 'Học sinh chưa có phụ huynh được liên kết'
+      }
+    }
+
+    // Create notification message
+    const subjectData = Array.isArray(gradeInfo.subject) ? gradeInfo.subject[0] : gradeInfo.subject
+
+    const messageMap = {
+      'grade_added': `Điểm số mới đã được thêm cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Điểm: ${gradeInfo.grade_value}`,
+      'grade_updated': `Điểm số đã được cập nhật cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Điểm mới: ${gradeInfo.grade_value}`,
+      'grade_locked': `Điểm số đã được khóa cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Điểm: ${gradeInfo.grade_value}`
+    }
+
+    const message = messageMap[notificationType]
+
+    // Insert notification using the existing notification system
+    const notificationData = {
+      title: 'Thông báo điểm số',
+      content: message,
+      target_roles: ['parent'],
+      target_classes: [],
+      is_active: true
+    }
+
+    // Create notification for the specific parent
+    const result = await createNotificationAction(notificationData)
+
+    if (result.success) {
+      revalidatePath('/dashboard/parent/notifications')
+      return {
+        success: true,
+        message: 'Đã gửi thông báo cho phụ huynh'
+      }
+    } else {
+      return result
+    }
+
+  } catch (error) {
+    console.error('Error sending grade notification:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể gửi thông báo'
+    }
   }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,11 +16,18 @@ import {
   Minimize2,
   Maximize2,
   MessageCircle,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  Gauge,
+  History
 } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 import { useChatStreaming } from "./useChatStreaming"
+import { FeedbackDialog } from "./feedback-dialog"
+import { ChatHistorySidebar } from "./chat-history-sidebar"
+import { createConversation, getMessages } from "@/lib/actions/chat-history-actions"
+import { createClient } from "@/utils/supabase/client"
 
 interface Message {
   id: string
@@ -32,7 +39,11 @@ interface Message {
     feedbackCount: number
     gradesCount: number
     violationsCount: number
-  }
+  } | Record<string, unknown>
+  functionCalls?: number
+  promptStrength?: number
+  conversationId?: string
+  hasFeedback?: boolean
 }
 
 interface ParentChatbotProps {
@@ -102,6 +113,22 @@ export function formatTime(date: Date): string {
   })
 }
 
+// Type guard for context used
+function isContextUsed(contextUsed: unknown): contextUsed is {
+  studentsCount: number
+  feedbackCount: number
+  gradesCount: number
+  violationsCount: number
+} {
+  return contextUsed !== null &&
+    typeof contextUsed === 'object' &&
+    contextUsed !== undefined &&
+    'studentsCount' in contextUsed &&
+    'feedbackCount' in contextUsed &&
+    'gradesCount' in contextUsed &&
+    'violationsCount' in contextUsed
+}
+
 export function copyMessage(content: string): void {
   navigator.clipboard.writeText(content)
   toast.success('Đã sao chép tin nhắn')
@@ -133,8 +160,41 @@ export default function ParentChatbot({
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+  const [parentId, setParentId] = useState<string | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Initialize conversation and parent ID - fixed infinite loop
+  useEffect(() => {
+    const initializeChat = async () => {
+      // Get current user (parent) ID from auth
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        setParentId(user.id)
+
+        // Create new conversation if none exists
+        if (!currentConversationId) {
+          const result = await createConversation({
+            parent_id: user.id,
+            title: 'Cuộc trò chuyện mới'
+          })
+
+          if (result.success && result.data) {
+            setCurrentConversationId(result.data.id)
+          }
+        }
+      }
+    }
+
+    if (isOpen) {
+      initializeChat()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]) // Removed currentConversationId to prevent infinite loop
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -148,25 +208,292 @@ export default function ParentChatbot({
     }
   }, [isOpen, isMinimized])
 
+  // Memoize suggested prompts to prevent recreation
+  const suggestedPrompts = useMemo(() => [
+    "Điểm số gần đây của con",
+    "Phản hồi từ giáo viên",
+    "Môn nào cần cải thiện?",
+    "Tiến bộ tuần này"
+  ], [])
+
   // Use custom hook for chat streaming
   const { sendMessage: sendStreamingMessage } = useChatStreaming({
     messages,
     setMessages,
     setInputMessage,
     setIsLoading,
-    setIsStreaming
+    setIsStreaming,
+    conversationId: currentConversationId,
+    parentId: parentId
   })
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return
     await sendStreamingMessage(inputMessage.trim())
-  }
+  }, [inputMessage, isLoading, isStreaming, sendStreamingMessage])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     handleKeyPress(e, sendMessage)
-  }
+  }, [sendMessage])
+
+  const handleFeedbackSubmitted = useCallback((messageId: string) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, hasFeedback: true } : m
+    ))
+  }, [])
+
+  const handleConversationSelect = useCallback(async (conversationId: string) => {
+    setCurrentConversationId(conversationId)
+    setShowHistory(false)
+
+    // Load messages for selected conversation
+    const result = await getMessages(conversationId)
+    if (result.success && result.data) {
+      const loadedMessages: Message[] = result.data.map((msg: {
+        id: string
+        role: 'user' | 'assistant'
+        content: string
+        created_at: string
+        context_used?: Record<string, unknown>
+        function_calls: number
+        prompt_strength: number
+        conversation_id: string
+        feedback?: { id: string }[]
+      }) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+        contextUsed: msg.context_used,
+        functionCalls: msg.function_calls,
+        promptStrength: msg.prompt_strength,
+        conversationId: msg.conversation_id,
+        hasFeedback: msg.feedback && msg.feedback.length > 0
+      }))
+      setMessages(loadedMessages)
+    }
+  }, [])
+
+  const handleNewConversation = useCallback(async () => {
+    if (!parentId) return
+
+    const result = await createConversation({
+      parent_id: parentId,
+      title: 'Cuộc trò chuyện mới'
+    })
+
+    if (result.success && result.data) {
+      setCurrentConversationId(result.data.id)
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
+        timestamp: new Date()
+      }])
+      setShowHistory(false)
+    }
+  }, [parentId])
 
   if (!isOpen) return null
+
+  // Page mode - full page layout
+  if (mode === 'page') {
+    return (
+      <>
+        {/* Chat History Sidebar */}
+        {parentId && (
+          <ChatHistorySidebar
+            parentId={parentId}
+            currentConversationId={currentConversationId}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+            isOpen={showHistory}
+            onClose={() => setShowHistory(false)}
+          />
+        )}
+
+        <div className="h-full flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">Trợ Lý AI</h2>
+                  <p className="text-xs text-blue-100">Hỗ trợ phụ huynh 24/7</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                  title="Lịch sử chat"
+                >
+                  <History className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white rounded-b-2xl">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex items-start space-x-2 max-w-[80%] ${
+                  message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+                }`}>
+                  <ChatAvatar role={message.role} size="sm" />
+
+                  <div className={`rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                  }`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+
+                    {/* Context info for assistant messages */}
+                    {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
+                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số, {message.contextUsed.violationsCount} vi phạm</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prompt strength indicator for assistant messages */}
+                    {message.role === 'assistant' && message.promptStrength !== undefined && (
+                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                          <Gauge className="h-3 w-3" />
+                          <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                            <div
+                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${message.promptStrength * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center space-x-1 text-xs opacity-70">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(message.timestamp)}</span>
+                        {message.functionCalls && message.functionCalls > 0 && (
+                          <>
+                            <span className="mx-1">•</span>
+                            <span>{message.functionCalls} function calls</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Feedback button for assistant messages */}
+                      {message.role === 'assistant' && parentId && !message.hasFeedback && (
+                        <FeedbackDialog
+                          messageId={message.id}
+                          parentId={parentId}
+                          userQuestion={messages[messages.findIndex(m => m.id === message.id) - 1]?.content || ''}
+                          aiResponse={message.content}
+                          onFeedbackSubmitted={() => handleFeedbackSubmitted(message.id)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Loading indicator */}
+            {(isLoading && !isStreaming) && (
+              <div className="flex justify-start">
+                <div className="flex items-start space-x-2">
+                  <ChatAvatar role="assistant" size="sm" />
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Streaming indicator */}
+            {isStreaming && (
+              <div className="flex justify-start">
+                <div className="flex items-start space-x-2">
+                  <ChatAvatar role="assistant" size="sm" />
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Đang trả lời...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t p-4 bg-white rounded-b-2xl">
+            {/* Disclaimer */}
+            <div className="mb-3 flex items-start space-x-2 bg-amber-50 p-2 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-amber-700">
+                <span className="font-medium">Miễn trừ trách nhiệm:</span> Thông tin từ AI mang tính chất tham khảo.
+                Vui lòng liên hệ trực tiếp với giáo viên hoặc nhà trường để có thông tin chính xác nhất.
+              </div>
+            </div>
+
+            <div className="flex space-x-2">
+              <Input
+                ref={inputRef}
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Hỏi về tình hình học tập của con em..."
+                disabled={isLoading || isStreaming}
+                className="flex-1"
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isLoading || isStreaming}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Quick suggestions */}
+            <div className="mt-2 flex flex-wrap gap-1">
+              {suggestedPrompts.map((suggestion) => (
+                <Badge
+                  key={suggestion}
+                  variant="outline"
+                  className="cursor-pointer hover:bg-blue-50 text-xs"
+                  onClick={() => setInputMessage(suggestion)}
+                >
+                  {suggestion}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
 
   // Floating chatbot design (new compact design)
   if (mode === 'floating') {
@@ -247,7 +574,20 @@ export default function ParentChatbot({
 
   // Original full chatbot design
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <>
+      {/* Chat History Sidebar */}
+      {parentId && (
+        <ChatHistorySidebar
+          parentId={parentId}
+          currentConversationId={currentConversationId}
+          onConversationSelect={handleConversationSelect}
+          onNewConversation={handleNewConversation}
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
+
+      <div className="fixed bottom-4 right-4 z-50">
       <Card className={`w-96 shadow-2xl border-2 transition-all duration-300 ${
         isMinimized ? 'h-16' : 'h-[600px]'
       }`}>
@@ -264,6 +604,15 @@ export default function ParentChatbot({
               </div>
             </div>
             <div className="flex items-center space-x-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                title="Lịch sử chat"
+              >
+                <History className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -307,7 +656,7 @@ export default function ParentChatbot({
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       
                       {/* Context info for assistant messages */}
-                      {message.role === 'assistant' && message.contextUsed && (
+                      {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
                         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                           <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                             <Sparkles className="h-3 w-3" />
@@ -315,12 +664,45 @@ export default function ParentChatbot({
                           </div>
                         </div>
                       )}
-                      
-                      <div className="flex items-center justify-between mt-1">
+
+                      {/* Prompt strength indicator for assistant messages */}
+                      {message.role === 'assistant' && message.promptStrength !== undefined && (
+                        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                            <Gauge className="h-3 w-3" />
+                            <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                style={{ width: `${message.promptStrength * 100}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 text-xs opacity-70">
                           <Clock className="h-3 w-3" />
                           <span>{formatTime(message.timestamp)}</span>
+                          {message.functionCalls && message.functionCalls > 0 && (
+                            <>
+                              <span className="mx-1">•</span>
+                              <span>{message.functionCalls} function calls</span>
+                            </>
+                          )}
                         </div>
+
+                        {/* Feedback button for assistant messages */}
+                        {message.role === 'assistant' && parentId && !message.hasFeedback && (
+                          <FeedbackDialog
+                            messageId={message.id}
+                            parentId={parentId}
+                            userQuestion={messages[messages.findIndex(m => m.id === message.id) - 1]?.content || ''}
+                            aiResponse={message.content}
+                            onFeedbackSubmitted={() => handleFeedbackSubmitted(message.id)}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -363,6 +745,15 @@ export default function ParentChatbot({
 
             {/* Input */}
             <div className="border-t p-4">
+              {/* Disclaimer */}
+              <div className="mb-3 flex items-start space-x-2 bg-amber-50 p-2 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-amber-700">
+                  <span className="font-medium">Miễn trừ trách nhiệm:</span> Thông tin từ AI mang tính chất tham khảo.
+                  Vui lòng liên hệ trực tiếp với giáo viên hoặc nhà trường để có thông tin chính xác nhất.
+                </div>
+              </div>
+
               <div className="flex space-x-2">
                 <Input
                   ref={inputRef}
@@ -381,15 +772,10 @@ export default function ParentChatbot({
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {/* Quick suggestions */}
               <div className="mt-2 flex flex-wrap gap-1">
-                {[
-                  "Điểm số gần đây của con",
-                  "Phản hồi từ giáo viên",
-                  "Môn nào cần cải thiện?",
-                  "Tiến bộ tuần này"
-                ].map((suggestion) => (
+                {suggestedPrompts.map((suggestion) => (
                   <Badge
                     key={suggestion}
                     variant="outline"
@@ -405,5 +791,6 @@ export default function ParentChatbot({
         )}
       </Card>
     </div>
+    </>
   )
 }

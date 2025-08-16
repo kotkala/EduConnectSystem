@@ -13,7 +13,7 @@ export async function getChildrenGradeReportsAction() {
     const { data: children, error: childrenError } = await supabase
       .from('parent_student_relationships')
       .select(`
-        student:profiles!parent_student_relationships_student_id_fkey(
+        student:profiles!student_id(
           id,
           full_name,
           student_id,
@@ -43,14 +43,14 @@ export async function getChildrenGradeReportsAction() {
       .from('student_grade_submissions')
       .select(`
         *,
-        student:profiles!student_grade_submissions_student_id_fkey(
+        student:profiles!student_id(
           id,
           full_name,
           student_id
         ),
-        class:classes!student_grade_submissions_class_id_fkey(
+        class:classes!class_id(
           name,
-          homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(full_name)
+          homeroom_teacher:profiles!homeroom_teacher_id(full_name)
         ),
         academic_year:academic_years(name),
         semester:semesters(name),
@@ -99,7 +99,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       .from('student_grade_submissions')
       .select(`
         *,
-        student:profiles!student_grade_submissions_student_id_fkey(
+        student:profiles!student_id(
           id,
           full_name,
           student_id
@@ -130,15 +130,15 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       .from('student_grade_submissions')
       .select(`
         *,
-        student:profiles!student_grade_submissions_student_id_fkey(
+        student:profiles!student_id(
           id,
           full_name,
           student_id,
           email
         ),
-        class:classes!student_grade_submissions_class_id_fkey(
+        class:classes!class_id(
           name,
-          homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
+          homeroom_teacher:profiles!homeroom_teacher_id(
             full_name,
             email
           )

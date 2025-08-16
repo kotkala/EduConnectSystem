@@ -150,18 +150,18 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* Academic Year Name */}
       <FormField
         id="name"
-        label="Academic Year Name"
-        placeholder="e.g., 2024-2025"
+        label="Tên năm học"
+        placeholder="Ví dụ: 2024-2025"
         register={form.register("name")}
         error={form.formState.errors.name?.message}
         disabled={isSubmitting}
-        helpText="Format: YYYY-YYYY (e.g., 2024-2025)"
+        helpText="Định dạng: YYYY-YYYY (ví dụ: 2024-2025)"
       />
 
       {/* Start Date */}
       <FormField
         id="start_date"
-        label="Start Date"
+        label="Ngày bắt đầu"
         type="date"
         register={form.register("start_date")}
         error={form.formState.errors.start_date?.message}
@@ -171,7 +171,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* End Date */}
       <FormField
         id="end_date"
-        label="End Date"
+        label="Ngày kết thúc"
         type="date"
         register={form.register("end_date")}
         error={form.formState.errors.end_date?.message}
@@ -187,12 +187,12 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
           disabled={isSubmitting}
         />
         <Label htmlFor="is_current" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Set as current academic year
+          Đặt làm năm học hiện tại
         </Label>
       </div>
       {form.watch("is_current") && (
         <p className="text-sm text-amber-600">
-          Setting this as current will automatically unset other current academic years and create default semesters.
+          Đặt làm năm học hiện tại sẽ tự động bỏ chọn các năm học hiện tại khác và tạo học kỳ mặc định.
         </p>
       )}
 
@@ -240,16 +240,16 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
 
       {!isEditing && (
         <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Auto-Generated Semesters</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Học kỳ tự động tạo</h4>
           <p className="text-xs sm:text-sm text-blue-700">
-            When you create an academic year, two default semesters will be automatically created:
+            Khi bạn tạo năm học mới, hai học kỳ mặc định sẽ được tự động tạo:
           </p>
           <ul className="text-xs sm:text-sm text-blue-700 mt-2 space-y-1">
-            <li>• <strong>Học kỳ 1:</strong> 18 weeks (first ~4 months)</li>
-            <li>• <strong>Học kỳ 2:</strong> 17 weeks (remaining period)</li>
+            <li>• <strong>Học kỳ 1:</strong> 18 tuần (khoảng 4 tháng đầu)</li>
+            <li>• <strong>Học kỳ 2:</strong> 17 tuần (thời gian còn lại)</li>
           </ul>
           <p className="text-xs sm:text-sm text-blue-700 mt-2">
-            You can edit these semesters after creation if needed.
+            Bạn có thể chỉnh sửa các học kỳ này sau khi tạo nếu cần.
           </p>
         </div>
       )}

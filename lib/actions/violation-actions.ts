@@ -752,14 +752,14 @@ export async function getParentViolationsAction(
       .from('student_violations')
       .select(`
         *,
-        student:profiles!student_violations_student_id_fkey(id, full_name, email, student_id),
+        student:profiles!student_id(id, full_name, email, student_id),
         class:classes(id, name),
         violation_type:violation_types(
           id,
           name,
           category:violation_categories(id, name)
         ),
-        recorded_by:profiles!student_violations_recorded_by_fkey(id, full_name),
+        recorded_by:profiles!recorded_by(id, full_name),
         academic_year:academic_years(id, name),
         semester:semesters(id, name, start_date)
       `)

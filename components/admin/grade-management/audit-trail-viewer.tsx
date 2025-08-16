@@ -36,7 +36,7 @@ import { getGradeAuditLogsAction } from '@/lib/actions/grade-management-actions'
 import type { GradeAuditLog } from '@/lib/validations/grade-management-validations'
 
 interface AuditTrailViewerProps {
-  periodId?: string
+  readonly periodId?: string
 }
 
 interface AuditFilters {
@@ -61,10 +61,10 @@ export function AuditTrailViewer({ periodId }: AuditTrailViewerProps) {
 
 
   // Load audit logs
-  const loadAuditLogs = async () => {
+  const loadAuditLogs = useCallback(async () => {
     try {
       setLoading(true)
-      
+
       const result = await getGradeAuditLogsAction(filters)
 
       if (result.success) {
@@ -77,7 +77,7 @@ export function AuditTrailViewer({ periodId }: AuditTrailViewerProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters])
 
   // Handle export audit trail
   const handleExportAuditTrail = async () => {
@@ -152,7 +152,7 @@ export function AuditTrailViewer({ periodId }: AuditTrailViewerProps) {
 
   useEffect(() => {
     loadAuditLogs()
-  }, [filters])
+  }, [filters, loadAuditLogs])
 
   return (
     <div className="space-y-6">

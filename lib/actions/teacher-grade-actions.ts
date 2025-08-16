@@ -262,7 +262,7 @@ export async function getStudentParentsAction(studentId: string) {
     const { data: parents, error } = await supabase
       .from('parent_student_relationships')
       .select(`
-        parent:profiles!parent_student_relationships_parent_id_fkey(
+        parent:profiles!parent_id(
           id,
           full_name,
           email,

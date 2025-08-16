@@ -15,8 +15,8 @@ export const gradeValueSchema = z
   )
   .transform((val) => Math.round(val * 10) / 10) // Round to 1 decimal place
 
-// Grade type enumeration
-export const gradeTypes = ['midterm', 'final', 'average', 'quiz', 'assignment'] as const
+// Grade type enumeration - Updated for VNedu compatibility
+export const gradeTypes = ['semester1', 'semester2', 'full_year'] as const
 export type GradeType = typeof gradeTypes[number]
 
 // Grade reporting period schema

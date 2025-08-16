@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { AuthModal } from '@/components/auth/auth-modal'
-import type { AuthUser, UserProfile } from '@/lib/types'
+import type { UserProfile } from '@/lib/types'
 
 // Animated Counter Component
 function AnimatedCounter({ end, duration = 2000 }: { readonly end: string; readonly duration?: number }) {
@@ -91,7 +91,7 @@ export default function Home() {
 
   // Conditional rendering based on auth state
   if (user && profile) {
-    return <AuthenticatedLandingPage user={user} profile={profile} />
+    return <AuthenticatedLandingPage profile={profile} />
   }
 
   return (
@@ -1166,11 +1166,10 @@ export default function Home() {
 
 // Authenticated user landing page
 interface AuthenticatedLandingPageProps {
-  readonly user: AuthUser
   readonly profile: UserProfile
 }
 
-function AuthenticatedLandingPage({ user, profile }: AuthenticatedLandingPageProps) {
+function AuthenticatedLandingPage({ profile }: AuthenticatedLandingPageProps) {
   const getDashboardPath = (role: string) => {
     switch (role) {
       case 'admin': return '/dashboard/admin'

@@ -125,9 +125,9 @@ export async function getParentLeaveApplicationsAction(): Promise<{ success: boo
       .from('leave_applications')
       .select(`
         *,
-        student:profiles!leave_applications_student_id_fkey(full_name, student_id),
-        homeroom_teacher:profiles!leave_applications_homeroom_teacher_id_fkey(full_name),
-        class:classes!leave_applications_class_id_fkey(name)
+        student:profiles!student_id(full_name, student_id),
+        homeroom_teacher:profiles!homeroom_teacher_id(full_name),
+        class:classes!class_id(name)
       `)
       .eq('parent_id', user.id)
       .order('created_at', { ascending: false })

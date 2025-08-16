@@ -11,6 +11,8 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
+import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
+
 import { getHomeroomDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
 
@@ -69,7 +71,7 @@ export default function TeacherGradeReportsClient() {
       if (result.success && result.data) {
         const periodsData = result.data as unknown as GradeReportingPeriod[]
         setPeriods(periodsData)
-
+        
         // Auto-select the active period
         const activePeriod = periodsData.find((period) => period.is_active === true)
         if (activePeriod) {
@@ -92,7 +94,7 @@ export default function TeacherGradeReportsClient() {
 
     try {
       setLoading(true)
-
+      
       const filters = {
         page: 1,
         limit: 1000
@@ -102,7 +104,7 @@ export default function TeacherGradeReportsClient() {
 
       if (result.success && result.data) {
         const gradeData = result.data as unknown as GradeRecord[]
-
+        
         // Transform grades into unique student records
         const studentMap = new Map<string, StudentRecord>()
 
@@ -180,8 +182,168 @@ export default function TeacherGradeReportsClient() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản lý bảng điểm</h1>
-      <p>Đang phát triển...</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Quản lý bảng điểm</h1>
+          <p className="text-gray-600">Xem và quản lý điểm số học sinh trong lớp chủ nhiệm</p>
+        </div>
+        <Button
+          onClick={handleSendToAllParents}
+          disabled={sendingToAllParents || students.length === 0}
+          className="flex items-center gap-2"
+        >
+          {sendingToAllParents ? (
+            <>
+              <LoadingSpinner size="sm" />
+              Đang gửi...
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" />
+              Gửi tất cả phụ huynh
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Học sinh</p>
+                <p className="text-2xl font-bold">{students.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Kỳ báo cáo</p>
+                <p className="text-2xl font-bold">{periods.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-5 w-5 text-purple-600" />
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Tổng điểm</p>
+                <p className="text-2xl font-bold">
+                  {students.reduce((sum, student) => sum + student.total_grades, 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Period Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Chọn kỳ báo cáo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Chọn kỳ báo cáo" />
+            </SelectTrigger>
+            <SelectContent>
+              {periods.map((period) => (
+                <SelectItem key={period.id} value={period.id}>
+                  {period.name} - {period.academic_year.name} - {period.semester.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {/* Students List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách học sinh</CardTitle>
+          <CardDescription>
+            {selectedPeriod ? `Hiển thị ${students.length} học sinh` : 'Vui lòng chọn kỳ báo cáo'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner size="lg" />
+              <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
+            </div>
+          ) : students.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="Không có học sinh"
+              description="Không tìm thấy học sinh nào trong kỳ báo cáo này"
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Học sinh</TableHead>
+                  <TableHead>Lớp</TableHead>
+                  <TableHead>Số điểm</TableHead>
+                  <TableHead>Môn học</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {students.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{student.full_name}</div>
+                        <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{student.class_name}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{student.total_grades} điểm</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {student.subjects.slice(0, 3).map(subject => (
+                          <Badge key={subject.id} variant="outline" className="text-xs">
+                            {subject.code}
+                          </Badge>
+                        ))}
+                        {student.subjects.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{student.subjects.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/dashboard/teacher/grade-reports/student/${student.id}`}>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <Eye className="h-4 w-4" />
+                          Xem bảng điểm
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

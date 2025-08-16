@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Filter, Download, Eye, Calendar, Users, BookOpen, RefreshCw } from 'lucide-react'
+import { Search, Filter, Download, Eye, Calendar, Users, BookOpen, RefreshCw, Send } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -24,7 +25,7 @@ import {
   getClassesForGradeInputAction,
   getSubjectsForGradeInputAction
 } from '@/lib/actions/grade-management-actions'
-import { getDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
+import { getDetailedGradesAction, bulkSendGradesToHomeroomTeachersAction } from '@/lib/actions/detailed-grade-actions'
 import { formatGradeValue } from '@/lib/utils/grade-excel-utils'
 
 interface GradeRecord {
@@ -107,7 +108,8 @@ export function ViewGradesClient() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalRecords, setTotalRecords] = useState(0)
-  const limit = 50
+  const [sendingToTeachers, setSendingToTeachers] = useState(false)
+  const limit = 10
 
   // Error boundary state
   const [hasError, setHasError] = useState(false)
@@ -147,7 +149,7 @@ export function ViewGradesClient() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load grades with filters
+  // Load students with their grade information
   const loadGrades = useCallback(async () => {
     if (selectedPeriod === 'all') {
       setGrades([])
@@ -160,13 +162,14 @@ export function ViewGradesClient() {
     try {
       setLoading(true)
 
+      // First get all grades for the period to build student list
       const filters = {
         class_id: selectedClass === 'all' ? undefined : selectedClass,
         subject_id: selectedSubject === 'all' ? undefined : selectedSubject,
         component_type: selectedComponentType === 'all' ? undefined : selectedComponentType,
         student_search: searchTerm || undefined,
-        page: currentPage,
-        limit
+        page: 1, // Get all data first
+        limit: 1000 // Large limit to get all students
       }
 
       const result = await getDetailedGradesAction(selectedPeriod, filters)
@@ -174,10 +177,8 @@ export function ViewGradesClient() {
       if (result.success && result.data) {
         const gradeData = result.data as unknown as GradeRecord[]
         setGrades(gradeData)
-        setTotalRecords(result.count || 0)
-        setTotalPages(Math.ceil((result.count || 0) / limit))
 
-        // Transform grades into student records
+        // Transform grades into unique student records
         const studentMap = new Map<string, StudentRecord>()
 
         gradeData.forEach((grade) => {
@@ -208,7 +209,16 @@ export function ViewGradesClient() {
           }
         })
 
-        setStudentList(Array.from(studentMap.values()))
+        // Convert to array and apply pagination
+        const allStudents = Array.from(studentMap.values())
+        const totalStudents = allStudents.length
+        const startIndex = (currentPage - 1) * limit
+        const endIndex = startIndex + limit
+        const paginatedStudents = allStudents.slice(startIndex, endIndex)
+
+        setStudentList(paginatedStudents)
+        setTotalRecords(totalStudents)
+        setTotalPages(Math.ceil(totalStudents / limit))
       } else {
         console.error('Error loading grades:', result.error)
         toast.error(result.error || 'Không thể tải danh sách điểm số')
@@ -228,7 +238,7 @@ export function ViewGradesClient() {
     } finally {
       setLoading(false)
     }
-  }, [selectedPeriod, selectedClass, selectedSubject, selectedComponentType, searchTerm, currentPage])
+  }, [selectedPeriod, selectedClass, selectedSubject, selectedComponentType, searchTerm, currentPage, limit])
 
   // Reset page when filters change
   useEffect(() => {
@@ -244,6 +254,30 @@ export function ViewGradesClient() {
   useEffect(() => {
     loadInitialData()
   }, [loadInitialData])
+
+  // Handle bulk send to homeroom teachers
+  const handleBulkSendToTeachers = useCallback(async () => {
+    if (selectedPeriod === 'all') {
+      toast.error('Vui lòng chọn kỳ báo cáo cụ thể')
+      return
+    }
+
+    try {
+      setSendingToTeachers(true)
+      const result = await bulkSendGradesToHomeroomTeachersAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(result.message || 'Đã gửi bảng điểm tới các giáo viên chủ nhiệm')
+      } else {
+        toast.error(result.error || 'Không thể gửi bảng điểm')
+      }
+    } catch (error) {
+      console.error('Error sending to teachers:', error)
+      toast.error('Có lỗi xảy ra khi gửi bảng điểm')
+    } finally {
+      setSendingToTeachers(false)
+    }
+  }, [selectedPeriod])
 
 
 
@@ -399,7 +433,7 @@ export function ViewGradesClient() {
             <div className="flex items-center space-x-2">
               <Eye className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Điểm số</p>
+                <p className="text-sm font-medium text-muted-foreground">Học sinh</p>
                 <p className="text-2xl font-bold">
                   {selectedPeriod === 'all' ? '-' : totalRecords}
                 </p>
@@ -518,7 +552,7 @@ export function ViewGradesClient() {
             {/* Action Buttons */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Thao tác</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={() => {
                     setCurrentPage(1)
@@ -534,7 +568,7 @@ export function ViewGradesClient() {
                 </Button>
                 <Button
                   onClick={exportToExcel}
-                  disabled={grades.length === 0}
+                  disabled={studentList.length === 0}
                   variant="outline"
                   size="sm"
                   className="flex items-center gap-2"
@@ -542,7 +576,19 @@ export function ViewGradesClient() {
                   <Download className="h-4 w-4" />
                   Xuất Excel
                 </Button>
-
+                <Button
+                  onClick={handleBulkSendToTeachers}
+                  disabled={selectedPeriod === 'all' || sendingToTeachers}
+                  size="sm"
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {sendingToTeachers ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Gửi tất cả GVCN
+                </Button>
               </div>
             </div>
           </div>
@@ -557,8 +603,8 @@ export function ViewGradesClient() {
               <CardTitle>Kết quả tìm kiếm</CardTitle>
               <CardDescription>
                 {selectedPeriod === 'all'
-                  ? 'Vui lòng chọn kỳ báo cáo để xem điểm số'
-                  : `Hiển thị ${grades.length} / ${totalRecords} điểm số`
+                  ? 'Vui lòng chọn kỳ báo cáo để xem học sinh'
+                  : `Hiển thị ${studentList.length} / ${totalRecords} học sinh`
                 }
               </CardDescription>
             </div>
@@ -597,7 +643,7 @@ export function ViewGradesClient() {
           ) : loading ? (
             <div className="flex items-center justify-center py-8">
               <LoadingSpinner size="lg" />
-              <span className="ml-2 text-muted-foreground">Đang tải điểm số...</span>
+              <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
             </div>
           ) : studentList.length === 0 ? (
             <EmptyState
@@ -606,58 +652,58 @@ export function ViewGradesClient() {
               description="Không tìm thấy học sinh nào phù hợp với bộ lọc đã chọn"
             />
           ) : (
-            <div className="space-y-4">
-              {studentList.map((student) => (
-                <Card key={student.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold text-lg">
-                              {student.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                            </span>
-                          </div>
+            <div className="space-y-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px]">Học sinh</TableHead>
+                    <TableHead>Lớp</TableHead>
+                    <TableHead>Số điểm</TableHead>
+                    <TableHead>Môn học</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {studentList.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{student.full_name}</div>
+                          <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {student.full_name}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Mã HS: {student.student_id} • Lớp: {student.class_name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              {student.total_grades} điểm
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{student.class_name}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{student.total_grades} điểm</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {student.subjects.slice(0, 3).map(subject => (
+                            <Badge key={subject.id} variant="outline" className="text-xs">
+                              {subject.code}
                             </Badge>
+                          ))}
+                          {student.subjects.length > 3 && (
                             <Badge variant="outline" className="text-xs">
-                              {student.subjects.length} môn
+                              +{student.subjects.length - 3}
                             </Badge>
-                            {student.subjects.slice(0, 3).map(subject => (
-                              <Badge key={subject.id} variant="secondary" className="text-xs">
-                                {subject.code}
-                              </Badge>
-                            ))}
-                            {student.subjects.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{student.subjects.length - 3}
-                              </Badge>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Link href={`/dashboard/admin/grade-management/student/${student.id}`}>
                           <Button variant="outline" size="sm" className="flex items-center gap-2">
                             <Eye className="h-4 w-4" />
                             Xem điểm
                           </Button>
                         </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

@@ -272,11 +272,11 @@ export async function deleteGradeReportingPeriodAction(id: string) {
     await checkAdminPermissions()
     const supabase = createAdminClient()
 
-    // Check if there are existing grades
+    // Check if there are existing grades in the NEW system
     const { data: existingGrades } = await supabase
-      .from('student_grades')
+      .from('individual_subject_grades')
       .select('id')
-      .eq('period_id', id)
+      .eq('submission_id', id)
       .limit(1)
 
     if (existingGrades && existingGrades.length > 0) {
@@ -353,94 +353,7 @@ export async function checkPeriodPermissionsAction(periodId: string, operation: 
   }
 }
 
-// Get grades for a specific period with filters
-export async function getGradesForPeriodAction(
-  periodId: string,
-  filters?: {
-    class_id?: string
-    subject_id?: string
-    student_search?: string
-    grade_type?: string
-    page?: number
-    limit?: number
-  }
-) {
-  try {
-    await checkAdminPermissions()
-    const supabase = await createClient()
-
-    let query = supabase
-      .from('student_grades')
-      .select(`
-        id,
-        grade_value,
-        grade_type,
-        notes,
-        is_locked,
-        created_at,
-        student:profiles!student_id(
-          full_name,
-          student_id
-        ),
-        subject:subjects!subject_id(
-          name_vietnamese,
-          code
-        ),
-        class:classes!class_id(
-          name
-        )
-      `, { count: 'exact' })
-      .eq('period_id', periodId)
-      .order('created_at', { ascending: false })
-
-    // Apply filters
-    if (filters?.class_id) {
-      query = query.eq('class_id', filters.class_id)
-    }
-
-    if (filters?.subject_id) {
-      query = query.eq('subject_id', filters.subject_id)
-    }
-
-    if (filters?.grade_type) {
-      query = query.eq('grade_type', filters.grade_type)
-    }
-
-    if (filters?.student_search) {
-      // Use single query with join instead of N+1 pattern
-      query = query.or(`student.full_name.ilike.%${filters.student_search}%,student.student_id.ilike.%${filters.student_search}%`)
-    }
-
-    // Apply pagination
-    const page = filters?.page || 1
-    const limit = filters?.limit || 50
-    const from = (page - 1) * limit
-    const to = from + limit - 1
-
-    query = query.range(from, to)
-
-    const { data: grades, error, count } = await query
-
-    if (error) {
-      throw new Error(error.message)
-    }
-
-    return {
-      success: true,
-      data: grades || [],
-      count: count || 0,
-      page,
-      limit,
-      totalPages: Math.ceil((count || 0) / limit)
-    }
-  } catch (error) {
-    console.error('Error getting grades for period:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Không thể tải danh sách điểm số'
-    }
-  }
-}
+// DEPRECATED: Old grade system functions removed - now using homeroom teacher grade submission system
 
 // Get students for grade input with pagination (OPTIMIZED)
 export async function getStudentsForGradeInputAction(options?: {
@@ -560,6 +473,75 @@ export async function getSubjectsForGradeInputAction() {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể tải danh sách môn học'
+    }
+  }
+}
+
+// Get grade reporting periods for teachers (no admin permission required)
+export async function getGradeReportingPeriodsForTeachersAction(filters?: Partial<GradeFiltersFormData>) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    let query = supabase
+      .from('grade_reporting_periods')
+      .select(`
+        id,
+        name,
+        start_date,
+        end_date,
+        import_deadline,
+        edit_deadline,
+        is_active,
+        academic_year:academic_years!inner(name),
+        semester:semesters!inner(name)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+
+    // Apply filters if provided
+    if (filters?.period_id) {
+      query = query.eq('id', filters.period_id)
+    }
+
+    // Apply pagination
+    const page = filters?.page || 1
+    const limit = filters?.limit || 20
+    const offset = (page - 1) * limit
+
+    const { data: periods, error, count } = await query
+      .range(offset, offset + limit - 1)
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: periods || [],
+      total: count || 0,
+      page,
+      limit
+    }
+  } catch (error) {
+    console.error('Error fetching grade reporting periods for teachers:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách kỳ báo cáo'
     }
   }
 }

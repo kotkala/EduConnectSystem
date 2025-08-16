@@ -536,23 +536,6 @@ export async function checkClassGradeCompletionAction(
     await checkAdminPermissions()
     const supabase = createAdminClient()
 
-    // Get all subjects that should have grades for this class
-    const { data: classSubjects, error: subjectsError } = await supabase
-      .from('class_subjects')
-      .select(`
-        subject_id,
-        subject:subjects!class_subjects_subject_id_fkey(
-          id,
-          name_vietnamese,
-          code
-        )
-      `)
-      .eq('class_id', classId)
-
-    if (subjectsError) {
-      throw new Error(subjectsError.message)
-    }
-
     // Get all students in this class
     const { data: classStudents, error: studentsError } = await supabase
       .from('student_class_assignments')
@@ -561,36 +544,107 @@ export async function checkClassGradeCompletionAction(
       .eq('is_active', true)
 
     if (studentsError) {
-      throw new Error(studentsError.message)
+      console.error('Error fetching class students:', studentsError)
+      throw new Error(`Lỗi khi lấy danh sách học sinh: ${studentsError.message}`)
     }
 
-    // Check completion for each subject
-    const completionStatus = []
+    if (!classStudents || classStudents.length === 0) {
+      return {
+        success: true,
+        data: {
+          class_id: classId,
+          period_id: periodId,
+          all_completed: true,
+          overall_completion: 100,
+          subjects: []
+        }
+      }
+    }
 
-    for (const classSubject of classSubjects || []) {
-      const subjectId = classSubject.subject_id
-      const studentCount = classStudents?.length || 0
+    const studentCount = classStudents.length
 
-      // Count how many students have grades for this subject
-      const { count: gradeCount } = await supabase
-        .from('student_detailed_grades')
-        .select('*', { count: 'exact', head: true })
-        .eq('period_id', periodId)
-        .eq('class_id', classId)
-        .eq('subject_id', subjectId)
-        .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
+    // Get all subjects that have grades for this class and period (more reliable than class_subjects table)
+    const { data: subjectGrades, error: gradesError } = await supabase
+      .from('student_detailed_grades')
+      .select(`
+        subject_id,
+        subject:subjects!student_detailed_grades_subject_id_fkey(
+          id,
+          name_vietnamese,
+          code
+        )
+      `)
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
 
-      const isCompleted = (gradeCount || 0) >= studentCount
+    if (gradesError) {
+      console.error('Error fetching subject grades:', gradesError)
+      throw new Error(`Lỗi khi lấy điểm số môn học: ${gradesError.message}`)
+    }
 
-      completionStatus.push({
-        subject_id: subjectId,
-        subject: classSubject.subject,
+    // Group by subject to get unique subjects
+    const subjectMap = new Map()
+    subjectGrades?.forEach(grade => {
+      if (grade.subject && !subjectMap.has(grade.subject_id)) {
+        subjectMap.set(grade.subject_id, grade.subject)
+      }
+    })
+
+    const uniqueSubjects = Array.from(subjectMap.entries()).map(([subjectId, subject]) => ({
+      subject_id: subjectId,
+      subject
+    }))
+
+    if (uniqueSubjects.length === 0) {
+      return {
+        success: true,
+        data: {
+          class_id: classId,
+          period_id: periodId,
+          all_completed: false,
+          overall_completion: 0,
+          subjects: []
+        }
+      }
+    }
+
+    // Get completion status for each subject using aggregated query
+    const { data: completionData, error: completionError } = await supabase
+      .from('student_detailed_grades')
+      .select('subject_id, student_id')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
+
+    if (completionError) {
+      console.error('Error fetching completion data:', completionError)
+      throw new Error(`Lỗi khi kiểm tra tình trạng hoàn thành: ${completionError.message}`)
+    }
+
+    // Count students with grades per subject
+    const subjectStudentCounts = new Map()
+    completionData?.forEach(grade => {
+      const count = subjectStudentCounts.get(grade.subject_id) || new Set()
+      count.add(grade.student_id)
+      subjectStudentCounts.set(grade.subject_id, count)
+    })
+
+    // Build completion status
+    const completionStatus = uniqueSubjects.map(({ subject_id, subject }) => {
+      const studentsWithGrades = subjectStudentCounts.get(subject_id)?.size || 0
+      const isCompleted = studentsWithGrades >= studentCount
+      const completionPercentage = studentCount > 0 ? Math.round((studentsWithGrades / studentCount) * 100) : 0
+
+      return {
+        subject_id,
+        subject,
         total_students: studentCount,
-        students_with_grades: gradeCount || 0,
+        students_with_grades: studentsWithGrades,
         is_completed: isCompleted,
-        completion_percentage: studentCount > 0 ? Math.round(((gradeCount || 0) / studentCount) * 100) : 0
-      })
-    }
+        completion_percentage: completionPercentage
+      }
+    })
 
     const allCompleted = completionStatus.every(status => status.is_completed)
     const overallCompletion = completionStatus.length > 0

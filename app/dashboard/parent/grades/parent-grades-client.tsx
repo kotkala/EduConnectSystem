@@ -15,6 +15,7 @@ import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeE
 
 
 
+
 interface GradeSubmission {
   id: string
   submission_name: string
@@ -170,7 +171,99 @@ export default function ParentGradesClient() {
     router.push(`/dashboard/parent/grades/${submission.id}`)
   }, [router])
 
+  // Render content based on loading and data state
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <LoadingSpinner size="lg" />
+          <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
+        </div>
+      )
+    }
 
+    if (students.length === 0) {
+      return (
+        <EmptyState
+          icon={Users}
+          title="Không có bảng điểm"
+          description="Chưa có bảng điểm nào được gửi từ giáo viên chủ nhiệm"
+        />
+      )
+    }
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Học sinh</TableHead>
+            <TableHead>Lớp</TableHead>
+            <TableHead>Số bảng điểm</TableHead>
+            <TableHead>Môn học</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {students.map((student) => (
+            <TableRow key={student.id}>
+              <TableCell>
+                <div>
+                  <div className="font-medium">{student.full_name}</div>
+                  <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">{student.class_name}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">{student.submissions.length} bảng điểm</Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {student.subjects.slice(0, 3).map(subject => (
+                    <Badge key={subject.id} variant="outline" className="text-xs">
+                      {subject.code}
+                    </Badge>
+                  ))}
+                  {student.subjects.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{student.subjects.length - 3}
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex items-center gap-2 justify-end">
+                  {student.submissions.map((submission) => (
+                    <div key={submission.id} className="flex items-center gap-2">
+                      <Button
+                        onClick={() => handleViewSubmission(submission)}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        {submission.semester.name}
+                      </Button>
+                      <Button
+                        onClick={() => handleDownloadExcel(submission)}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Excel
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -232,88 +325,7 @@ export default function ParentGradesClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner size="lg" />
-              <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
-            </div>
-          ) : students.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="Không có bảng điểm"
-              description="Chưa có bảng điểm nào được gửi từ giáo viên chủ nhiệm"
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Học sinh</TableHead>
-                  <TableHead>Lớp</TableHead>
-                  <TableHead>Số bảng điểm</TableHead>
-                  <TableHead>Môn học</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{student.full_name}</div>
-                        <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{student.class_name}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{student.submissions.length} bảng điểm</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {student.subjects.slice(0, 3).map(subject => (
-                          <Badge key={subject.id} variant="outline" className="text-xs">
-                            {subject.code}
-                          </Badge>
-                        ))}
-                        {student.subjects.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{student.subjects.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        {student.submissions.map((submission) => (
-                          <div key={submission.id} className="flex items-center gap-2">
-                            <Button
-                              onClick={() => handleViewSubmission(submission)}
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                            >
-                              <Eye className="h-4 w-4" />
-                              {submission.semester.name}
-                            </Button>
-                            <Button
-                              onClick={() => handleDownloadExcel(submission)}
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-2"
-                            >
-                              <Download className="h-4 w-4" />
-                              Excel
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          {renderContent()}
         </CardContent>
       </Card>
     </div>

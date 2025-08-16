@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { usePageTransition } from '@/components/ui/global-loading-provider'
+import { useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,8 +13,6 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
-import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
-
 import { getHomeroomDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
 
@@ -58,11 +58,18 @@ interface GradeReportingPeriod {
 }
 
 export default function TeacherGradeReportsClient() {
-  const [loading, setLoading] = useState(true)
+  // 🚀 MIGRATION: Replace loading state with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+
   const [students, setStudents] = useState<StudentRecord[]>([])
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
-  const [sendingToAllParents, setSendingToAllParents] = useState(false)
+
+  // 📊 Keep action-specific loading states for non-blocking operations
+  const [sectionLoading, setSectionLoading] = useState({
+    sendingToAllParents: false
+  })
 
   // Load periods
   const loadPeriods = useCallback(async () => {
@@ -88,13 +95,17 @@ export default function TeacherGradeReportsClient() {
   const loadStudents = useCallback(async () => {
     if (!selectedPeriod) {
       setStudents([])
-      setLoading(false)
       return
     }
 
     try {
-      setLoading(true)
-      
+      // 🎯 UX IMPROVEMENT: Use global loading for initial load, section loading for refreshes
+      const isInitialLoad = students.length === 0
+
+      if (isInitialLoad) {
+        startPageTransition("Đang tải danh sách học sinh...")
+      }
+
       const filters = {
         page: 1,
         limit: 1000
@@ -104,7 +115,7 @@ export default function TeacherGradeReportsClient() {
 
       if (result.success && result.data) {
         const gradeData = result.data as unknown as GradeRecord[]
-        
+
         // Transform grades into unique student records
         const studentMap = new Map<string, StudentRecord>()
 
@@ -147,9 +158,9 @@ export default function TeacherGradeReportsClient() {
       toast.error('Không thể tải danh sách học sinh')
       setStudents([])
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [selectedPeriod])
+  }, [selectedPeriod, students.length, startPageTransition, stopLoading])
 
   // Load periods on mount
   useEffect(() => {
@@ -168,7 +179,7 @@ export default function TeacherGradeReportsClient() {
       return
     }
 
-    setSendingToAllParents(true)
+    setSectionLoading(prev => ({ ...prev, sendingToAllParents: true }))
     try {
       // Here we would implement bulk send to all parents
       toast.success(`Đã gửi bảng điểm cho ${students.length} phụ huynh`)
@@ -176,10 +187,88 @@ export default function TeacherGradeReportsClient() {
       console.error('Error sending to all parents:', error)
       toast.error('Lỗi khi gửi bảng điểm cho phụ huynh')
     } finally {
-      setSendingToAllParents(false)
+      setSectionLoading(prev => ({ ...prev, sendingToAllParents: false }))
     }
   }, [students])
 
+  // Render content based on loading and data state
+  const renderStudentsList = () => {
+    if (coordinatedLoading.isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <LoadingSpinner size="lg" />
+          <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
+        </div>
+      )
+    }
+
+    if (students.length === 0) {
+      return (
+        <EmptyState
+          icon={Users}
+          title="Không có học sinh"
+          description="Không tìm thấy học sinh nào trong kỳ báo cáo này"
+        />
+      )
+    }
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Học sinh</TableHead>
+            <TableHead>Lớp</TableHead>
+            <TableHead>Số điểm</TableHead>
+            <TableHead>Môn học</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {students.map((student) => (
+            <TableRow key={student.id}>
+              <TableCell>
+                <div>
+                  <div className="font-medium">{student.full_name}</div>
+                  <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">{student.class_name}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">{student.total_grades} điểm</Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-wrap gap-1">
+                  {student.subjects.slice(0, 3).map(subject => (
+                    <Badge key={subject.id} variant="outline" className="text-xs">
+                      {subject.code}
+                    </Badge>
+                  ))}
+                  {student.subjects.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{student.subjects.length - 3}
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <Link href={`/dashboard/teacher/grade-reports/student/${student.id}`}>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Xem bảng điểm
+                  </Button>
+                </Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    )
+  }
+
+
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -190,10 +279,10 @@ export default function TeacherGradeReportsClient() {
         </div>
         <Button
           onClick={handleSendToAllParents}
-          disabled={sendingToAllParents || students.length === 0}
+          disabled={sectionLoading.sendingToAllParents || students.length === 0}
           className="flex items-center gap-2"
         >
-          {sendingToAllParents ? (
+          {sectionLoading.sendingToAllParents ? (
             <>
               <LoadingSpinner size="sm" />
               Đang gửi...
@@ -278,70 +367,7 @@ export default function TeacherGradeReportsClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner size="lg" />
-              <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
-            </div>
-          ) : students.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="Không có học sinh"
-              description="Không tìm thấy học sinh nào trong kỳ báo cáo này"
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Học sinh</TableHead>
-                  <TableHead>Lớp</TableHead>
-                  <TableHead>Số điểm</TableHead>
-                  <TableHead>Môn học</TableHead>
-                  <TableHead className="text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{student.full_name}</div>
-                        <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{student.class_name}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{student.total_grades} điểm</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {student.subjects.slice(0, 3).map(subject => (
-                          <Badge key={subject.id} variant="outline" className="text-xs">
-                            {subject.code}
-                          </Badge>
-                        ))}
-                        {student.subjects.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{student.subjects.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/dashboard/teacher/grade-reports/student/${student.id}`}>
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
-                          <Eye className="h-4 w-4" />
-                          Xem bảng điểm
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          {renderStudentsList()}
         </CardContent>
       </Card>
     </div>

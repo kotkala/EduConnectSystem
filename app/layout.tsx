@@ -26,9 +26,9 @@ export const metadata: Metadata = {
   title: "EduConnect - Nền tảng giáo dục",
   description: "Nền tảng giáo dục toàn diện với quyền truy cập theo vai trò cho học sinh, giáo viên, phụ huynh và quản trị viên.",
   icons: {
-    icon: '/edu_connect_dashboard.png',
-    shortcut: '/edu_connect_dashboard.png',
-    apple: '/edu_connect_dashboard.png',
+    icon: '/Edu Connect.svg',
+    shortcut: '/Edu Connect.svg',
+    apple: '/Edu Connect.svg',
   },
 };
 

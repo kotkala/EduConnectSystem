@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { createClient } from '@/utils/supabase/server'
 import { checkAdminPermissions } from '@/lib/utils/permission-utils'
 import { GoogleGenAI } from '@google/genai'
 import {
@@ -535,60 +536,115 @@ export async function checkClassGradeCompletionAction(
     await checkAdminPermissions()
     const supabase = createAdminClient()
 
-    // Get all subjects that should have grades for this class
-    const { data: classSubjects, error: subjectsError } = await supabase
-      .from('class_subjects')
+    // Get all students in this class
+    const { data: classStudents, error: studentsError } = await supabase
+      .from('student_class_assignments')
+      .select('student_id')
+      .eq('class_id', classId)
+      .eq('is_active', true)
+
+    if (studentsError) {
+      console.error('Error fetching class students:', studentsError)
+      throw new Error(`Lỗi khi lấy danh sách học sinh: ${studentsError.message}`)
+    }
+
+    if (!classStudents || classStudents.length === 0) {
+      return {
+        success: true,
+        data: {
+          class_id: classId,
+          period_id: periodId,
+          all_completed: true,
+          overall_completion: 100,
+          subjects: []
+        }
+      }
+    }
+
+    const studentCount = classStudents.length
+
+    // Get all subjects that have grades for this class and period (more reliable than class_subjects table)
+    const { data: subjectGrades, error: gradesError } = await supabase
+      .from('student_detailed_grades')
       .select(`
         subject_id,
-        subject:subjects!class_subjects_subject_id_fkey(
+        subject:subjects!student_detailed_grades_subject_id_fkey(
           id,
           name_vietnamese,
           code
         )
       `)
+      .eq('period_id', periodId)
       .eq('class_id', classId)
+      .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
 
-    if (subjectsError) {
-      throw new Error(subjectsError.message)
+    if (gradesError) {
+      console.error('Error fetching subject grades:', gradesError)
+      throw new Error(`Lỗi khi lấy điểm số môn học: ${gradesError.message}`)
     }
 
-    // Get all students in this class
-    const { data: classStudents, error: studentsError } = await supabase
-      .from('class_students')
-      .select('student_id')
-      .eq('class_id', classId)
+    // Group by subject to get unique subjects
+    const subjectMap = new Map()
+    subjectGrades?.forEach(grade => {
+      if (grade.subject && !subjectMap.has(grade.subject_id)) {
+        subjectMap.set(grade.subject_id, grade.subject)
+      }
+    })
 
-    if (studentsError) {
-      throw new Error(studentsError.message)
+    const uniqueSubjects = Array.from(subjectMap.entries()).map(([subjectId, subject]) => ({
+      subject_id: subjectId,
+      subject
+    }))
+
+    if (uniqueSubjects.length === 0) {
+      return {
+        success: true,
+        data: {
+          class_id: classId,
+          period_id: periodId,
+          all_completed: false,
+          overall_completion: 0,
+          subjects: []
+        }
+      }
     }
 
-    // Check completion for each subject
-    const completionStatus = []
+    // Get completion status for each subject using aggregated query
+    const { data: completionData, error: completionError } = await supabase
+      .from('student_detailed_grades')
+      .select('subject_id, student_id')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
 
-    for (const classSubject of classSubjects || []) {
-      const subjectId = classSubject.subject_id
-      const studentCount = classStudents?.length || 0
+    if (completionError) {
+      console.error('Error fetching completion data:', completionError)
+      throw new Error(`Lỗi khi kiểm tra tình trạng hoàn thành: ${completionError.message}`)
+    }
 
-      // Count how many students have grades for this subject
-      const { count: gradeCount } = await supabase
-        .from('student_detailed_grades')
-        .select('*', { count: 'exact', head: true })
-        .eq('period_id', periodId)
-        .eq('class_id', classId)
-        .eq('subject_id', subjectId)
-        .in('component_type', ['final', 'semester_1', 'semester_2', 'yearly'])
+    // Count students with grades per subject
+    const subjectStudentCounts = new Map()
+    completionData?.forEach(grade => {
+      const count = subjectStudentCounts.get(grade.subject_id) || new Set()
+      count.add(grade.student_id)
+      subjectStudentCounts.set(grade.subject_id, count)
+    })
 
-      const isCompleted = (gradeCount || 0) >= studentCount
+    // Build completion status
+    const completionStatus = uniqueSubjects.map(({ subject_id, subject }) => {
+      const studentsWithGrades = subjectStudentCounts.get(subject_id)?.size || 0
+      const isCompleted = studentsWithGrades >= studentCount
+      const completionPercentage = studentCount > 0 ? Math.round((studentsWithGrades / studentCount) * 100) : 0
 
-      completionStatus.push({
-        subject_id: subjectId,
-        subject: classSubject.subject,
+      return {
+        subject_id,
+        subject,
         total_students: studentCount,
-        students_with_grades: gradeCount || 0,
+        students_with_grades: studentsWithGrades,
         is_completed: isCompleted,
-        completion_percentage: studentCount > 0 ? Math.round(((gradeCount || 0) / studentCount) * 100) : 0
-      })
-    }
+        completion_percentage: completionPercentage
+      }
+    })
 
     const allCompleted = completionStatus.every(status => status.is_completed)
     const overallCompletion = completionStatus.length > 0
@@ -620,7 +676,7 @@ export async function sendGradesToHomeroomTeacherAction(
   classId: string
 ) {
   try {
-    const { userId } = await checkAdminPermissions()
+    await checkAdminPermissions()
     const supabase = createAdminClient()
 
     // First check if grades are completed
@@ -652,35 +708,25 @@ export async function sendGradesToHomeroomTeacherAction(
       throw new Error('Không tìm thấy giáo viên chủ nhiệm cho lớp này')
     }
 
-    // Create grade submission record
-    const { data: submission, error: submissionError } = await supabase
-      .from('grade_submissions')
-      .insert({
-        period_id: periodId,
-        class_id: classId,
-        homeroom_teacher_id: classInfo.homeroom_teacher_id,
-        status: 'pending_review',
-        sent_by: userId,
-        sent_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (submissionError) {
-      throw new Error(submissionError.message)
-    }
-
     // Create notification for homeroom teacher
-    await supabase
+    const { error: notificationError } = await supabase
       .from('notifications')
       .insert({
         user_id: classInfo.homeroom_teacher_id,
-        title: 'Bảng điểm mới cần xem xét',
-        message: `Bảng điểm lớp ${classInfo.name} đã được gửi để bạn xem xét và tạo phản hồi.`,
-        type: 'grade_review',
-        related_id: submission.id,
-        created_at: new Date().toISOString()
+        title: 'Bảng điểm mới',
+        message: `Bảng điểm lớp ${classInfo.name} đã được gửi từ admin. Vui lòng kiểm tra trong mục quản lý bảng điểm.`,
+        type: 'grade_report',
+        data: {
+          period_id: periodId,
+          class_id: classId,
+          sent_at: new Date().toISOString()
+        }
       })
+
+    if (notificationError) {
+      console.error('Error creating notification:', notificationError)
+      // Don't fail the whole operation if notification fails
+    }
 
     revalidatePath('/dashboard/admin/grade-management')
     revalidatePath('/dashboard/teacher/grade-reports')
@@ -692,7 +738,7 @@ export async function sendGradesToHomeroomTeacherAction(
 
     return {
       success: true,
-      data: submission,
+      data: { period_id: periodId, class_id: classId },
       message: `Đã gửi bảng điểm lớp ${classInfo.name} tới ${teacherName}`
     }
   } catch (error) {
@@ -700,6 +746,122 @@ export async function sendGradesToHomeroomTeacherAction(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể gửi bảng điểm tới giáo viên chủ nhiệm'
+    }
+  }
+}
+
+// Bulk send grades to all homeroom teachers for a period
+export async function bulkSendGradesToHomeroomTeachersAction(periodId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Get all classes with homeroom teachers
+    const { data: classes, error: classesError } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        name,
+        homeroom_teacher_id,
+        homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `)
+      .not('homeroom_teacher_id', 'is', null)
+
+    if (classesError) {
+      throw new Error(classesError.message)
+    }
+
+    if (!classes || classes.length === 0) {
+      return {
+        success: false,
+        error: 'Không tìm thấy lớp học nào có giáo viên chủ nhiệm'
+      }
+    }
+
+    // Check completion and send for each class
+    const results = []
+    let successCount = 0
+    let errorCount = 0
+    const incompleteClasses = []
+
+    for (const classInfo of classes) {
+      try {
+        // Check if grades are completed for this class
+        const completionResult = await checkClassGradeCompletionAction(periodId, classInfo.id)
+
+        if (!completionResult.success || !completionResult.data?.all_completed) {
+          const incompleteSubjects = completionResult.data?.subjects?.filter(s => !s.is_completed) || []
+          incompleteClasses.push({
+            className: classInfo.name,
+            reason: incompleteSubjects.length
+              ? `Thiếu điểm môn: ${incompleteSubjects.map(s => (s.subject as { code?: string })?.code || 'N/A').join(', ')}`
+              : 'Chưa hoàn thành điểm số'
+          })
+          errorCount++
+          continue
+        }
+
+        // Send to homeroom teacher
+        const sendResult = await sendGradesToHomeroomTeacherAction(periodId, classInfo.id)
+
+        if (sendResult.success) {
+          successCount++
+          results.push({
+            className: classInfo.name,
+            teacherName: (classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A',
+            status: 'success'
+          })
+        } else {
+          errorCount++
+          results.push({
+            className: classInfo.name,
+            teacherName: (classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A',
+            status: 'error',
+            error: sendResult.error
+          })
+        }
+      } catch (error) {
+        errorCount++
+        results.push({
+          className: classInfo.name,
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Lỗi không xác định'
+        })
+      }
+    }
+
+    // Prepare response message
+    let message = `Đã gửi thành công ${successCount}/${classes.length} bảng điểm`
+
+    if (incompleteClasses.length > 0) {
+      const incompleteList = incompleteClasses.map(c => `- ${c.className}: ${c.reason}`).join('\n')
+      message += `\n\nCác lớp chưa hoàn thành điểm số:\n${incompleteList}`
+    }
+
+    if (errorCount > 0 && incompleteClasses.length < errorCount) {
+      message += `\n\n${errorCount - incompleteClasses.length} lớp gặp lỗi khác khi gửi`
+    }
+
+    return {
+      success: successCount > 0,
+      data: {
+        successCount,
+        errorCount,
+        totalClasses: classes.length,
+        incompleteClasses,
+        results
+      },
+      message
+    }
+  } catch (error) {
+    console.error('bulkSendGradesToHomeroomTeachersAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể gửi bảng điểm tới các giáo viên chủ nhiệm'
     }
   }
 }
@@ -887,6 +1049,121 @@ Nhận xét tổng quan về lớp:`
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể tạo phản hồi AI'
+    }
+  }
+}
+
+// Get detailed grades for homeroom teacher's class
+export async function getHomeroomDetailedGradesAction(
+  periodId: string,
+  filters?: {
+    student_search?: string
+    subject_id?: string
+    component_type?: string
+    page?: number
+    limit?: number
+  }
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a homeroom teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, homeroom_enabled')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    // Get teacher's homeroom class (take first one if multiple)
+    const { data: homeroomClasses } = await supabase
+      .from('classes')
+      .select('id, name')
+      .eq('homeroom_teacher_id', user.id)
+      .limit(1)
+
+    if (!homeroomClasses || homeroomClasses.length === 0) {
+      throw new Error('No homeroom class found')
+    }
+
+    const homeroomClass = homeroomClasses[0]
+
+    // Build query for detailed grades
+    let query = supabase
+      .from('student_detailed_grades')
+      .select(`
+        id,
+        grade_value,
+        component_type,
+        is_locked,
+        created_at,
+        updated_at,
+        student_id,
+        class_id,
+        subject_id,
+        period_id,
+        student:profiles!student_detailed_grades_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!student_detailed_grades_class_id_fkey(
+          id,
+          name
+        ),
+        subject:subjects!student_detailed_grades_subject_id_fkey(
+          id,
+          name_vietnamese,
+          code,
+          category
+        )
+      `)
+      .eq('period_id', periodId)
+      .eq('class_id', homeroomClass.id) // Only homeroom class students
+
+    // Apply filters (skip student search for now as it requires complex query)
+
+    if (filters?.subject_id) {
+      query = query.eq('subject_id', filters.subject_id)
+    }
+
+    if (filters?.component_type) {
+      query = query.eq('component_type', filters.component_type)
+    }
+
+    // Apply pagination
+    const page = filters?.page || 1
+    const limit = filters?.limit || 50
+    const offset = (page - 1) * limit
+
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    const { data: grades, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: grades || [],
+      count: count || 0
+    }
+  } catch (error) {
+    console.error('getHomeroomDetailedGradesAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể tải điểm số'
     }
   }
 }

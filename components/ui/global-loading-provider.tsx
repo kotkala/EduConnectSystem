@@ -29,8 +29,8 @@ export function useGlobalLoading() {
   return context
 }
 
-// 🚀 RE-EXPORT: Coordinated loading hooks for backward compatibility
-export { useCoordinatedLoading, useLoadingUI } from '@/hooks/use-coordinated-loading'
+// 🚀 NOTE: Coordinated loading hooks moved to separate file to avoid circular dependency
+// Import from '@/hooks/use-coordinated-loading' directly where needed
 
 interface LoadingProviderProps {
   children: ReactNode

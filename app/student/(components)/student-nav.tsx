@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Bell, Home, BookOpen, FileText, Award, User, LogOut, Settings } from 'lucide-react'
+import { Bell, Home, BookOpen, FileText, Award, User, LogOut, Settings, TrendingUp, Calendar } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -21,6 +21,8 @@ const links = [
   { href: '/student/courses', icon: BookOpen, label: 'Khoá học' },
   { href: '/student/assignments', icon: FileText, label: 'Bài tập' },
   { href: '/student/grades', icon: Award, label: 'Điểm số' },
+  { href: '/student/timetable', icon: Calendar, label: 'Thời khóa biểu' },
+  { href: '/student/grade-improvement', icon: TrendingUp, label: 'Cải thiện điểm' },
 ]
 
 export function StudentNav() {

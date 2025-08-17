@@ -65,18 +65,26 @@ export const clientAuth = {
   },
 
   async getUserProfile(userId: string) {
-    const supabase = createBrowserClient()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    try {
+      const supabase = createBrowserClient()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching user profile:', error)
+      // PGRST116 = No rows returned (user has no profile yet)
+      if (error && error.code !== 'PGRST116') {
+        console.warn('Profile fetch error:', error.message)
+        return null
+      }
+
+      return data
+    } catch (err: unknown) {
+      // Handle any unexpected errors (network, etc.)
+      console.warn('Unexpected error fetching user profile:', err)
       return null
     }
-    return data
   },
 
   async createUserProfile(profileData: { full_name: string; role: string }) {

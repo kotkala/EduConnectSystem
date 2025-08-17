@@ -28,6 +28,7 @@ import {
   FileBarChart,
   BookCheck,
   Calculator,
+  TrendingUp,
 } from "lucide-react"
 import {
   Sidebar,
@@ -93,6 +94,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     // Academic Performance
     { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
+    { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 
     // Student Management
     { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
@@ -109,13 +111,13 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
   ],
   student: [
-    // NOTE: Student portal has moved out of /dashboard. Keep entries here only to preserve types,
-    // but they will not be rendered because students no longer use AppSidebar.
-    { title: "Dashboard", url: "/student", icon: Home },
+    { title: "Tổng quan", url: "/student", icon: Home },
     { title: "Thông báo", url: "/student/notifications", icon: Bell },
-    { title: "Khóa học của tôi", url: "/student/courses", icon: BookOpen },
+    { title: "Khóa học", url: "/student/courses", icon: BookOpen },
     { title: "Bài tập", url: "/student/assignments", icon: FileText },
     { title: "Điểm số", url: "/student/grades", icon: Award },
+    { title: "Thời khóa biểu", url: "/student/timetable", icon: Calendar },
+    { title: "Cải thiện điểm", url: "/student/grade-improvement", icon: TrendingUp },
   ],
   parent: [
     { title: "Tổng quan", url: "/dashboard/parent", icon: Home },

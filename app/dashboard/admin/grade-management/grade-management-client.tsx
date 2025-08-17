@@ -316,7 +316,7 @@ export function GradeManagementClient() {
           </TabsTrigger>
           <TabsTrigger value="students" className="flex items-center space-x-2">
             <Search className="h-4 w-4" />
-            <span>Xem điểm số</span>
+            <span>Quản lí học sinh</span>
           </TabsTrigger>
         </TabsList>
 

@@ -18,13 +18,25 @@ export function useAuth() {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError) {
+          console.warn('Session error:', sessionError)
+          setError(null) // Don't show session errors to user
+          return
+        }
+
         if (session?.user) {
           await handleUserSession(session.user)
+        } else {
+          // No session found - this is normal for logged out users
+          setLoading(false)
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-      } finally {
+        // Only log critical errors, don't show to user unless it's severe
+        console.error('Critical session error:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Authentication system error'
+        setError(errorMessage)
         setLoading(false)
       }
     }
@@ -34,13 +46,19 @@ export function useAuth() {
     // Listen for auth changes using consolidated auth
     const { data: { subscription } } = clientAuth.onAuthStateChange(
       async (user) => {
-        if (user) {
-          await handleUserSession(user)
-        } else {
-          setUser(null)
-          setProfile(null)
+        try {
+          if (user) {
+            await handleUserSession(user)
+          } else {
+            setUser(null)
+            setProfile(null)
+            setError(null) // Clear any previous errors on logout
+            setLoading(false)
+          }
+        } catch (err: unknown) {
+          console.error('Auth state change error:', err)
+          // Don't set loading to false here - let handleUserSession handle it
         }
-        setLoading(false)
       }
     )
 
@@ -50,7 +68,17 @@ export function useAuth() {
   const handleUserSession = async (authUser: User) => {
     try {
       setError(null)
-      const userProfile = await clientAuth.getUserProfile(authUser.id)
+      setLoading(true)
+
+      // Safely fetch user profile with proper error handling
+      let userProfile = null
+      try {
+        userProfile = await clientAuth.getUserProfile(authUser.id)
+      } catch (profileError) {
+        // Log profile fetch error but don't throw - this is not critical
+        console.warn('Could not fetch user profile:', profileError)
+        // Don't set error state for profile fetch failures as user can still use the app
+      }
 
       const enhancedUser: AuthUser = {
         ...authUser,
@@ -59,11 +87,17 @@ export function useAuth() {
 
       setUser(enhancedUser)
       setProfile(userProfile)
-    } catch (err: any) {
-      console.error('Error fetching user profile:', err)
-      setError(err.message)
-      // Still set the user even if profile fetch fails
+    } catch (err: unknown) {
+      // Only set error for critical authentication failures
+      const errorMessage = err instanceof Error ? err.message : 'Authentication error occurred'
+      console.error('Critical authentication error:', err)
+      setError(errorMessage)
+
+      // Still set the user even if profile fetch fails - user can still access the app
       setUser(authUser as AuthUser)
+      setProfile(null)
+    } finally {
+      setLoading(false)
     }
   }
 

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { useCoordinatedLoading, usePageTransition } from '@/components/ui/global-loading-provider'
+import { usePageTransition } from '@/components/ui/global-loading-provider'
+import { useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"

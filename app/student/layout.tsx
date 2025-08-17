@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { StudentNav } from './(components)/student-nav'
+import { AppSidebar } from '@/components/dashboard/app-sidebar'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 
 export default async function StudentLayout({
   children,
@@ -21,13 +22,20 @@ export default async function StudentLayout({
   if (profile.role !== 'student') redirect('/dashboard')
 
   return (
-    <div className="min-h-svh bg-background">
-      {/* Top pills navigation for student section */}
-      <StudentNav />
-      <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 md:px-6">
-        {children}
-      </div>
-    </div>
+    <SidebarProvider>
+      <AppSidebar role="student" />
+      <SidebarInset>
+        <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-lg sm:text-xl font-semibold truncate">Học sinh</h1>
+        </header>
+        <main className="flex-1 overflow-auto">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 

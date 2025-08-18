@@ -93,6 +93,7 @@ const platformItems: Record<string, PlatformItem[]> = {
 
     // Academic Performance
     { title: "Kỳ báo cáo điểm", url: "/dashboard/admin/grade-periods", icon: Calculator },
+    { title: "Theo dõi điểm số", url: "/dashboard/admin/grade-tracking", icon: BarChart3 },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 
@@ -109,6 +110,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Báo cáo học tập", url: "/dashboard/teacher/reports", icon: BookCheck },
     { title: "Họp phụ huynh", url: "/dashboard/teacher/meetings", icon: Users },
     { title: "Học sinh chủ nhiệm", url: "/dashboard/teacher/homeroom-students", icon: Heart },
+    { title: "Điểm lớp chủ nhiệm", url: "/dashboard/teacher/homeroom-grades", icon: Award },
     { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
   ],
   student: [

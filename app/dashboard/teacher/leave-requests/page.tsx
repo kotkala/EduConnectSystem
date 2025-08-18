@@ -33,7 +33,7 @@ import {
 
 export default function TeacherLeaveRequestsPage() {
   const router = useRouter()
-  const { user, profile, loading } = useAuth()
+  const { user, profile } = useAuth()
   
   // 🚀 MIGRATION: Replace isLoading with coordinated system  
   const { startPageTransition, stopLoading } = usePageTransition()
@@ -148,7 +148,7 @@ export default function TeacherLeaveRequestsPage() {
 
   // 🚀 MIGRATION: Loading now handled by CoordinatedLoadingOverlay
   // Show initial state during loading when no data loaded yet
-  const isInitialLoading = coordinatedLoading.isLoading && applications.length === 0
+  // const isInitialLoading = coordinatedLoading.isLoading && applications.length === 0
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'teacher') {

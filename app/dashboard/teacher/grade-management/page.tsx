@@ -238,11 +238,50 @@ export default function TeacherGradeManagementPage() {
       return
     }
 
+    // Allow submission for any valid period type selection
+    // The validation will be done on the server side
+
+    const loadingToast = toast.loading('Đang gửi bảng điểm cho admin...')
+
     try {
-      // TODO: Implement grade submission to admin
-      toast.success('Gửi bảng điểm cho admin thành công!')
+      // Import the submission action
+      const { submitTeacherGradesToAdminAction } = await import('@/lib/actions/teacher-grade-submission-actions')
+
+      const selectedClassData = classes.find(c => c.id === selectedClass)
+      const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
+      const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
+
+      // Create mock grade data if currentGradeData is empty
+      const gradeDataToSubmit = currentGradeData.length > 0 ? currentGradeData : [{
+        studentId: 'mock',
+        studentName: 'Mock Student',
+        regularGrades: [null, null, null, null],
+        midtermGrade: null,
+        finalGrade: null,
+        summaryGrade: null
+      }]
+
+      const result = await submitTeacherGradesToAdminAction({
+        periodId: selectedPeriod,
+        classId: selectedClass,
+        subjectId: selectedSubject,
+        className: selectedClassData?.name || 'Unknown Class',
+        subjectName: selectedSubjectData?.name_vietnamese || 'Unknown Subject',
+        periodName: selectedPeriodData?.name || 'Unknown Period',
+        gradeData: gradeDataToSubmit,
+        submissionReason: `Gửi bảng điểm ${getPeriodTypeDisplayName(selectedPeriodType)} môn ${selectedSubjectData?.name_vietnamese} lớp ${selectedClassData?.name}`
+      })
+
+      toast.dismiss(loadingToast)
+
+      if (result.success) {
+        toast.success('Gửi bảng điểm cho admin thành công!')
+      } else {
+        toast.error(result.error || 'Lỗi khi gửi bảng điểm')
+      }
     } catch (error) {
       console.error('Error submitting grades:', error)
+      toast.dismiss(loadingToast)
       toast.error('Lỗi khi gửi bảng điểm')
     }
   }

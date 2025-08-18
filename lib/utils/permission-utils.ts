@@ -71,14 +71,28 @@ export async function checkTeacherPermissions(): Promise<PermissionResult> {
   return { userId: user.id, user, profile }
 }
 
-export async function checkHomeroomTeacherPermissions(): Promise<PermissionResult> {
-  const { user, profile } = await checkUserPermissions('teacher', (profile) => profile.homeroom_enabled === true)
-  return { userId: user.id, user, profile }
-}
-
 // Specialized permission checking for specific use cases
 export async function checkStudentPermissions(): Promise<PermissionResult> {
   const { user, profile } = await checkUserPermissions('student')
+  return { userId: user.id, user, profile }
+}
+
+export async function checkHomeroomTeacherPermissions(): Promise<PermissionResult> {
+  const { user, profile } = await checkUserPermissions('teacher')
+
+  // Additional check to ensure teacher has homeroom class
+  const supabase = await createClient()
+  const { data: homeroomClass } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('homeroom_teacher_id', user.id)
+    .eq('is_active', true)
+    .single()
+
+  if (!homeroomClass) {
+    throw new Error("Homeroom teacher access required")
+  }
+
   return { userId: user.id, user, profile }
 }
 

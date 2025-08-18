@@ -5,15 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
 import {
   Users,
-  TrendingUp,
-  CheckCircle,
   AlertTriangle,
   RefreshCw,
-  Download,
-  Eye,
   Edit
 } from "lucide-react"
 import { getGradeOverviewAction } from "@/lib/actions/teacher-grade-import-actions"
@@ -230,115 +225,12 @@ export function TeacherGradeOverview({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium">Tổng quan điểm số</h3>
-          <p className="text-sm text-muted-foreground">
-            {className} - {subjectName} - {periodName}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={loadGradeData} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Làm mới
-          </Button>
-          <Button variant="outline" onClick={exportGrades}>
-            <Download className="mr-2 h-4 w-4" />
-            Xuất Excel
-          </Button>
-          <Button variant="outline" onClick={onTrackingClick}>
-            <Eye className="mr-2 h-4 w-4" />
-            Theo dõi chi tiết
-          </Button>
-        </div>
-      </div>
-
       {/* Error Display */}
       {error && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
-
-      {/* Statistics Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng học sinh</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.studentsWithGrades} có điểm
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tỷ lệ hoàn thành</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(stats.completionRate)}%</div>
-              <Progress value={stats.completionRate} className="mt-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Điểm trung bình</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats.averageGrade !== null ? stats.averageGrade : 'N/A'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Trên {stats.studentsWithGrades} học sinh
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Phân bố điểm</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Xuất sắc</span>
-                  <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
-                    {stats.gradeDistribution.excellent}
-                  </Badge>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span>Khá</span>
-                  <Badge variant="default" className="bg-blue-100 text-blue-800 text-xs">
-                    {stats.gradeDistribution.good}
-                  </Badge>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span>TB</span>
-                  <Badge variant="default" className="bg-yellow-100 text-yellow-800 text-xs">
-                    {stats.gradeDistribution.average}
-                  </Badge>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span>Yếu</span>
-                  <Badge variant="destructive" className="text-xs">
-                    {stats.gradeDistribution.poor}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       )}
 
       {/* Grade Table */}
@@ -372,113 +264,88 @@ export function TeacherGradeOverview({
           ) : grades.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="border-b bg-muted/50">
+                <thead className="border-b bg-blue-600 text-white">
                   <tr>
-                    <th className="text-left p-4 font-medium">STT</th>
-                    <th className="text-left p-4 font-medium">Họ và tên</th>
-                    <th className="text-left p-4 font-medium">TX1</th>
-                    <th className="text-left p-4 font-medium">TX2</th>
-                    <th className="text-left p-4 font-medium">TX3</th>
-                    <th className="text-left p-4 font-medium">TX4</th>
-                    <th className="text-left p-4 font-medium">Giữa kì</th>
-                    <th className="text-left p-4 font-medium">Cuối kì</th>
-                    <th className="text-left p-4 font-medium">Tổng kết</th>
-                    <th className="text-left p-4 font-medium">Thời gian nhập</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">STT</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Mã học sinh</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Họ và tên</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 1</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 2</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 3</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 4</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm giữa kì</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm cuối kì</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm tổng kết học kì</th>
+                    <th className="text-center p-3 font-medium">Ghi chú</th>
                   </tr>
                 </thead>
                 <tbody>
                   {grades.map((student, index) => {
-                    // Calculate Vietnamese average if summary grade is not available
                     const calculatedAverage = student.summaryGrade || calculateSubjectAverage(student)
 
                     return (
-                      <tr key={student.id} className="border-b hover:bg-muted/50">
-                        <td className="p-4 text-lg font-medium">{index + 1}</td>
-                        <td className="p-4 font-medium">{student.studentName}</td>
+                      <tr key={student.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3 text-center font-medium border-r border-gray-200">{index + 1}</td>
+                        <td className="p-3 text-center font-medium border-r border-gray-200">{student.studentId}</td>
+                        <td className="p-3 font-medium border-r border-gray-200">{student.studentName}</td>
                         {student.regularGrades.map((grade, gradeIndex) => (
-                          <td key={gradeIndex} className="p-4">
-                            <div className="text-lg font-bold text-center min-w-[60px]">
-                              {grade !== null ? (
-                                <span className={`px-3 py-1 rounded-lg ${
-                                  grade >= 8 ? 'bg-green-100 text-green-800' :
-                                  grade >= 6.5 ? 'bg-blue-100 text-blue-800' :
-                                  grade >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-red-100 text-red-800'
-                                }`}>
-                                  {grade}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">-</span>
-                              )}
-                            </div>
+                          <td key={gradeIndex} className="p-3 text-center border-r border-gray-200">
+                            <span className={`text-lg font-medium ${
+                              grade !== null ? (
+                                grade >= 8 ? 'text-green-600' :
+                                grade >= 6.5 ? 'text-blue-600' :
+                                grade >= 5 ? 'text-yellow-600' :
+                                'text-red-600'
+                              ) : 'text-gray-400'
+                            }`}>
+                              {grade !== null ? grade : '-'}
+                            </span>
                           </td>
                         ))}
-                        <td className="p-4">
-                          <div className="text-lg font-bold text-center min-w-[60px]">
-                            {student.midtermGrade !== null && student.midtermGrade !== undefined ? (
-                              <span className={`px-3 py-1 rounded-lg ${
-                                student.midtermGrade >= 8 ? 'bg-green-100 text-green-800' :
-                                student.midtermGrade >= 6.5 ? 'bg-blue-100 text-blue-800' :
-                                student.midtermGrade >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {student.midtermGrade}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </div>
+                        <td className="p-3 text-center border-r border-gray-200">
+                          <span className={`text-lg font-medium ${
+                            student.midtermGrade !== null && student.midtermGrade !== undefined ? (
+                              student.midtermGrade >= 8 ? 'text-green-600' :
+                              student.midtermGrade >= 6.5 ? 'text-blue-600' :
+                              student.midtermGrade >= 5 ? 'text-yellow-600' :
+                              'text-red-600'
+                            ) : 'text-gray-400'
+                          }`}>
+                            {student.midtermGrade !== null && student.midtermGrade !== undefined ? student.midtermGrade : '-'}
+                          </span>
                         </td>
-                        <td className="p-4">
-                          <div className="text-lg font-bold text-center min-w-[60px]">
-                            {student.finalGrade !== null && student.finalGrade !== undefined ? (
-                              <span className={`px-3 py-1 rounded-lg ${
-                                student.finalGrade >= 8 ? 'bg-green-100 text-green-800' :
-                                student.finalGrade >= 6.5 ? 'bg-blue-100 text-blue-800' :
-                                student.finalGrade >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {student.finalGrade}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </div>
+                        <td className="p-3 text-center border-r border-gray-200">
+                          <span className={`text-lg font-medium ${
+                            student.finalGrade !== null && student.finalGrade !== undefined ? (
+                              student.finalGrade >= 8 ? 'text-green-600' :
+                              student.finalGrade >= 6.5 ? 'text-blue-600' :
+                              student.finalGrade >= 5 ? 'text-yellow-600' :
+                              'text-red-600'
+                            ) : 'text-gray-400'
+                          }`}>
+                            {student.finalGrade !== null && student.finalGrade !== undefined ? student.finalGrade : '-'}
+                          </span>
                         </td>
-                        <td className="p-4">
-                          <div className="text-lg font-bold text-center min-w-[60px]">
-                            {calculatedAverage !== null ? (
-                              <span className={`px-3 py-1 rounded-lg font-bold ${
-                                calculatedAverage >= 8 ? 'bg-green-100 text-green-800' :
-                                calculatedAverage >= 6.5 ? 'bg-blue-100 text-blue-800' :
-                                calculatedAverage >= 5 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                {calculatedAverage}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </div>
+                        <td className="p-3 text-center border-r border-gray-200">
+                          <span className={`text-lg font-bold ${
+                            calculatedAverage !== null ? (
+                              calculatedAverage >= 8 ? 'text-green-600' :
+                              calculatedAverage >= 6.5 ? 'text-blue-600' :
+                              calculatedAverage >= 5 ? 'text-yellow-600' :
+                              'text-red-600'
+                            ) : 'text-gray-400'
+                          }`}>
+                            {calculatedAverage !== null ? calculatedAverage : '-'}
+                          </span>
                         </td>
-                        <td className="p-4 text-sm text-muted-foreground">
+                        <td className="p-3 text-center text-sm text-gray-600">
                           {student.lastModified ? (
                             <div className="space-y-1">
-                              <div className="font-medium">
-                                {new Date(student.lastModified).toLocaleDateString('vi-VN')}
-                              </div>
-                              <div className="text-xs">
-                                {new Date(student.lastModified).toLocaleTimeString('vi-VN', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </div>
-                              <div className="text-xs text-blue-600">
-                                {student.modifiedBy || 'Hệ thống'}
-                              </div>
+                              <div>{new Date(student.lastModified).toLocaleDateString('vi-VN')}</div>
+                              <div className="text-xs">{student.modifiedBy || 'Hệ thống'}</div>
                             </div>
                           ) : (
-                            <span className="text-gray-400">Chưa nhập</span>
+                            '-'
                           )}
                         </td>
                       </tr>

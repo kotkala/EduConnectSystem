@@ -610,7 +610,7 @@ export async function getStudentsWithClassAssignmentsAction() {
         id,
         full_name,
         student_id,
-        student_class_assignments(
+        student_class_assignments!student_class_assignments_student_id_fkey(
           id,
           assignment_type,
           class:classes(

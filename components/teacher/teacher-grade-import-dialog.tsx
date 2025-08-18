@@ -25,13 +25,20 @@ import {
 import { type GradePeriodType } from "@/lib/utils/teacher-excel-utils"
 import {
   validateExcelImport,
-  type ExcelImportValidationResult
+  type ExcelImportValidationResult,
+  type ValidatedGradeData
 } from "@/lib/utils/teacher-excel-import-validation"
 import {
   importValidatedGradesAction,
   getClassStudentsAction,
   type GradeImportResult
 } from "@/lib/actions/teacher-grade-import-actions"
+import {
+  detectGradeOverridesAction,
+  processGradeOverridesAction,
+  type GradeOverrideData
+} from "@/lib/actions/grade-override-actions"
+import { GradeOverrideReasonDialog } from "./grade-override-reason-dialog"
 
 interface TeacherGradeImportDialogProps {
   open: boolean
@@ -63,6 +70,11 @@ export function TeacherGradeImportDialog({
   const [validationResult, setValidationResult] = useState<ExcelImportValidationResult | null>(null)
   const [importResult, setImportResult] = useState<GradeImportResult | null>(null)
   const [activeTab, setActiveTab] = useState("upload")
+
+  // Override detection state
+  const [overrideDialogOpen, setOverrideDialogOpen] = useState(false)
+  const [detectedOverrides, setDetectedOverrides] = useState<GradeOverrideData[]>([])
+  const [pendingImportData, setPendingImportData] = useState<ExcelImportValidationResult | null>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -125,6 +137,68 @@ export function TeacherGradeImportDialog({
     setError(null)
 
     try {
+      // Check for grade overrides (midterm/final grades)
+      setProgress(10)
+
+      // Get student UUIDs from student numbers for override detection
+      const studentsResponse = await getClassStudentsAction(classId)
+      if (!studentsResponse.success || !studentsResponse.data) {
+        throw new Error('Không thể lấy danh sách học sinh')
+      }
+
+      // Create mapping from student number to student UUID
+      const studentIdMap = new Map()
+      studentsResponse.data.forEach(student => {
+        studentIdMap.set(student.studentId, student.id)
+      })
+
+      // Convert ValidatedGradeData to StudentGradeData format for override detection
+      const studentGradeData = validationResult.data
+        .map(student => {
+          const studentUuid = studentIdMap.get(student.studentId)
+          if (!studentUuid) return null
+
+          return {
+            student_id: studentUuid,
+            studentName: student.studentName,
+            midtermGrade: student.midtermGrade,
+            finalGrade: student.finalGrade
+          }
+        })
+        .filter(student => student !== null)
+
+      const overrideResult = await detectGradeOverridesAction(
+        periodId,
+        classId,
+        subjectId,
+        studentGradeData
+      )
+
+      if (overrideResult.success && overrideResult.overrides && overrideResult.overrides.length > 0) {
+        // There are overrides that need reasons
+        setDetectedOverrides(overrideResult.overrides)
+        setPendingImportData(validationResult)
+        setOverrideDialogOpen(true)
+        setLoading(false)
+        return
+      }
+
+      // No overrides, proceed with normal import
+      await proceedWithImport(validationResult.data)
+    } catch (error) {
+      console.error('Error importing file:', error)
+      setError('Có lỗi xảy ra khi nhập file Excel')
+      setLoading(false)
+    }
+  }
+
+  const proceedWithImport = async (data: ValidatedGradeData[], overrideReasons?: Record<string, string>) => {
+    if (!classId || !subjectId) {
+      setError('Thiếu thông tin lớp học hoặc môn học')
+      return
+    }
+
+    try {
       // Simulate progress for UI feedback
       setProgress(20)
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -134,7 +208,8 @@ export function TeacherGradeImportDialog({
         periodId,
         classId,
         subjectId,
-        validationResult.data
+        data,
+        overrideReasons
       )
 
       setProgress(80)
@@ -160,6 +235,21 @@ export function TeacherGradeImportDialog({
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleOverrideConfirm = async (reasons: Record<string, string>) => {
+    setOverrideDialogOpen(false)
+    if (pendingImportData?.data) {
+      setLoading(true)
+      await proceedWithImport(pendingImportData.data, reasons)
+    }
+  }
+
+  const handleOverrideCancel = () => {
+    setOverrideDialogOpen(false)
+    setPendingImportData(null)
+    setDetectedOverrides([])
+    setError('Nhập điểm bị hủy do có điểm ghi đè cần lý do')
   }
 
   const handleClose = () => {
@@ -462,6 +552,21 @@ export function TeacherGradeImportDialog({
           </div>
         </div>
       </DialogContent>
+
+      {/* Grade Override Reason Dialog */}
+      <GradeOverrideReasonDialog
+        open={overrideDialogOpen}
+        onOpenChange={setOverrideDialogOpen}
+        overrides={detectedOverrides.map(override => ({
+          studentName: override.studentName,
+          componentType: override.componentType,
+          oldValue: override.oldValue,
+          newValue: override.newValue,
+          studentId: override.studentId
+        }))}
+        onConfirm={handleOverrideConfirm}
+        onCancel={handleOverrideCancel}
+      />
     </Dialog>
   )
 }

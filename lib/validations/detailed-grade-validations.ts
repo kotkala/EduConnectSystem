@@ -4,7 +4,7 @@ import { z } from 'zod'
 export const gradeComponentTypes = [
   'regular_1', 'regular_2', 'regular_3', 'regular_4',
   'midterm', 'final',
-  'semester_1', 'semester_2', 'yearly'
+  'semester_1', 'semester_2', 'yearly', 'summary'
 ] as const
 
 export type GradeComponentType = typeof gradeComponentTypes[number]

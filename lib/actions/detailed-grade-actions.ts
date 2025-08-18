@@ -133,7 +133,7 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
       result = grade
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-periods')
     
     return {
       success: true,
@@ -379,8 +379,7 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
 
       console.log(`Successfully imported ${gradeEntries.length} grade entries:`, grades?.length)
 
-      revalidatePath('/dashboard/admin/grade-management')
-      revalidatePath('/dashboard/admin/grade-management/view-grades')
+      revalidatePath('/dashboard/admin/grade-periods')
       revalidatePath('/dashboard/teacher/grade-reports')
       revalidatePath('/dashboard/parent')
 
@@ -508,8 +507,7 @@ export async function updateDetailedGradeAction(data: {
       throw new Error(error.message)
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
-    revalidatePath('/dashboard/admin/grade-management/view-grades')
+    revalidatePath('/dashboard/admin/grade-periods')
     revalidatePath('/dashboard/teacher/grade-reports')
     revalidatePath('/dashboard/parent')
 
@@ -728,7 +726,7 @@ export async function sendGradesToHomeroomTeacherAction(
       // Don't fail the whole operation if notification fails
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-periods')
     revalidatePath('/dashboard/teacher/grade-reports')
 
     // Extract teacher name safely

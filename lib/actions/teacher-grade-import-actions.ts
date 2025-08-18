@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidateTag } from "next/cache"
 import type { ValidatedGradeData } from "@/lib/utils/teacher-excel-import-validation"
+import { validateGradeOverwriteAction, executeGradeOverwriteAction } from "./grade-overwrite-actions"
 
 export interface GradeImportResult {
   success: boolean
@@ -16,7 +17,8 @@ export async function importValidatedGradesAction(
   periodId: string,
   classId: string,
   subjectId: string,
-  validatedData: ValidatedGradeData[]
+  validatedData: ValidatedGradeData[],
+  overrideReasons?: Record<string, string>
 ): Promise<GradeImportResult> {
   try {
     const supabase = await createClient()
@@ -127,20 +129,67 @@ export async function importValidatedGradesAction(
           })
         }
 
-        // Insert/update grades using upsert
+        // Check for existing grades and detect overrides
         if (gradeRecords.length > 0) {
-          const { error: insertError } = await supabase
-            .from('student_detailed_grades')
-            .upsert(gradeRecords, {
-              onConflict: 'period_id,student_id,subject_id,class_id,component_type',
-              ignoreDuplicates: false
-            })
+          for (const gradeRecord of gradeRecords) {
+            // Check if grade already exists
+            const { data: existingGrade } = await supabase
+              .from('student_detailed_grades')
+              .select('id, grade_value')
+              .eq('period_id', gradeRecord.period_id)
+              .eq('student_id', gradeRecord.student_id)
+              .eq('subject_id', gradeRecord.subject_id)
+              .eq('class_id', gradeRecord.class_id)
+              .eq('component_type', gradeRecord.component_type)
+              .single()
 
-          if (insertError) {
-            errors.push(`Lỗi lưu điểm cho học sinh ${studentData.studentId}: ${insertError.message}`)
-            errorCount++
-          } else {
-            importedCount++
+            if (existingGrade && existingGrade.grade_value !== null) {
+              // Grade exists - check if it's an override for midterm/final
+              if (gradeRecord.component_type === 'midterm' || gradeRecord.component_type === 'final') {
+                // This is an override of midterm/final grade - use provided reason or default
+                const reasonKey = `${student.student_id}_${gradeRecord.component_type}`
+                const changeReason = overrideReasons?.[reasonKey] || 'Nhập lại từ Excel - Cần xác nhận lý do'
+
+                const auditRecord = {
+                  grade_id: existingGrade.id,
+                  old_value: existingGrade.grade_value,
+                  new_value: gradeRecord.grade_value,
+                  change_reason: changeReason,
+                  changed_by: user.id,
+                  changed_at: new Date().toISOString()
+                }
+
+                // Insert audit log
+                await supabase
+                  .from('grade_audit_logs')
+                  .insert(auditRecord)
+              }
+
+              // Update existing grade
+              const { error: updateError } = await supabase
+                .from('student_detailed_grades')
+                .update({
+                  grade_value: gradeRecord.grade_value,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', existingGrade.id)
+
+              if (updateError) {
+                errors.push(`Lỗi cập nhật điểm cho học sinh ${studentData.studentId}: ${updateError.message}`)
+              }
+            } else {
+              // Insert new grade
+              const { error: insertError } = await supabase
+                .from('student_detailed_grades')
+                .insert(gradeRecord)
+
+              if (insertError) {
+                errors.push(`Lỗi lưu điểm cho học sinh ${studentData.studentId}: ${insertError.message}`)
+                errorCount++
+              } else {
+                importedCount++
+              }
+            }
           }
         } else {
           // No grades to import for this student
@@ -214,19 +263,71 @@ export async function getGradeOverviewAction(
   try {
     const supabase = await createClient()
 
-    // Get students in class with their grades
-    const { data: gradeData, error: gradeError } = await supabase
-      .from('student_detailed_grades')
-      .select(`
-        student_id,
-        component_type,
-        grade_value,
-        updated_at,
-        created_by
-      `)
-      .eq('period_id', periodId)
-      .eq('class_id', classId)
-      .eq('subject_id', subjectId)
+    // Check if this is a summary period
+    const { data: periodInfo, error: periodError } = await supabase
+      .from('grade_reporting_periods')
+      .select('name, academic_year_id, semester_id')
+      .eq('id', periodId)
+      .single()
+
+    if (periodError) {
+      throw new Error(`Lỗi tải thông tin kỳ báo cáo: ${periodError.message}`)
+    }
+
+    const isSummaryPeriod = periodInfo.name.includes('Tổng kết')
+    let gradeData = null
+    let gradeError = null
+
+    if (isSummaryPeriod) {
+      // For summary periods, get data from all component periods in the same semester
+      const { data: componentPeriods, error: componentError } = await supabase
+        .from('grade_reporting_periods')
+        .select('id')
+        .eq('academic_year_id', periodInfo.academic_year_id)
+        .eq('semester_id', periodInfo.semester_id)
+        .not('name', 'like', '%Tổng kết%')
+
+      if (componentError) {
+        throw new Error(`Lỗi tải kỳ thành phần: ${componentError.message}`)
+      }
+
+      const componentPeriodIds = componentPeriods.map(p => p.id)
+
+      // Get grades from all component periods
+      const { data: componentGrades, error: componentGradeError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          student_id,
+          period_id,
+          component_type,
+          grade_value,
+          updated_at,
+          created_by
+        `)
+        .in('period_id', componentPeriodIds)
+        .eq('class_id', classId)
+        .eq('subject_id', subjectId)
+
+      gradeData = componentGrades
+      gradeError = componentGradeError
+    } else {
+      // For regular periods, get data from the specific period
+      const { data: regularGrades, error: regularGradeError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          student_id,
+          component_type,
+          grade_value,
+          updated_at,
+          created_by
+        `)
+        .eq('period_id', periodId)
+        .eq('class_id', classId)
+        .eq('subject_id', subjectId)
+
+      gradeData = regularGrades
+      gradeError = regularGradeError
+    }
 
     if (gradeError) {
       throw new Error(`Lỗi tải dữ liệu điểm: ${gradeError.message}`)
@@ -256,23 +357,39 @@ export async function getGradeOverviewAction(
             finalGrade: null,
             summaryGrade: null,
             lastModified: null,
-            modifiedBy: null
+            modifiedBy: null,
+            // For summary periods, track grades from different periods
+            allRegularGrades: [],
+            midtermGrades: [],
+            finalGrades: []
           })
         }
 
         const studentGrades = gradesByStudent.get(studentId)
 
-        if (grade.component_type.startsWith('regular_')) {
-          const index = parseInt(grade.component_type.split('_')[1]) - 1
-          if (index >= 0 && index < 4) {
-            studentGrades.regularGrades[index] = grade.grade_value
+        if (isSummaryPeriod) {
+          // For summary periods, collect all grades from component periods
+          if (grade.component_type.startsWith('regular_')) {
+            studentGrades.allRegularGrades.push(grade.grade_value)
+          } else if (grade.component_type === 'midterm') {
+            studentGrades.midtermGrades.push(grade.grade_value)
+          } else if (grade.component_type === 'final') {
+            studentGrades.finalGrades.push(grade.grade_value)
           }
-        } else if (grade.component_type === 'midterm') {
-          studentGrades.midtermGrade = grade.grade_value
-        } else if (grade.component_type === 'final') {
-          studentGrades.finalGrade = grade.grade_value
-        } else if (grade.component_type === 'summary') {
-          studentGrades.summaryGrade = grade.grade_value
+        } else {
+          // For regular periods, use the existing logic
+          if (grade.component_type.startsWith('regular_')) {
+            const index = parseInt(grade.component_type.split('_')[1]) - 1
+            if (index >= 0 && index < 4) {
+              studentGrades.regularGrades[index] = grade.grade_value
+            }
+          } else if (grade.component_type === 'midterm') {
+            studentGrades.midtermGrade = grade.grade_value
+          } else if (grade.component_type === 'final') {
+            studentGrades.finalGrade = grade.grade_value
+          } else if (grade.component_type === 'summary') {
+            studentGrades.summaryGrade = grade.grade_value
+          }
         }
 
         // Track latest modification
@@ -281,6 +398,48 @@ export async function getGradeOverviewAction(
           studentGrades.modifiedBy = grade.created_by
         }
       })
+
+      // For summary periods, calculate the summary grades
+      if (isSummaryPeriod) {
+        for (const [studentId, studentGrades] of gradesByStudent) {
+          const regularGradeSum = studentGrades.allRegularGrades.reduce((sum: number, grade: number | null) => sum + (grade || 0), 0)
+          const regularGradeCount = studentGrades.allRegularGrades.filter((g: number | null) => g !== null).length
+          const midtermGrade = studentGrades.midtermGrades.find((g: number | null) => g !== null) || null
+          const finalGrade = studentGrades.finalGrades.find((g: number | null) => g !== null) || null
+
+          // Calculate summary using Vietnamese formula: (Tổng điểm thường xuyên + 2 × Điểm giữa kỳ + 3 × Điểm cuối kỳ) / (Số bài thường xuyên + 5)
+          if (regularGradeCount > 0 && midtermGrade !== null && finalGrade !== null) {
+            const summaryGrade = (regularGradeSum + 2 * midtermGrade + 3 * finalGrade) / (regularGradeCount + 5)
+            studentGrades.summaryGrade = Math.round(summaryGrade * 10) / 10 // Round to 1 decimal place
+
+            // Store the calculated summary grade in the database
+            await supabase
+              .from('student_detailed_grades')
+              .upsert({
+                period_id: periodId,
+                student_id: studentId,
+                subject_id: subjectId,
+                class_id: classId,
+                component_type: 'summary',
+                grade_value: studentGrades.summaryGrade,
+                created_by: studentGrades.modifiedBy,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'period_id,student_id,subject_id,class_id,component_type'
+              })
+          }
+
+          // Set display grades for UI (use averages for display)
+          studentGrades.regularGrades = [
+            studentGrades.allRegularGrades[0] || null,
+            studentGrades.allRegularGrades[1] || null,
+            studentGrades.allRegularGrades[2] || null,
+            studentGrades.allRegularGrades[3] || null
+          ]
+          studentGrades.midtermGrade = midtermGrade
+          studentGrades.finalGrade = finalGrade
+        }
+      }
     }
 
     // Ensure all students are included (even those without grades)

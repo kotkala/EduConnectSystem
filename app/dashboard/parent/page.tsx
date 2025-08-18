@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -42,14 +42,6 @@ export default function ParentDashboard() {
     }
   }, [loading, user, profile])
 
-  useEffect(() => {
-    if (selectedYear && selectedYear !== 'all') {
-      loadStudentsByYear(selectedYear)
-    } else {
-      loadAllStudents()
-    }
-  }, [selectedYear])
-
   const loadInitialData = async () => {
     // Load academic years
     const yearsResult = await getAcademicYearsAction()
@@ -63,7 +55,7 @@ export default function ParentDashboard() {
     }
   }
 
-  const loadAllStudents = async () => {
+  const loadAllStudents = useCallback(async () => {
     // 🎯 UX IMPROVEMENT: Use global loading with meaningful message
     startPageTransition("Đang tải thông tin học sinh...")
     const result = await getParentStudentsAction()
@@ -73,9 +65,9 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }
+  }, [startPageTransition, stopLoading])
 
-  const loadStudentsByYear = async (yearId: string) => {
+  const loadStudentsByYear = useCallback(async (yearId: string) => {
     // 🎯 UX IMPROVEMENT: Use global loading with year context
     startPageTransition("Đang tải học sinh theo năm học...")
     const result = await getParentStudentsByYearAction(yearId)
@@ -85,7 +77,15 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }
+  }, [startPageTransition, stopLoading])
+
+  useEffect(() => {
+    if (selectedYear && selectedYear !== 'all') {
+      loadStudentsByYear(selectedYear)
+    } else {
+      loadAllStudents()
+    }
+  }, [selectedYear, loadAllStudents, loadStudentsByYear])
 
   // 🎯 FIXED: Removed individual auth loading UI - handled by CoordinatedLoadingOverlay
   // Context7 principle: Prevents triple loading conflict (auth + global + custom spinner)

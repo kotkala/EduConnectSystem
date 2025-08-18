@@ -16,8 +16,11 @@ import {
   TrendingUp,
   Eye,
   Download,
-  RefreshCw
+  RefreshCw,
+  History,
+  Clock
 } from "lucide-react"
+import { getGradeHistoryAction } from "@/lib/actions/grade-override-actions"
 
 interface GradeTrackingData {
   id: string
@@ -48,6 +51,30 @@ interface GradeTrackingStatistics {
   }
 }
 
+interface GradeHistoryRecord {
+  id: string
+  component_type: string
+  grade_value: number
+  created_at: string
+  updated_at: string
+  student_id: string
+  students?: Array<{
+    student_number: string
+    full_name: string
+  }>
+  grade_audit_logs?: Array<{
+    id: string
+    old_value: number
+    new_value: number
+    change_reason: string
+    changed_at: string
+    changed_by: string
+    profiles?: Array<{
+      full_name: string
+    }>
+  }>
+}
+
 interface TeacherGradeTrackingDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -73,7 +100,27 @@ export function TeacherGradeTrackingDialog({
   const [data, setData] = useState<GradeTrackingData[]>([])
   const [statistics, setStatistics] = useState<GradeTrackingStatistics | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [gradeHistory, setGradeHistory] = useState<GradeHistoryRecord[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
+
+  const loadGradeHistory = async () => {
+    if (!periodId || !classId || !subjectId) return
+
+    setHistoryLoading(true)
+    try {
+      const result = await getGradeHistoryAction(periodId, classId, subjectId)
+      if (result.success) {
+        setGradeHistory(result.data || [])
+      } else {
+        console.error('Error loading grade history:', result.error)
+      }
+    } catch (error) {
+      console.error('Error loading grade history:', error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
 
   const loadGradeData = async () => {
     if (!periodId || !classId || !subjectId) return
@@ -84,7 +131,7 @@ export function TeacherGradeTrackingDialog({
     try {
       // TODO: Implement actual API call to get grade tracking data
       // This would call an action like getGradeTrackingDataAction
-      
+
       // Mock data for now
       await new Promise(resolve => setTimeout(resolve, 1000))
       
@@ -310,10 +357,14 @@ export function TeacherGradeTrackingDialog({
           {/* Content */}
           {!loading && !error && (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Tổng quan</TabsTrigger>
                 <TabsTrigger value="details">Chi tiết</TabsTrigger>
                 <TabsTrigger value="statistics">Thống kê</TabsTrigger>
+                <TabsTrigger value="history" onClick={loadGradeHistory}>
+                  <History className="mr-1 h-4 w-4" />
+                  Lịch sử
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
@@ -508,6 +559,101 @@ export function TeacherGradeTrackingDialog({
                         </div>
                       </CardContent>
                     </Card>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="history" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Lịch sử thay đổi điểm</h3>
+                  <Button variant="outline" onClick={loadGradeHistory} disabled={historyLoading}>
+                    <RefreshCw className={`mr-2 h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`} />
+                    Làm mới
+                  </Button>
+                </div>
+
+                {historyLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p>Đang tải lịch sử thay đổi...</p>
+                    </div>
+                  </div>
+                )}
+
+                {!historyLoading && gradeHistory.length === 0 && (
+                  <div className="text-center py-8">
+                    <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Chưa có lịch sử thay đổi</h3>
+                    <p className="text-muted-foreground">
+                      Lịch sử thay đổi điểm sẽ được hiển thị ở đây khi có cập nhật
+                    </p>
+                  </div>
+                )}
+
+                {!historyLoading && gradeHistory.length > 0 && (
+                  <div className="space-y-4">
+                    {gradeHistory.map((record) => (
+                      <Card key={record.id} className="border-l-4 border-l-blue-500">
+                        <CardContent className="pt-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="font-medium">
+                                {record.students?.[0]?.full_name || 'Unknown Student'}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                {record.component_type === 'midterm' ? 'Điểm giữa kỳ' :
+                                 record.component_type === 'final' ? 'Điểm cuối kỳ' :
+                                 record.component_type === 'summary' ? 'Điểm tổng kết' :
+                                 `Điểm thường xuyên ${record.component_type.replace('regular_', '')}`}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(record.updated_at).toLocaleString('vi-VN')}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-sm">Điểm hiện tại:</span>
+                            <Badge variant="outline" className="bg-green-50 text-green-700">
+                              {record.grade_value}
+                            </Badge>
+                          </div>
+
+                          {record.grade_audit_logs && record.grade_audit_logs.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              <h5 className="text-sm font-medium">Lịch sử thay đổi:</h5>
+                              {record.grade_audit_logs.map((log) => (
+                                <div key={log.id} className="bg-gray-50 p-3 rounded text-sm">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
+                                        {log.old_value}
+                                      </span>
+                                      <span>→</span>
+                                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                                        {log.new_value}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(log.changed_at).toLocaleString('vi-VN')}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    <strong>Lý do:</strong> {log.change_reason}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    <strong>Người thay đổi:</strong> {log.profiles?.[0]?.full_name || 'Unknown'}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </TabsContent>

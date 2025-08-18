@@ -92,7 +92,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
 
     // Academic Performance
-    { title: "Quản lý điểm số", url: "/dashboard/admin/grade-management", icon: Calculator },
+    { title: "Kỳ báo cáo điểm", url: "/dashboard/admin/grade-periods", icon: Calculator },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 
@@ -104,6 +104,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Tổng quan", url: "/dashboard/teacher", icon: Home },
     { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch giảng dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Nhập điểm số", url: "/dashboard/teacher/grade-management", icon: Calculator },
     { title: "Bảng điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
     { title: "Báo cáo học tập", url: "/dashboard/teacher/reports", icon: BookCheck },
     { title: "Họp phụ huynh", url: "/dashboard/teacher/meetings", icon: Users },
@@ -157,10 +158,10 @@ export function AppSidebar({ role }: AppSidebarProps) {
   // Add feedback and violations links for all teachers (always visible)
   const items: PlatformItem[] = role === 'teacher'
     ? [
-        ...baseItems.slice(0, 4), // Keep first 4 items (Dashboard, Notifications, Schedule, Grade Reports)
+        ...baseItems.slice(0, 5), // Keep first 5 items (Dashboard, Notifications, Schedule, Grade Management, Grade Reports)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
         { title: "Vi Phạm Học Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
-        ...baseItems.slice(4) // Add remaining items
+        ...baseItems.slice(5) // Add remaining items
       ]
     : baseItems
 
@@ -176,6 +177,15 @@ export function AppSidebar({ role }: AppSidebarProps) {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const getRoleDisplayName = (userRole: string) => {
+    switch (userRole) {
+      case 'admin': return 'Quản trị viên'
+      case 'teacher': return 'Giáo viên'
+      case 'parent': return 'Phụ huynh'
+      default: return 'Học sinh'
+    }
   }
 
   // Handle chatbot toggle for parent role
@@ -332,7 +342,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                       {user?.email}
                     </span>
                     <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg mt-1">
-                      {role === 'admin' ? 'Quản trị viên' : role === 'teacher' ? 'Giáo viên' : role === 'parent' ? 'Phụ huynh' : 'Học sinh'}
+                      {getRoleDisplayName(role)}
                     </span>
                   </div>
                   <ChevronUp className="ml-auto shrink-0 h-4 w-4 text-muted-foreground group-data-[collapsible=icon]:hidden" />

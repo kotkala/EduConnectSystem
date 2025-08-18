@@ -84,7 +84,7 @@ export async function createGradeReportingPeriodAction(formData: GradeReportingP
       throw new Error(error.message)
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-periods')
     return { 
       success: true, 
       data: period,
@@ -245,7 +245,7 @@ export async function updateGradeReportingPeriodAction(formData: UpdateGradeRepo
       throw new Error(error.message)
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-periods')
     return { 
       success: true, 
       data: period,
@@ -289,7 +289,7 @@ export async function deleteGradeReportingPeriodAction(id: string) {
       throw new Error(error.message)
     }
 
-    revalidatePath('/dashboard/admin/grade-management')
+    revalidatePath('/dashboard/admin/grade-periods')
     return { 
       success: true,
       message: "Xóa kỳ báo cáo điểm số thành công"

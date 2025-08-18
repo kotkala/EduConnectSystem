@@ -101,7 +101,7 @@ export default function Home() {
           <nav className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Image
-                src="/edu_connect_dashboard.png"
+                src="/Edu Connect.svg"
                 alt="EduConnect Logo"
                 width={32}
                 height={32}
@@ -1073,7 +1073,7 @@ export default function Home() {
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Image
-                  src="/edu_connect_dashboard.png"
+                  src="/Edu Connect.svg"
                   alt="EduConnect Logo"
                   width={32}
                   height={32}

@@ -17,7 +17,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
       <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 md:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/edu_connect_dashboard.png" alt="EduConnect" width={28} height={28} className="h-7 w-7" />
+          <Image src="/Edu Connect.svg" alt="EduConnect" width={28} height={28} className="h-7 w-7" />
           <span className="font-semibold">EduConnect Portal</span>
         </Link>
         <div className="hidden md:flex items-center gap-6">

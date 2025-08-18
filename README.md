@@ -1,6 +1,1 @@
 "EduConnect", tập trung vào việc xây dựng và phát triển một trợ lý ảo sử dụng trí tuệ nhân tạo. Mục đích của trợ lý ảo này là để tích hợp vào các cổng thông tin liên lạc hiện có (hoặc tạo ra một cổng thông tin mới), nhằm cải thiện và tự động hóa việc giao tiếp giữa phụ huynh học sinh và giáo viên tại các trường trung học phổ thông.
-
-### Khu vực vai trò
-- Admin và Teacher: vẫn nằm trong khu vực `/dashboard/*` với sidebar.
-- Student: chuyển sang cổng riêng `/student/*` với phong cách Modern Minimalist, không dùng sidebar.
-- Parent: giữ nguyên tại `/dashboard/parent` hiện tại.

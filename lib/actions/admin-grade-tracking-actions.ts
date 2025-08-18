@@ -22,6 +22,22 @@ async function storeSummaryGradeInDatabase(
 
     if (!classAssignment) return
 
+    // Get period information to determine correct component type
+    const { data: periodInfo } = await supabase
+      .from('grade_reporting_periods')
+      .select('period_type')
+      .eq('id', periodId)
+      .single()
+
+    let componentType = 'semester_1' // default
+    if (periodInfo?.period_type) {
+      if (periodInfo.period_type.includes('final_2') || periodInfo.period_type.includes('semester_2')) {
+        componentType = 'semester_2'
+      } else if (periodInfo.period_type.includes('yearly') || periodInfo.period_type.includes('annual')) {
+        componentType = 'yearly'
+      }
+    }
+
     // Insert or update the summary grade
     await supabase
       .from('student_detailed_grades')
@@ -30,7 +46,7 @@ async function storeSummaryGradeInDatabase(
         student_id: studentId,
         subject_id: subjectId,
         class_id: classAssignment.class_id,
-        component_type: 'summary',
+        component_type: componentType,
         grade_value: Math.round(summaryGrade * 100) / 100,
         summary_grade: Math.round(summaryGrade * 100) / 100,
         created_by: null
@@ -510,6 +526,18 @@ export async function getStudentDetailedGradesAction(
     const supabase = await createClient()
     await checkAdminPermissions()
 
+    // Get period information to check if it's a summary period
+    const { data: periodInfo, error: periodError } = await supabase
+      .from('grade_reporting_periods')
+      .select('name, period_type, academic_year_id, semester_id')
+      .eq('id', periodId)
+      .single()
+
+    if (periodError) throw periodError
+
+    // Check if this is a summary period
+    const isSummaryPeriod = periodInfo.period_type?.includes('summary') || periodInfo.name.includes('Tổng kết')
+
     // Get student basic info
     const { data: studentInfo, error: studentError } = await supabase
       .from('profiles')
@@ -533,37 +561,101 @@ export async function getStudentDetailedGradesAction(
       classes: Array<{ id: string; name: string }>
     }>
 
-    // Get all grades for this student in this period
-    const { data: gradeData, error: gradeError } = await supabase
-      .from('student_detailed_grades')
-      .select(`
-        subject_id,
-        component_type,
-        grade_value,
-        created_at,
-        updated_at,
-        subjects!inner(id, name_vietnamese)
-      `)
-      .eq('period_id', periodId)
-      .eq('student_id', studentId)
-      .order('subject_id')
-      .order('component_type')
+    let gradeData = null
+    let gradeError = null
+
+    if (isSummaryPeriod) {
+      // For summary periods, get grades from all component periods in the same semester
+      const { data: componentPeriods, error: componentError } = await supabase
+        .from('grade_reporting_periods')
+        .select('id')
+        .eq('academic_year_id', periodInfo.academic_year_id)
+        .eq('semester_id', periodInfo.semester_id)
+        .not('period_type', 'like', '%summary%')
+
+      if (componentError) throw componentError
+
+      const componentPeriodIds = componentPeriods?.map(p => p.id) || []
+
+      // Get grades from component periods AND summary period
+      const allPeriodIds = [...componentPeriodIds, periodId]
+
+      const { data: allGrades, error: allGradesError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          subject_id,
+          component_type,
+          grade_value,
+          created_at,
+          updated_at,
+          subjects!inner(id, name_vietnamese)
+        `)
+        .in('period_id', allPeriodIds)
+        .eq('student_id', studentId)
+        .order('subject_id')
+        .order('component_type')
+
+      gradeData = allGrades
+      gradeError = allGradesError
+    } else {
+      // For regular periods, get grades from the specific period only
+      const { data: regularGrades, error: regularGradeError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          subject_id,
+          component_type,
+          grade_value,
+          created_at,
+          updated_at,
+          subjects!inner(id, name_vietnamese)
+        `)
+        .eq('period_id', periodId)
+        .eq('student_id', studentId)
+        .order('subject_id')
+        .order('component_type')
+
+      gradeData = regularGrades
+      gradeError = regularGradeError
+    }
 
     if (gradeError) throw gradeError
 
-    // Get teacher information from class assignments (specific to this student's classes)
-    const { data: teacherData, error: teacherError } = await supabase
+    // Get teacher assignments for this student's classes
+    const { data: teacherAssignments, error: teacherAssignmentError } = await supabase
       .from('teacher_class_assignments')
       .select(`
         subject_id,
         teacher_id,
-        class_id,
-        profiles!teacher_class_assignments_teacher_id_fkey(full_name)
+        class_id
       `)
       .in('class_id', classAssignments?.map(ca => ca.class_id) || [])
       .eq('is_active', true)
 
-    if (teacherError) throw teacherError
+    if (teacherAssignmentError) throw teacherAssignmentError
+
+    // Get teacher names separately to avoid relationship conflicts
+    const teacherIds = [...new Set(teacherAssignments?.map(ta => ta.teacher_id) || [])]
+    const { data: teacherProfiles, error: teacherProfileError } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', teacherIds)
+
+    if (teacherProfileError) throw teacherProfileError
+
+    // Create teacher lookup map
+    const teacherMap = new Map()
+    teacherProfiles?.forEach(teacher => {
+      teacherMap.set(teacher.id, teacher.full_name)
+    })
+
+    // Create subject-teacher mapping
+    const subjectTeacherMap = new Map()
+    teacherAssignments?.forEach(assignment => {
+      const teacherName = teacherMap.get(assignment.teacher_id)
+      if (teacherName) {
+        subjectTeacherMap.set(`${assignment.subject_id}_${assignment.class_id}`, teacherName)
+      }
+    })
 
     // Process grades by subject
     const subjectMap = new Map<string, {
@@ -584,8 +676,10 @@ export async function getStudentDetailedGradesAction(
 
         if (!subjectMap.has(subjectId)) {
           const subjectData = (grade.subjects as Array<{ id: string; name_vietnamese: string }>)?.[0]
-          const teacherInfo = teacherData?.find(t => t.subject_id === subjectId)
-          const teacherName = teacherInfo?.profiles?.[0]?.full_name || 'Unknown'
+
+          // Get teacher name using the subject-teacher mapping
+          const classId = classAssignments?.[0]?.class_id || ''
+          const teacherName = subjectTeacherMap.get(`${subjectId}_${classId}`) || 'Unknown'
 
           subjectMap.set(subjectId, {
             subject_id: subjectId,
@@ -608,7 +702,7 @@ export async function getStudentDetailedGradesAction(
             subject.grade_components.midterm_grade = grade.grade_value
           } else if (grade.component_type === 'final') {
             subject.grade_components.final_grade = grade.grade_value
-          } else if (grade.component_type === 'summary') {
+          } else if (grade.component_type === 'semester_1' || grade.component_type === 'semester_2' || grade.component_type === 'yearly') {
             subject.grade_components.summary_grade = grade.grade_value
           }
         }

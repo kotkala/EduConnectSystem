@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { revalidateTag } from "next/cache"
 import type { ValidatedGradeData } from "@/lib/utils/teacher-excel-import-validation"
-import { validateGradeOverwriteAction, executeGradeOverwriteAction } from "./grade-overwrite-actions"
+
 
 export interface GradeImportResult {
   success: boolean
@@ -114,14 +114,31 @@ export async function importValidatedGradesAction(
           })
         }
 
-        // Summary grade
+        // Summary grade - determine component type based on period
         if (studentData.summaryGrade !== null && studentData.summaryGrade !== undefined) {
+          // Get period information to determine correct component type
+          const { data: periodInfo } = await supabase
+            .from('grade_reporting_periods')
+            .select('period_type')
+            .eq('id', periodId)
+            .single()
+
+          let componentType = 'semester_1' // default
+          if (periodInfo?.period_type) {
+            if (periodInfo.period_type.includes('final_2') || periodInfo.period_type.includes('semester_2')) {
+              componentType = 'semester_2'
+            } else if (periodInfo.period_type.includes('yearly') || periodInfo.period_type.includes('annual')) {
+              componentType = 'yearly'
+            }
+            // semester_1 is already the default, no need to reassign
+          }
+
           gradeRecords.push({
             period_id: periodId,
             student_id: student.student_id,
             subject_id: subjectId,
             class_id: classId,
-            component_type: 'summary',
+            component_type: componentType,
             grade_value: studentData.summaryGrade,
             created_by: user.id,
             created_at: new Date().toISOString(),
@@ -274,7 +291,7 @@ export async function getGradeOverviewAction(
       throw new Error(`Lỗi tải thông tin kỳ báo cáo: ${periodError.message}`)
     }
 
-    const isSummaryPeriod = periodInfo.name.includes('Tổng kết')
+    const isSummaryPeriod = periodInfo.name.includes('Tổng kết') || periodInfo.name.includes('cuối kỳ')
     let gradeData = null
     let gradeError = null
 
@@ -387,7 +404,7 @@ export async function getGradeOverviewAction(
             studentGrades.midtermGrade = grade.grade_value
           } else if (grade.component_type === 'final') {
             studentGrades.finalGrade = grade.grade_value
-          } else if (grade.component_type === 'summary') {
+          } else if (grade.component_type === 'semester_1' || grade.component_type === 'semester_2' || grade.component_type === 'yearly') {
             studentGrades.summaryGrade = grade.grade_value
           }
         }
@@ -412,7 +429,23 @@ export async function getGradeOverviewAction(
             const summaryGrade = (regularGradeSum + 2 * midtermGrade + 3 * finalGrade) / (regularGradeCount + 5)
             studentGrades.summaryGrade = Math.round(summaryGrade * 10) / 10 // Round to 1 decimal place
 
-            // Store the calculated summary grade in the database
+            // Store the calculated summary grade in the database with correct component type
+            // Get period information to determine correct component type
+            const { data: periodInfo } = await supabase
+              .from('grade_reporting_periods')
+              .select('period_type')
+              .eq('id', periodId)
+              .single()
+
+            let componentType = 'semester_1' // default
+            if (periodInfo?.period_type) {
+              if (periodInfo.period_type.includes('final_2') || periodInfo.period_type.includes('semester_2')) {
+                componentType = 'semester_2'
+              } else if (periodInfo.period_type.includes('yearly') || periodInfo.period_type.includes('annual')) {
+                componentType = 'yearly'
+              }
+            }
+
             await supabase
               .from('student_detailed_grades')
               .upsert({
@@ -420,7 +453,7 @@ export async function getGradeOverviewAction(
                 student_id: studentId,
                 subject_id: subjectId,
                 class_id: classId,
-                component_type: 'summary',
+                component_type: componentType,
                 grade_value: studentGrades.summaryGrade,
                 created_by: studentGrades.modifiedBy,
                 updated_at: new Date().toISOString()

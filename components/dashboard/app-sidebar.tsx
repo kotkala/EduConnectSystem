@@ -29,6 +29,7 @@ import {
   BookCheck,
   Calculator,
   TrendingUp,
+  CheckCircle,
 } from "lucide-react"
 import {
   Sidebar,
@@ -94,6 +95,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     // Academic Performance
     { title: "Kỳ báo cáo điểm", url: "/dashboard/admin/grade-periods", icon: Calculator },
     { title: "Theo dõi điểm số", url: "/dashboard/admin/grade-tracking", icon: BarChart3 },
+    { title: "Phê duyệt ghi đè điểm", url: "/dashboard/admin/grade-overwrite-approvals", icon: CheckCircle },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 

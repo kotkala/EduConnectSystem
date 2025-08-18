@@ -52,6 +52,7 @@ interface TeacherGradeOverviewProps {
   periodName: string
   onTrackingClick: () => void
   onImportClick: () => void
+  onGradeDataChange?: (grades: StudentGrade[]) => void
 }
 
 export function TeacherGradeOverview({
@@ -62,7 +63,8 @@ export function TeacherGradeOverview({
   subjectName,
   periodName,
   onTrackingClick,
-  onImportClick
+  onImportClick,
+  onGradeDataChange
 }: TeacherGradeOverviewProps) {
   const [loading, setLoading] = useState(false)
   const [grades, setGrades] = useState<StudentGrade[]>([])
@@ -85,6 +87,11 @@ export function TeacherGradeOverview({
         // Calculate statistics
         const calculatedStats = calculateStats(result.data)
         setStats(calculatedStats)
+
+        // Pass grade data to parent for PDF export
+        if (onGradeDataChange) {
+          onGradeDataChange(result.data)
+        }
       } else {
         setError(result.error || 'Không thể tải dữ liệu điểm số')
       }

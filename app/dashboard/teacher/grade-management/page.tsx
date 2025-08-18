@@ -12,13 +12,28 @@ import {
   Upload,
   RefreshCw,
   Eye,
-  Send
+  Send,
+  FileText
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { TeacherGradeImportDialog } from "@/components/teacher/teacher-grade-import-dialog"
 import { TeacherGradeTrackingDialog } from "@/components/teacher/teacher-grade-tracking-dialog"
 import { TeacherGradeOverview } from "@/components/teacher/teacher-grade-overview"
+import { downloadGradePDF, type GradeExportData, type GradeExportOptions } from "@/lib/utils/pdf-grade-export"
+
+// Import StudentGrade type from the overview component
+interface StudentGrade {
+  id: string
+  studentId: string
+  studentName: string
+  regularGrades: (number | null)[]
+  midtermGrade?: number | null
+  finalGrade?: number | null
+  summaryGrade?: number | null
+  lastModified?: string
+  modifiedBy?: string
+}
 
 import {
   getEnhancedGradeReportingPeriodsAction,
@@ -57,6 +72,9 @@ export default function TeacherGradeManagementPage() {
   // Dialog states
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false)
+
+  // Grade data for PDF export
+  const [currentGradeData, setCurrentGradeData] = useState<GradeExportData[]>([])
 
   const loadPeriods = useCallback(async () => {
     setLoading(true)
@@ -229,6 +247,60 @@ export default function TeacherGradeManagementPage() {
     }
   }
 
+  const handleGradeDataChange = (grades: StudentGrade[]) => {
+    // Convert grade data to export format
+    const exportData: GradeExportData[] = grades.map(grade => ({
+      studentId: grade.studentId,
+      studentName: grade.studentName,
+      regularGrades: grade.regularGrades,
+      midtermGrade: grade.midtermGrade,
+      finalGrade: grade.finalGrade,
+      summaryGrade: grade.summaryGrade,
+      lastModified: grade.lastModified,
+      modifiedBy: grade.modifiedBy
+    }))
+    setCurrentGradeData(exportData)
+  }
+
+  const handleExportPDF = async () => {
+    if (!selectedPeriod || !selectedClass || !selectedSubject) {
+      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
+      return
+    }
+
+    if (currentGradeData.length === 0) {
+      toast.error('Không có dữ liệu điểm để xuất. Vui lòng chọn lớp và môn học có điểm.')
+      return
+    }
+
+    try {
+      toast.info('Đang tạo file PDF...')
+
+      const selectedClassData = classes.find(c => c.id === selectedClass)
+      const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
+      const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
+
+      const exportOptions: GradeExportOptions = {
+        className: selectedClassData?.name || 'Unknown Class',
+        subjectName: selectedSubjectData?.name_vietnamese || 'Unknown Subject',
+        subjectCode: selectedSubjectData?.code,
+        periodName: selectedPeriodData?.name || 'Unknown Period',
+        academicYear: '2024-2025',
+        semester: 'HK1',
+        teacherName: 'Giáo viên', // TODO: Get from user profile
+        schoolName: 'TRƯỜNG TRUNG HỌC PHỔ THÔNG',
+        exportDate: new Date(),
+        includeFormula: true
+      }
+
+      downloadGradePDF(currentGradeData, exportOptions)
+      toast.success('Xuất file PDF thành công!')
+    } catch (error) {
+      console.error('Error exporting PDF:', error)
+      toast.error('Lỗi khi xuất file PDF')
+    }
+  }
+
   const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
 
   return (
@@ -382,7 +454,7 @@ export default function TeacherGradeManagementPage() {
               <CardTitle>Thao tác nhập điểm</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <Button onClick={handleDownloadTemplate} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
                   Tải template Excel
@@ -394,6 +466,10 @@ export default function TeacherGradeManagementPage() {
                 <Button onClick={handleTrackGrades} variant="secondary">
                   <Eye className="mr-2 h-4 w-4" />
                   Theo dõi điểm số
+                </Button>
+                <Button onClick={handleExportPDF} className="bg-red-600 hover:bg-red-700">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Xuất PDF
                 </Button>
                 <Button onClick={handleSubmitGradesToAdmin} className="bg-green-600 hover:bg-green-700">
                   <Send className="mr-2 h-4 w-4" />
@@ -423,6 +499,7 @@ export default function TeacherGradeManagementPage() {
           periodName={selectedPeriodData?.name || ''}
           onTrackingClick={handleTrackGrades}
           onImportClick={handleImportGrades}
+          onGradeDataChange={handleGradeDataChange}
         />
 
         {/* Import Dialog */}

@@ -27,6 +27,7 @@ interface GradeSubmission {
   semester: { name: string }
   grades: Array<{
     subject_id: string
+    regular_grades: number[]
     midterm_grade: number | null
     final_grade: number | null
     average_grade: number | null
@@ -306,9 +307,10 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-4 font-medium">Môn học</th>
+                  <th className="text-center py-3 px-4 font-medium">Điểm miệng</th>
                   <th className="text-center py-3 px-4 font-medium">Điểm giữa kỳ</th>
                   <th className="text-center py-3 px-4 font-medium">Điểm cuối kỳ</th>
-                  <th className="text-center py-3 px-4 font-medium">Điểm trung bình</th>
+                  <th className="text-center py-3 px-4 font-medium">TBM</th>
                   <th className="text-center py-3 px-4 font-medium">Xếp loại</th>
                 </tr>
               </thead>
@@ -320,6 +322,14 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
                         <p className="font-medium">{grade.subject.name_vietnamese}</p>
                         <p className="text-sm text-gray-500">{grade.subject.code}</p>
                       </div>
+                    </td>
+                    <td className="text-center py-3 px-4">
+                      <span className="font-medium">
+                        {grade.regular_grades && grade.regular_grades.length > 0
+                          ? grade.regular_grades.map(g => g.toFixed(1)).join(', ')
+                          : '--'
+                        }
+                      </span>
                     </td>
                     <td className="text-center py-3 px-4">
                       <span className={`font-medium ${getGradeColor(grade.midterm_grade)}`}>

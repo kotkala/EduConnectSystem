@@ -71,9 +71,7 @@ export default function GradePeriodsPage() {
     loadPeriods()
   }, [loadPeriods])
 
-  const handleFiltersChange = (newFilters: Partial<GradePeriodFiltersFormData>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }))
-  }
+
 
   const handlePageChange = (page: number) => {
     setFilters(prev => ({ ...prev, page }))
@@ -260,10 +258,8 @@ export default function GradePeriodsPage() {
               currentPage={filters.page || 1}
               limit={filters.limit || 20}
               onPageChange={handlePageChange}
-              onFiltersChange={handleFiltersChange}
               onEdit={handleEditPeriod}
               onStatusChange={handleStatusChange}
-              onRefresh={handleRefresh}
               getStatusIcon={getStatusIcon}
               getStatusBadge={getStatusBadge}
             />

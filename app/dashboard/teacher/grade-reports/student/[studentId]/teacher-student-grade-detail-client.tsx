@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ArrowLeft, Save, Send, Sparkles, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, Sparkles, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -14,35 +14,43 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { toast } from 'sonner'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
-import { getHomeroomDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
+import { getSubmittedStudentGradeDetailsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
+import { createAIFeedbackAction, getAIFeedbackForStudentAction, updateGradeSubmissionFeedbackAction } from '@/lib/actions/enhanced-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
 
-interface GradeRecord {
-  id: string
-  student_id: string
-  grade_value: number
-  component_type: string
-  student: {
-    full_name: string
-    student_id: string
-  }
-  subject: {
-    name_vietnamese: string
-    code: string
-  }
-  class: {
-    name: string
+interface SubjectGrade {
+  subject_id: string
+  subject_name: string
+  subject_code: string
+  grades: {
+    regular: number[]
+    midterm: number | null
+    final: number | null
+    summary: number | null
   }
 }
 
-interface StudentInfo {
-  id: string
-  full_name: string
-  student_id: string
+interface SubmittedStudentData {
+  submission: {
+    id: string
+    submission_count: number
+    status: string
+    submitted_at: string
+  }
+  student: {
+    id: string
+    full_name: string
+    student_id: string
+  }
   class: {
     id: string
     name: string
   }
+  period: {
+    id: string
+    name: string
+  }
+  subjects: SubjectGrade[]
 }
 
 interface GradeReportingPeriod {
@@ -59,10 +67,9 @@ interface TeacherStudentGradeDetailClientProps {
   studentId: string
 }
 
-export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGradeDetailClientProps) {
+export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherStudentGradeDetailClientProps>) {
   const [loading, setLoading] = useState(true)
-  const [grades, setGrades] = useState<GradeRecord[]>([])
-  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null)
+  const [studentData, setStudentData] = useState<SubmittedStudentData | null>(null)
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
   
@@ -73,19 +80,41 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false)
   const [isSavingFeedback, setIsSavingFeedback] = useState(false)
   const [showDisclaimerDialog, setShowDisclaimerDialog] = useState(false)
+  const [existingFeedbackId, setExistingFeedbackId] = useState<string | null>(null)
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false)
 
   // Load periods
   const loadPeriods = useCallback(async () => {
     try {
-      const result = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
-      if (result.success && result.data) {
-        const periodsData = result.data as unknown as GradeReportingPeriod[]
+      // Load all periods
+      const periodsResult = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
+
+      // Load periods with submissions
+      const submissionsResult = await getPeriodsWithSubmissionsAction()
+
+      if (periodsResult.success && periodsResult.data) {
+        const periodsData = periodsResult.data as unknown as GradeReportingPeriod[]
         setPeriods(periodsData)
-        
-        // Auto-select the active period
-        const activePeriod = periodsData.find((period) => period.is_active === true)
-        if (activePeriod) {
-          setSelectedPeriod(activePeriod.id)
+
+        // Smart period selection: prioritize periods with submissions
+        if (submissionsResult.success && submissionsResult.data) {
+          const submissionPeriodIds = submissionsResult.data.map(p => p.id)
+
+          // Auto-select the first period with submissions, or active period as fallback
+          if (submissionPeriodIds.length > 0) {
+            setSelectedPeriod(submissionPeriodIds[0])
+          } else {
+            const activePeriod = periodsData.find((period) => period.is_active === true)
+            if (activePeriod) {
+              setSelectedPeriod(activePeriod.id)
+            }
+          }
+        } else {
+          // Fallback to active period if submissions loading fails
+          const activePeriod = periodsData.find((period) => period.is_active === true)
+          if (activePeriod) {
+            setSelectedPeriod(activePeriod.id)
+          }
         }
       }
     } catch (error) {
@@ -97,52 +126,27 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
   // Load student grades
   const loadStudentGrades = useCallback(async () => {
     if (!selectedPeriod) {
-      setGrades([])
-      setStudentInfo(null)
+      setStudentData(null)
       setLoading(false)
       return
     }
 
     try {
       setLoading(true)
-      
-      const filters = {
-        student_search: studentId,
-        page: 1,
-        limit: 1000
-      }
 
-      const result = await getHomeroomDetailedGradesAction(selectedPeriod, filters)
+      const result = await getSubmittedStudentGradeDetailsAction(selectedPeriod, studentId)
 
       if (result.success && result.data) {
-        const gradeData = result.data as unknown as GradeRecord[]
-        const studentGrades = gradeData.filter(grade => grade.student_id === studentId)
-        
-        setGrades(studentGrades)
-        
-        if (studentGrades.length > 0) {
-          const firstGrade = studentGrades[0]
-          setStudentInfo({
-            id: firstGrade.student_id,
-            full_name: firstGrade.student.full_name,
-            student_id: firstGrade.student.student_id,
-            class: {
-              id: firstGrade.class.name, // We'll need to get the actual class ID
-              name: firstGrade.class.name
-            }
-          })
-        }
+        setStudentData(result.data)
       } else {
-        console.error('Error loading grades:', result.error)
+        console.error('Error loading student grades:', result.error)
         toast.error(result.error || 'Không thể tải điểm số học sinh')
-        setGrades([])
-        setStudentInfo(null)
+        setStudentData(null)
       }
     } catch (error) {
       console.error('Error loading student grades:', error)
       toast.error('Không thể tải điểm số học sinh')
-      setGrades([])
-      setStudentInfo(null)
+      setStudentData(null)
     } finally {
       setLoading(false)
     }
@@ -153,14 +157,42 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
     loadPeriods()
   }, [loadPeriods])
 
+  // Load existing AI feedback
+  const loadExistingFeedback = useCallback(async () => {
+    if (!selectedPeriod || !studentId) return
+
+    setIsLoadingFeedback(true)
+    try {
+      const result = await getAIFeedbackForStudentAction(studentId, selectedPeriod)
+      if (result.success && result.data) {
+        setAiFeedback(result.data.feedback_content)
+        setFeedbackStyle(result.data.feedback_style)
+        setFeedbackLength(result.data.feedback_length)
+        setExistingFeedbackId(result.data.id)
+      } else {
+        // No existing feedback, reset form
+        setAiFeedback('')
+        setFeedbackStyle('friendly')
+        setFeedbackLength('medium')
+        setExistingFeedbackId(null)
+      }
+    } catch (error) {
+      console.error('Error loading existing feedback:', error)
+      // Don't show error toast for missing feedback, it's normal
+    } finally {
+      setIsLoadingFeedback(false)
+    }
+  }, [selectedPeriod, studentId])
+
   // Load grades when period changes
   useEffect(() => {
     loadStudentGrades()
-  }, [loadStudentGrades])
+    loadExistingFeedback()
+  }, [loadStudentGrades, loadExistingFeedback])
 
   // Generate AI feedback
   const generateAIFeedback = useCallback(async () => {
-    if (!studentInfo || grades.length === 0) {
+    if (!studentData || studentData.subjects.length === 0) {
       toast.error('Không có dữ liệu điểm số để tạo đánh giá')
       return
     }
@@ -168,55 +200,27 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
     setIsGeneratingFeedback(true)
     try {
       // Transform grades to the format expected by AI API
-      const subjectGrades = Object.entries(
-        grades.reduce((acc, grade) => {
-          const subjectCode = grade.subject.code
-          if (!acc[subjectCode]) {
-            acc[subjectCode] = {
-              subjectName: grade.subject.name_vietnamese,
-              regular: [],
-              midterm: undefined,
-              final: undefined
-            }
-          }
-
-          if (grade.component_type.startsWith('regular_')) {
-            acc[subjectCode].regular.push(grade.grade_value)
-          } else if (grade.component_type === 'midterm') {
-            acc[subjectCode].midterm = grade.grade_value
-          } else if (grade.component_type === 'final') {
-            acc[subjectCode].final = grade.grade_value
-          }
-
-          return acc
-        }, {} as Record<string, {
-          subjectName: string
-          regular: number[]
-          midterm?: number
-          final?: number
-        }>)
-      ).map(([, subjectData]) => {
-
-        const allGrades = [...subjectData.regular]
-        if (subjectData.midterm !== undefined) allGrades.push(subjectData.midterm)
-        if (subjectData.final !== undefined) allGrades.push(subjectData.final)
+      const subjectGrades = studentData.subjects.map((subject) => {
+        const allGrades = [...subject.grades.regular]
+        if (subject.grades.midterm !== null) allGrades.push(subject.grades.midterm)
+        if (subject.grades.final !== null) allGrades.push(subject.grades.final)
 
         const averageGrade = allGrades.length > 0
           ? allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length
           : undefined
 
         return {
-          subjectName: subjectData.subjectName,
-          midtermGrade: subjectData.midterm,
-          finalGrade: subjectData.final,
+          subjectName: subject.subject_name,
+          midtermGrade: subject.grades.midterm,
+          finalGrade: subject.grades.final,
           averageGrade
         }
       })
 
       const gradeData = {
-        studentName: studentInfo.full_name,
-        studentId: studentInfo.student_id,
-        studentCode: studentInfo.student_id,
+        studentName: studentData.student.full_name,
+        studentId: studentData.student.student_id,
+        studentCode: studentData.student.student_id,
         subjects: subjectGrades
       }
 
@@ -246,45 +250,56 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
     } finally {
       setIsGeneratingFeedback(false)
     }
-  }, [studentInfo, grades, feedbackStyle, feedbackLength])
+  }, [studentData, feedbackStyle, feedbackLength])
 
   // Save feedback
   const saveFeedback = useCallback(async () => {
-    if (!studentInfo || !aiFeedback.trim()) {
+    if (!studentData || !aiFeedback.trim()) {
       toast.error('Vui lòng nhập nội dung đánh giá')
+      return
+    }
+
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
     setIsSavingFeedback(true)
     try {
-      // Here we would save the feedback to the database
-      // For now, just show success message
-      toast.success('Đã lưu đánh giá thành công!')
-      setShowDisclaimerDialog(false)
+      // Save feedback directly to grade_submissions table so parents can see it
+      const result = await updateGradeSubmissionFeedbackAction(
+        studentData.class.id,
+        selectedPeriod,
+        aiFeedback.trim(),
+        'Đánh giá được tạo bằng AI và chỉnh sửa bởi giáo viên chủ nhiệm'
+      )
+
+      if (result.success) {
+        toast.success('Đã lưu đánh giá thành công!')
+        setShowDisclaimerDialog(false)
+
+        // Also save to ai_grade_feedback table for teacher reference
+        await createAIFeedbackAction({
+          student_id: studentData.student.id,
+          class_id: studentData.class.id,
+          period_id: selectedPeriod,
+          feedback_content: aiFeedback.trim(),
+          feedback_style: feedbackStyle,
+          feedback_length: feedbackLength,
+          reason_for_revision: existingFeedbackId ? 'Cập nhật đánh giá' : undefined
+        })
+      } else {
+        toast.error(result.error || 'Không thể lưu đánh giá')
+      }
     } catch (error) {
       console.error('Error saving feedback:', error)
       toast.error('Lỗi khi lưu đánh giá')
     } finally {
       setIsSavingFeedback(false)
     }
-  }, [studentInfo, aiFeedback])
+  }, [studentData, aiFeedback, selectedPeriod, feedbackStyle, feedbackLength, existingFeedbackId])
 
-  // Send to parents
-  const sendToParents = useCallback(async () => {
-    if (!studentInfo || !aiFeedback.trim()) {
-      toast.error('Vui lòng nhập nội dung đánh giá')
-      return
-    }
 
-    try {
-      // Here we would send the feedback to parents
-      // For now, just show success message
-      toast.success('Đã gửi đánh giá cho phụ huynh thành công!')
-    } catch (error) {
-      console.error('Error sending to parents:', error)
-      toast.error('Lỗi khi gửi đánh giá cho phụ huynh')
-    }
-  }, [studentInfo, aiFeedback])
 
   if (loading) {
     return (
@@ -295,7 +310,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
     )
   }
 
-  if (!studentInfo) {
+  if (!studentData) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
@@ -326,7 +341,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
           <div>
             <h1 className="text-2xl font-bold">Chi tiết điểm học sinh</h1>
             <p className="text-gray-600">
-              {studentInfo.full_name} • Mã HS: {studentInfo.student_id} • Lớp: {studentInfo.class.name}
+              {studentData.student.full_name} • Mã HS: {studentData.student.student_id} • Lớp: {studentData.class.name}
             </p>
           </div>
         </div>
@@ -354,7 +369,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
       </Card>
 
       {/* Grades Table */}
-      {grades.length > 0 && (
+      {studentData.subjects.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Bảng điểm chi tiết</CardTitle>
@@ -375,52 +390,24 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Group grades by subject */}
-                  {Object.entries(
-                    grades.reduce((acc, grade) => {
-                      const subjectCode = grade.subject.code
-                      if (!acc[subjectCode]) {
-                        acc[subjectCode] = {
-                          subject: grade.subject,
-                          regular: [],
-                          midterm: null,
-                          final: null
-                        }
-                      }
-
-                      if (grade.component_type.startsWith('regular_')) {
-                        acc[subjectCode].regular.push(grade)
-                      } else if (grade.component_type === 'midterm') {
-                        acc[subjectCode].midterm = grade
-                      } else if (grade.component_type === 'final') {
-                        acc[subjectCode].final = grade
-                      }
-
-                      return acc
-                    }, {} as Record<string, {
-                      subject: { name_vietnamese: string; code: string }
-                      regular: GradeRecord[]
-                      midterm: GradeRecord | null
-                      final: GradeRecord | null
-                    }>)
-                  ).map(([subjectCode, subjectGrades]) => {
+                  {studentData.subjects.map((subject) => {
                     // Calculate TBM
-                    const regularGrades = subjectGrades.regular.map((g: GradeRecord) => g.grade_value)
-                    const midtermGrade = subjectGrades.midterm?.grade_value
-                    const finalGrade = subjectGrades.final?.grade_value
+                    const regularGrades = subject.grades.regular
+                    const midtermGrade = subject.grades.midterm
+                    const finalGrade = subject.grades.final
 
                     const allGrades = [...regularGrades]
-                    if (midtermGrade !== undefined) allGrades.push(midtermGrade)
-                    if (finalGrade !== undefined) allGrades.push(finalGrade)
+                    if (midtermGrade !== null) allGrades.push(midtermGrade)
+                    if (finalGrade !== null) allGrades.push(finalGrade)
 
                     const tbm = allGrades.length > 0
                       ? Math.round((allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length) * 10) / 10
                       : null
 
                     return (
-                      <TableRow key={subjectCode}>
+                      <TableRow key={subject.subject_id}>
                         <TableCell className="font-medium">
-                          {subjectGrades.subject.name_vietnamese}
+                          {subject.subject_name}
                         </TableCell>
                         <TableCell>
                           {regularGrades.length > 0
@@ -429,10 +416,10 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
                           }
                         </TableCell>
                         <TableCell>
-                          {midtermGrade !== undefined ? midtermGrade.toFixed(1) : '-'}
+                          {midtermGrade !== null ? midtermGrade.toFixed(1) : '-'}
                         </TableCell>
                         <TableCell>
-                          {finalGrade !== undefined ? finalGrade.toFixed(1) : '-'}
+                          {finalGrade !== null ? finalGrade.toFixed(1) : '-'}
                         </TableCell>
                         <TableCell className="font-semibold">
                           {tbm !== null ? tbm.toFixed(1) : '-'}
@@ -503,7 +490,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
           <div className="flex justify-start">
             <Button
               onClick={generateAIFeedback}
-              disabled={isGeneratingFeedback || grades.length === 0}
+              disabled={isGeneratingFeedback || studentData.subjects.length === 0}
               className="flex items-center gap-2"
             >
               {isGeneratingFeedback ? (
@@ -522,12 +509,26 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
 
           {/* Feedback Textarea */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Nội dung đánh giá</label>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Nội dung đánh giá</label>
+              {isLoadingFeedback && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <LoadingSpinner size="sm" />
+                  Đang tải...
+                </div>
+              )}
+              {existingFeedbackId && (
+                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                  Đã lưu
+                </span>
+              )}
+            </div>
             <Textarea
               value={aiFeedback}
               onChange={(e) => setAiFeedback(e.target.value)}
               placeholder="Nội dung đánh giá sẽ xuất hiện ở đây. Bạn có thể chỉnh sửa nếu cần..."
               className="min-h-[200px]"
+              disabled={isLoadingFeedback}
             />
           </div>
 
@@ -551,15 +552,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: TeacherStudentGra
               )}
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={sendToParents}
-              disabled={!aiFeedback.trim()}
-              className="flex items-center gap-2"
-            >
-              <Send className="h-4 w-4" />
-              Gửi cho phụ huynh
-            </Button>
+
           </div>
         </CardContent>
       </Card>

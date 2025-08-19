@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import {
   RefreshCw,
   Users,
@@ -42,6 +43,11 @@ export default function AdminGradeTrackingPage() {
   const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false)
   const [submissionReason, setSubmissionReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [classFilter, setClassFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   // Load grade periods
   const loadPeriods = useCallback(async () => {
@@ -155,13 +161,37 @@ export default function AdminGradeTrackingPage() {
   }
 
   const selectAllItems = () => {
-    const allKeys = gradeData.map(item => item.student_id)
+    const allKeys = filteredData.map(item => item.student_id)
     setSelectedItems(new Set(allKeys))
   }
 
   const clearSelection = () => {
     setSelectedItems(new Set())
   }
+
+  // Filter and search logic
+  const filteredData = useMemo(() => {
+    return gradeData.filter(item => {
+      // Search filter
+      const matchesSearch = searchTerm === '' ||
+        item.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // Class filter
+      const matchesClass = classFilter === 'all' || item.class_name === classFilter
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || item.submission_status === statusFilter
+
+      return matchesSearch && matchesClass && matchesStatus
+    })
+  }, [gradeData, searchTerm, classFilter, statusFilter])
+
+  // Get unique class names for filter dropdown
+  const uniqueClasses = useMemo(() => {
+    const classes = [...new Set(gradeData.map(item => item.class_name))]
+    return classes.sort()
+  }, [gradeData])
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -204,10 +234,10 @@ export default function AdminGradeTrackingPage() {
               <SelectContent>
                 {periods.map((period) => (
                   <SelectItem key={period.id} value={period.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{period.name}</span>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{period.name} - {period.academic_years?.[0]?.name} - {period.semesters?.[0]?.name}</span>
                       {period.is_active && (
-                        <Badge variant="outline" className="text-xs">Đang hoạt động</Badge>
+                        <Badge variant="outline" className="ml-2 text-xs">Đang hoạt động</Badge>
                       )}
                     </div>
                   </SelectItem>
@@ -222,6 +252,88 @@ export default function AdminGradeTrackingPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Filter and Search */}
+      {selectedPeriod && !loading && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bộ lọc và tìm kiếm</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search">Tìm kiếm học sinh</Label>
+                <Input
+                  id="search"
+                  placeholder="Tên hoặc mã học sinh..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="class-filter">Lọc theo lớp</Label>
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger id="class-filter">
+                    <SelectValue placeholder="Tất cả lớp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả lớp</SelectItem>
+                    {uniqueClasses.map((className) => (
+                      <SelectItem key={className} value={className}>
+                        {className}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status-filter">Trạng thái gửi</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger id="status-filter">
+                    <SelectValue placeholder="Tất cả trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="submitted">Đã gửi</SelectItem>
+                    <SelectItem value="resubmitted">Gửi lại</SelectItem>
+                    <SelectItem value="not_submitted">Chưa gửi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Thao tác</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setClassFilter('all')
+                      setStatusFilter('all')
+                    }}
+                  >
+                    Xóa bộ lọc
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {(searchTerm || classFilter !== 'all' || statusFilter !== 'all') && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  Hiển thị {filteredData.length} / {gradeData.length} học sinh
+                  {searchTerm && ` • Tìm kiếm: "${searchTerm}"`}
+                  {classFilter !== 'all' && ` • Lớp: ${classFilter}`}
+                  {statusFilter !== 'all' && ` • Trạng thái: ${statusFilter === 'submitted' ? 'Đã gửi' : statusFilter === 'resubmitted' ? 'Gửi lại' : 'Chưa gửi'}`}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -340,7 +452,7 @@ export default function AdminGradeTrackingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {gradeData.map((row) => {
+                  {filteredData.map((row) => {
                     const isSelected = selectedItems.has(row.student_id)
 
                     return (

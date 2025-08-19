@@ -41,7 +41,7 @@ export async function getGradeOverwriteRequestsAction(): Promise<GradeOverwriteA
     }
 
     // Get all grade overwrite requests that need approval
-    const { data: requests, error } = await supabase
+    const { data: auditLogs, error } = await supabase
       .from('grade_audit_logs')
       .select(`
         id,
@@ -55,7 +55,7 @@ export async function getGradeOverwriteRequestsAction(): Promise<GradeOverwriteA
         admin_reason,
         processed_at,
         processed_by,
-        student_detailed_grades!inner(
+        student_detailed_grades!grade_audit_logs_grade_id_fkey(
           student_id,
           subject_id,
           class_id,
@@ -74,18 +74,56 @@ export async function getGradeOverwriteRequestsAction(): Promise<GradeOverwriteA
       return { success: false, message: 'Không thể tải danh sách yêu cầu ghi đè' }
     }
 
+    // Get teacher assignments for all classes and subjects in the audit logs
+    const classSubjectPairs = auditLogs?.map(log => {
+      const gradeData = Array.isArray(log.student_detailed_grades)
+        ? log.student_detailed_grades[0]
+        : log.student_detailed_grades
+      return {
+        class_id: gradeData?.class_id,
+        subject_id: gradeData?.subject_id
+      }
+    }).filter(pair => pair.class_id && pair.subject_id) || []
+
+    const { data: teacherAssignments, error: teacherError } = await supabase
+      .from('teacher_class_assignments')
+      .select(`
+        class_id,
+        subject_id,
+        teacher_id,
+        profiles!teacher_class_assignments_teacher_id_fkey(full_name)
+      `)
+      .in('class_id', [...new Set(classSubjectPairs.map(p => p.class_id))])
+      .in('subject_id', [...new Set(classSubjectPairs.map(p => p.subject_id))])
+      .eq('is_active', true)
+
+    if (teacherError) {
+      console.error('Error fetching teacher assignments:', teacherError)
+    }
+
+    // Create teacher lookup map
+    const teacherMap = new Map<string, string>()
+    teacherAssignments?.forEach(assignment => {
+      const key = `${assignment.class_id}_${assignment.subject_id}`
+      const teacherProfile = Array.isArray(assignment.profiles)
+        ? assignment.profiles[0]
+        : assignment.profiles
+      const teacherName = teacherProfile?.full_name || 'Unknown'
+      teacherMap.set(key, teacherName)
+    })
+
     // Transform the data to match our interface
     const transformedRequests: GradeOverwriteRequest[] = []
 
-    if (requests) {
-      for (const request of requests) {
+    if (auditLogs) {
+      for (const request of auditLogs) {
         const gradeData = Array.isArray(request.student_detailed_grades)
           ? request.student_detailed_grades[0]
           : request.student_detailed_grades
 
-        const teacherData = Array.isArray(request.profiles)
-          ? request.profiles[0]
-          : request.profiles
+        // Get teacher name from the teacher map
+        const teacherKey = `${gradeData?.class_id}_${gradeData?.subject_id}`
+        const teacherName = teacherMap.get(teacherKey) || 'Unknown'
 
         transformedRequests.push({
           id: request.id,
@@ -99,11 +137,29 @@ export async function getGradeOverwriteRequestsAction(): Promise<GradeOverwriteA
           admin_reason: request.admin_reason,
           processed_at: request.processed_at,
           processed_by: request.processed_by,
-          // Extract joined data safely
-          student_name: gradeData?.profiles?.[0]?.full_name || 'Unknown',
-          subject_name: gradeData?.subjects?.[0]?.name_vietnamese || 'Unknown',
-          class_name: gradeData?.classes?.[0]?.name || 'Unknown',
-          teacher_name: teacherData?.full_name || 'Unknown',
+          // Extract joined data safely - handle both array and object cases
+          student_name: (() => {
+            const profiles = gradeData?.profiles
+            if (Array.isArray(profiles)) {
+              return profiles[0]?.full_name || 'Unknown'
+            }
+            return (profiles as { full_name: string })?.full_name || 'Unknown'
+          })(),
+          subject_name: (() => {
+            const subjects = gradeData?.subjects
+            if (Array.isArray(subjects)) {
+              return subjects[0]?.name_vietnamese || 'Unknown'
+            }
+            return (subjects as { name_vietnamese: string })?.name_vietnamese || 'Unknown'
+          })(),
+          class_name: (() => {
+            const classes = gradeData?.classes
+            if (Array.isArray(classes)) {
+              return classes[0]?.name || 'Unknown'
+            }
+            return (classes as { name: string })?.name || 'Unknown'
+          })(),
+          teacher_name: teacherName,
           component_type: gradeData?.component_type || 'unknown'
         })
       }
@@ -137,6 +193,32 @@ export async function approveGradeOverwriteAction(
     const { data: user } = await supabase.auth.getUser()
     if (!user.user) {
       return { success: false, message: 'Không thể xác thực người dùng' }
+    }
+
+    // Get the audit log details to apply the grade change
+    const { data: auditLog, error: auditError } = await supabase
+      .from('grade_audit_logs')
+      .select('grade_id, new_value')
+      .eq('id', requestId)
+      .single()
+
+    if (auditError || !auditLog) {
+      console.error('Error fetching audit log:', auditError)
+      return { success: false, message: 'Không thể tìm thấy yêu cầu ghi đè' }
+    }
+
+    // Apply the grade change to the actual grade record
+    const { error: gradeUpdateError } = await supabase
+      .from('student_detailed_grades')
+      .update({
+        grade_value: auditLog.new_value,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', auditLog.grade_id)
+
+    if (gradeUpdateError) {
+      console.error('Error updating grade:', gradeUpdateError)
+      return { success: false, message: 'Không thể cập nhật điểm số' }
     }
 
     // Update the audit log with approval

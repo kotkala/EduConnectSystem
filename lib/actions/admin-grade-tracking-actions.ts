@@ -1,7 +1,9 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { checkAdminPermissions } from "@/lib/utils/permission-utils"
+import { sendTeacherGradeNotificationEmail } from "@/lib/services/email-service"
 
 // Helper function to store calculated summary grade in database
 async function storeSummaryGradeInDatabase(
@@ -67,6 +69,8 @@ export interface GradePeriod {
   is_active: boolean
   period_type: string
   status: string
+  academic_years?: { name: string }[]
+  semesters?: { name: string }[]
 }
 
 export interface StudentGradeData {
@@ -162,7 +166,9 @@ export async function getGradePeriodsAction(): Promise<{
         end_date,
         is_active,
         period_type,
-        status
+        status,
+        academic_years!academic_year_id(name),
+        semesters!semester_id(name)
       `)
       .order('start_date', { ascending: false })
 
@@ -584,16 +590,18 @@ export async function getStudentDetailedGradesAction(
         .from('student_detailed_grades')
         .select(`
           subject_id,
+          class_id,
           component_type,
           grade_value,
           created_at,
           updated_at,
-          subjects!inner(id, name_vietnamese)
+          subjects!student_detailed_grades_subject_id_fkey(id, name_vietnamese)
         `)
         .in('period_id', allPeriodIds)
         .eq('student_id', studentId)
         .order('subject_id')
         .order('component_type')
+        .order('updated_at', { ascending: false })
 
       gradeData = allGrades
       gradeError = allGradesError
@@ -603,16 +611,18 @@ export async function getStudentDetailedGradesAction(
         .from('student_detailed_grades')
         .select(`
           subject_id,
+          class_id,
           component_type,
           grade_value,
           created_at,
           updated_at,
-          subjects!inner(id, name_vietnamese)
+          subjects!student_detailed_grades_subject_id_fkey(id, name_vietnamese)
         `)
         .eq('period_id', periodId)
         .eq('student_id', studentId)
         .order('subject_id')
         .order('component_type')
+        .order('updated_at', { ascending: false })
 
       gradeData = regularGrades
       gradeError = regularGradeError
@@ -629,6 +639,7 @@ export async function getStudentDetailedGradesAction(
         class_id
       `)
       .in('class_id', classAssignments?.map(ca => ca.class_id) || [])
+      .eq('academic_year_id', periodInfo.academic_year_id)
       .eq('is_active', true)
 
     if (teacherAssignmentError) throw teacherAssignmentError
@@ -675,11 +686,19 @@ export async function getStudentDetailedGradesAction(
         const subjectId = grade.subject_id
 
         if (!subjectMap.has(subjectId)) {
-          const subjectData = (grade.subjects as Array<{ id: string; name_vietnamese: string }>)?.[0]
+          // Access subject data from the foreign key relationship - handle both array and object cases
+          const subjectData = (() => {
+            const subjects = grade.subjects
+            if (Array.isArray(subjects)) {
+              return subjects[0]
+            }
+            return subjects as { id: string; name_vietnamese: string }
+          })()
 
           // Get teacher name using the subject-teacher mapping
-          const classId = classAssignments?.[0]?.class_id || ''
-          const teacherName = subjectTeacherMap.get(`${subjectId}_${classId}`) || 'Unknown'
+          // Use the class_id from the actual grade record, not just the first class assignment
+          const gradeClassId = grade.class_id || classAssignments?.[0]?.class_id || ''
+          const teacherName = subjectTeacherMap.get(`${subjectId}_${gradeClassId}`) || 'Unknown'
 
           subjectMap.set(subjectId, {
             subject_id: subjectId,
@@ -697,13 +716,29 @@ export async function getStudentDetailedGradesAction(
         const subject = subjectMap.get(subjectId)
         if (subject && grade.grade_value !== null) {
           if (grade.component_type.startsWith('regular_')) {
-            subject.grade_components.regular_grades.push(grade.grade_value)
+            // For regular grades, only add if not already present (since we ordered by updated_at desc, first one is most recent)
+            const existingRegularIndex = subject.grade_components.regular_grades.findIndex((_, index) => {
+              const expectedType = `regular_${index + 1}`
+              return expectedType === grade.component_type
+            })
+            if (existingRegularIndex === -1) {
+              subject.grade_components.regular_grades.push(grade.grade_value)
+            }
           } else if (grade.component_type === 'midterm') {
-            subject.grade_components.midterm_grade = grade.grade_value
+            // Only set if not already set (first one is most recent due to ordering)
+            if (subject.grade_components.midterm_grade === null) {
+              subject.grade_components.midterm_grade = grade.grade_value
+            }
           } else if (grade.component_type === 'final') {
-            subject.grade_components.final_grade = grade.grade_value
+            // Only set if not already set (first one is most recent due to ordering)
+            if (subject.grade_components.final_grade === null) {
+              subject.grade_components.final_grade = grade.grade_value
+            }
           } else if (grade.component_type === 'semester_1' || grade.component_type === 'semester_2' || grade.component_type === 'yearly') {
-            subject.grade_components.summary_grade = grade.grade_value
+            // Only set if not already set (first one is most recent due to ordering)
+            if (subject.grade_components.summary_grade === null) {
+              subject.grade_components.summary_grade = grade.grade_value
+            }
           }
         }
       }
@@ -745,15 +780,28 @@ export async function getStudentDetailedGradesAction(
       }
     })
 
-    // Use the classAssignments already defined above
-    const classData = classAssignments?.[0]
-    const className = classData?.classes?.[0]?.name || 'Unknown'
+    // Determine class name from the actual grade records or fallback to class assignments
+    let className = 'Unknown'
+    let classId = ''
+
+    if (gradeData && gradeData.length > 0) {
+      // Use the class_id from the first grade record
+      classId = gradeData[0].class_id
+      // Find the corresponding class name from class assignments
+      const matchingClass = classAssignments?.find(ca => ca.class_id === classId)
+      className = matchingClass?.classes?.[0]?.name || 'Unknown'
+    } else {
+      // Fallback to first class assignment if no grade data
+      const classData = classAssignments?.[0]
+      className = classData?.classes?.[0]?.name || 'Unknown'
+      classId = classData?.class_id || ''
+    }
 
     const result: StudentDetailedGrades = {
       student_id: studentId,
       student_name: studentInfo.full_name || 'Unknown',
       student_number: studentInfo.student_id || 'Unknown',
-      class_id: classData?.class_id || '',
+      class_id: classId,
       class_name: className,
       subjects
     }
@@ -810,14 +858,27 @@ export async function submitStudentGradesToHomeroomAction(
   error?: string
 }> {
   try {
-    const supabase = await createClient()
     const { user } = await checkAdminPermissions()
 
     if (!user) {
       throw new Error('User not authenticated')
     }
 
-    // Get student class information
+    // Use admin client to bypass RLS for admin operations
+    const supabase = createAdminClient()
+
+    // Get current academic year
+    const { data: currentAcademicYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('is_current', true)
+      .single()
+
+    if (!currentAcademicYear) {
+      throw new Error('Không tìm thấy năm học hiện tại')
+    }
+
+    // Get student class information for current academic year
     const { data: studentData, error: studentError } = await supabase
       .from('profiles')
       .select(`
@@ -825,26 +886,43 @@ export async function submitStudentGradesToHomeroomAction(
         full_name,
         student_class_assignments!student_class_assignments_student_id_fkey(
           class_id,
-          classes!inner(id, name, homeroom_teacher_id)
+          classes!inner(
+            id,
+            name,
+            homeroom_teacher_id,
+            academic_year_id
+          )
         )
       `)
       .in('id', studentIds)
 
     if (studentError) throw studentError
 
-    // Group students by class
+    // Group students by class - prioritize classes with homeroom teachers from current academic year
     const classesByStudent = new Map<string, { classId: string; homeroomTeacherId: string }>()
 
     for (const student of studentData || []) {
-      const classInfo = (student.student_class_assignments as Array<{
+      const classAssignments = student.student_class_assignments as unknown as Array<{
         class_id: string
-        classes: Array<{ id: string; name: string; homeroom_teacher_id: string }>
-      }>)?.[0]
+        classes: { id: string; name: string; homeroom_teacher_id: string; academic_year_id: string }
+      }>
 
-      if (classInfo?.classes?.[0]) {
+      // Filter assignments to current academic year only
+      const currentYearAssignments = classAssignments?.filter(assignment =>
+        assignment.classes?.academic_year_id === currentAcademicYear.id
+      )
+
+      // Find a class assignment from current year that has a homeroom teacher
+      const classWithHomeroom = currentYearAssignments?.find(assignment =>
+        assignment.classes?.homeroom_teacher_id !== null &&
+        assignment.classes?.homeroom_teacher_id !== undefined &&
+        assignment.classes?.homeroom_teacher_id !== ''
+      )
+
+      if (classWithHomeroom?.classes?.homeroom_teacher_id) {
         classesByStudent.set(student.id, {
-          classId: classInfo.class_id,
-          homeroomTeacherId: classInfo.classes[0].homeroom_teacher_id
+          classId: classWithHomeroom.class_id,
+          homeroomTeacherId: classWithHomeroom.classes.homeroom_teacher_id
         })
       }
     }
@@ -853,7 +931,9 @@ export async function submitStudentGradesToHomeroomAction(
     for (const studentId of studentIds) {
       const classInfo = classesByStudent.get(studentId)
       if (!classInfo?.homeroomTeacherId) {
-        throw new Error(`Không tìm thấy giáo viên chủ nhiệm cho học sinh ${studentId}`)
+        // Get student name for better error message
+        const studentName = studentData?.find(s => s.id === studentId)?.full_name || studentId
+        throw new Error(`Không tìm thấy giáo viên chủ nhiệm cho học sinh ${studentName}. Vui lòng kiểm tra lại phân công lớp chủ nhiệm trong năm học hiện tại.`)
       }
 
       // Check if submission already exists
@@ -885,6 +965,55 @@ export async function submitStudentGradesToHomeroomAction(
         })
 
       if (submissionError) throw submissionError
+    }
+
+    // Send email notification to homeroom teacher
+    try {
+      // Get homeroom teacher email
+      const { data: teacherData } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('id', Object.values(classesByStudent)[0]?.homeroomTeacherId)
+        .single()
+
+      if (teacherData?.email) {
+        // Get the submission count for the first student (they should all be the same)
+        const { data: firstSubmission } = await supabase
+          .from('admin_student_submissions')
+          .select('submission_count')
+          .eq('period_id', periodId)
+          .eq('student_id', studentIds[0])
+          .single()
+
+        const currentSubmissionCount = firstSubmission?.submission_count || 1
+
+        // Get period and class information for email
+        const { data: periodData } = await supabase
+          .from('grade_reporting_periods')
+          .select('name')
+          .eq('id', periodId)
+          .single()
+
+        const { data: classData } = await supabase
+          .from('classes')
+          .select('name')
+          .eq('id', Object.values(classesByStudent)[0]?.classId)
+          .single()
+
+        // Send email notification
+        await sendTeacherGradeNotificationEmail({
+          teacherEmail: teacherData.email,
+          teacherName: teacherData.full_name || 'Giáo viên',
+          className: classData?.name || 'Lớp',
+          periodName: periodData?.name || 'Kỳ báo cáo',
+          studentCount: studentIds.length,
+          submissionCount: currentSubmissionCount,
+          isResubmission: currentSubmissionCount > 1
+        })
+      }
+    } catch (emailError) {
+      console.error('Error sending email notification:', emailError)
+      // Don't fail the entire operation if email fails
     }
 
     return {
@@ -923,6 +1052,108 @@ export async function submitStudentGradesToHomeroomAction(
       success: false,
       message: 'Lỗi gửi bảng điểm',
       error: errorMessage
+    }
+  }
+}
+
+// Get grade history for a student
+export async function getStudentGradeHistoryAction(
+  studentId: string,
+  periodId?: string
+): Promise<{
+  success: boolean
+  data?: Array<{
+    id: string
+    grade_id: string
+    old_value: number | null
+    new_value: number | null
+    change_reason: string
+    changed_at: string
+    changed_by: string
+    status: string
+    admin_reason?: string
+    processed_at?: string
+    processed_by?: string
+    subject_name: string
+    component_type: string
+    teacher_name: string
+    admin_name?: string
+  }>
+  error?: string
+}> {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    let query = supabase
+      .from('grade_audit_logs')
+      .select(`
+        id,
+        grade_id,
+        old_value,
+        new_value,
+        change_reason,
+        changed_at,
+        changed_by,
+        status,
+        admin_reason,
+        processed_at,
+        processed_by,
+        student_detailed_grades!grade_audit_logs_grade_id_fkey(
+          student_id,
+          subject_id,
+          component_type,
+          subjects!student_detailed_grades_subject_id_fkey(name_vietnamese)
+        ),
+        profiles!grade_audit_logs_changed_by_fkey(full_name),
+        admin:profiles!grade_audit_logs_processed_by_fkey(full_name)
+      `)
+      .eq('student_detailed_grades.student_id', studentId)
+      .order('changed_at', { ascending: false })
+
+    if (periodId) {
+      // Add period filter if provided
+      query = query.eq('student_detailed_grades.period_id', periodId)
+    }
+
+    const { data: auditLogs, error } = await query
+
+    if (error) {
+      console.error('Error fetching grade history:', error)
+      return {
+        success: false,
+        error: 'Không thể tải lịch sử thay đổi điểm'
+      }
+    }
+
+    const formattedHistory = auditLogs?.map(log => ({
+      id: log.id,
+      grade_id: log.grade_id,
+      old_value: log.old_value,
+      new_value: log.new_value,
+      change_reason: log.change_reason,
+      changed_at: log.changed_at,
+      changed_by: log.changed_by,
+      status: log.status || 'pending',
+      admin_reason: log.admin_reason,
+      processed_at: log.processed_at,
+      processed_by: log.processed_by,
+      subject_name: (log.student_detailed_grades as unknown as { subjects: { name_vietnamese: string } })?.subjects?.name_vietnamese || 'Unknown Subject',
+      component_type: (log.student_detailed_grades as unknown as { component_type: string })?.component_type || 'unknown',
+      teacher_name: (log.profiles as unknown as { full_name: string })?.full_name || 'Unknown Teacher',
+      admin_name: (log.admin as unknown as { full_name: string })?.full_name || undefined
+    })) || []
+
+    return {
+      success: true,
+      data: formattedHistory
+    }
+
+  } catch (error) {
+    console.error('Error in getStudentGradeHistoryAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Lỗi không xác định'
     }
   }
 }

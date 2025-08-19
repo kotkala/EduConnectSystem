@@ -309,9 +309,10 @@ export function downloadExcelFile(buffer: ArrayBuffer, filename: string): void {
   }
 }
 
-// Get period type display name
-export function getPeriodTypeDisplayName(periodType: GradePeriodType): string {
-  const displayNames: Record<GradePeriodType, string> = {
+// Get period type display name (unified for both admin and teacher systems)
+export function getPeriodTypeDisplayName(periodType: GradePeriodType | string): string {
+  const displayNames: Record<string, string> = {
+    // Teacher system period types
     'regular_1': 'Điểm thường xuyên HK1',
     'regular_2': 'Điểm thường xuyên HK2',
     'midterm_1': 'Điểm giữa kì 1',
@@ -319,9 +320,14 @@ export function getPeriodTypeDisplayName(periodType: GradePeriodType): string {
     'final_1': 'Điểm cuối kì 1',
     'final_2': 'Điểm cuối kì 2',
     'summary_1': 'Điểm tổng kết HK1',
-    'summary_2': 'Điểm tổng kết HK2'
+    'summary_2': 'Điểm tổng kết HK2',
+
+    // Admin system period types (unified mapping)
+    'semester_1_summary': 'Điểm tổng kết học kì 1',
+    'semester_2_summary': 'Điểm tổng kết học kì 2',
+    'yearly_summary': 'Điểm tổng kết cả năm'
   }
-  
+
   return displayNames[periodType] || periodType
 }
 

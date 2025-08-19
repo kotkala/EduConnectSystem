@@ -29,6 +29,7 @@ interface SubjectGradeData {
     name_vietnamese?: string
     category?: string
   } | undefined
+  regular_grades: number[]
   midterm_grade: number | null
   final_grade: number | null
   average_grade: number | null
@@ -49,6 +50,7 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
       gradesBySubject.set(subjectId, {
         subject_id: subjectId,
         subject: subject,
+        regular_grades: [],
         midterm_grade: null,
         final_grade: null,
         average_grade: null,
@@ -63,18 +65,37 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
   for (const [subjectId, subjectData] of gradesBySubject) {
     const grades = subjectData.grades
 
-    // Find midterm and final grades
-    const midtermGrade = grades.find((g) => g.component_type === 'midterm')
-    const finalGrade = grades.find((g) => g.component_type === 'final')
+    // Find midterm and final grades (use the latest ones if multiple exist)
+    const midtermGrades = grades.filter((g) => g.component_type === 'midterm')
+    const finalGrades = grades.filter((g) => g.component_type === 'final')
 
-    // Calculate average if both exist
+    // Use the last (most recent) midterm and final grades
+    const midtermGrade = midtermGrades.length > 0 ? midtermGrades[midtermGrades.length - 1] : null
+    const finalGrade = finalGrades.length > 0 ? finalGrades[finalGrades.length - 1] : null
+
+    // Collect regular grades (điểm miệng)
+    const regularGrades = grades
+      .filter((g) => g.component_type.startsWith('regular'))
+      .map((g) => g.grade_value)
+      .sort((a, b) => a - b)
+
+    // Calculate TBM using Vietnamese weighted formula
+    // ĐTBmhk = (Tổng điểm thường xuyên + 2 x Điểm giữa kỳ + 3 x Điểm cuối kỳ) / (Số bài thường xuyên + 5)
     let averageGrade = null
-    if (midtermGrade && finalGrade) {
+    if (midtermGrade && finalGrade && regularGrades.length > 0) {
+      const regularSum = regularGrades.reduce((sum, grade) => sum + grade, 0)
+      const regularCount = regularGrades.length
+      const totalScore = regularSum + (2 * midtermGrade.grade_value) + (3 * finalGrade.grade_value)
+      const totalWeight = regularCount + 5
+      averageGrade = Math.round((totalScore / totalWeight) * 10) / 10
+    } else if (midtermGrade && finalGrade) {
+      // Fallback to simple average if no regular grades
       averageGrade = Math.round(((midtermGrade.grade_value + finalGrade.grade_value) / 2) * 10) / 10
     }
 
     result.push({
       subject_id: subjectId,
+      regular_grades: regularGrades,
       midterm_grade: midtermGrade?.grade_value || null,
       final_grade: finalGrade?.grade_value || null,
       average_grade: averageGrade,
@@ -252,7 +273,22 @@ export async function getChildrenGradeReportsAction() {
           ? homeroomTeacher[0]
           : homeroomTeacher
 
-        // Get detailed grades for this student and period
+        // Get the semester_id from the period to fetch all grades for the semester
+        const { data: periodInfo } = await supabase
+          .from('grade_reporting_periods')
+          .select('semester_id')
+          .eq('id', gradeSubmission.period_id)
+          .single()
+
+        // Get all periods in the same semester
+        const { data: semesterPeriods } = await supabase
+          .from('grade_reporting_periods')
+          .select('id')
+          .eq('semester_id', periodInfo?.semester_id || gradeSubmission.period_id)
+
+        const semesterPeriodIds = semesterPeriods?.map(p => p.id) || [gradeSubmission.period_id]
+
+        // Get detailed grades for this student from ALL periods in the semester
         const { data: detailedGrades } = await supabase
           .from('student_detailed_grades')
           .select(`
@@ -269,7 +305,7 @@ export async function getChildrenGradeReportsAction() {
           `)
           .eq('student_id', studentSubmission.student_id)
           .eq('class_id', studentSubmission.class_id)
-          .eq('period_id', gradeSubmission.period_id)
+          .in('period_id', semesterPeriodIds)
 
         // Process detailed grades into aggregated format
         const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])
@@ -428,7 +464,29 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Get detailed grades separately with proper filtering
+    // Get the semester_id from the period to fetch all grades for the semester
+    const { data: periodInfo } = await supabase
+      .from('grade_reporting_periods')
+      .select('semester_id')
+      .eq('id', periodId)
+      .single()
+
+    if (!periodInfo?.semester_id) {
+      return {
+        success: false,
+        error: "Không tìm thấy thông tin học kỳ"
+      }
+    }
+
+    // Get all periods in the same semester
+    const { data: semesterPeriods } = await supabase
+      .from('grade_reporting_periods')
+      .select('id')
+      .eq('semester_id', periodInfo.semester_id)
+
+    const semesterPeriodIds = semesterPeriods?.map(p => p.id) || [periodId]
+
+    // Get detailed grades from ALL periods in the semester
     const { data: detailedGrades, error: gradesError } = await supabase
       .from('student_detailed_grades')
       .select(`
@@ -446,7 +504,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       `)
       .eq('student_id', detailedSubmission.student_id)
       .eq('class_id', detailedSubmission.class_id)
-      .eq('period_id', periodId)
+      .in('period_id', semesterPeriodIds)
 
     if (gradesError) {
       console.error('Error fetching detailed grades:', gradesError)

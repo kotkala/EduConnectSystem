@@ -4,20 +4,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Edit, Settings } from "lucide-react"
-import { type EnhancedGradeReportingPeriod, type GradePeriodFiltersFormData } from "@/lib/validations/enhanced-grade-validations"
+import { type EnhancedGradeReportingPeriod } from "@/lib/validations/enhanced-grade-validations"
 
 interface GradePeriodTableProps {
-  data: EnhancedGradeReportingPeriod[]
-  total: number
-  currentPage: number
-  limit: number
-  onPageChange: (page: number) => void
-  onFiltersChange: (filters: Partial<GradePeriodFiltersFormData>) => void
-  onEdit: (period: EnhancedGradeReportingPeriod) => void
-  onStatusChange: (period: EnhancedGradeReportingPeriod) => void
-  onRefresh: () => void
-  getStatusIcon: (status: string) => React.ReactNode
-  getStatusBadge: (status: string) => React.ReactNode
+  readonly data: EnhancedGradeReportingPeriod[]
+  readonly total: number
+  readonly currentPage: number
+  readonly limit: number
+  readonly onPageChange: (page: number) => void
+  readonly onEdit: (period: EnhancedGradeReportingPeriod) => void
+  readonly onStatusChange: (period: EnhancedGradeReportingPeriod) => void
+  readonly getStatusIcon: (status: string) => React.ReactNode
+  readonly getStatusBadge: (status: string) => React.ReactNode
 }
 
 export function GradePeriodTable({
@@ -26,10 +24,8 @@ export function GradePeriodTable({
   currentPage,
   limit,
   onPageChange,
-  onFiltersChange,
   onEdit,
   onStatusChange,
-  onRefresh,
   getStatusIcon,
   getStatusBadge
 }: GradePeriodTableProps) {

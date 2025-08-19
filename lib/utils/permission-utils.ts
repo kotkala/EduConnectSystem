@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Common types for permission checking
 export interface UserWithProfile {
@@ -24,7 +25,7 @@ export interface PermissionResult {
     role: string
     homeroom_enabled?: boolean
   }
-  supabase?: unknown
+  supabase?: SupabaseClient
 }
 
 // Base permission checking function - eliminates duplication

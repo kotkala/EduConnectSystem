@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { createClient } from '@/utils/supabase/server'
-import { checkAdminPermissions } from '@/lib/utils/permission-utils'
+import { checkAdminPermissions, checkTeacherPermissions } from '@/lib/utils/permission-utils'
 import { GoogleGenAI } from '@google/genai'
 import {
   detailedGradeSchema,
@@ -1162,6 +1162,645 @@ export async function getHomeroomDetailedGradesAction(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể tải điểm số'
+    }
+  }
+}
+
+// Get submitted grades from admin for homeroom teacher
+export async function getHomeroomSubmittedGradesAction(
+  periodId: string,
+  filters?: {
+    student_search?: string
+    page?: number
+    limit?: number
+  }
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a homeroom teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, homeroom_enabled')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    // Get submitted grades for this homeroom teacher
+    let query = supabase
+      .from('admin_student_submissions')
+      .select(`
+        id,
+        period_id,
+        student_id,
+        class_id,
+        submission_count,
+        status,
+        submission_reason,
+        submitted_at,
+        received_at,
+        student:profiles!admin_student_submissions_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!admin_student_submissions_class_id_fkey(
+          id,
+          name
+        ),
+        period:grade_reporting_periods!admin_student_submissions_period_id_fkey(
+          id,
+          name
+        )
+      `)
+      .eq('period_id', periodId)
+      .eq('homeroom_teacher_id', user.id)
+      .eq('status', 'submitted')
+
+    // Apply pagination
+    const page = filters?.page || 1
+    const limit = filters?.limit || 50
+    const offset = (page - 1) * limit
+
+    query = query
+      .order('submitted_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    const { data: submissions, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: submissions || [],
+      count: count || 0
+    }
+  } catch (error) {
+    console.error('getHomeroomSubmittedGradesAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể tải bảng điểm đã gửi'
+    }
+  }
+}
+
+// Send grade reports to all parents for homeroom teacher
+export async function sendGradeReportsToParentsAction(
+  periodId: string
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a homeroom teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, homeroom_enabled, full_name')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    // Get submitted grades for this homeroom teacher
+    const { data: submissions, error: submissionsError } = await supabase
+      .from('admin_student_submissions')
+      .select(`
+        id,
+        student_id,
+        class_id,
+        student:profiles!admin_student_submissions_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!admin_student_submissions_class_id_fkey(
+          id,
+          name
+        ),
+        period:grade_reporting_periods!admin_student_submissions_period_id_fkey(
+          id,
+          name
+        )
+      `)
+      .eq('period_id', periodId)
+      .eq('homeroom_teacher_id', user.id)
+      .eq('status', 'submitted')
+
+    if (submissionsError) {
+      throw new Error(submissionsError.message)
+    }
+
+    if (!submissions || submissions.length === 0) {
+      throw new Error('Không có bảng điểm nào để gửi')
+    }
+
+    // Import email service
+    const { sendGradeNotificationEmail } = await import('@/lib/services/email-service')
+
+    let successCount = 0
+    let errorCount = 0
+    const errors: string[] = []
+
+    // Send email to each parent
+    for (const submission of submissions) {
+      try {
+        // Handle both single object and array cases
+        const studentData = Array.isArray(submission.student) ? submission.student[0] : submission.student
+        const student = studentData as { id: string; full_name: string; student_id: string }
+
+        // Get parent emails for this student
+        const { data: parentRelationships, error: parentError } = await supabase
+          .from('parent_student_relationships')
+          .select(`
+            parent:profiles!parent_id(
+              full_name,
+              email
+            )
+          `)
+          .eq('student_id', student.id)
+
+        if (parentError) {
+          errors.push(`Lỗi lấy thông tin phụ huynh của ${student.full_name}: ${parentError.message}`)
+          errorCount++
+          continue
+        }
+
+        if (!parentRelationships || parentRelationships.length === 0) {
+          errors.push(`Học sinh ${student.full_name} không có phụ huynh trong hệ thống`)
+          errorCount++
+          continue
+        }
+
+        // Handle class and period data
+        const classData = Array.isArray(submission.class) ? submission.class[0] : submission.class
+        const periodData = Array.isArray(submission.period) ? submission.period[0] : submission.period
+
+        // Send email to each parent of this student
+        for (const relationship of parentRelationships) {
+          // Handle both single object and array cases for parent data
+          const parentData = Array.isArray(relationship.parent) ? relationship.parent[0] : relationship.parent
+          const parent = parentData as { full_name: string; email: string }
+
+          if (!parent?.email) {
+            errors.push(`Phụ huynh của ${student.full_name} không có email`)
+            errorCount++
+            continue
+          }
+
+          const emailResult = await sendGradeNotificationEmail({
+            parentEmail: parent.email,
+            parentName: parent.full_name || 'Phụ huynh',
+            studentName: student.full_name,
+            className: (classData as { id: string; name: string }).name,
+            periodName: (periodData as { id: string; name: string }).name,
+            teacherName: profile.full_name || 'Giáo viên chủ nhiệm'
+          })
+
+          if (emailResult.success) {
+            successCount++
+          } else {
+            errors.push(`Lỗi gửi email cho phụ huynh ${parent.full_name} của ${student.full_name}: ${emailResult.error}`)
+            errorCount++
+          }
+        }
+      } catch (emailError) {
+        const studentData = Array.isArray(submission.student) ? submission.student[0] : submission.student
+        const studentName = (studentData as { full_name: string }).full_name
+        errors.push(`Lỗi gửi email cho phụ huynh của ${studentName}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`)
+        errorCount++
+      }
+    }
+
+    const errorSuffix = errorCount > 0 ? `, ${errorCount} lỗi` : ''
+    const message = `Đã gửi email thành công cho ${successCount} phụ huynh${errorSuffix}`
+
+    return {
+      success: true,
+      message: message,
+      data: {
+        successCount,
+        errorCount,
+        errors: errorCount > 0 ? errors : undefined
+      }
+    }
+  } catch (error) {
+    console.error('sendGradeReportsToParentsAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể gửi email cho phụ huynh'
+    }
+  }
+}
+
+// Get submitted student grade details for homeroom teacher
+export async function getSubmittedStudentGradeDetailsAction(
+  periodId: string,
+  studentId: string
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a homeroom teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, homeroom_enabled')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    // Check if there are any submissions for this teacher at all
+    const { data: teacherSubmissions } = await supabase
+      .from('admin_student_submissions')
+      .select('period_id, student_id, status')
+      .eq('homeroom_teacher_id', user.id)
+      .eq('status', 'submitted')
+
+
+
+    if (!teacherSubmissions || teacherSubmissions.length === 0) {
+      throw new Error('Không có bảng điểm nào được gửi cho bạn. Vui lòng liên hệ Ban Giám Hiệu.')
+    }
+
+    // Check if this specific student has any submissions to this teacher
+    const studentSubmissions = teacherSubmissions.filter(sub => sub.student_id === studentId)
+    if (studentSubmissions.length === 0) {
+      throw new Error('Học sinh này chưa được gửi bảng điểm cho bạn. Vui lòng kiểm tra lại hoặc liên hệ Ban Giám Hiệu.')
+    }
+
+    // Check if this specific period has submissions for this teacher
+    const periodSubmissions = teacherSubmissions.filter(sub => sub.period_id === periodId)
+    if (periodSubmissions.length === 0) {
+      // Get the periods that DO have submissions for better error message
+      const availablePeriods = [...new Set(teacherSubmissions.map(sub => sub.period_id))]
+
+
+
+      throw new Error(`Kỳ báo cáo này chưa có bảng điểm nào được gửi cho bạn. Bạn có bảng điểm trong ${availablePeriods.length} kỳ báo cáo khác. Vui lòng chọn kỳ báo cáo khác.`)
+    }
+
+    // Now try to find the specific student submission for this period
+    const { data: submissionData, error: submissionError } = await supabase
+      .from('admin_student_submissions')
+      .select(`
+        id,
+        period_id,
+        student_id,
+        class_id,
+        submission_count,
+        status,
+        submitted_at,
+        student:profiles!admin_student_submissions_student_id_fkey(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!admin_student_submissions_class_id_fkey(
+          id,
+          name
+        ),
+        period:grade_reporting_periods!admin_student_submissions_period_id_fkey(
+          id,
+          name
+        )
+      `)
+      .eq('period_id', periodId)
+      .eq('student_id', studentId)
+      .eq('homeroom_teacher_id', user.id)
+      .eq('status', 'submitted')
+      .single()
+
+    let submission = submissionData
+
+    if (submissionError || !submission) {
+      // If no submission found, check if this student is in teacher's homeroom class
+      // and fall back to showing their grades directly
+      const { data: studentClass } = await supabase
+        .from('student_class_assignments')
+        .select(`
+          class_id,
+          classes!student_class_assignments_class_id_fkey(
+            id,
+            name,
+            homeroom_teacher_id
+          )
+        `)
+        .eq('student_id', studentId)
+        .single()
+
+      if (!studentClass?.classes) {
+        throw new Error('Bạn không có quyền xem điểm của học sinh này. Chỉ giáo viên chủ nhiệm mới có thể xem điểm học sinh.')
+      }
+
+      // Handle both single object and array cases
+      const classData = Array.isArray(studentClass.classes) ? studentClass.classes[0] : studentClass.classes
+      const classInfo = classData as { id: string; name: string; homeroom_teacher_id: string }
+
+      if (classInfo.homeroom_teacher_id !== user.id) {
+        throw new Error('Bạn không có quyền xem điểm của học sinh này. Chỉ giáo viên chủ nhiệm mới có thể xem điểm học sinh.')
+      }
+
+      // Create a mock submission object for fallback
+      const mockSubmission = {
+        id: 'fallback',
+        submission_count: 1,
+        status: 'fallback',
+        submitted_at: new Date().toISOString(),
+        student_id: studentId,
+        class_id: classInfo.id,
+        period_id: periodId
+      }
+
+      // Get student and period info for fallback
+      const { data: studentInfo } = await supabase
+        .from('profiles')
+        .select('id, full_name, student_id')
+        .eq('id', studentId)
+        .single()
+
+      const { data: periodInfo } = await supabase
+        .from('grade_reporting_periods')
+        .select('id, name')
+        .eq('id', periodId)
+        .single()
+
+      if (!studentInfo || !periodInfo) {
+        throw new Error('Không tìm thấy thông tin học sinh hoặc kỳ báo cáo.')
+      }
+
+      // Use fallback data
+      submission = {
+        ...mockSubmission,
+        student: studentInfo,
+        class: classInfo,
+        period: periodInfo
+      } as unknown as typeof submission
+    }
+
+    // Ensure we have a valid submission at this point
+    if (!submission) {
+      throw new Error('Không thể tải thông tin bảng điểm.')
+    }
+
+    // Get period information to check if it's a summary period
+    const { data: periodInfo, error: periodInfoError } = await supabase
+      .from('grade_reporting_periods')
+      .select('period_type, academic_year_id, semester_id')
+      .eq('id', periodId)
+      .single()
+
+    if (periodInfoError) {
+      throw new Error(periodInfoError.message)
+    }
+
+    let gradeData, gradeError
+
+    // Check if this is a summary period (like admin logic)
+    if (periodInfo.period_type && periodInfo.period_type.includes('summary')) {
+      // For summary periods, get grades from all component periods in the same semester
+      const { data: componentPeriods, error: componentError } = await supabase
+        .from('grade_reporting_periods')
+        .select('id')
+        .eq('academic_year_id', periodInfo.academic_year_id)
+        .eq('semester_id', periodInfo.semester_id)
+        .not('period_type', 'like', '%summary%')
+
+      if (componentError) throw componentError
+
+      const componentPeriodIds = componentPeriods?.map(p => p.id) || []
+
+      // Get grades from component periods AND summary period
+      const allPeriodIds = [...componentPeriodIds, periodId]
+
+      const { data: allGrades, error: allGradesError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          id,
+          subject_id,
+          component_type,
+          grade_value,
+          created_at,
+          updated_at,
+          subject:subjects!student_detailed_grades_subject_id_fkey(
+            id,
+            name_vietnamese,
+            code
+          )
+        `)
+        .in('period_id', allPeriodIds)
+        .eq('student_id', studentId)
+        .eq('class_id', submission.class_id)
+        .order('subject_id')
+        .order('component_type')
+        .order('updated_at', { ascending: false })
+
+      gradeData = allGrades
+      gradeError = allGradesError
+    } else {
+      // For regular periods, get grades from the specific period only
+      const { data: regularGrades, error: regularGradeError } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          id,
+          subject_id,
+          component_type,
+          grade_value,
+          created_at,
+          updated_at,
+          subject:subjects!student_detailed_grades_subject_id_fkey(
+            id,
+            name_vietnamese,
+            code
+          )
+        `)
+        .eq('period_id', periodId)
+        .eq('student_id', studentId)
+        .eq('class_id', submission.class_id)
+        .order('subject_id')
+        .order('component_type')
+
+      gradeData = regularGrades
+      gradeError = regularGradeError
+    }
+
+    if (gradeError) {
+      throw new Error(gradeError.message)
+    }
+
+    // Group grades by subject
+    const subjectMap = new Map()
+
+    if (gradeData && gradeData.length > 0) {
+      for (const grade of gradeData) {
+        const subjectId = grade.subject_id
+        // Handle both single object and array cases
+        const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+        const subjectInfo = subjectData as { id: string; name_vietnamese: string; code: string }
+
+        if (!subjectMap.has(subjectId)) {
+          subjectMap.set(subjectId, {
+            subject_id: subjectId,
+            subject_name: subjectInfo.name_vietnamese,
+            subject_code: subjectInfo.code,
+            grades: {
+              regular: [],
+              midterm: null,
+              final: null,
+              summary: null
+            }
+          })
+        }
+
+        const subject = subjectMap.get(subjectId)
+        if (grade.grade_value !== null) {
+          if (grade.component_type.startsWith('regular_')) {
+            subject.grades.regular.push(grade.grade_value)
+          } else if (grade.component_type === 'midterm') {
+            subject.grades.midterm = grade.grade_value
+          } else if (grade.component_type === 'final') {
+            subject.grades.final = grade.grade_value
+          } else if (grade.component_type.includes('semester') || grade.component_type === 'summary') {
+            subject.grades.summary = grade.grade_value
+          }
+        }
+      }
+    }
+
+    const subjects = Array.from(subjectMap.values())
+
+    // Handle array cases for related data
+    const studentData = Array.isArray(submission.student) ? submission.student[0] : submission.student
+    const classData = Array.isArray(submission.class) ? submission.class[0] : submission.class
+    const periodData = Array.isArray(submission.period) ? submission.period[0] : submission.period
+
+    return {
+      success: true,
+      data: {
+        submission: {
+          id: submission.id,
+          submission_count: submission.submission_count,
+          status: submission.status,
+          submitted_at: submission.submitted_at
+        },
+        student: studentData as { id: string; full_name: string; student_id: string },
+        class: classData as { id: string; name: string },
+        period: periodData as { id: string; name: string },
+        subjects: subjects
+      }
+    }
+  } catch (error) {
+    console.error('getSubmittedStudentGradeDetailsAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể tải chi tiết điểm số học sinh'
+    }
+  }
+}
+
+// Get periods that have submissions for the homeroom teacher
+export async function getPeriodsWithSubmissionsAction() {
+  try {
+    const { userId } = await checkTeacherPermissions()
+    const supabase = await createClient()
+
+    // Get all periods with submissions for this teacher
+    const { data: submissions, error: submissionsError } = await supabase
+      .from('admin_student_submissions')
+      .select(`
+        period_id,
+        period:grade_reporting_periods!admin_student_submissions_period_id_fkey(
+          id,
+          name,
+          academic_year:academic_years!grade_reporting_periods_academic_year_id_fkey(
+            name
+          ),
+          semester:semesters!grade_reporting_periods_semester_id_fkey(
+            name
+          )
+        )
+      `)
+      .eq('homeroom_teacher_id', userId)
+      .eq('status', 'submitted')
+
+    if (submissionsError) {
+      throw new Error(submissionsError.message)
+    }
+
+    // Group by period and count submissions
+    const periodMap = new Map()
+
+    if (submissions && submissions.length > 0) {
+      for (const submission of submissions) {
+        const periodId = submission.period_id
+        const periodData = Array.isArray(submission.period) ? submission.period[0] : submission.period
+
+        if (!periodMap.has(periodId)) {
+          // Handle both single object and array cases from Supabase joins
+          const period = periodData as unknown as {
+            id: string;
+            name: string;
+            academic_year?: { name: string } | { name: string }[];
+            semester?: { name: string } | { name: string }[]
+          }
+
+          // Extract academic year name (handle array case)
+          const academicYearName = Array.isArray(period?.academic_year)
+            ? period.academic_year[0]?.name
+            : period?.academic_year?.name
+
+          // Extract semester name (handle array case)
+          const semesterName = Array.isArray(period?.semester)
+            ? period.semester[0]?.name
+            : period?.semester?.name
+
+          periodMap.set(periodId, {
+            id: periodId,
+            name: period?.name || 'Unknown Period',
+            academic_year: academicYearName || 'Unknown Year',
+            semester: semesterName || 'Unknown Semester',
+            submission_count: 0
+          })
+        }
+
+        const period = periodMap.get(periodId)
+        period.submission_count++
+      }
+    }
+
+    const periodsWithSubmissions = Array.from(periodMap.values())
+
+    return {
+      success: true,
+      data: periodsWithSubmissions
+    }
+  } catch (error) {
+    console.error('getPeriodsWithSubmissionsAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách kỳ báo cáo'
     }
   }
 }

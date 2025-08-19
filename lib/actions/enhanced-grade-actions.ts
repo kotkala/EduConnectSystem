@@ -391,6 +391,96 @@ export async function createAIFeedbackAction(
   }
 }
 
+// Get existing AI feedback for student and period
+export async function getAIFeedbackForStudentAction(
+  studentId: string,
+  periodId: string
+): Promise<ActionResponse<AIGradeFeedback | null>> {
+  try {
+    await checkTeacherPermissions()
+    const supabase = createAdminClient()
+
+    const { data: feedback, error } = await supabase
+      .from('ai_grade_feedback')
+      .select(`
+        *,
+        student:profiles!student_id(full_name, student_id),
+        class:classes(name),
+        period:grade_reporting_periods(*),
+        created_by_profile:profiles!created_by(full_name)
+      `)
+      .eq('student_id', studentId)
+      .eq('period_id', periodId)
+      .order('version_number', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error getting AI feedback:', error)
+      return {
+        success: false,
+        error: "Không thể lấy phản hồi AI"
+      }
+    }
+
+    return {
+      success: true,
+      data: feedback as AIGradeFeedback | null
+    }
+  } catch (error) {
+    console.error('Error in getAIFeedbackForStudentAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Lỗi không xác định"
+    }
+  }
+}
+
+// Update grade submission with AI feedback (for homeroom teacher grade reports)
+export async function updateGradeSubmissionFeedbackAction(
+  classId: string,
+  periodId: string,
+  aiFeedback: string,
+  teacherNotes?: string
+): Promise<ActionResponse<unknown>> {
+  try {
+    await checkTeacherPermissions()
+    const supabase = await createClient()
+
+    // Update the grade_submissions table directly
+    const { data, error } = await supabase
+      .from('grade_submissions')
+      .update({
+        ai_feedback: aiFeedback.trim(),
+        teacher_notes: teacherNotes?.trim() || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('class_id', classId)
+      .eq('period_id', periodId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating grade submission:', error)
+      return {
+        success: false,
+        error: "Không thể cập nhật đánh giá"
+      }
+    }
+
+    return {
+      success: true,
+      data
+    }
+  } catch (error) {
+    console.error('Error updating grade submission feedback:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Lỗi không xác định"
+    }
+  }
+}
+
 // Send feedback to parents
 export async function sendFeedbackToParentsAction(
   formData: ParentFeedbackDeliveryFormData

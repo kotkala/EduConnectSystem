@@ -8,28 +8,36 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Send, Users, FileText, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { EmptyState } from '@/components/ui/empty-state'
-import { getHomeroomDetailedGradesAction } from '@/lib/actions/detailed-grade-actions'
+import { getHomeroomSubmittedGradesAction, sendGradeReportsToParentsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
 
-interface GradeRecord {
+interface SubmissionRecord {
   id: string
+  period_id: string
   student_id: string
-  grade_value: number
-  component_type: string
+  class_id: string
+  submission_count: number
+  status: string
+  submission_reason: string | null
+  submitted_at: string
+  received_at: string | null
   student: {
+    id: string
     full_name: string
     student_id: string
   }
-  subject: {
-    name_vietnamese: string
-    code: string
-  }
   class: {
+    id: string
+    name: string
+  }
+  period: {
+    id: string
     name: string
   }
 }
@@ -39,12 +47,11 @@ interface StudentRecord {
   full_name: string
   student_id: string
   class_name: string
-  total_grades: number
-  subjects: Array<{
-    id: string
-    name_vietnamese: string
-    code: string
-  }>
+  submission_count: number
+  submission_status: string
+  submitted_at: string
+  received_at: string | null
+  submission_reason: string | null
 }
 
 interface GradeReportingPeriod {
@@ -65,6 +72,8 @@ export default function TeacherGradeReportsClient() {
   const [students, setStudents] = useState<StudentRecord[]>([])
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const [periodsWithSubmissions, setPeriodsWithSubmissions] = useState<string[]>([])
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
 
   // 📊 Keep action-specific loading states for non-blocking operations
   const [sectionLoading, setSectionLoading] = useState({
@@ -74,15 +83,36 @@ export default function TeacherGradeReportsClient() {
   // Load periods
   const loadPeriods = useCallback(async () => {
     try {
-      const result = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
-      if (result.success && result.data) {
-        const periodsData = result.data as unknown as GradeReportingPeriod[]
+      // Load all periods
+      const periodsResult = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
+
+      // Load periods with submissions
+      const submissionsResult = await getPeriodsWithSubmissionsAction()
+
+      if (periodsResult.success && periodsResult.data) {
+        const periodsData = periodsResult.data as unknown as GradeReportingPeriod[]
         setPeriods(periodsData)
-        
-        // Auto-select the active period
-        const activePeriod = periodsData.find((period) => period.is_active === true)
-        if (activePeriod) {
-          setSelectedPeriod(activePeriod.id)
+
+        // Set periods with submissions
+        if (submissionsResult.success && submissionsResult.data) {
+          const submissionPeriodIds = submissionsResult.data.map(p => p.id)
+          setPeriodsWithSubmissions(submissionPeriodIds)
+
+          // Auto-select the first period with submissions, or active period as fallback
+          if (submissionPeriodIds.length > 0) {
+            setSelectedPeriod(submissionPeriodIds[0])
+          } else {
+            const activePeriod = periodsData.find((period) => period.is_active === true)
+            if (activePeriod) {
+              setSelectedPeriod(activePeriod.id)
+            }
+          }
+        } else {
+          // Fallback to active period if submissions loading fails
+          const activePeriod = periodsData.find((period) => period.is_active === true)
+          if (activePeriod) {
+            setSelectedPeriod(activePeriod.id)
+          }
         }
       }
     } catch (error) {
@@ -111,43 +141,25 @@ export default function TeacherGradeReportsClient() {
         limit: 1000
       }
 
-      const result = await getHomeroomDetailedGradesAction(selectedPeriod, filters)
+      const result = await getHomeroomSubmittedGradesAction(selectedPeriod, filters)
 
       if (result.success && result.data) {
-        const gradeData = result.data as unknown as GradeRecord[]
+        const submissionData = result.data as unknown as SubmissionRecord[]
 
-        // Transform grades into unique student records
-        const studentMap = new Map<string, StudentRecord>()
+        // Transform submissions into student records
+        const studentRecords: StudentRecord[] = submissionData.map((submission) => ({
+          id: submission.student_id,
+          full_name: submission.student.full_name,
+          student_id: submission.student.student_id,
+          class_name: submission.class.name,
+          submission_count: submission.submission_count,
+          submission_status: submission.status,
+          submitted_at: submission.submitted_at,
+          received_at: submission.received_at,
+          submission_reason: submission.submission_reason
+        }))
 
-        gradeData.forEach((grade) => {
-          const studentUUID = grade.student_id
-          const studentDisplayId = grade.student.student_id
-          if (!studentMap.has(studentUUID)) {
-            studentMap.set(studentUUID, {
-              id: studentUUID,
-              full_name: grade.student.full_name,
-              student_id: studentDisplayId,
-              class_name: grade.class.name,
-              total_grades: 0,
-              subjects: []
-            })
-          }
-
-          const student = studentMap.get(studentUUID)!
-          student.total_grades++
-
-          // Add subject if not already added
-          const subjectExists = student.subjects.some(s => s.code === grade.subject.code)
-          if (!subjectExists) {
-            student.subjects.push({
-              id: grade.subject.code,
-              name_vietnamese: grade.subject.name_vietnamese,
-              code: grade.subject.code
-            })
-          }
-        })
-
-        setStudents(Array.from(studentMap.values()))
+        setStudents(studentRecords)
       } else {
         console.error('Error loading grades:', result.error)
         toast.error(result.error || 'Không thể tải danh sách học sinh')
@@ -170,26 +182,67 @@ export default function TeacherGradeReportsClient() {
   // Load students when period changes
   useEffect(() => {
     loadStudents()
+    // Clear selection when period changes
+    setSelectedStudents(new Set())
   }, [loadStudents])
 
-  // Send to all parents
-  const handleSendToAllParents = useCallback(async () => {
-    if (students.length === 0) {
-      toast.error('Không có học sinh nào để gửi')
+  // Selection handlers
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(new Set(students.map(s => s.id)))
+    } else {
+      setSelectedStudents(new Set())
+    }
+  }, [students])
+
+  const handleSelectStudent = useCallback((studentId: string, checked: boolean) => {
+    setSelectedStudents(prev => {
+      const newSet = new Set(prev)
+      if (checked) {
+        newSet.add(studentId)
+      } else {
+        newSet.delete(studentId)
+      }
+      return newSet
+    })
+  }, [])
+
+  // Send to selected parents
+  const handleSendToSelectedParents = useCallback(async () => {
+    if (selectedStudents.size === 0) {
+      toast.error('Vui lòng chọn ít nhất một học sinh')
+      return
+    }
+
+    if (!selectedPeriod) {
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
     setSectionLoading(prev => ({ ...prev, sendingToAllParents: true }))
     try {
-      // Here we would implement bulk send to all parents
-      toast.success(`Đã gửi bảng điểm cho ${students.length} phụ huynh`)
+      // For now, we'll use the existing action which sends to all students
+      // TODO: Create a new action that accepts specific student IDs
+      const result = await sendGradeReportsToParentsAction(selectedPeriod)
+
+      if (result.success) {
+        toast.success(`Đã gửi báo cáo cho ${selectedStudents.size} học sinh`)
+        if (result.data?.errors && result.data.errors.length > 0) {
+          // Show detailed errors in console for debugging
+          console.warn('Email sending errors:', result.data.errors)
+        }
+        // Clear selection after successful send
+        setSelectedStudents(new Set())
+      } else {
+        toast.error(result.error || 'Lỗi khi gửi email cho phụ huynh')
+      }
     } catch (error) {
-      console.error('Error sending to all parents:', error)
+      console.error('Error sending to selected parents:', error)
       toast.error('Lỗi khi gửi bảng điểm cho phụ huynh')
     } finally {
       setSectionLoading(prev => ({ ...prev, sendingToAllParents: false }))
     }
-  }, [students])
+  }, [selectedStudents, selectedPeriod])
 
   // Render content based on loading and data state
   const renderStudentsList = () => {
@@ -212,20 +265,37 @@ export default function TeacherGradeReportsClient() {
       )
     }
 
+    const allSelected = students.length > 0 && selectedStudents.size === students.length
+
     return (
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-12">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                aria-label="Chọn tất cả học sinh"
+              />
+            </TableHead>
             <TableHead>Học sinh</TableHead>
             <TableHead>Lớp</TableHead>
-            <TableHead>Số điểm</TableHead>
-            <TableHead>Môn học</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead>Lần gửi</TableHead>
+            <TableHead>Thời gian</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {students.map((student) => (
             <TableRow key={student.id}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedStudents.has(student.id)}
+                  onCheckedChange={(checked) => handleSelectStudent(student.id, checked as boolean)}
+                  aria-label={`Chọn học sinh ${student.full_name}`}
+                />
+              </TableCell>
               <TableCell>
                 <div>
                   <div className="font-medium">{student.full_name}</div>
@@ -236,27 +306,32 @@ export default function TeacherGradeReportsClient() {
                 <Badge variant="outline">{student.class_name}</Badge>
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">{student.total_grades} điểm</Badge>
+                <Badge
+                  variant={student.submission_status === 'submitted' ? 'default' : 'secondary'}
+                  className={student.submission_status === 'submitted' ? 'bg-green-100 text-green-800' : ''}
+                >
+                  {student.submission_status === 'submitted' ? 'Đã gửi' : 'Chưa xử lý'}
+                </Badge>
               </TableCell>
               <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {student.subjects.slice(0, 3).map(subject => (
-                    <Badge key={subject.id} variant="outline" className="text-xs">
-                      {subject.code}
-                    </Badge>
-                  ))}
-                  {student.subjects.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{student.subjects.length - 3}
-                    </Badge>
+                <Badge variant="outline">
+                  Lần {student.submission_count}
+                  {student.submission_count > 1 && (
+                    <span className="ml-1 text-orange-600">⚠️</span>
                   )}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm">
+                  <div>{new Date(student.submitted_at).toLocaleDateString('vi-VN')}</div>
+                  <div className="text-gray-500">{new Date(student.submitted_at).toLocaleTimeString('vi-VN')}</div>
                 </div>
               </TableCell>
               <TableCell className="text-right">
                 <Link href={`/dashboard/teacher/grade-reports/student/${student.id}`}>
                   <Button variant="outline" size="sm" className="flex items-center gap-2">
                     <Eye className="h-4 w-4" />
-                    Xem bảng điểm
+                    Xem chi tiết
                   </Button>
                 </Link>
               </TableCell>
@@ -278,8 +353,8 @@ export default function TeacherGradeReportsClient() {
           <p className="text-gray-600">Xem và quản lý điểm số học sinh trong lớp chủ nhiệm</p>
         </div>
         <Button
-          onClick={handleSendToAllParents}
-          disabled={sectionLoading.sendingToAllParents || students.length === 0}
+          onClick={handleSendToSelectedParents}
+          disabled={sectionLoading.sendingToAllParents || selectedStudents.size === 0}
           className="flex items-center gap-2"
         >
           {sectionLoading.sendingToAllParents ? (
@@ -290,7 +365,12 @@ export default function TeacherGradeReportsClient() {
           ) : (
             <>
               <Send className="h-4 w-4" />
-              Gửi tất cả phụ huynh
+              {selectedStudents.size === 0
+                ? 'Chọn học sinh để gửi'
+                : selectedStudents.size === students.length
+                  ? 'Gửi tất cả phụ huynh'
+                  : `Gửi ${selectedStudents.size} phụ huynh`
+              }
             </>
           )}
         </Button>
@@ -325,11 +405,11 @@ export default function TeacherGradeReportsClient() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Eye className="h-5 w-5 text-purple-600" />
+              <Send className="h-5 w-5 text-purple-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Tổng điểm</p>
+                <p className="text-sm font-medium text-muted-foreground">Đã gửi lại</p>
                 <p className="text-2xl font-bold">
-                  {students.reduce((sum, student) => sum + student.total_grades, 0)}
+                  {students.filter(student => student.submission_count > 1).length}
                 </p>
               </div>
             </div>
@@ -348,11 +428,21 @@ export default function TeacherGradeReportsClient() {
               <SelectValue placeholder="Chọn kỳ báo cáo" />
             </SelectTrigger>
             <SelectContent>
-              {periods.map((period) => (
-                <SelectItem key={period.id} value={period.id}>
-                  {period.name} - {period.academic_year.name} - {period.semester.name}
-                </SelectItem>
-              ))}
+              {periods.map((period) => {
+                const hasSubmissions = periodsWithSubmissions.includes(period.id)
+                return (
+                  <SelectItem key={period.id} value={period.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{period.name} - {period.academic_year.name} - {period.semester.name}</span>
+                      {hasSubmissions && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Có bảng điểm
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                )
+              })}
             </SelectContent>
           </Select>
         </CardContent>

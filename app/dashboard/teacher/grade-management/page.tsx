@@ -533,10 +533,6 @@ export default function TeacherGradeManagementPage() {
           periodId={selectedPeriod}
           classId={selectedClass}
           subjectId={selectedSubject}
-          className={classes.find(c => c.id === selectedClass)?.name || ''}
-          subjectName={subjects.find(s => s.id === selectedSubject)?.name_vietnamese || ''}
-          periodName={selectedPeriodData?.name || ''}
-          onTrackingClick={handleTrackGrades}
           onImportClick={handleImportGrades}
           onGradeDataChange={handleGradeDataChange}
         />

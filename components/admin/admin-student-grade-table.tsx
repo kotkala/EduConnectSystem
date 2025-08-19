@@ -6,7 +6,7 @@ import { BookOpen } from "lucide-react"
 import type { StudentDetailedGrades } from "@/lib/actions/admin-grade-tracking-actions"
 
 interface AdminStudentGradeTableProps {
-  studentData: StudentDetailedGrades
+  readonly studentData: StudentDetailedGrades
 }
 
 export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTableProps) {
@@ -35,7 +35,7 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
   const calculateOverallAverage = () => {
     const validGrades = studentData.subjects
       .map(s => s.average_grade)
-      .filter(g => g !== null) as number[]
+      .filter((g): g is number => g !== null)
     
     if (validGrades.length === 0) return null
     return Math.round((validGrades.reduce((sum, g) => sum + g, 0) / validGrades.length) * 10) / 10
@@ -80,7 +80,7 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
               </tr>
             </thead>
             <tbody>
-              {studentData.subjects.map((subject, index) => (
+              {studentData.subjects.map((subject) => (
                 <tr key={subject.subject_id} className="border-b hover:bg-gray-50">
                   <td className="p-3 font-medium border-r border-gray-200">
                     <div>
@@ -94,8 +94,8 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
                     <div className="flex justify-center gap-2 flex-wrap">
                       {subject.grade_components.regular_grades.length > 0 ? (
                         subject.grade_components.regular_grades.map((grade, gradeIndex) => (
-                          <span 
-                            key={gradeIndex} 
+                          <span
+                            key={`grade-${subject.subject_id}-${gradeIndex}`}
                             className={`inline-block px-2 py-1 rounded text-sm font-medium ${getGradeColor(grade)}`}
                           >
                             {formatGrade(grade)}

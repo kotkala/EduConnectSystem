@@ -30,25 +30,23 @@ import {
 } from "@/lib/utils/teacher-excel-import-validation"
 import {
   importValidatedGradesAction,
-  getClassStudentsAction,
-  type GradeImportResult
+  getClassStudentsAction
 } from "@/lib/actions/teacher-grade-import-actions"
 import {
   detectGradeOverridesAction,
-  processGradeOverridesAction,
   type GradeOverrideData
 } from "@/lib/actions/grade-override-actions"
 import { GradeOverrideReasonDialog } from "./grade-override-reason-dialog"
 
 interface TeacherGradeImportDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  periodId: string
-  classId?: string
-  subjectId?: string
-  subjectName?: string
-  periodType?: GradePeriodType
-  onSuccess: () => void
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly periodId: string
+  readonly classId?: string
+  readonly subjectId?: string
+  readonly subjectName?: string
+  readonly periodType?: GradePeriodType
+  readonly onSuccess: () => void
 }
 
 export function TeacherGradeImportDialog({
@@ -68,7 +66,6 @@ export function TeacherGradeImportDialog({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [validationResult, setValidationResult] = useState<ExcelImportValidationResult | null>(null)
-  const [importResult, setImportResult] = useState<GradeImportResult | null>(null)
   const [activeTab, setActiveTab] = useState("upload")
 
   // Override detection state
@@ -215,7 +212,6 @@ export function TeacherGradeImportDialog({
       setProgress(80)
       await new Promise(resolve => setTimeout(resolve, 200))
 
-      setImportResult(result)
       setProgress(100)
 
       if (result.success) {

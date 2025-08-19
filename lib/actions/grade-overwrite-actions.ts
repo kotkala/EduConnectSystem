@@ -27,7 +27,7 @@ export async function validateGradeOverwriteAction(
 ): Promise<GradeOverwriteResult> {
   try {
     const supabase = await createClient()
-    const { userId } = await checkTeacherPermissions()
+    await checkTeacherPermissions()
 
     // Get period information to check semester
     const { data: periodInfo, error: periodError } = await supabase

@@ -39,31 +39,22 @@ interface GradeOverviewStats {
 }
 
 interface TeacherGradeOverviewProps {
-  periodId: string
-  classId: string
-  subjectId: string
-  className: string
-  subjectName: string
-  periodName: string
-  onTrackingClick: () => void
-  onImportClick: () => void
-  onGradeDataChange?: (grades: StudentGrade[]) => void
+  readonly periodId: string
+  readonly classId: string
+  readonly subjectId: string
+  readonly onImportClick: () => void
+  readonly onGradeDataChange?: (grades: StudentGrade[]) => void
 }
 
 export function TeacherGradeOverview({
   periodId,
   classId,
   subjectId,
-  className,
-  subjectName,
-  periodName,
-  onTrackingClick,
   onImportClick,
   onGradeDataChange
 }: TeacherGradeOverviewProps) {
   const [loading, setLoading] = useState(false)
   const [grades, setGrades] = useState<StudentGrade[]>([])
-  const [stats, setStats] = useState<GradeOverviewStats | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const loadGradeData = async () => {
@@ -79,9 +70,7 @@ export function TeacherGradeOverview({
       if (result.success && result.data) {
         setGrades(result.data)
 
-        // Calculate statistics
-        const calculatedStats = calculateStats(result.data)
-        setStats(calculatedStats)
+
 
         // Pass grade data to parent for PDF export
         if (onGradeDataChange) {
@@ -238,10 +227,21 @@ export function TeacherGradeOverview({
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Bảng điểm chi tiết</span>
-            <Button variant="outline" size="sm" onClick={onImportClick}>
-              <Edit className="mr-2 h-4 w-4" />
-              Nhập điểm
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadGradeData}
+                disabled={loading}
+              >
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Làm mới
+              </Button>
+              <Button variant="outline" size="sm" onClick={onImportClick}>
+                <Edit className="mr-2 h-4 w-4" />
+                Nhập điểm
+              </Button>
+            </div>
           </CardTitle>
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm font-medium text-blue-900 mb-1">Cách tính điểm trung bình môn học kỳ:</p>

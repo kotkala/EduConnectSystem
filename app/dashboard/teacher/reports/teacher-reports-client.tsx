@@ -36,7 +36,7 @@ import {
   type StudentForReport
 } from "@/lib/actions/student-report-actions"
 // 🚀 MIGRATION: Add coordinated loading system
-import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
+import { usePageTransition } from '@/hooks/use-coordinated-loading'
 // Removed StudentReportModal import - now using dedicated page
 
 // Utility function to format date range for dropdown
@@ -152,7 +152,6 @@ function TeacherReportsClient() {
   
   // 🚀 MIGRATION: Replace loading state with coordinated system
   const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
   
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
@@ -350,8 +349,6 @@ function TeacherReportsClient() {
   }, [selectedPeriod, loadStudents])
 
   // 🚀 MIGRATION: Loading now handled by CoordinatedLoadingOverlay
-  // Show initial state during initial load
-  const isInitialLoading = coordinatedLoading.isLoading && reportPeriods.length === 0
 
   return (
     <div className="space-y-6">

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { checkAdminPermissions } from '@/lib/utils/permission-utils'
+import { checkAdminPermissions, checkTeacherPermissions } from '@/lib/utils/permission-utils'
 import {
   gradeReportingPeriodSchema,
   updateGradeReportingPeriodSchema,
@@ -474,23 +474,8 @@ export async function getSubjectsForGradeInputAction() {
 // Get grade reporting periods for teachers (no admin permission required)
 export async function getGradeReportingPeriodsForTeachersAction(filters?: Partial<GradeFiltersFormData>) {
   try {
+    const { userId } = await checkTeacherPermissions()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      throw new Error('Authentication required')
-    }
-
-    // Check if user is a teacher
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || profile.role !== 'teacher') {
-      throw new Error('Teacher permissions required')
-    }
 
     let query = supabase
       .from('grade_reporting_periods')

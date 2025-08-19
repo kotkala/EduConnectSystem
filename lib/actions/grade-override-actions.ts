@@ -71,41 +71,79 @@ export async function processGradeOverridesAction(
       }
     }
 
-    // Process each override
+    // Process each override - Create audit logs for admin approval, DO NOT update grades yet
     for (const override of overrides) {
-      // Update the grade
-      const { error: updateError } = await supabase
-        .from('student_detailed_grades')
-        .update({
-          grade_value: override.newValue,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', override.gradeId)
+      // Check if this is a midterm or final grade that requires admin approval
+      const requiresApproval = override.componentType === 'midterm' || override.componentType === 'final'
 
-      if (updateError) {
-        throw new Error(`Lỗi cập nhật điểm cho ${override.studentName}: ${updateError.message}`)
+      if (requiresApproval) {
+        // For midterm/final grades: Create audit log with pending status, DO NOT update grade yet
+        const { error: auditError } = await supabase
+          .from('grade_audit_logs')
+          .insert({
+            grade_id: override.gradeId,
+            old_value: override.oldValue,
+            new_value: override.newValue,
+            change_reason: override.reason || 'Không có lý do',
+            changed_by: user.id,
+            changed_at: new Date().toISOString(),
+            status: 'pending'
+          })
+
+        if (auditError) {
+          throw new Error(`Lỗi tạo yêu cầu phê duyệt cho ${override.studentName}: ${auditError.message}`)
+        }
+      } else {
+        // For regular grades: Update immediately without requiring approval
+        const { error: updateError } = await supabase
+          .from('student_detailed_grades')
+          .update({
+            grade_value: override.newValue,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', override.gradeId)
+
+        if (updateError) {
+          throw new Error(`Lỗi cập nhật điểm cho ${override.studentName}: ${updateError.message}`)
+        }
+
+        // Create audit log for record keeping (approved status)
+        const { error: auditError } = await supabase
+          .from('grade_audit_logs')
+          .insert({
+            grade_id: override.gradeId,
+            old_value: override.oldValue,
+            new_value: override.newValue,
+            change_reason: override.reason || 'Điểm thường xuyên - tự động phê duyệt',
+            changed_by: user.id,
+            changed_at: new Date().toISOString(),
+            status: 'approved',
+            processed_at: new Date().toISOString(),
+            processed_by: user.id
+          })
+
+        if (auditError) {
+          throw new Error(`Lỗi tạo nhật ký thay đổi cho ${override.studentName}: ${auditError.message}`)
+        }
       }
+    }
 
-      // Create audit log
-      const { error: auditError } = await supabase
-        .from('grade_audit_logs')
-        .insert({
-          grade_id: override.gradeId,
-          old_value: override.oldValue,
-          new_value: override.newValue,
-          change_reason: override.reason || 'Không có lý do',
-          changed_by: user.id,
-          changed_at: new Date().toISOString()
-        })
+    // Count how many require approval vs immediate update
+    const pendingApproval = overrides.filter(o => o.componentType === 'midterm' || o.componentType === 'final').length
+    const immediateUpdate = overrides.length - pendingApproval
 
-      if (auditError) {
-        throw new Error(`Lỗi ghi log cho ${override.studentName}: ${auditError.message}`)
-      }
+    let message = ''
+    if (pendingApproval > 0 && immediateUpdate > 0) {
+      message = `Đã cập nhật ${immediateUpdate} điểm thường xuyên và gửi ${pendingApproval} yêu cầu phê duyệt điểm giữa kì/cuối kì cho admin`
+    } else if (pendingApproval > 0) {
+      message = `Đã gửi ${pendingApproval} yêu cầu phê duyệt điểm giữa kì/cuối kì cho admin`
+    } else {
+      message = `Đã cập nhật ${immediateUpdate} điểm thường xuyên thành công`
     }
 
     return {
       success: true,
-      message: `Đã xử lý thành công ${overrides.length} thay đổi điểm`,
+      message,
       overrideCount: overrides.length
     }
 

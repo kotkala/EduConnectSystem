@@ -1,0 +1,349 @@
+EDUCONNECT SYSTEM - TECHNICAL DOCUMENTATION
+==========================================
+
+1. System Design
+================
+
+1.1 System Architecture
+-----------------------
+
+The EduConnect system follows a layered architecture pattern with clear separation of concerns:
+
+- User Layer: Role-based interfaces (Student, Teacher, Parent, Admin)
+- Frontend Layer: Next.js 15 with App Router, shared components, and feature modules
+- API Layer: RESTful APIs for different functional domains
+- Business Logic Layer: Server actions, services, and validation
+- Database Layer: PostgreSQL with Supabase for real-time features
+- External Services: OAuth, AI/ML, and communication services
+
+1.2 Package Diagram
+-------------------
+
+1.2.1 Frontend
+
+┌────┬─────────────────────────┬──────────────────────────────────────────────────────────┐
+│ No │ Package                 │ Description                                              │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 1  │ /app                    │ Next.js 15 App Router - Main application routes         │
+│    │                         │ and pages with nested layouts                           │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 2  │ /shared                 │ Reusable UI components, hooks, and utilities            │
+│    │                         │ shared across all features                              │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 3  │ /features               │ Feature-specific modules organized by domain            │
+│    │                         │ (admin, teacher, student, parent management)            │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 4  │ /lib                    │ Core business logic, actions, types, and                │
+│    │                         │ utility functions                                       │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 5  │ /hooks                  │ Custom React hooks for state management                 │
+│    │                         │ and side effects                                        │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 6  │ /providers              │ Context providers for global state management           │
+│    │                         │ (auth, theme, notifications)                           │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 7  │ /contexts               │ React contexts for shared data and state                │
+│    │                         │ across components                                       │
+└────┴─────────────────────────┴──────────────────────────────────────────────────────────┘
+
+1.2.2 Backend (API)
+
+┌────┬─────────────────────────┬──────────────────────────────────────────────────────────┐
+│ No │ Package                 │ Description                                              │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 1  │ /api/ai                 │ AI-powered features including feedback generation,      │
+│    │                         │ summarization, and chatbot interactions                 │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 2  │ /api/auth               │ Authentication and authorization endpoints               │
+│    │                         │ with Google OAuth integration                           │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 3  │ /api/notifications      │ Real-time notification system for all user types        │
+│    │                         │ with read status tracking                               │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 4  │ /api/exchange-requests  │ Teacher schedule exchange management                     │
+│    │                         │ and approval workflow                                   │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 5  │ /api/violations         │ Student violation tracking, alerts,                     │
+│    │                         │ and reporting system                                    │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 6  │ /lib/actions            │ Server actions for database operations                  │
+│    │                         │ with proper validation and error handling               │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 7  │ /lib/services           │ Business logic and external service                     │
+│    │                         │ integrations (email, SMS, AI)                          │
+├────┼─────────────────────────┼──────────────────────────────────────────────────────────┤
+│ 8  │ /shared/utils/supabase  │ Database connection utilities and                       │
+│    │                         │ Supabase client configuration                           │
+└────┴─────────────────────────┴──────────────────────────────────────────────────────────┘
+
+2. Database Design
+==================
+
+Table Descriptions
+
+┌────┬─────────────────────────────┬──────────────────────────────────────────────────────┐
+│ No │ Table                       │ Description                                          │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 1  │ profiles                    │ User profiles with role-based authentication        │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 2  │ academic_years              │ Academic year management and periods                │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 3  │ semesters                   │ Semester periods within academic years              │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 4  │ classes                     │ Class management with homeroom teachers             │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 5  │ class_blocks                │ Class block organization system                     │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 6  │ subjects                    │ Subject definitions and categories                  │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 7  │ classrooms                  │ Physical classroom management                       │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 8  │ student_class_assignments   │ Student enrollment in classes                       │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 9  │ teacher_class_assignments   │ Teacher assignments to classes and subjects         │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 10 │ individual_subject_grades   │ Individual grade records for students               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 11 │ grade_reporting_periods     │ Grade submission and reporting periods              │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 12 │ grade_submissions           │ Consolidated grade submissions                      │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 13 │ ai_grade_feedback           │ AI-generated feedback with versioning               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 14 │ student_feedback            │ Teacher feedback for students                       │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 15 │ parent_feedback_delivery    │ Feedback delivery tracking to parents               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 16 │ grade_improvement_periods   │ Grade improvement opportunity periods               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 17 │ grade_improvement_requests  │ Student grade improvement requests                  │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 18 │ grade_audit_logs            │ Grade change audit trail                           │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 19 │ chat_conversations          │ AI chatbot conversation sessions                    │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 20 │ chat_messages               │ Individual chat messages and responses              │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 21 │ chat_feedback               │ User feedback on AI responses                       │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 22 │ violation_categories        │ Categories of student violations                    │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 23 │ violation_types             │ Specific violation types with point values          │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 24 │ student_violations          │ Individual violation records                        │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 25 │ weekly_violation_reports    │ Aggregated weekly violation data                   │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 26 │ monthly_violation_alerts    │ Monthly violation alert system                     │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 27 │ timetable_events            │ Class schedule events and timetables               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 28 │ schedule_exchange_requests  │ Teacher schedule exchange requests                  │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 29 │ meeting_schedules           │ Parent-teacher meeting schedules                   │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 30 │ leave_applications          │ Student leave requests and approvals               │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 31 │ student_reports             │ Comprehensive student reports                      │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 32 │ report_periods              │ Report generation periods                          │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 33 │ notifications               │ System-wide notifications                           │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 34 │ notification_reads          │ Notification read status tracking                  │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 35 │ feedback_notifications      │ Feedback-specific notifications                    │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 36 │ violation_notifications     │ Violation-related notifications                    │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 37 │ report_notifications        │ Report delivery notifications                       │
+├────┼─────────────────────────────┼──────────────────────────────────────────────────────┤
+│ 38 │ parent_student_relationships│ Parent-child relationships                          │
+└────┴─────────────────────────────┴──────────────────────────────────────────────────────┘
+
+Attribute Data Dictionary
+
+┌─────────────────┬─────────────────────────┬─────────────────────────────────────┬─────────────────┬──────────┐
+│ Entity Name     │ Attributes              │ Description                         │ Domain          │ Null     │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ profiles        │ id (UUID, PK)           │ Unique user identifier              │ UUID            │ NO       │
+│                 │ full_name (TEXT)        │ User's full name                    │ Text            │ YES      │
+│                 │ role (user_role)        │ User role (student/teacher/parent)  │ Enum            │ NO       │
+│                 │ email (TEXT)            │ User's email address                │ Email format    │ YES      │
+│                 │ phone (VARCHAR)         │ Contact phone number                │ Phone format    │ YES      │
+│                 │ student_code (VARCHAR)  │ Student identification code         │ Alphanumeric    │ YES      │
+│                 │ created_at (TIMESTAMPTZ)│ Record creation timestamp           │ Timestamp       │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ academic_years  │ id (UUID, PK)           │ Unique academic year identifier     │ UUID            │ NO       │
+│                 │ name (VARCHAR)          │ Academic year name (e.g., "2024-25")│ Text            │ NO       │
+│                 │ start_date (DATE)       │ Academic year start date            │ Date            │ NO       │
+│                 │ end_date (DATE)         │ Academic year end date              │ Date            │ NO       │
+│                 │ is_current (BOOLEAN)    │ Whether this is current year        │ Boolean         │ YES      │
+│                 │ created_at (TIMESTAMPTZ)│ Record creation timestamp           │ Timestamp       │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ classes         │ id (UUID, PK)           │ Unique class identifier             │ UUID            │ NO       │
+│                 │ name (VARCHAR)          │ Class name (e.g., "10A1")          │ Text            │ NO       │
+│                 │ academic_year_id (UUID) │ Reference to academic year          │ Foreign Key     │ YES      │
+│                 │ semester_id (UUID)      │ Reference to semester               │ Foreign Key     │ YES      │
+│                 │ homeroom_teacher_id     │ Reference to homeroom teacher       │ Foreign Key     │ YES      │
+│                 │ max_students (INTEGER)  │ Maximum student capacity            │ 1-50            │ YES      │
+│                 │ current_students (INT)  │ Current enrolled students           │ 0-max_students  │ YES      │
+│                 │ class_block_id (UUID)   │ Reference to class block            │ Foreign Key     │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ subjects        │ id (UUID, PK)           │ Unique subject identifier           │ UUID            │ NO       │
+│                 │ code (VARCHAR)          │ Subject code (e.g., "MATH")        │ Text            │ NO       │
+│                 │ name_vietnamese (TEXT)  │ Subject name in Vietnamese          │ Text            │ NO       │
+│                 │ name_english (TEXT)     │ Subject name in English             │ Text            │ NO       │
+│                 │ category (ENUM)         │ Subject category                    │ Enum            │ NO       │
+│                 │ description (TEXT)      │ Subject description                 │ Text            │ YES      │
+│                 │ is_active (BOOLEAN)     │ Whether subject is active           │ Boolean         │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ individual_     │ id (UUID, PK)           │ Unique grade identifier             │ UUID            │ NO       │
+│ subject_grades  │ student_id (UUID, FK)   │ Reference to student                │ Foreign Key     │ NO       │
+│                 │ subject_id (UUID, FK)   │ Reference to subject                │ Foreign Key     │ NO       │
+│                 │ class_id (UUID, FK)     │ Reference to class                  │ Foreign Key     │ NO       │
+│                 │ teacher_id (UUID, FK)   │ Reference to teacher                │ Foreign Key     │ NO       │
+│                 │ grade_value (NUMERIC)   │ Actual grade value (0.0-10.0)       │ 0.0-10.0        │ YES      │
+│                 │ grade_type (ENUM)       │ Type (regular/midterm/final)        │ Enum            │ NO       │
+│                 │ grade_index (INTEGER)   │ Grade sequence number               │ 1-10            │ YES      │
+│                 │ recorded_at (TIMESTAMPTZ)│ When grade was recorded            │ Timestamp       │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ ai_grade_       │ id (UUID, PK)           │ Unique feedback identifier          │ UUID            │ NO       │
+│ feedback        │ student_id (UUID, FK)   │ Reference to student                │ Foreign Key     │ NO       │
+│                 │ class_id (UUID, FK)     │ Reference to class                  │ Foreign Key     │ NO       │
+│                 │ period_id (UUID, FK)    │ Reference to reporting period       │ Foreign Key     │ NO       │
+│                 │ feedback_content (TEXT) │ AI-generated feedback content       │ Text            │ NO       │
+│                 │ feedback_style (TEXT)   │ Style (friendly/serious/encouraging)│ Enum            │ NO       │
+│                 │ feedback_length (TEXT)  │ Length (short/medium/long)          │ Enum            │ NO       │
+│                 │ version_number (INT)    │ Version for tracking revisions      │ 1-999           │ YES      │
+│                 │ status (TEXT)           │ Status (draft/sent/archived)        │ Enum            │ YES      │
+│                 │ created_by (UUID, FK)   │ Reference to creator                │ Foreign Key     │ NO       │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ student_        │ id (UUID, PK)           │ Unique violation identifier         │ UUID            │ NO       │
+│ violations      │ student_id (UUID, FK)   │ Reference to student                │ Foreign Key     │ NO       │
+│                 │ class_id (UUID, FK)     │ Reference to class                  │ Foreign Key     │ NO       │
+│                 │ violation_type_id (UUID)│ Reference to violation type         │ Foreign Key     │ NO       │
+│                 │ severity (ENUM)         │ Severity level (minor/major/severe) │ Enum            │ NO       │
+│                 │ points (INTEGER)        │ Points deducted for violation       │ 0-100           │ NO       │
+│                 │ violation_date (DATE)   │ Date when violation occurred        │ Date            │ NO       │
+│                 │ description (TEXT)      │ Detailed description                │ Text            │ YES      │
+│                 │ recorded_by (UUID, FK)  │ Reference to recording teacher      │ Foreign Key     │ NO       │
+│                 │ academic_year_id (UUID) │ Reference to academic year          │ Foreign Key     │ NO       │
+│                 │ semester_id (UUID, FK)  │ Reference to semester               │ Foreign Key     │ NO       │
+│                 │ week_index (INTEGER)    │ Week number in semester             │ 1-20            │ YES      │
+│                 │ month_index (INTEGER)   │ Month number in semester            │ 1-5             │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ chat_           │ id (UUID, PK)           │ Unique conversation identifier      │ UUID            │ NO       │
+│ conversations   │ parent_id (UUID, FK)    │ Reference to parent user            │ Foreign Key     │ NO       │
+│                 │ title (TEXT)            │ Conversation title                  │ Text            │ YES      │
+│                 │ is_archived (BOOLEAN)   │ Whether conversation is archived    │ Boolean         │ YES      │
+│                 │ created_at (TIMESTAMPTZ)│ Conversation creation timestamp     │ Timestamp       │ YES      │
+│                 │ updated_at (TIMESTAMPTZ)│ Last update timestamp               │ Timestamp       │ YES      │
+├─────────────────┼─────────────────────────┼─────────────────────────────────────┼─────────────────┼──────────┤
+│ chat_messages   │ id (UUID, PK)           │ Unique message identifier           │ UUID            │ NO       │
+│                 │ conversation_id (UUID)  │ Reference to conversation           │ Foreign Key     │ NO       │
+│                 │ role (TEXT)             │ Message role (user/assistant)      │ Enum            │ NO       │
+│                 │ content (TEXT)          │ Message content                     │ Text            │ NO       │
+│                 │ context_used (JSONB)    │ Context data used for response      │ JSON            │ YES      │
+│                 │ function_calls (INT)    │ Number of function calls made       │ 0-999           │ YES      │
+│                 │ prompt_strength (NUMERIC)│ AI prompt strength used            │ 0.0-1.0         │ YES      │
+│                 │ created_at (TIMESTAMPTZ)│ Message creation timestamp          │ Timestamp       │ YES      │
+└─────────────────┴─────────────────────────┴─────────────────────────────────────┴─────────────────┴──────────┘
+
+3. Key System Features
+======================
+
+3.1 Role-Based Access Control
+-----------------------------
+- Student Portal: Grade viewing, violation tracking, leave applications
+- Teacher Dashboard: Grade management, AI feedback generation, class management
+- Parent Portal: Child progress monitoring, AI chatbot, meeting scheduling
+- Admin Panel: System administration, user management, analytics
+
+3.2 AI-Powered Features
+-----------------------
+- Automated feedback generation based on student performance
+- Intelligent chatbot for parent inquiries
+- Feedback summarization and analysis
+- Predictive analytics for student performance
+
+3.3 Real-time Communication
+---------------------------
+- Live notifications for all user types
+- Real-time grade updates
+- Instant violation alerts
+- WebSocket-based real-time features
+
+3.4 Comprehensive Reporting
+---------------------------
+- Academic performance reports
+- Violation trend analysis
+- Class and individual analytics
+- Automated report generation and delivery
+
+4. Technical Implementation
+===========================
+
+4.1 Technology Stack
+--------------------
+- Frontend: Next.js 15, TypeScript, Tailwind CSS, Shadcn/UI
+- Backend: Next.js API Routes, Server Actions
+- Database: PostgreSQL with Supabase
+- Authentication: Supabase Auth with Google OAuth
+- Real-time: Supabase Realtime
+- AI Integration: Custom AI services
+- Package Manager: Bun
+
+4.2 Security Features
+---------------------
+- Row Level Security (RLS) policies
+- JWT-based authentication
+- Role-based authorization
+- Input validation and sanitization
+- Audit logging for all critical operations
+
+4.3 Performance Optimizations
+-----------------------------
+- Database indexing for optimal query performance
+- Caching strategies for frequently accessed data
+- Optimized API endpoints with proper pagination
+- Real-time subscriptions for live updates
+
+5. Database Statistics
+======================
+
+5.1 Database Overview
+---------------------
+- Total Tables: 38 main tables + multiple views
+- Database Engine: PostgreSQL (via Supabase)
+- Primary Key Type: UUID (gen_random_uuid())
+- Timestamp Type: TIMESTAMPTZ with timezone support
+- JSON Support: JSONB for complex data structures
+
+5.2 Key Database Features
+-------------------------
+- Row Level Security (RLS) policies implemented
+- Real-time subscriptions for live updates
+- Audit logging for grade changes
+- Comprehensive indexing for performance
+- Foreign key constraints for data integrity
+- Custom ENUM types for standardized values
+
+5.3 Data Relationships
+----------------------
+- Core entities: profiles, academic_years, classes, subjects
+- Grade management: 8+ tables for comprehensive tracking
+- Violation system: 5+ tables for disciplinary management
+- AI integration: 3+ tables for chatbot and feedback
+- Notification system: 6+ tables for real-time alerts
+- Timetable management: 3+ tables for scheduling
+
+==============================================
+Document Version: 2.0
+Updated: August 19, 2025
+System: EduConnect Educational Management System
+Architecture: Layered Architecture with Next.js 15 & Supabase
+Database: PostgreSQL with 38+ tables and comprehensive relationships
+Frontend: 10+ feature modules with shared components
+Backend: 7+ API route groups with server actions
+==============================================

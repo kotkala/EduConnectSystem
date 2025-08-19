@@ -1,0 +1,120 @@
+BR-01 	Tất cả người dùng chỉ có thể đăng nhập bằng tài khoản GG hoặc Email
+BR-02	Nếu đăng nhập bằng Email, hệ thống sẽ gửi mã xác thực (OTP) qua email để đăng nhập 
+BR-03	Mỗi tài khoản người dùng chỉ được liên kết với một địa chỉ email duy nhất 
+BR-04	Chỉ người có vai trò Admin mới truy cập các tính năng quản lý
+BR-05	Admin có quyền tạo, cập nhật, tìm kiếm tài khoản người dùng , không xóa giáo viên chỉ unactive
+BR-06	Khi thêm giáo viên, hệ thông yêu cầu thông tin bắt buộc: họ tên, email, giới tính, ngày sinh
+BR-07	Admin có thể tạo tài khoản học sinh kèm phụ huynh tương ứng 
+BR-08	Mỗi học sinh phải có ít nhất một phụ huynh được liên kết
+BR-09	Admin có thể cập nhật thông tin phụ huynh/ học sinh bất kỳ lúc nào 
+BR-10	Admin chỉ có thể xóa tài khoản nếu tài khoản chưa có ràng buộc với lớp học hoặc điểm số
+BR-11	Admin có thể tạo, cập nhật, tìm kiếm năm học, đóng năm học nếu kết thúc
+BR-12	Khi tạo học kỳ, phải chỉ định rõ thời gian bắt đầu và kết thúc, thời gian kết thúc phải lớn hơn thời gian bắt đầu
+BR-13	Admin có thể tạo, tìm kiếm và xóa lớp học. Khi tạo lớp, phải chọn năm học tương ứng từ dropdowm quản lý năm học 
+BR-14	Một lớp phải có mã lớp duy nhất trong năm học 
+BR-15	Một học sinh trong 1 năm học, 1 học kì chỉ có ở 2 lớp là lớp ghép hoặc lớp tách
+BR-16	Admin có thể thêm, sửa, xóa môn học trong hệ thống
+BR-17	Mỗi môn học phải có mã định danh duy nhất 
+BR-18	Admin có thể tạo, cập nhật, xóa phòng học
+BR-19	Admin có thể thêm, sửa, xóa tiết học trong hệ thống, với điều kiện tiết học đó chưa bắt đầu
+BR-20	Mỗi ca học phải chỉ định thời gian bắt đầu và kết thúc, thời gian bắt đầu lớn hơn thời gian kết thúc 
+BR-21	Admin phân công giáo viên dạy từng môn học trong 1 lớp 
+BR-22	Một giáo viên có thể dạy nhiều lớp, nhưng các tiết dạy của 1 giáo viên không được trùng trong 1 khoảng thời gian xác định
+BR-23	Hệ thống kiểm tra xung đột thời gian khi phân công giảng dạy 
+BR-24	Admin có thể xem và cập nhật danh sách phân công giảng dạy
+BR-25	Admin có thể xóa phân công nếu tiết học của giáo viên được phân công chưa bắt đầu
+BR-26	Admin có thể nhập điểm số của học sinh từng lớp ở từng môn học từ file Excel là đầu ra của phần mềm VNEdu
+BR-27	Khi import file , hệ thống phải kiểm tra định dạng và trùng dữ liệu
+BR-28	Sau khi tổng hợp điểm, Admin có thể gửi điểm cho GVCN để xác nhận
+BR-29	giáo viên chủ nhiệm có thể xem điểm và gửi cho phụ huynh của mỗi học sinh
+BR-30	Phụ huynh sẽ thấy được điêm của các học sinh là con của phụ huynh
+BR-31	khi gửi điểm chỉ gửi 1 lần 1 học sinh và gửi tất cả điểm trung bình của các môn của một kỳ nhất định
+BR-32	điểm chỉ cố định cho giữa kỳ và cuối kỳ, cuối mỗi học kỳ sẽ gửi điểm 1 lần
+BR-33	Admin có thể tạo các nhóm vi phạm theo loại( học tập, đạo đức, nội quy,...)
+BR-34	vi phạm có chia ra 4 mức độ vi phạm(nhẹ, trung bình, nghiêm trọng, rất nghiêm trọng) 
+BR-35	khi học sinh vi phạm những lỗi nghiêm trọng và rất nghiêm trọng sẽ mờ phụ huynh
+BR-36	vi phạm lỗi nhẹ và trung bình sẽ cảnh cáo trước lớp hoặc trước trường
+BR-37	vi phạm các lỗi nhẹ và trung bình trên 3 lần cũng sẽ bị mờ phụ huynh
+BR-38	Admin có thể ghi nhận vi phạm học sinh từ báo cáo của giáo viên 
+BR-39	Vi phạm sau khi được ghi nhận sẽ được chuyển tới giáo viên chủ nhiệm để xử lý
+BR-40	Admin có thể tạo và gửi thông báo cho toàn bộ hệ thống hoặc từng vai trò 
+BR-41	Mỗi thông báo có thể đính kèm file và có thời hạn hiển thị 
+BR-42	Hệ thống ghi log người tạo thông báo và thời gian gửi
+BR-43	Admin có thể duyệt hoặc từ chối yêu cầu đổi slot dạy của giáo viên 
+BR-44	Mỗi yêu cầu đổi slot dạy cần có lý do
+BR-45	Admin có thể xem danh sách yêu cẩi đổi slot dạy theo thời gian và trạng tháo xử lý
+BR-46	Hệ thống sẽ gửi thông báo cho giáo viên khi yêu cầu đổi slot được xử lý
+BR-47	Admin có thể tìm kiếm giáo viên/học sinh/phụ huynh theo tên, email hoặc mã định danh 
+BR-48	Admin không được phép thao tác trực tiếp vào dữ liệu điểm đã xác nhận
+BR-49	Sau khi đăng nhập, giáo viên chủ nhiệm chỉ truy cập được dữ liệu lớp mình phụ trách trong năm học đang hoạt động 
+BR-50	Giáo viên chỉ xem được các lớp/ môn mình được phân công giảng dạy trong năm học đang được hoạt động
+BR-51	Giáo viên được hiển thị thời khóa biểu cá nhân ở dạng tuần/ tháng
+BR-52	Giáo viên có thể xem thông tin lớp dạy, danh sách học sinh của lớp đó( không xem lớp khác)
+BR-53	giáo viên chủ nhiệm có quyền xem danh sách đầy đủ học sinh trong lớp mình chủ nhiệm
+BR-54	giáo viên chủ nhiệm có thể tìm kiếm học sinh trong lớp theo tên, mã học sinh, tình trạng điểm và vi phạm
+BR-55	Giáo viên có thể  gửi feedback về buổi học cho học sinh, tổ hoặc toàn lớp 
+BR-56	giáo viên chủ nhiệm nhận feedback từ giáo viên bộ môn có thể dùng AI để tổng hợp đánh giá
+BR-57	Giáo viên chủ nhiệm có thể gửi feedback cho phụ huynh 
+BR-58	Giáo viên có thể ghi nhận vi phạm học sinh của lớp mình giảng dạy
+BR-59	Mỗi vi phạm phải khai báo đầy đủ loại lỗi, mức độ nghiêm trọng, điểm trừ và mô tả chi tiết
+BR-60	Giáo viên có thể tạo yêu cầu đổi slot dạy 
+BR-61	Khi yêu cầu được duyệt thì hệ thống sẽ cập nhật vào thời khóa biểu cá nhân của giáo viên 
+BR-62	Giáo viên có thể gửi thông báo đến lớp đang dạy, được phân công, không được gửi cho toàn trường 
+BR-63	Giáo viên chủ nhiệm có thể tạo lịch họp phụ huynh theo học sinh, nhóm học sinh hoặc toàn lớp 
+BR-64	Lịch họp sau khi tạo sẽ gửi thông báo đến phụ huynh qua hệ thống kèm thời gian xác định
+BR-65	Phụ huynh chỉ xem được thông tin liên quan đến con mình 
+BR-66	Phụ huynh có thể xem điểm định kỳ khi điểm đã được gửi bởi giáo viên chủ nhiệm
+BR-67	Feedback có thể viết thủ công hoặc tạo từ AI 
+BR-68	Phụ huynh có thể tạo đơn xin nghỉ học cho con và gửi đến giáo viên chủ nhiệm
+BR-69	Mỗi đơn xin nghỉ cần phải ghi rõ lý do, thời gian bắt đầu và kết thúc, file minh chứng nếu có
+BR-70	Phụ huynh có thể theo dõi trạng thái đơn xin nghỉ phép gửi giáo viên chủ nhiệm của học sinh 
+BR-71	Phụ huynh có thể xem tất cả thông báo có liên quan tới học sinh là con của phụ huynh hoặc thông báo của admin gửi tới toàn trường
+BR-72	Phụ huynh có thể trò chuyện với trợ lý AI để hỏi về điểm, vi phạm 
+BR-73	AI assistant có thể cung cấp thống kê tiến bộ học tập 
+BR-74	Học sinh chỉ được phép xem dữ liệu cá nhân và lớp hiện tại ở năm học hiện tại
+BR-75	Học sinh có thể xem thời khóa biểu của lớp mình theo tuần, tháng, ngày
+BR-76	Học sinh có thể gửi yêu cầu phúc khảo điểm khi thấy ko chính xác 
+BR-77	Học sinh không được phép chỉnh sửa hoặc xóa điểm, vi phạm hoặc thông báo
+BR-78	Học sinh có thể xem tất cả thông báo từ giáo viên hoặc hệ thống 
+BR-79	nếu cột điểm không có sự tương thích thì việc này do file excel quản lí, cụ thể điểm số nhập là số dương, bé hơn 10, cho phép nhập số thập phân và làm tròn tới chữ số hàng chục, không cho phép nhập chữ, nhập kí tự đặc biệt
+BR-80	trong trường hợp người dùng import bản ghi lỗi thì sẽ ghi nhận các kết quả trước bản ghi lỗi và các kết quả sau bản ghi lỗi hợp lệ, bản ghi lỗi sẽ yêu cầu nhập lại
+BR-81	Admin sẽ đặt ra mốc thời gian cho việc import điểm số, trong khoảng thời gian này thì việc chỉnh sửa lại điểm không cần để lại ghi chú, sau khi kết thúc thời gian nhập điểm thì admin muốn chỉnh sửa điểm phải để lại ghi chú 
+BR-82	Admin đặt ra mốc thời gian để sửa điểm, sau khi kết thúc mốc thời gian này thì khóa việc sửa điểm lại và thống kế toàn kệ các điểm được sửa kèm theo ghi chú lí do sửa điểm
+BR-83	Chỉ override được điểm trong thời gian được sửa điểm, đồng thời khi sửa điểm phải kèm theo comment lí do sửa điểm, thời gian sửa điểm
+BR-84	Format đến từ phần mềm quản lí của VNedu
+BR-85	Lấy theo file format điểm số của vnedu
+BR-86	Admin sẽ đặt ra thời gian để giáo viên tạo các kì báo cáo, kì báo cáo này có mục đích gửi cho phụ huynh cập nhật tình hình học tập của học sinh 
+BR-87	Kì báo cáo sẽ được tổng hợp dựa vào AI hoặc có thể là tự thêm tay 
+BR-88	Kì báo cáo sẽ được gửi vào email của phụ huynh, phụ huynh sẽ vào xem sau đó để lại comment, có thể là đồng ý hoặc từ chối
+BR-89	Việc ghi nhận và xử lí vi phạm của học sinh sẽ tuân theo nguyên tắc của bộ giáo dục áp dụng chung 
+BR-90	Việc xử lý học sinh vi phạm sẽ dựa vào tần suất vi phạm của học sinh đó trong 1 tháng, hoặc dựa vào mức độ nghiêm trọng của vi phạm 
+BR-91	Admin được phép xuất bảng điểm của học sinh ra file Excel. 
+BR-92	Admin có thể phân công GVCN cho một lớp học trong năm học đang hoạt động. Mỗi lớp học chỉ tối da một GVCN tại một thời điểm 
+BR-93	Admin có thể thay đổi GVCN của lớp khi cần, với điều kiện vẫn đang hoạt động và không vi phạm quy định. 
+BR-94	Admin có thể gỡ GVCN khỏi lớp học nếu giáo viên đó không còn phụ trách lớp, hoặc khi kết thúc năm học. Sau khi gỡ, lớp học sẽ không có GVCN cho đến khi phân công mới.
+BR-95	GVCN xem danh sách đơn nghỉ của HS trong lớp mình, có lọc theo trạng thái/thời gian.
+BR-96	GVCN có quyền phê duyệt hoặc từ chối đơn xin nghỉ của HS lớp mình.
+BR-97	Mọi quyết định xử lý đơn nghỉ phải ghi log (thời gian, người xử lý, lý do) và gửi thông báo cho phụ huynh.
+BR-98	"Một năm học có 7 mốc nhập điểm số:
++ Điểm giữa kì 1 
+	+ Điểm cuối kì 1 
+	+ Điểm tổng kết học kì 1 
+	+ Điểm giữa kì 2
+	+ Điểm cuối kì 2 
+	+ Điểm tổng kết học kì 2
+	+ Điểm tổng kết cả năm học"
+BR-99	Các cột điểm được tham khảo từ Thông tư 22/2021/TT-BGDĐT đánh giá học sinh trung học cơ sở, trung học phổ thông Chương trình giáo dục phổ thông 2018.
+BR-100	Khi tạo 1 mốc nhập điểm thì sẽ có các status: Open (giáo viên vào nhập điểm),  Close (kết thúc nhập điểm, giáo viên không thể vào edit lại điểm số), re-open (giáo viên phát hiện lỗi và admin tiến hành nhập lại điểm số hoặc nhập sai điểm số)
+BR-101	Tất cả các lần nhập điểm, chỉnh sửa điểm đều phải ghi lại mốc thời gian, nếu re-open và sửa lại điểm thì các điểm được sửa phải được ghi nhận lại. Nếu như lần đầu tiên giáo viên import điểm thành công nhưng muốn vào sửa lại (chưa tới thời gian close) thì hệ thống cũng ghi nhận điểm số giáo viên sửa lại và overide điểm cũ 
+BR-102	Sau khi giáo viên nhập điểm thì có 1 màn hình để tracking lại điểm đã nhập cho học sinh (điểm số có thể ghi đè), mỗi lần phát hiện ghi đè (nếu cột điểm không phải là điểm thường xuyên) mà là cột điểm kiểm tra giữa kì, kiểm tra cuối kì thì phải yêu cầu giáo viên nhập lí do và ghi nhận lại ngày giờ chỉnh sửa
+BR-103	Sau khi nhập điểm hoàn tất ở các mốc trong một học kì thì giáo viên gửi cho admin để admin tổng kết lại điểm của 1 học sinh và gửi cho giáo viên chủ nhiệm 
+BR-104	Khi gửi thì phải gửi hết cho tất cả phụ huynh nếu gửi lần 1, nếu gửi lần 2 có thể gửi cho tất cả phụ huynh hoặc tick chọn từng học sinh để gửi
+BR-105	Đồng thời hiển thị số lần gửi (gửi lần 1, gửi lần 2...) và cho phép ghi đè. Đồng thời nếu gửi lại lần 2 thì phải ghi rõ lí do gửi lại ở trong phiếu điểm và hiển thị cho phụ huynh biết là gửi lần 1 hay gửi lần 2
+BR-106	Admin gửi bảng điểm cũng tương tự như cách giáo viên gửi: Khi gửi bảng điểm thì phải gửi hết cho tất cả giáo viên nếu gửi lần 1, nếu gửi lần 2 có thể gửi cho tất cả giáo viên hoặc tick chọn từng học sinh thuộc từng lớp để gửi
+BR-107	" Đồng thời hiển thị số lần gửi (gửi lần 1, gửi lần 2...) và cho phép ghi đè. Đồng thời nếu gửi lại lần 2 thì phải ghi rõ lí do gửi lại ở trong phiếu điểm và hiển thị cho giáo viên biết là gửi lần 1 hay gửi lần 2 
+"
+BR-108	Hệ thống yêu cầu người dùng phải kiểm tra lại tất cả nội dung được tạo bằng AI trước khi đồng ý và sử dụng nội dung được tạo bằng AI
+BR-109	Điểm số của học sinh là số thập phân và được làm tròn tới hàng chục, là số dương lớn hơn 0 và bé hơn 10
+BR-110	Khi giáo viên chủ nhiệm import file excel nhập điểm mới thì các điểm cũ sẽ bị ghi đè lên, việc ghi đè các cột điểm thường xuyên sẽ không bị gì. Nếu ghi đè điểm thi giữa kì hoặc điểm thi cuối kì thì phải kèm theo lí do 
+BR-111	Giáo viên giảng dạy sẽ là người nhập điểm và gửi cho admin, admin tổng hợp lại điểm và gửi cho giáo viên chủ nhiệm của từng lớp 
+BR-112	Admin, giáo viên chủ nhiệm, giáo viên bộ môn có thể xuất file pdf hoặc file excel bảng điểm 

@@ -10,7 +10,7 @@ export default function Loading() {
       {/* Top brand */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Image src="/edu_connect_dashboard.png" alt="EduConnect" width={28} height={28} className="h-7 w-7 object-contain" />
+          <Image src="/Edu Connect.svg" alt="EduConnect" width={28} height={28} className="h-7 w-7 object-contain" />
           <span className="text-sm text-muted-foreground hidden sm:inline">Đang tải dữ liệu...</span>
         </div>
         <Skeleton className="h-6 w-20" />

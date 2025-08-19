@@ -41,7 +41,7 @@ import {
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { getStudentGradesAction, getStudentGradeSummaryAction } from '@/lib/actions/student-timetable-actions'
+import { getStudentGradesAction, getStudentGradeSummaryAction } from '@/features/timetable'
 
 interface Grade {
   id: string

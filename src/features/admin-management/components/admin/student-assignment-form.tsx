@@ -24,7 +24,7 @@ import {
 import {
   getAvailableStudentsAction,
   bulkAssignStudentsToClassAction
-} from "@/lib/actions/student-assignment-actions"
+} from "@/features/student-management"
 
 interface StudentAssignmentFormProps {
   readonly classId: string

@@ -34,7 +34,7 @@ import {
 import { 
   getStudentsForReportAction,
   type StudentForReport
-} from "@/lib/actions/student-report-actions"
+} from "@/features/reports"
 // ðŸš€ MIGRATION: Add coordinated loading system
 import { usePageTransition /* , useCoordinatedLoading */ } from '@/shared/hooks/use-coordinated-loading'
 // Removed StudentReportModal import - now using dedicated page
@@ -284,7 +284,7 @@ function TeacherReportsClient() {
     setBulkSending(true)
     try {
       // Import the bulk send action
-      const { bulkSendReportsAction } = await import('@/lib/actions/student-report-actions')
+      const { bulkSendReportsAction } = await import('@/features/reports')
 
       const result = await bulkSendReportsAction(selectedPeriod, reportsToSend.map(s => s.report!.id))
 

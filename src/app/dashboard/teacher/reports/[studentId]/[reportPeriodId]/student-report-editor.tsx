@@ -44,7 +44,7 @@ import {
   generateWeaknessesSummaryAction,
   getStudentForReportAction,
   type StudentForReport
-} from "@/lib/actions/student-report-actions"
+} from "@/features/reports"
 
 // Removed ParentResponse interface - not used in this version
 

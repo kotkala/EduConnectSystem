@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { HomeroomMeetingDialog } from '@/features/timetable/components/teacher-timetable/homeroom-meeting-dialog'
-import { getTeacherMeetingSchedulesAction } from '@/lib/actions/meeting-schedule-actions'
+import { getTeacherMeetingSchedulesAction } from '@/features/meetings'
 
 interface TeacherMeetingSchedule {
   id: string

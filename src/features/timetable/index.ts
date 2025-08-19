@@ -10,3 +10,4 @@ export * from './components/teacher-timetable/teacher-timetable-calendar'
 
 // Actions
 export * from './actions/timetable-actions'
+export * from './actions/student-timetable-actions'

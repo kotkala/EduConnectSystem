@@ -27,7 +27,7 @@ import {
   createMeetingScheduleAction,
   type MeetingScheduleData,
   type CreateMeetingScheduleRequest
-} from '@/lib/actions/meeting-schedule-actions'
+} from '@/features/meetings'
 
 interface HomeroomMeetingDialogProps {
   readonly open: boolean

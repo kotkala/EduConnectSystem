@@ -53,7 +53,7 @@ import {
   generateStrengthsSummaryAction,
   generateWeaknessesSummaryAction,
   type StudentForReport
-} from "@/lib/actions/student-report-actions"
+} from "@/features/reports"
 
 interface ParentResponse {
   id: string
@@ -307,7 +307,7 @@ export function StudentReportModal({
       setError(null)
 
       // Import the resend action
-      const { resendStudentReportAction } = await import('@/lib/actions/student-report-actions')
+      const { resendStudentReportAction } = await import('@/features/reports')
 
       const result = await resendStudentReportAction(student.report.id, resendReason.trim())
 

@@ -28,7 +28,7 @@ import {
   markMeetingScheduleAsReadAction,
   getUnreadMeetingScheduleCountAction,
   type MeetingScheduleInfo
-} from '@/lib/actions/meeting-schedule-actions'
+} from '@/features/meetings'
 
 interface ParentMeetingSchedulesProps {
   readonly showUnreadCount?: boolean

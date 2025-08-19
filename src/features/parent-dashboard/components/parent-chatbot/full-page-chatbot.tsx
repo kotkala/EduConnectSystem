@@ -1,0 +1,473 @@
+﻿"use client"
+
+import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react"
+import { useAuth } from "@/features/authentication/hooks/use-auth"
+import { Button } from "@/shared/components/ui/button"
+import { Input } from "@/shared/components/ui/input"
+import { Badge } from "@/shared/components/ui/badge"
+import { Slider } from "@/shared/components/ui/slider"
+import {
+  Bot,
+  Send,
+  Sparkles,
+  Copy,
+  Share,
+  AlertTriangle,
+  Gauge
+} from "lucide-react"
+// Import shared components and utilities to eliminate duplication
+import { ChatAvatar, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
+import { ChatHistorySidebar } from "./chat-history-sidebar"
+import { FeedbackDialog } from "./feedback-dialog"
+import { createConversation, getMessages } from "@/lib/actions/chat-history-actions"
+
+// Type guard for context used
+function isContextUsed(contextUsed: unknown): contextUsed is {
+  studentsCount: number
+  feedbackCount: number
+  gradesCount: number
+  violationsCount: number
+} {
+  return contextUsed !== null &&
+    typeof contextUsed === 'object' &&
+    contextUsed !== undefined &&
+    'studentsCount' in contextUsed &&
+    'feedbackCount' in contextUsed &&
+    'gradesCount' in contextUsed &&
+    'violationsCount' in contextUsed
+}
+import { useChatStreaming } from "./useChatStreaming"
+
+interface Message {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: Date
+  contextUsed?: {
+    studentsCount: number
+    feedbackCount: number
+    gradesCount: number
+    violationsCount: number
+  } | Record<string, unknown>
+  functionCalls?: number
+  promptStrength?: number
+  conversationId?: string
+  hasFeedback?: boolean
+}
+
+interface FullPageChatbotProps {
+  readonly className?: string
+}
+
+function FullPageChatbot({ className }: FullPageChatbotProps) {
+  const { user } = useAuth()
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+      timestamp: new Date()
+    }
+  ])
+  const [inputMessage, setInputMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [fontSize, setFontSize] = useState([14]) // Font size setting
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
+
+  // Get parentId from user context - memoized to prevent reloads
+  const parentId = useMemo(() => user?.id || null, [user?.id])
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [])
+
+  // Use custom hook for chat streaming
+  const { sendMessage: sendStreamingMessage } = useChatStreaming({
+    messages,
+    setMessages,
+    setInputMessage,
+    setIsLoading,
+    setIsStreaming,
+    conversationId: currentConversationId,
+    parentId: parentId
+  })
+
+  // Memoized event handlers for performance
+  const sendMessage = useCallback(async () => {
+    if (!inputMessage.trim() || isLoading || isStreaming) return
+    await sendStreamingMessage(inputMessage.trim())
+  }, [inputMessage, isLoading, isStreaming, sendStreamingMessage])
+
+  // Handle feedback submission
+  const handleFeedbackSubmitted = useCallback((messageId: string) => {
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId ? { ...msg, hasFeedback: true } : msg
+    ))
+  }, [])
+
+  // Removed automatic conversation creation to prevent infinite loop
+  // Conversations will be created when user sends first message
+
+  // Chat history handlers with useCallback optimization
+  const handleConversationSelect = useCallback(async (conversationId: string) => {
+    setCurrentConversationId(conversationId)
+
+    // Load messages for selected conversation
+    const result = await getMessages(conversationId)
+    if (result.success && result.data) {
+      const loadedMessages: Message[] = result.data.map((msg: {
+        id: string
+        role: 'user' | 'assistant'
+        content: string
+        created_at: string
+        context_used?: Record<string, unknown>
+        function_calls: number
+        prompt_strength: number
+        conversation_id: string
+        feedback?: { id: string }[]
+      }) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.created_at),
+        contextUsed: msg.context_used,
+        functionCalls: msg.function_calls,
+        promptStrength: msg.prompt_strength,
+        conversationId: msg.conversation_id,
+        hasFeedback: msg.feedback && msg.feedback.length > 0
+      }))
+      setMessages(loadedMessages)
+    }
+  }, [])
+
+  const handleNewConversation = useCallback(async () => {
+    if (!user) return
+
+    const result = await createConversation({
+      parent_id: user.id,
+      title: 'Cuá»™c trÃ² chuyá»‡n má»›i'
+    })
+
+    if (result.success && result.data) {
+      setCurrentConversationId(result.data.id)
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+        timestamp: new Date()
+      }])
+    }
+  }, [user])
+
+  // Memoized suggested prompts for performance
+  const suggestedPrompts = useMemo(() => [
+    "Äiá»ƒm sá»‘ gáº§n Ä‘Ã¢y cá»§a con em nhÆ° tháº¿ nÃ o?",
+    "Con em cÃ³ cáº§n cáº£i thiá»‡n mÃ´n nÃ o khÃ´ng?",
+    "Pháº£n há»“i tá»« giÃ¡o viÃªn tuáº§n nÃ y ra sao?",
+    "Con em cÃ³ tiáº¿n bá»™ gÃ¬ Ä‘Ã¡ng chÃº Ã½ khÃ´ng?",
+    "MÃ´n nÃ o con em há»c tá»‘t nháº¥t?",
+    "TÃ´i nÃªn há»— trá»£ con em há»c táº­p nhÆ° tháº¿ nÃ o?"
+  ], [])
+
+  return (
+    <div className={`flex h-screen bg-white text-gray-900 ${className}`}>
+      {/* Chat History Sidebar - Always visible */}
+      {parentId && (
+        <div className="w-80 bg-gray-50 flex-shrink-0">
+          <ChatHistorySidebar
+            parentId={parentId}
+            currentConversationId={currentConversationId}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+            isOpen={true}
+            onClose={() => {}} // Sidebar always visible
+          />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex">
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Top Bar */}
+          <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Bot className="h-6 w-6 text-blue-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Trá»£ LÃ½ AI EduConnect</h2>
+              </div>
+              <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
+                â— Äang hoáº¡t Ä‘á»™ng
+              </Badge>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                <Share className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Suggested Prompts */}
+          {messages.length === 1 && (
+            <div className="p-6 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">ðŸ’¡ Gá»£i Ã½ cÃ¢u há»i:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {suggestedPrompts.map((prompt, index) => (
+                  <Button
+                    key={`prompt-${prompt.slice(0, 20)}-${index}`}
+                    variant="outline"
+                    className="text-left justify-start h-auto p-3 text-sm text-gray-700 border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                    onClick={() => setInputMessage(prompt)}
+                  >
+                    {prompt}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white max-h-[calc(100vh-200px)]">
+            {messages.map((message) => (
+              <div key={message.id} className="group">
+                <div className="flex items-start space-x-4">
+                  <ChatAvatar role={message.role} size="sm" />
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm font-medium text-gray-900">
+                        {message.role === 'user' ? 'Báº¡n' : 'EduConnect AI'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {formatTime(message.timestamp)}
+                      </span>
+                    </div>
+
+                    <div className="prose max-w-none">
+                      <p
+                        className="text-gray-800 whitespace-pre-wrap leading-relaxed"
+                        style={{ fontSize: `${fontSize[0]}px` }}
+                      >
+                        {message.content}
+                      </p>
+                    </div>
+                    
+                    {/* Context info for assistant messages */}
+                    {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center space-x-2 text-xs text-blue-700">
+                          <Sparkles className="h-3 w-3" />
+                          <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n há»“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Prompt strength indicator for assistant messages */}
+                    {message.role === 'assistant' && message.promptStrength !== undefined && (
+                      <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-center space-x-2 text-xs text-green-700">
+                          <Gauge className="h-3 w-3" />
+                          <span>Äá»™ máº¡nh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-1.5 ml-2">
+                            <div
+                              className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                              style={{ width: `${message.promptStrength * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center space-x-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyMessage(message.content)}
+                        className="h-6 px-2 text-xs text-gray-600 hover:text-gray-900"
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy
+                      </Button>
+
+                      {/* Feedback button for assistant messages */}
+                      {message.role === 'assistant' && parentId && !message.hasFeedback && (
+                        <FeedbackDialog
+                          messageId={message.id}
+                          parentId={parentId}
+                          userQuestion={messages[messages.findIndex(m => m.id === message.id) - 1]?.content || ''}
+                          aiResponse={message.content}
+                          onFeedbackSubmitted={() => handleFeedbackSubmitted(message.id)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Loading indicator */}
+            {(isLoading && !isStreaming) && (
+              <div className="flex items-start space-x-4">
+                <ChatAvatar role="assistant" size="sm" />
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">EduConnect AI</span>
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Streaming indicator */}
+            {isStreaming && (
+              <div className="flex items-start space-x-4">
+                <ChatAvatar role="assistant" size="sm" />
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">EduConnect AI</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-600">Äang tráº£ lá»i...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t border-gray-200 p-6 bg-white">
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <Input
+                  ref={inputRef}
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => handleKeyPress(e, sendMessage)}
+                  placeholder="Há»i vá» tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em..."
+                  disabled={isLoading || isStreaming}
+                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <Button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isLoading || isStreaming}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sidebar - Settings */}
+        <div className="w-80 bg-gray-50 border-l border-gray-200 p-6">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">âš™ï¸ CÃ€I Äáº¶T HIá»‚N THá»Š</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor="font-size-slider" className="text-xs font-medium text-gray-600">KÃ­ch cá»¡ chá»¯</label>
+                    <span className="text-xs text-gray-600">{fontSize[0]}px</span>
+                  </div>
+                  <Slider
+                    id="font-size-slider"
+                    value={fontSize}
+                    onValueChange={setFontSize}
+                    max={20}
+                    min={10}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Nhá»</span>
+                    <span>Vá»«a</span>
+                    <span>Lá»›n</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ“‹ THÃ”NG TIN</h3>
+              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                <div className="space-y-2 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Model:</span>
+                    <span className="font-medium">EduConnect AI</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>PhiÃªn báº£n:</span>
+                    <span className="font-medium">2.0</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tráº¡ng thÃ¡i:</span>
+                    <span className="font-medium text-green-600">â— Hoáº¡t Ä‘á»™ng</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ’¡ HÆ¯á»šNG DáºªN</h3>
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="space-y-2 text-xs text-blue-700">
+                  <p>â€¢ Há»i vá» Ä‘iá»ƒm sá»‘ vÃ  thÃ nh tÃ­ch há»c táº­p</p>
+                  <p>â€¢ Xem pháº£n há»“i tá»« giÃ¡o viÃªn</p>
+                  <p>â€¢ Theo dÃµi tiáº¿n bá»™ cá»§a con em</p>
+                  <p>â€¢ Nháº­n tÆ° váº¥n há»— trá»£ há»c táº­p</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">âš ï¸ LÆ¯U Ã QUAN TRá»ŒNG</h3>
+              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                <div className="space-y-2 text-xs text-yellow-800">
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">ThÃ´ng tin tham kháº£o:</p>
+                      <p>AI cung cáº¥p thÃ´ng tin dá»±a trÃªn dá»¯ liá»‡u cÃ³ sáºµn. Vui lÃ²ng liÃªn há»‡ trá»±c tiáº¿p vá»›i giÃ¡o viÃªn Ä‘á»ƒ cÃ³ thÃ´ng tin chÃ­nh xÃ¡c nháº¥t.</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-yellow-200">
+                    <p className="text-xs">â€¢ Dá»¯ liá»‡u Ä‘Æ°á»£c cáº­p nháº­t Ä‘á»‹nh ká»³</p>
+                    <p className="text-xs">â€¢ Pháº£n há»“i cá»§a báº¡n giÃºp cáº£i thiá»‡n AI</p>
+                    <p className="text-xs">â€¢ Báº£o máº­t thÃ´ng tin Ä‘Æ°á»£c Ä‘áº£m báº£o</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Export memoized component for performance optimization
+export default memo(FullPageChatbot)

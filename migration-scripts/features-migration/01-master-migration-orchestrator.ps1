@@ -276,11 +276,11 @@ if ($failedPhases -eq 0 -and $completedPhases -gt 0) {
     Write-Host "3. Test development: bun run dev" -ForegroundColor White
     Write-Host "4. Update any remaining imports manually" -ForegroundColor White
 } else {
-    Write-MigrationLog "⚠️ MIGRATION COMPLETED WITH ISSUES" "WARN" "ORCHESTRATOR"
+    Write-MigrationLog "MIGRATION COMPLETED WITH ISSUES" "WARN" "ORCHESTRATOR"
     Write-Host ""
-    Write-Host "🔧 RECOVERY OPTIONS:" -ForegroundColor Cyan
+    Write-Host "RECOVERY OPTIONS:" -ForegroundColor Cyan
     Write-Host "1. Check migration-log.txt for detailed error information" -ForegroundColor White
-    Write-Host "2. Re-run from failed phase: -StartFromPhase <phase_number>" -ForegroundColor White
+    Write-Host "2. Re-run from failed phase: -StartFromPhase [phase_number]" -ForegroundColor White
     Write-Host "3. Run individual scripts manually for debugging" -ForegroundColor White
 }
 

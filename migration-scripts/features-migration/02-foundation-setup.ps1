@@ -378,4 +378,4 @@ Write-Host "✅ $($FoundationConfig.TargetStructure.SharedComponents.Count) shar
 Write-Host "✅ $($FoundationConfig.TargetStructure.LibModules.Count) lib modules" -ForegroundColor Green
 Write-Host "✅ Index files and documentation" -ForegroundColor Green
 Write-Host ""
-Write-Host "🚀 Next: Run 03-file-inventory-analyzer.ps1" -ForegroundColor Cyan
+Write-Host "Next: Run 03-file-inventory-analyzer.ps1" -ForegroundColor Cyan

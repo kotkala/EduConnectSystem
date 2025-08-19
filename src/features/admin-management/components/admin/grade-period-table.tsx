@@ -1,0 +1,140 @@
+﻿"use client"
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
+import { Edit, Settings } from "lucide-react"
+import { type EnhancedGradeReportingPeriod, type GradePeriodFiltersFormData } from "@/lib/validations/enhanced-grade-validations"
+
+interface GradePeriodTableProps {
+  data: EnhancedGradeReportingPeriod[]
+  total: number
+  currentPage: number
+  limit: number
+  onPageChange: (page: number) => void
+  onFiltersChange: (filters: Partial<GradePeriodFiltersFormData>) => void
+  onEdit: (period: EnhancedGradeReportingPeriod) => void
+  onStatusChange: (period: EnhancedGradeReportingPeriod) => void
+  onRefresh: () => void
+  getStatusIcon: (status: string) => React.ReactNode
+  getStatusBadge: (status: string) => React.ReactNode
+}
+
+export function GradePeriodTable({
+  data,
+  total,
+  currentPage,
+  limit,
+  onPageChange,
+  // onFiltersChange, // Unused parameter
+  onEdit,
+  onStatusChange,
+  // onRefresh, // Unused parameter
+  getStatusIcon,
+  getStatusBadge
+}: GradePeriodTableProps) {
+  const totalPages = Math.ceil(total / limit)
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>TÃªn ká»³ bÃ¡o cÃ¡o</TableHead>
+              <TableHead>Loáº¡i ká»³</TableHead>
+              <TableHead>Há»c ká»³</TableHead>
+              <TableHead>Thá»i gian</TableHead>
+              <TableHead>Tráº¡ng thÃ¡i</TableHead>
+              <TableHead>Thao tÃ¡c</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  KhÃ´ng cÃ³ dá»¯ liá»‡u
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((period) => (
+                <TableRow key={period.id}>
+                  <TableCell className="font-medium">
+                    {period.name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {period.period_type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {period.academic_year?.name} - {period.semester?.name}
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{new Date(period.start_date).toLocaleDateString('vi-VN')} - {new Date(period.end_date).toLocaleDateString('vi-VN')}</div>
+                      <div className="text-muted-foreground">
+                        Háº¡n: {new Date(period.import_deadline).toLocaleDateString('vi-VN')}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(period.status)}
+                      {getStatusBadge(period.status)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(period)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onStatusChange(period)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Hiá»ƒn thá»‹ {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} cá»§a {total} káº¿t quáº£
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              TrÆ°á»›c
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+            >
+              Sau
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

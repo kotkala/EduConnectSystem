@@ -1,0 +1,281 @@
+﻿"use client"
+
+import { useState, useEffect, useCallback, useMemo } from "react"
+import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
+import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
+import { Plus, GraduationCap, Users, BookOpen, RefreshCw } from "lucide-react"
+import { ClassTable } from "@/features/admin-management/components/admin/class-table"
+import { ClassForm } from "@/features/admin-management/components/admin/class-form"
+import { getClassesAction, getHomeroomEnabledTeachersAction } from "@/features/admin-management/actions/class-actions"
+import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
+import {
+  type ClassWithDetails,
+  type ClassFilters
+} from "@/lib/validations/class-validations"
+import { type AcademicYear, type Semester } from "@/lib/validations/academic-validations"
+
+// Simple teacher interface for dropdown
+interface SimpleTeacher {
+  id: string
+  full_name: string
+  employee_id: string
+}
+
+export default function ClassManagementPage() {
+  // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+  
+  // Classes State
+  const [classes, setClasses] = useState<ClassWithDetails[]>([])
+  const [classesError, setClassesError] = useState<string | null>(null)
+  const [classesTotal, setClassesTotal] = useState(0)
+  const [classesPage, setClassesPage] = useState(1)
+  const [classesFilters, setClassesFilters] = useState<ClassFilters>({ page: 1, limit: 10 })
+
+  // Form Data State
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
+  const [semesters, setSemesters] = useState<Semester[]>([])
+  const [teachers, setTeachers] = useState<SimpleTeacher[]>([])
+
+  // Dialog States
+  const [showCreateClassDialog, setShowCreateClassDialog] = useState(false)
+
+  // Fetch Classes
+  const fetchClasses = useCallback(async () => {
+    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
+    startPageTransition("Äang táº£i danh sÃ¡ch lá»›p há»c...")
+    setClassesError(null)
+
+    try {
+      const result = await getClassesAction(classesFilters)
+
+      if (result.success) {
+        setClasses(result.data)
+        setClassesTotal(result.total)
+        setClassesPage(result.page || 1)
+      } else {
+        const errorMessage = result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c"
+        setClassesError(errorMessage)
+        console.error("Lá»—i táº£i danh sÃ¡ch lá»›p:", errorMessage)
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c"
+      setClassesError(errorMessage)
+      console.error("Classes fetch exception:", err)
+    } finally {
+      stopLoading()
+    }
+  }, [classesFilters, startPageTransition, stopLoading])
+
+  // Fetch Form Data with optimized loading
+  const fetchFormData = useCallback(async () => {
+    // Only fetch if data is not already loaded (simple caching)
+    if (academicYears.length > 0 && semesters.length > 0 && teachers.length > 0) {
+      return
+    }
+
+    try {
+      const [academicYearsResult, semestersResult, teachersResult] = await Promise.all([
+        getAcademicYearsAction({ page: 1, limit: 50 }),
+        getSemestersAction({ page: 1, limit: 50 }),
+        getHomeroomEnabledTeachersAction()
+      ])
+
+      if (academicYearsResult.success) {
+        setAcademicYears(academicYearsResult.data)
+      }
+
+      if (semestersResult.success) {
+        setSemesters(semestersResult.data)
+      }
+
+      if (teachersResult.success) {
+        setTeachers(teachersResult.data)
+      }
+    } catch (error) {
+      console.error("Lá»—i táº£i dá»¯ liá»‡u biá»ƒu máº«u:", error)
+    }
+  }, [academicYears.length, semesters.length, teachers.length])
+
+  useEffect(() => {
+    fetchClasses()
+  }, [fetchClasses])
+
+  useEffect(() => {
+    fetchFormData()
+  }, [fetchFormData])
+
+  // Event Handlers
+  const handleClassPageChange = (page: number) => {
+    setClassesFilters(prev => ({ ...prev, page }))
+  }
+
+  const handleClassFiltersChange = (newFilters: Partial<ClassFilters>) => {
+    setClassesFilters(prev => ({ ...prev, ...newFilters }))
+  }
+
+  const handleCreateClassSuccess = () => {
+    setShowCreateClassDialog(false)
+    fetchClasses()
+  }
+
+  const handleRefresh = () => {
+    fetchClasses()
+    fetchFormData()
+  }
+
+  // Calculate stats with memoization for performance
+  const classStats = useMemo(() => {
+    const mainClasses = classes.filter(c => !c.is_subject_combination)
+    const combinedClasses = classes.filter(c => c.is_subject_combination)
+    const totalStudents = classes.reduce((sum, c) => sum + c.current_students, 0)
+    const totalCapacity = classes.reduce((sum, c) => sum + c.max_students, 0)
+
+    return {
+      mainClasses,
+      combinedClasses,
+      totalStudents,
+      totalCapacity
+    }
+  }, [classes])
+
+  if (coordinatedLoading.isLoading && classes.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+      <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ lá»›p há»c</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Quáº£n lÃ½ lá»›p chÃ­nh vÃ  lá»›p tá»• há»£p mÃ´n
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateClassDialog(true)} className="w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" />
+          ThÃªm lá»›p
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng sá»‘ lá»›p</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold">{classesTotal}</div>
+            <p className="text-xs text-muted-foreground">
+              Táº¥t cáº£ lá»›p trong há»‡ thá»‘ng
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lá»›p chÃ­nh</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.mainClasses.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Lá»›p chá»§ nhiá»‡m thÃ´ng thÆ°á»ng
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lá»›p tá»• há»£p mÃ´n</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.combinedClasses.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Lá»›p theo tá»• há»£p mÃ´n
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng sá»‘ há»c sinh</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold">{classStats.totalStudents}</div>
+            <p className="text-xs text-muted-foreground">
+              {classStats.totalCapacity > 0 ? `${Math.round((classStats.totalStudents / classStats.totalCapacity) * 100)}% cÃ´ng suáº¥t` : "ChÆ°a cÃ³ sá»©c chá»©a"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Error Alert */}
+      {classesError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Lá»—i táº£i danh sÃ¡ch lá»›p:</p>
+              <p>{classesError}</p>
+              {classesError.includes("does not exist") && (
+                <div className="mt-2 p-2 bg-red-50 rounded border">
+                  <p className="text-sm">
+                    <strong>Cáº§n thiáº¿t láº­p cÆ¡ sá»Ÿ dá»¯ liá»‡u:</strong> Báº£ng classes chÆ°a Ä‘Æ°á»£c táº¡o.
+                    Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ há»‡ thá»‘ng Ä‘á»ƒ cháº¡y thiáº¿t láº­p cÆ¡ sá»Ÿ dá»¯ liá»‡u.
+                  </p>
+                </div>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Classes Table */}
+      <ClassTable
+        data={classes}
+        total={classesTotal}
+        currentPage={classesPage}
+        limit={classesFilters.limit}
+        onPageChange={handleClassPageChange}
+        onFiltersChange={handleClassFiltersChange}
+
+        onRefresh={handleRefresh}
+        academicYears={academicYears}
+        semesters={semesters}
+        teachers={teachers}
+      />
+
+      {/* Create Class Dialog */}
+      <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">ThÃªm lá»›p má»›i</DialogTitle>
+          </DialogHeader>
+          <ClassForm
+            onSuccess={handleCreateClassSuccess}
+            onCancel={() => setShowCreateClassDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+
+      </div>
+    </div>
+  )
+}

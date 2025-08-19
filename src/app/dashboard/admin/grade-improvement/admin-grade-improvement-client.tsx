@@ -1,0 +1,750 @@
+﻿'use client'
+
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
+import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { Button } from '@/shared/components/ui/button'
+import { Badge } from '@/shared/components/ui/badge'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import { Textarea } from '@/shared/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/shared/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/shared/components/ui/table'
+import {
+  TrendingUp,
+  Plus,
+  Search,
+
+  Calendar,
+  User,
+  BookOpen,
+  CheckCircle,
+  XCircle,
+  Clock,
+  MessageSquare,
+  Eye,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import {
+  createGradeImprovementPeriodAction,
+  getGradeImprovementPeriodsAction,
+  getGradeImprovementRequestsAction,
+  respondToGradeImprovementRequestAction
+} from '@/lib/actions/grade-improvement-actions'
+import {
+  type GradeImprovementPeriod,
+  type GradeImprovementRequest,
+  type GradeImprovementRequestFilters
+} from '@/lib/validations/grade-improvement-validations'
+import { getGradeReportingPeriodsAction } from '@/lib/actions/grade-management-actions'
+
+interface GradeReportingPeriod {
+  id: string
+  name: string
+  start_date: string
+  end_date: string
+}
+
+export function AdminGradeImprovementClient() {
+  // ðŸš€ COORDINATED LOADING: Replace scattered loading with coordinated system
+  const { startPageTransition, stopLoading } = usePageTransition()
+  const coordinatedLoading = useCoordinatedLoading()
+
+  // State management
+  const [periods, setPeriods] = useState<GradeImprovementPeriod[]>([])
+  const [requests, setRequests] = useState<GradeImprovementRequest[]>([])
+  const [gradeReportingPeriods, setGradeReportingPeriods] = useState<GradeReportingPeriod[]>([])
+  
+  // Dialog states
+  const [showCreatePeriodDialog, setShowCreatePeriodDialog] = useState(false)
+  const [showRequestDetailDialog, setShowRequestDetailDialog] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<GradeImprovementRequest | null>(null)
+  
+  // Form states
+  const [periodForm, setPeriodForm] = useState({
+    name: '',
+    description: '',
+    start_date: '',
+    end_date: '',
+    grade_reporting_period_id: ''
+  })
+  
+  const [responseForm, setResponseForm] = useState({
+    status: '',
+    admin_comment: ''
+  })
+  
+  // Filter and pagination states
+  const [filters, setFilters] = useState<GradeImprovementRequestFilters>({
+    status: undefined,
+    improvement_period_id: undefined,
+    subject_id: undefined,
+    student_search: undefined,
+    page: 1,
+    limit: 20
+  })
+  
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0
+  })
+  
+  // ðŸ“Š Section loading for non-blocking operations
+  const [sectionLoading, setSectionLoading] = useState({
+    creatingPeriod: false,
+    respondingToRequest: false
+  })
+
+  // Load data functions
+  const loadPeriods = useCallback(async () => {
+    try {
+      const result = await getGradeImprovementPeriodsAction()
+      if (result.success && result.data) {
+        setPeriods(result.data)
+      } else {
+        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+      }
+    } catch (error) {
+      console.error('Error loading periods:', error)
+      toast.error('Lá»—i khi táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+    }
+  }, [])
+
+  const loadGradeReportingPeriods = useCallback(async () => {
+    try {
+      const result = await getGradeReportingPeriodsAction({ limit: 100 })
+      if (result.success && result.data) {
+        setGradeReportingPeriods(result.data as unknown as GradeReportingPeriod[])
+      }
+    } catch (error) {
+      console.error('Error loading grade reporting periods:', error)
+    }
+  }, [])
+
+  const loadRequests = useCallback(async () => {
+    try {
+      // ðŸŽ¯ UX IMPROVEMENT: Use global loading for initial load, no loading for filter changes
+      const isInitialLoad = requests.length === 0 && filters.page === 1
+      
+      if (isInitialLoad) {
+        startPageTransition("Äang táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm...")
+      }
+
+      const result = await getGradeImprovementRequestsAction(filters)
+      if (result.success && result.data) {
+        setRequests(result.data.requests)
+        setPagination({
+          total: result.data.total,
+          totalPages: result.data.totalPages
+        })
+      } else {
+        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm')
+      }
+    } catch (error) {
+      console.error('Error loading requests:', error)
+      toast.error('Lá»—i khi táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm')
+    } finally {
+      stopLoading()
+    }
+  }, [filters, requests.length, startPageTransition, stopLoading])
+
+  // Initial data loading
+  useEffect(() => {
+    loadPeriods()
+    loadGradeReportingPeriods()
+  }, [loadPeriods, loadGradeReportingPeriods])
+
+  useEffect(() => {
+    loadRequests()
+  }, [loadRequests])
+
+  // Memoized status badge component to prevent re-renders
+  const StatusBadge = useMemo(() => {
+    const StatusBadgeComponent = ({ status }: { status: string }) => {
+      const statusConfig = {
+        pending: { label: 'Chá» duyá»‡t', variant: 'secondary' as const, icon: Clock },
+        approved: { label: 'ÄÃ£ duyá»‡t', variant: 'default' as const, icon: CheckCircle },
+        rejected: { label: 'Tá»« chá»‘i', variant: 'destructive' as const, icon: XCircle }
+      }
+      
+      const config = statusConfig[status as keyof typeof statusConfig]
+      if (!config) return null
+      
+      const Icon = config.icon
+      
+      return (
+        <Badge variant={config.variant} className="flex items-center gap-1">
+          <Icon className="h-3 w-3" />
+          {config.label}
+        </Badge>
+      )
+    }
+    StatusBadgeComponent.displayName = 'StatusBadge'
+    return StatusBadgeComponent
+  }, [])
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <TrendingUp className="h-6 w-6" />
+            Quáº£n lÃ½ cáº£i thiá»‡n Ä‘iá»ƒm sá»‘
+          </h1>
+          <p className="text-muted-foreground">
+            Quáº£n lÃ½ cÃ¡c ká»³ cáº£i thiá»‡n Ä‘iá»ƒm vÃ  xá»­ lÃ½ Ä‘Æ¡n yÃªu cáº§u cá»§a há»c sinh
+          </p>
+        </div>
+        
+        <Dialog open={showCreatePeriodDialog} onOpenChange={setShowCreatePeriodDialog}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm má»›i</DialogTitle>
+              <DialogDescription>
+                Táº¡o ká»³ thá»i gian cho phÃ©p há»c sinh ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="period-name">TÃªn ká»³ cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                <Input
+                  id="period-name"
+                  value={periodForm.name}
+                  onChange={(e) => setPeriodForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="VD: Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm HK1 2024-2025"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="period-description">MÃ´ táº£ (tÃ¹y chá»n)</Label>
+                <Textarea
+                  id="period-description"
+                  value={periodForm.description}
+                  onChange={(e) => setPeriodForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="MÃ´ táº£ vá» ká»³ cáº£i thiá»‡n Ä‘iá»ƒm..."
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="grade-reporting-period">Ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm</Label>
+                <Select
+                  value={periodForm.grade_reporting_period_id}
+                  onValueChange={(value) => setPeriodForm(prev => ({ ...prev, grade_reporting_period_id: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gradeReportingPeriods.map((period) => (
+                      <SelectItem key={period.id} value={period.id}>
+                        {period.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start-date">NgÃ y báº¯t Ä‘áº§u</Label>
+                  <Input
+                    id="start-date"
+                    type="datetime-local"
+                    value={periodForm.start_date}
+                    onChange={(e) => setPeriodForm(prev => ({ ...prev, start_date: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="end-date">NgÃ y káº¿t thÃºc</Label>
+                  <Input
+                    id="end-date"
+                    type="datetime-local"
+                    value={periodForm.end_date}
+                    onChange={(e) => setPeriodForm(prev => ({ ...prev, end_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreatePeriodDialog(false)}
+                  disabled={sectionLoading.creatingPeriod}
+                >
+                  Há»§y
+                </Button>
+                <Button
+                  onClick={async () => {
+                    setSectionLoading(prev => ({ ...prev, creatingPeriod: true }))
+                    try {
+                      const result = await createGradeImprovementPeriodAction({
+                        ...periodForm,
+                        is_active: true
+                      })
+                      if (result.success) {
+                        toast.success(result.message)
+                        setShowCreatePeriodDialog(false)
+                        setPeriodForm({
+                          name: '',
+                          description: '',
+                          start_date: '',
+                          end_date: '',
+                          grade_reporting_period_id: ''
+                        })
+                        loadPeriods()
+                      } else {
+                        toast.error(result.error)
+                      }
+                    } catch (error) {
+                      console.error('Error creating period:', error)
+                      toast.error('Lá»—i khi táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+                    } finally {
+                      setSectionLoading(prev => ({ ...prev, creatingPeriod: false }))
+                    }
+                  }}
+                  disabled={sectionLoading.creatingPeriod || !periodForm.name || !periodForm.start_date || !periodForm.end_date || !periodForm.grade_reporting_period_id}
+                >
+                  {sectionLoading.creatingPeriod ? 'Äang táº¡o...' : 'Táº¡o ká»³'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Periods Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            CÃ¡c ká»³ cáº£i thiá»‡n Ä‘iá»ƒm
+          </CardTitle>
+          <CardDescription>
+            Danh sÃ¡ch cÃ¡c ká»³ thá»i gian cho phÃ©p há»c sinh ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {coordinatedLoading.isLoading && periods.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-muted-foreground">Äang táº£i...</p>
+              </div>
+            </div>
+          ) : periods.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">ChÆ°a cÃ³ ká»³ cáº£i thiá»‡n Ä‘iá»ƒm nÃ o</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {periods.map((period) => (
+                <Card key={period.id} className="border-l-4 border-l-primary">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <h3 className="font-semibold">{period.name}</h3>
+                      {period.description && (
+                        <p className="text-sm text-muted-foreground">{period.description}</p>
+                      )}
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>
+                          Tá»«: {format(new Date(period.start_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                        </div>
+                        <div>
+                          Äáº¿n: {format(new Date(period.end_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Badge variant={period.is_active ? 'default' : 'secondary'}>
+                          {period.is_active ? 'Äang hoáº¡t Ä‘á»™ng' : 'KhÃ´ng hoáº¡t Ä‘á»™ng'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Requests Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            ÄÆ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm
+          </CardTitle>
+          <CardDescription>
+            Xem vÃ  xá»­ lÃ½ cÃ¡c Ä‘Æ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm tá»« há»c sinh
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="flex-1 min-w-[200px]">
+              <Label htmlFor="search-student">TÃ¬m kiáº¿m há»c sinh</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search-student"
+                  placeholder="TÃªn hoáº·c mÃ£ há»c sinh..."
+                  value={filters.student_search || ''}
+                  onChange={(e) => setFilters(prev => ({ ...prev, student_search: e.target.value || undefined, page: 1 }))}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="filter-status">Tráº¡ng thÃ¡i</Label>
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value as 'pending' | 'approved' | 'rejected', page: 1 }))}
+              >
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Táº¥t cáº£</SelectItem>
+                  <SelectItem value="pending">Chá» duyá»‡t</SelectItem>
+                  <SelectItem value="approved">ÄÃ£ duyá»‡t</SelectItem>
+                  <SelectItem value="rejected">Tá»« chá»‘i</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="filter-period">Ká»³ cáº£i thiá»‡n</Label>
+              <Select
+                value={filters.improvement_period_id || 'all'}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, improvement_period_id: value === 'all' ? undefined : value, page: 1 }))}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Táº¥t cáº£ ká»³</SelectItem>
+                  {periods.map((period) => (
+                    <SelectItem key={period.id} value={period.id}>
+                      {period.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Requests Table */}
+          {coordinatedLoading.isLoading && requests.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <p className="text-muted-foreground">Äang táº£i danh sÃ¡ch Ä‘Æ¡n...</p>
+              </div>
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">KhÃ´ng cÃ³ Ä‘Æ¡n yÃªu cáº§u nÃ o</p>
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Há»c sinh</TableHead>
+                    <TableHead>MÃ´n há»c</TableHead>
+                    <TableHead>Ká»³ cáº£i thiá»‡n</TableHead>
+                    <TableHead>Tráº¡ng thÃ¡i</TableHead>
+                    <TableHead>NgÃ y táº¡o</TableHead>
+                    <TableHead>Thao tÃ¡c</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">{request.student?.full_name}</div>
+                            <div className="text-sm text-muted-foreground">{request.student?.student_id}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <div className="font-medium">{request.subject?.name_vietnamese}</div>
+                            <div className="text-sm text-muted-foreground">{request.subject?.code}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {request.improvement_period?.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={request.status} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {format(new Date(request.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedRequest(request)
+                            setResponseForm({
+                              status: request.status,
+                              admin_comment: request.admin_comment || ''
+                            })
+                            setShowRequestDetailDialog(true)
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Xem
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Trang {filters.page} / {pagination.totalPages} (Tá»•ng: {pagination.total} Ä‘Æ¡n)
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                      disabled={filters.page <= 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      TrÆ°á»›c
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                      disabled={filters.page >= pagination.totalPages}
+                    >
+                      Sau
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Request Detail Dialog */}
+      <Dialog open={showRequestDetailDialog} onOpenChange={setShowRequestDetailDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chi tiáº¿t Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm</DialogTitle>
+            <DialogDescription>
+              Xem thÃ´ng tin chi tiáº¿t vÃ  pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="space-y-6">
+              {/* Request Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Há»c sinh</Label>
+                  <div className="mt-1">
+                    <div className="font-medium">{selectedRequest.student?.full_name}</div>
+                    <div className="text-sm text-muted-foreground">{selectedRequest.student?.student_id}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">MÃ´n há»c</Label>
+                  <div className="mt-1">
+                    <div className="font-medium">{selectedRequest.subject?.name_vietnamese}</div>
+                    <div className="text-sm text-muted-foreground">{selectedRequest.subject?.code}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                  <div className="mt-1 font-medium">{selectedRequest.improvement_period?.name}</div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">Tráº¡ng thÃ¡i hiá»‡n táº¡i</Label>
+                  <div className="mt-1">
+                    <StatusBadge status={selectedRequest.status} />
+                  </div>
+                </div>
+                
+                {selectedRequest.current_grade !== null && (
+                  <div>
+                    <Label className="text-sm font-medium">Äiá»ƒm hiá»‡n táº¡i</Label>
+                    <div className="mt-1 font-medium">{selectedRequest.current_grade}</div>
+                  </div>
+                )}
+                
+                {selectedRequest.target_grade !== null && (
+                  <div>
+                    <Label className="text-sm font-medium">Äiá»ƒm má»¥c tiÃªu</Label>
+                    <div className="mt-1 font-medium">{selectedRequest.target_grade}</div>
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium">LÃ½ do yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                <div className="mt-1 p-3 bg-muted rounded-md">
+                  {selectedRequest.reason}
+                </div>
+              </div>
+              
+              {selectedRequest.status !== 'pending' && (
+                <div>
+                  <Label className="text-sm font-medium">Pháº£n há»“i cá»§a admin</Label>
+                  <div className="mt-1 p-3 bg-muted rounded-md">
+                    {selectedRequest.admin_comment || 'KhÃ´ng cÃ³ nháº­n xÃ©t'}
+                  </div>
+                  {selectedRequest.reviewed_by_profile && selectedRequest.reviewed_at && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Pháº£n há»“i bá»Ÿi {selectedRequest.reviewed_by_profile.full_name} vÃ o {format(new Date(selectedRequest.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Response Form */}
+              {selectedRequest.status === 'pending' && (
+                <div className="space-y-4 border-t pt-4">
+                  <h4 className="font-medium">Pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u</h4>
+                  
+                  <div>
+                    <Label htmlFor="response-status">Quyáº¿t Ä‘á»‹nh</Label>
+                    <Select
+                      value={responseForm.status}
+                      onValueChange={(value) => setResponseForm(prev => ({ ...prev, status: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chá»n quyáº¿t Ä‘á»‹nh" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="approved">PhÃª duyá»‡t</SelectItem>
+                        <SelectItem value="rejected">Tá»« chá»‘i</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="admin-comment">Nháº­n xÃ©t cá»§a admin</Label>
+                    <Textarea
+                      id="admin-comment"
+                      value={responseForm.admin_comment}
+                      onChange={(e) => setResponseForm(prev => ({ ...prev, admin_comment: e.target.value }))}
+                      placeholder="Nháº­p nháº­n xÃ©t vá» Ä‘Æ¡n yÃªu cáº§u..."
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowRequestDetailDialog(false)}
+                      disabled={sectionLoading.respondingToRequest}
+                    >
+                      Há»§y
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!responseForm.status || !responseForm.admin_comment.trim()) {
+                          toast.error('Vui lÃ²ng chá»n quyáº¿t Ä‘á»‹nh vÃ  nháº­p nháº­n xÃ©t')
+                          return
+                        }
+                        
+                        setSectionLoading(prev => ({ ...prev, respondingToRequest: true }))
+                        try {
+                          const result = await respondToGradeImprovementRequestAction({
+                            request_id: selectedRequest.id,
+                            status: responseForm.status as 'approved' | 'rejected',
+                            admin_comment: responseForm.admin_comment
+                          })
+                          
+                          if (result.success) {
+                            toast.success(result.message)
+                            setShowRequestDetailDialog(false)
+                            loadRequests()
+                          } else {
+                            toast.error(result.error)
+                          }
+                        } catch (error) {
+                          console.error('Error responding to request:', error)
+                          toast.error('Lá»—i khi pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u')
+                        } finally {
+                          setSectionLoading(prev => ({ ...prev, respondingToRequest: false }))
+                        }
+                      }}
+                      disabled={sectionLoading.respondingToRequest || !responseForm.status || !responseForm.admin_comment.trim()}
+                    >
+                      {sectionLoading.respondingToRequest ? 'Äang xá»­ lÃ½...' : 'Gá»­i pháº£n há»“i'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

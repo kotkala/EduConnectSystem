@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -122,7 +122,7 @@ export function TeacherGradeTrackingDialog({
     }
   }
 
-  const loadGradeData = async () => {
+  const loadGradeData = useCallback(async () => {
     if (!periodId || !classId || !subjectId) return
 
     setLoading(true)
@@ -186,7 +186,7 @@ export function TeacherGradeTrackingDialog({
     } finally {
       setLoading(false)
     }
-  }
+  }, [periodId, classId, subjectId])
 
   const calculateStatistics = (gradeData: GradeTrackingData[]): GradeTrackingStatistics => {
     const totalStudents = gradeData.length
@@ -308,7 +308,7 @@ export function TeacherGradeTrackingDialog({
     if (open) {
       loadGradeData()
     }
-  }, [open, periodId, classId, subjectId])
+  }, [open, periodId, classId, subjectId, loadGradeData])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

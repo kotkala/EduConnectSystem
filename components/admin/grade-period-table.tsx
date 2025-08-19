@@ -26,10 +26,10 @@ export function GradePeriodTable({
   currentPage,
   limit,
   onPageChange,
-  onFiltersChange,
+  // onFiltersChange, // Unused parameter
   onEdit,
   onStatusChange,
-  onRefresh,
+  // onRefresh, // Unused parameter
   getStatusIcon,
   getStatusBadge
 }: GradePeriodTableProps) {

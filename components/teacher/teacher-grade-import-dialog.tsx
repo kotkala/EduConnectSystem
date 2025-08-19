@@ -31,11 +31,11 @@ import {
 import {
   importValidatedGradesAction,
   getClassStudentsAction,
-  type GradeImportResult
+  // type GradeImportResult // Unused type
 } from "@/lib/actions/teacher-grade-import-actions"
 import {
   detectGradeOverridesAction,
-  processGradeOverridesAction,
+  // processGradeOverridesAction, // Unused import
   type GradeOverrideData
 } from "@/lib/actions/grade-override-actions"
 import { GradeOverrideReasonDialog } from "./grade-override-reason-dialog"
@@ -68,7 +68,7 @@ export function TeacherGradeImportDialog({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [validationResult, setValidationResult] = useState<ExcelImportValidationResult | null>(null)
-  const [importResult, setImportResult] = useState<GradeImportResult | null>(null)
+  // const [importResult, setImportResult] = useState<GradeImportResult | null>(null) // Unused state
   const [activeTab, setActiveTab] = useState("upload")
 
   // Override detection state
@@ -215,7 +215,7 @@ export function TeacherGradeImportDialog({
       setProgress(80)
       await new Promise(resolve => setTimeout(resolve, 200))
 
-      setImportResult(result)
+      // setImportResult(result) // Commented out since state is unused
       setProgress(100)
 
       if (result.success) {

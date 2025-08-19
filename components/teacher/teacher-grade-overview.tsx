@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge" // Unused import
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
@@ -25,18 +25,19 @@ interface StudentGrade {
   modifiedBy?: string
 }
 
-interface GradeOverviewStats {
-  totalStudents: number
-  studentsWithGrades: number
-  completionRate: number
-  averageGrade: number | null
-  gradeDistribution: {
-    excellent: number
-    good: number
-    average: number
-    poor: number
-  }
-}
+// Unused interface - commented out
+// interface GradeOverviewStats {
+//   totalStudents: number
+//   studentsWithGrades: number
+//   completionRate: number
+//   averageGrade: number | null
+//   gradeDistribution: {
+//     excellent: number
+//     good: number
+//     average: number
+//     poor: number
+//   }
+// }
 
 interface TeacherGradeOverviewProps {
   periodId: string
@@ -54,19 +55,19 @@ export function TeacherGradeOverview({
   periodId,
   classId,
   subjectId,
-  className,
-  subjectName,
-  periodName,
-  onTrackingClick,
+  // className, // Unused parameter
+  // subjectName, // Unused parameter
+  // periodName, // Unused parameter
+  // onTrackingClick, // Unused parameter
   onImportClick,
   onGradeDataChange
 }: TeacherGradeOverviewProps) {
   const [loading, setLoading] = useState(false)
   const [grades, setGrades] = useState<StudentGrade[]>([])
-  const [stats, setStats] = useState<GradeOverviewStats | null>(null)
+  // const [stats, setStats] = useState<GradeOverviewStats | null>(null) // Unused state
   const [error, setError] = useState<string | null>(null)
 
-  const loadGradeData = async () => {
+  const loadGradeData = useCallback(async () => {
     if (!periodId || !classId || !subjectId) return
 
     setLoading(true)
@@ -80,8 +81,8 @@ export function TeacherGradeOverview({
         setGrades(result.data)
 
         // Calculate statistics
-        const calculatedStats = calculateStats(result.data)
-        setStats(calculatedStats)
+        // const calculatedStats = calculateStats(result.data) // Commented out since not used
+        // setStats(calculatedStats) // Commented out since stats state is unused
 
         // Pass grade data to parent for PDF export
         if (onGradeDataChange) {
@@ -97,7 +98,7 @@ export function TeacherGradeOverview({
     } finally {
       setLoading(false)
     }
-  }
+  }, [periodId, classId, subjectId, onGradeDataChange])
 
   // Vietnamese grade calculation formula
   const calculateSubjectAverage = (student: StudentGrade): number | null => {
@@ -120,95 +121,98 @@ export function TeacherGradeOverview({
     return Math.round((totalScore / totalWeight) * 10) / 10
   }
 
-  const calculateStats = (gradeData: StudentGrade[]): GradeOverviewStats => {
-    const totalStudents = gradeData.length
-    let studentsWithGrades = 0
-    const allGrades: number[] = []
+  // Unused function - commented out
+  // const calculateStats = (gradeData: StudentGrade[]): GradeOverviewStats => {
+  //   const totalStudents = gradeData.length
+  //   let studentsWithGrades = 0
+  //   const allGrades: number[] = []
 
-    const gradeDistribution = {
-      excellent: 0, // >= 8
-      good: 0,      // 6.5-7.9
-      average: 0,   // 5-6.4
-      poor: 0       // < 5
-    }
+  //   const gradeDistribution = {
+  //     excellent: 0, // >= 8
+  //     good: 0,      // 6.5-7.9
+  //     average: 0,   // 5-6.4
+  //     poor: 0       // < 5
+  //   }
 
-    gradeData.forEach(student => {
-      let hasAnyGrade = false
+  //   gradeData.forEach(student => {
+  //     let hasAnyGrade = false
 
-      // Check regular grades
-      student.regularGrades.forEach(grade => {
-        if (grade !== null) {
-          allGrades.push(grade)
-          hasAnyGrade = true
-        }
-      })
+  //     // Check regular grades
+  //     student.regularGrades.forEach(grade => {
+  //       if (grade !== null) {
+  //         allGrades.push(grade)
+  //         hasAnyGrade = true
+  //       }
+  //     })
 
-      // Check other grades
-      if (student.midtermGrade !== null && student.midtermGrade !== undefined) {
-        allGrades.push(student.midtermGrade)
-        hasAnyGrade = true
-      }
+  //     // Check other grades
+  //     if (student.midtermGrade !== null && student.midtermGrade !== undefined) {
+  //       allGrades.push(student.midtermGrade)
+  //       hasAnyGrade = true
+  //     }
 
-      if (student.finalGrade !== null && student.finalGrade !== undefined) {
-        allGrades.push(student.finalGrade)
-        hasAnyGrade = true
-      }
+  //     if (student.finalGrade !== null && student.finalGrade !== undefined) {
+  //       allGrades.push(student.finalGrade)
+  //       hasAnyGrade = true
+  //     }
 
-      if (hasAnyGrade) {
-        studentsWithGrades++
-      }
+  //     if (hasAnyGrade) {
+  //       studentsWithGrades++
+  //     }
 
-      // Calculate grade distribution based on Vietnamese formula or summary grade
-      const representativeGrade = student.summaryGrade || calculateSubjectAverage(student)
+  //     // Calculate grade distribution based on Vietnamese formula or summary grade
+  //     const representativeGrade = student.summaryGrade || calculateSubjectAverage(student)
 
-      if (representativeGrade !== null) {
-        if (representativeGrade >= 8) gradeDistribution.excellent++
-        else if (representativeGrade >= 6.5) gradeDistribution.good++
-        else if (representativeGrade >= 5) gradeDistribution.average++
-        else gradeDistribution.poor++
-      }
-    })
+  //     if (representativeGrade !== null) {
+  //       if (representativeGrade >= 8) gradeDistribution.excellent++
+  //       else if (representativeGrade >= 6.5) gradeDistribution.good++
+  //       else if (representativeGrade >= 5) gradeDistribution.average++
+  //       else gradeDistribution.poor++
+  //     }
+  //   })
 
-    const completionRate = totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0
-    const averageGrade = allGrades.length > 0
-      ? Math.round((allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length) * 10) / 10
-      : null
+  //   const completionRate = totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0
+  //   const averageGrade = allGrades.length > 0
+  //     ? Math.round((allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length) * 10) / 10
+  //     : null
 
-    return {
-      totalStudents,
-      studentsWithGrades,
-      completionRate,
-      averageGrade,
-      gradeDistribution
-    }
-  }
+  //   return {
+  //     totalStudents,
+  //     studentsWithGrades,
+  //     completionRate,
+  //     averageGrade,
+  //     gradeDistribution
+  //   }
+  // }
 
-  const getGradeStatusBadge = (grade: number | null | undefined) => {
-    if (grade === null || grade === undefined) {
-      return <Badge variant="outline" className="text-gray-500">-</Badge>
-    }
-    
-    if (grade >= 8) {
-      return <Badge variant="default" className="bg-green-100 text-green-800">{grade}</Badge>
-    } else if (grade >= 6.5) {
-      return <Badge variant="default" className="bg-blue-100 text-blue-800">{grade}</Badge>
-    } else if (grade >= 5) {
-      return <Badge variant="default" className="bg-yellow-100 text-yellow-800">{grade}</Badge>
-    } else {
-      return <Badge variant="destructive">{grade}</Badge>
-    }
-  }
+  // Unused function - commented out
+  // const getGradeStatusBadge = (grade: number | null | undefined) => {
+  //   if (grade === null || grade === undefined) {
+  //     return <Badge variant="outline" className="text-gray-500">-</Badge>
+  //   }
+  //
+  //   if (grade >= 8) {
+  //     return <Badge variant="default" className="bg-green-100 text-green-800">{grade}</Badge>
+  //   } else if (grade >= 6.5) {
+  //     return <Badge variant="default" className="bg-blue-100 text-blue-800">{grade}</Badge>
+  //   } else if (grade >= 5) {
+  //     return <Badge variant="default" className="bg-yellow-100 text-yellow-800">{grade}</Badge>
+  //   } else {
+  //     return <Badge variant="destructive">{grade}</Badge>
+  //   }
+  // }
 
-  const exportGrades = () => {
-    // TODO: Implement export functionality
-    console.log('Exporting grades...')
-  }
+  // Unused function - commented out
+  // const exportGrades = () => {
+  //   // TODO: Implement export functionality
+  //   console.log('Exporting grades...')
+  // }
 
   useEffect(() => {
     if (periodId && classId && subjectId) {
       loadGradeData()
     }
-  }, [periodId, classId, subjectId])
+  }, [periodId, classId, subjectId, loadGradeData])
 
   if (!periodId || !classId || !subjectId) {
     return (

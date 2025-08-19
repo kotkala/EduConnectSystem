@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import { useAuth } from '@/hooks/use-auth'
 // 🚀 MIGRATION: Add coordinated loading system
-import { usePageTransition, useCoordinatedLoading } from '@/hooks/use-coordinated-loading'
+import { usePageTransition /* , useCoordinatedLoading */ } from '@/hooks/use-coordinated-loading'
 import { 
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
@@ -37,7 +37,7 @@ export default function TeacherLeaveRequestsPage() {
   
   // 🚀 MIGRATION: Replace isLoading with coordinated system  
   const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+  // const coordinatedLoading = useCoordinatedLoading() // Unused variable
   
   const [applications, setApplications] = useState<LeaveApplication[]>([])
   const [error, setError] = useState<string | null>(null)

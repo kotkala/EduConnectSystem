@@ -80,7 +80,7 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
               </tr>
             </thead>
             <tbody>
-              {studentData.subjects.map((subject, index) => (
+              {studentData.subjects.map((subject) => (
                 <tr key={subject.subject_id} className="border-b hover:bg-gray-50">
                   <td className="p-3 font-medium border-r border-gray-200">
                     <div>

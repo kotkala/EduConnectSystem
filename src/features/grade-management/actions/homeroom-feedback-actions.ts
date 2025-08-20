@@ -54,7 +54,7 @@ async function checkHomeroomTeacherPermissions() {
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -64,11 +64,11 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (!profile || profile.role !== 'teacher') {
-    throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+    throw new Error("Từ chồ‘i truy cập. Yêu cầu vai trÃ² giáo viên.")
   }
 
   if (!profile.homeroom_enabled) {
-    throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u quyá»n giÃ¡o viÃªn chá»§ nhiá»‡m.")
+    throw new Error("Từ chồ‘i truy cập. Yêu cầu quyá»n giáo viên chủ nhiệm.")
   }
 
   return { userId: user.id }
@@ -108,7 +108,7 @@ export async function getHomeroomStudentsWeeklyFeedbackAction(
     console.error("Get homeroom students weekly feedback error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y pháº£n há»“i theo tuáº§n cá»§a há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể láº¥y pháº£n hồ“i theo tuần của hồc sinh"
     }
   }
 }
@@ -151,7 +151,7 @@ export async function getStudentDayScheduleWithFeedbackAction(
     console.error("Get student day schedule error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y thá»i khÃ³a biá»ƒu theo ngÃ y cá»§a há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể láº¥y thồi khóa biểu theo ngÃ y của hồc sinh"
     }
   }
 }
@@ -184,7 +184,7 @@ export async function getHomeroomAcademicYearsAction(): Promise<{ success: boole
     console.error("Get homeroom academic years error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch niÃªn khÃ³a"
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách niÃªn khóa"
     }
   }
 }
@@ -220,7 +220,7 @@ export async function getHomeroomSemestersAction(academic_year_id: string): Prom
     console.error("Get homeroom semesters error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c ká»³"
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách hồc kỳ"
     }
   }
 }

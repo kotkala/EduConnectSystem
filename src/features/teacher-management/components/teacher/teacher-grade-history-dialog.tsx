@@ -26,9 +26,9 @@ export function TeacherGradeHistoryDialog({
       case 'approved':
         return <Badge variant="default" className="bg-green-100 text-green-800">ÄÃ£ duyá»‡t</Badge>
       case 'rejected':
-        return <Badge variant="destructive">Bá»‹ tá»« chá»‘i</Badge>
+        return <Badge variant="destructive">Bá»‹ từ chồ‘i</Badge>
       default:
-        return <Badge variant="outline">KhÃ´ng xÃ¡c Ä‘á»‹nh</Badge>
+        return <Badge variant="outline">Không xác Ä‘á»‹nh</Badge>
     }
   }
 
@@ -38,7 +38,7 @@ export function TeacherGradeHistoryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Lá»‹ch sá»­ bÃ i ná»™p Ä‘iá»ƒm</DialogTitle>
+          <DialogTitle>Lịch sá»­ bÃ i ná»™p Ä‘iá»ƒm</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -51,7 +51,7 @@ export function TeacherGradeHistoryDialog({
               {getStatusBadge(submission.status)}
             </div>
             <div className="text-sm text-muted-foreground">
-              <p>Ká»³ bÃ¡o cÃ¡o: {submission.period?.name}</p>
+              <p>Kỳ báo cáo: {submission.period?.name}</p>
               <p>Sá»‘ láº§n gá»­i: {submission.submission_count}</p>
             </div>
           </div>
@@ -66,13 +66,13 @@ export function TeacherGradeHistoryDialog({
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h5 className="font-medium">Táº¡o bÃ i ná»™p</h5>
+                    <h5 className="font-medium">Tạo bÃ i ná»™p</h5>
                     <span className="text-sm text-muted-foreground">
                       {new Date(submission.created_at).toLocaleString('vi-VN')}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    BÃ i ná»™p Ä‘iá»ƒm Ä‘Æ°á»£c táº¡o bá»Ÿi {submission.teacher?.full_name}
+                    BÃ i ná»™p Ä‘iá»ƒm Ä‘Æ°á»£c tạo bởi {submission.teacher?.full_name}
                   </p>
                 </div>
               </div>
@@ -85,7 +85,7 @@ export function TeacherGradeHistoryDialog({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h5 className="font-medium">Gá»­i bÃ i ná»™p</h5>
+                      <h5 className="font-medium">Gửi bÃ i ná»™p</h5>
                       <span className="text-sm text-muted-foreground">
                         {new Date(submission.submitted_at).toLocaleString('vi-VN')}
                       </span>
@@ -111,7 +111,7 @@ export function TeacherGradeHistoryDialog({
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      BÃ i ná»™p Ä‘Æ°á»£c duyá»‡t bá»Ÿi {submission.approved_by_profile?.full_name}
+                      BÃ i ná»™p Ä‘Æ°á»£c duyá»‡t bởi {submission.approved_by_profile?.full_name}
                     </p>
                   </div>
                 </div>
@@ -125,13 +125,13 @@ export function TeacherGradeHistoryDialog({
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h5 className="font-medium">Gá»­i láº¡i</h5>
+                      <h5 className="font-medium">Gửi láº¡i</h5>
                       <span className="text-sm text-muted-foreground">
                         {new Date(submission.updated_at).toLocaleString('vi-VN')}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
-                      LÃ½ do gá»­i láº¡i:
+                      Lý do gá»­i láº¡i:
                     </p>
                     <div className="p-3 bg-orange-50 border border-orange-200 rounded">
                       <p className="text-sm text-orange-700">
@@ -149,13 +149,13 @@ export function TeacherGradeHistoryDialog({
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <h5 className="font-medium">Cáº­p nháº­t cuá»‘i</h5>
+                    <h5 className="font-medium">Cập nhật cuá»‘i</h5>
                     <span className="text-sm text-muted-foreground">
                       {new Date(submission.updated_at).toLocaleString('vi-VN')}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Láº§n cáº­p nháº­t gáº§n nháº¥t
+                    Láº§n cập nhật gáº§n nháº¥t
                   </p>
                 </div>
               </div>

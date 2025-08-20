@@ -39,7 +39,7 @@ async function checkNotificationPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -49,12 +49,12 @@ async function checkNotificationPermissions() {
     .single()
 
   if (profileError || !profile) {
-    throw new Error("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡")
+    throw new Error("Không tìm thấy hồ“ sơ")
   }
 
   // Only admins and teachers can create notifications
   if (profile.role !== 'admin' && profile.role !== 'teacher') {
-    throw new Error("Chá»‰ quáº£n trá»‹ viÃªn vÃ  giÃ¡o viÃªn má»›i cÃ³ thá»ƒ táº¡o thÃ´ng bÃ¡o")
+    throw new Error("Chồ‰ quản trị viên vÃ  giáo viên mới có thể tạo thông báo")
   }
 
   return { userId: user.id, profile }
@@ -167,7 +167,7 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
 
     return { success: true, data: options }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -197,7 +197,7 @@ export async function createNotificationAction(data: NotificationFormData) {
     revalidatePath('/dashboard')
     return { success: true, data: notification }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -208,7 +208,7 @@ export async function getUserNotificationsAction(page?: number, limit?: number):
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get user profile to check role
@@ -293,7 +293,7 @@ export async function getUserNotificationsAction(page?: number, limit?: number):
       pagination: { page: effectivePage, limit: effectiveLimit, total, totalPages }
     }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -354,7 +354,7 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
 
     return { success: true, data: unreadCount }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -365,7 +365,7 @@ export async function markNotificationAsReadAction(notificationId: string) {
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     const { error } = await supabase
@@ -382,7 +382,7 @@ export async function markNotificationAsReadAction(notificationId: string) {
     revalidatePath('/dashboard')
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -410,7 +410,7 @@ export async function uploadNotificationImageAction(file: File): Promise<{ succe
 
     return { success: true, data: { url: publicUrl, path: filePath } }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -451,7 +451,7 @@ export async function sendGradeNotificationAction(gradeId: string, notificationT
     if (gradeError || !gradeInfo) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin Ä‘iá»ƒm sá»‘'
+        error: 'Không tìm thấy thông tin Ä‘iá»ƒm sá»‘'
       }
     }
 
@@ -467,7 +467,7 @@ export async function sendGradeNotificationAction(gradeId: string, notificationT
     if (parentError || !parentInfo?.parent_id) {
       return {
         success: false,
-        error: 'Há»c sinh chÆ°a cÃ³ phá»¥ huynh Ä‘Æ°á»£c liÃªn káº¿t'
+        error: 'Hồc sinh chưa có phụ huynh Ä‘Æ°á»£c liên káº¿t'
       }
     }
 
@@ -475,16 +475,16 @@ export async function sendGradeNotificationAction(gradeId: string, notificationT
     const subjectData = Array.isArray(gradeInfo.subject) ? gradeInfo.subject[0] : gradeInfo.subject
 
     const messageMap = {
-      'grade_added': `Äiá»ƒm sá»‘ má»›i Ä‘Ã£ Ä‘Æ°á»£c thÃªm cho ${studentData.full_name} - MÃ´n: ${subjectData.name_vietnamese}, Äiá»ƒm: ${gradeInfo.grade_value}`,
-      'grade_updated': `Äiá»ƒm sá»‘ Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t cho ${studentData.full_name} - MÃ´n: ${subjectData.name_vietnamese}, Äiá»ƒm má»›i: ${gradeInfo.grade_value}`,
-      'grade_locked': `Äiá»ƒm sá»‘ Ä‘Ã£ Ä‘Æ°á»£c khÃ³a cho ${studentData.full_name} - MÃ´n: ${subjectData.name_vietnamese}, Äiá»ƒm: ${gradeInfo.grade_value}`
+      'grade_added': `Äiá»ƒm sá»‘ mới Ä‘Ã£ Ä‘Æ°á»£c thêm cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Äiá»ƒm: ${gradeInfo.grade_value}`,
+      'grade_updated': `Äiá»ƒm sá»‘ Ä‘Ã£ Ä‘Æ°á»£c cập nhật cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Äiá»ƒm mới: ${gradeInfo.grade_value}`,
+      'grade_locked': `Äiá»ƒm sá»‘ Ä‘Ã£ Ä‘Æ°á»£c khóa cho ${studentData.full_name} - Môn: ${subjectData.name_vietnamese}, Äiá»ƒm: ${gradeInfo.grade_value}`
     }
 
     const message = messageMap[notificationType]
 
     // Insert notification using the existing notification system
     const notificationData = {
-      title: 'ThÃ´ng bÃ¡o Ä‘iá»ƒm sá»‘',
+      title: 'Thông báo Ä‘iá»ƒm sá»‘',
       content: message,
       target_roles: ['parent'],
       target_classes: [],
@@ -498,7 +498,7 @@ export async function sendGradeNotificationAction(gradeId: string, notificationT
       revalidatePath('/dashboard/parent/notifications')
       return {
         success: true,
-        message: 'ÄÃ£ gá»­i thÃ´ng bÃ¡o cho phá»¥ huynh'
+        message: 'ÄÃ£ gá»­i thông báo cho phụ huynh'
       }
     } else {
       return result
@@ -508,7 +508,7 @@ export async function sendGradeNotificationAction(gradeId: string, notificationT
     console.error('Error sending grade notification:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ gá»­i thÃ´ng bÃ¡o'
+      error: error instanceof Error ? error.message : 'Không thể gá»­i thông báo'
     }
   }
 }

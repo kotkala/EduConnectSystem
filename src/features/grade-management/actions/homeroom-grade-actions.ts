@@ -238,7 +238,7 @@ export async function generateAIFeedbackAction(
     if (validGrades.length === 0) {
       return {
         success: false,
-        error: 'KhÃ´ng cÃ³ Ä‘iá»ƒm sá»‘ Ä‘á»ƒ táº¡o pháº£n há»“i'
+        error: 'Không có Ä‘iá»ƒm sá»‘ Ä‘á»ƒ tạo pháº£n hồ“i'
       }
     }
 
@@ -255,7 +255,7 @@ export async function generateAIFeedbackAction(
         feedback += `ChÃ o báº¡n ${studentData.student_name}! `
         break
       case 'serious':
-        feedback += `Há»c sinh ${studentData.student_name}, `
+        feedback += `Hồc sinh ${studentData.student_name}, `
         break
       case 'encouraging':
         feedback += `${studentData.student_name} thÃ¢n máº¿n, `
@@ -269,28 +269,28 @@ export async function generateAIFeedbackAction(
     if (overallAverage >= 8) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n Ä‘Ã£ cÃ³ má»™t káº¿t quáº£ há»c táº­p xuáº¥t sáº¯c vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `Báº¡n Ä‘Ã£ có một káº¿t quáº£ hồc tập xuất sáº¯c về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em Ä‘áº¡t má»©c xuáº¥t sáº¯c vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `káº¿t quáº£ hồc tập của em Ä‘áº¡t mức xuất sáº¯c về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ thá»ƒ hiá»‡n nÄƒng lá»±c há»c táº­p tuyá»‡t vá»i vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `em Ä‘Ã£ thể hiá»‡n nÄƒng lá»±c hồc tập tuyá»‡t vềi về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
           break
         case 'understanding':
-          feedback += `Ä‘Ã£ ná»— lá»±c ráº¥t nhiá»u vÃ  Ä‘áº¡t Ä‘Æ°á»£c káº¿t quáº£ xuáº¥t sáº¯c ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Ä‘Ã£ ná»— lá»±c ráº¥t nhiá»u vÃ  Ä‘áº¡t Ä‘Æ°á»£c káº¿t quáº£ xuất sáº¯c ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
       }
     } else if (overallAverage >= 6.5) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n Ä‘Ã£ cÃ³ káº¿t quáº£ há»c táº­p khÃ¡ tá»‘t vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `Báº¡n Ä‘Ã£ có káº¿t quáº£ hồc tập khÃ¡ tá»‘t về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em á»Ÿ má»©c khÃ¡ vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `káº¿t quáº£ hồc tập của em á»Ÿ mức khÃ¡ về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ cÃ³ nhá»¯ng tiáº¿n bá»™ Ä‘Ã¡ng khen vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `em Ä‘Ã£ có nhồ¯ng tiáº¿n bộ Ä‘Ã¡ng khen về›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
           break
         case 'understanding':
           feedback += `Ä‘Ã£ cá»‘ gáº¯ng vÃ  Ä‘áº¡t Ä‘Æ°á»£c káº¿t quáº£ khÃ¡ tá»‘t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
@@ -299,31 +299,31 @@ export async function generateAIFeedbackAction(
     } else if (overallAverage >= 5) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Káº¿t quáº£ há»c táº­p cá»§a báº¡n á»Ÿ má»©c trung bÃ¬nh vá»›i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Káº¿t quáº£ hồc tập của báº¡n á»Ÿ mức trung bÃ¬nh về›i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em cáº§n Ä‘Æ°á»£c cáº£i thiá»‡n, hiá»‡n táº¡i Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `káº¿t quáº£ hồc tập của em cáº§n Ä‘Æ°á»£c cải thiện, hiá»‡n táº¡i Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ cá»‘ gáº¯ng vÃ  Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm, Ä‘Ã¢y lÃ  ná»n táº£ng Ä‘á»ƒ em tiáº¿n bá»™ hÆ¡n! `
+          feedback += `em Ä‘Ã£ cá»‘ gáº¯ng vÃ  Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm, Ä‘Ã¢y lÃ  ná»n tảng Ä‘á»ƒ em tiáº¿n bộ hÆ¡n! `
           break
         case 'understanding':
-          feedback += `Ä‘ang gáº·p má»™t sá»‘ khÃ³ khÄƒn trong há»c táº­p vá»›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Ä‘ang gáº·p một sá»‘ khÃ³ khÄƒn trong hồc tập về›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
       }
     } else {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n cáº§n ná»— lá»±c hÆ¡n ná»¯a Ä‘á»ƒ cáº£i thiá»‡n káº¿t quáº£ há»c táº­p hiá»‡n táº¡i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Báº¡n cáº§n ná»— lá»±c hÆ¡n ná»¯a Ä‘á»ƒ cải thiện káº¿t quáº£ hồc tập hiá»‡n táº¡i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em cáº§n Ä‘Æ°á»£c cáº£i thiá»‡n nghiÃªm tÃºc, hiá»‡n táº¡i chá»‰ Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `káº¿t quáº£ hồc tập của em cáº§n Ä‘Æ°á»£c cải thiện nghiÃªm tÃºc, hiá»‡n táº¡i chồ‰ Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
         case 'encouraging':
-          feedback += `máº·c dÃ¹ káº¿t quáº£ hiá»‡n táº¡i lÃ  ${overallAverage.toFixed(1)} Ä‘iá»ƒm nhÆ°ng cÃ´/tháº§y tin em cÃ³ thá»ƒ lÃ m tá»‘t hÆ¡n! `
+          feedback += `mặc dÃ¹ káº¿t quáº£ hiá»‡n táº¡i lÃ  ${overallAverage.toFixed(1)} Ä‘iá»ƒm nhÆ°ng cÃ´/tháº§y tin em có thể lÃ m tá»‘t hÆ¡n! `
           break
         case 'understanding':
-          feedback += `Ä‘ang gáº·p nhiá»u khÃ³ khÄƒn trong há»c táº­p vá»›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Ä‘ang gáº·p nhiá»u khÃ³ khÄƒn trong hồc tập về›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
           break
       }
     }
@@ -331,22 +331,22 @@ export async function generateAIFeedbackAction(
     // Add detailed analysis for medium and long feedback
     if (style.length !== 'short') {
       if (excellentSubjects > 0) {
-        feedback += `Em Ä‘Ã£ xuáº¥t sáº¯c á»Ÿ ${excellentSubjects} mÃ´n há»c. `
+        feedback += `Em Ä‘Ã£ xuất sáº¯c á»Ÿ ${excellentSubjects} mÃ´n hồc. `
       }
       if (poorSubjects > 0) {
-        feedback += `Cáº§n táº­p trung cáº£i thiá»‡n ${poorSubjects} mÃ´n há»c cÃ²n yáº¿u. `
+        feedback += `Cáº§n tập trung cải thiện ${poorSubjects} mÃ´n hồc cÃ²n yáº¿u. `
       }
 
       if (style.length === 'long') {
         // Add specific subject recommendations
         const weakSubjects = studentData.subjects.filter(s => s.average_grade && s.average_grade < 5)
         if (weakSubjects.length > 0) {
-          feedback += `Äáº·c biá»‡t cáº§n chÃº Ã½ cÃ¡c mÃ´n: ${weakSubjects.map(s => s.subject_name).join(', ')}. `
+          feedback += `Äáº·c biá»‡t cáº§n chÃº Ã½ các mÃ´n: ${weakSubjects.map(s => s.subject_name).join(', ')}. `
         }
 
         const strongSubjects = studentData.subjects.filter(s => s.average_grade && s.average_grade >= 8)
         if (strongSubjects.length > 0) {
-          feedback += `Tiáº¿p tá»¥c phÃ¡t huy tháº¿ máº¡nh á»Ÿ cÃ¡c mÃ´n: ${strongSubjects.map(s => s.subject_name).join(', ')}. `
+          feedback += `Tiáº¿p tá»¥c phÃ¡t huy thế máº¡nh á»Ÿ các mÃ´n: ${strongSubjects.map(s => s.subject_name).join(', ')}. `
         }
       }
     }
@@ -354,16 +354,16 @@ export async function generateAIFeedbackAction(
     // Style-based closing
     switch (style.style) {
       case 'friendly':
-        feedback += style.length === 'short' ? 'ChÃºc báº¡n há»c tá»‘t!' : 'HÃ£y tiáº¿p tá»¥c cá»‘ gáº¯ng nhÃ©!'
+        feedback += style.length === 'short' ? 'ChÃºc báº¡n hồc tá»‘t!' : 'HÃ£y tiáº¿p tá»¥c cá»‘ gáº¯ng nhÃ©!'
         break
       case 'serious':
-        feedback += style.length === 'short' ? 'Cáº§n ná»— lá»±c hÆ¡n ná»¯a.' : 'Hy vá»ng em sáº½ cÃ³ káº¿ hoáº¡ch há»c táº­p cá»¥ thá»ƒ Ä‘á»ƒ cáº£i thiá»‡n.'
+        feedback += style.length === 'short' ? 'Cáº§n ná»— lá»±c hÆ¡n ná»¯a.' : 'Hy vềng em sẽ có káº¿ hoáº¡ch hồc tập cụ thể Ä‘á»ƒ cải thiện.'
         break
       case 'encouraging':
-        feedback += style.length === 'short' ? 'Em lÃ m Ä‘Æ°á»£c!' : 'CÃ´/tháº§y tin tÆ°á»Ÿng em sáº½ Ä‘áº¡t Ä‘Æ°á»£c nhiá»u thÃ nh cÃ´ng hÆ¡n ná»¯a!'
+        feedback += style.length === 'short' ? 'Em lÃ m Ä‘Æ°á»£c!' : 'CÃ´/tháº§y tin tÆ°á»Ÿng em sẽ Ä‘áº¡t Ä‘Æ°á»£c nhiá»u thÃ nh công hÆ¡n ná»¯a!'
         break
       case 'understanding':
-        feedback += style.length === 'short' ? 'CÃ´/tháº§y luÃ´n á»§ng há»™ em.' : 'HÃ£y nhá»› ráº±ng cÃ´/tháº§y luÃ´n sáºµn sÃ ng há»— trá»£ em khi cáº§n thiáº¿t.'
+        feedback += style.length === 'short' ? 'CÃ´/tháº§y luôn á»§ng hồ™ em.' : 'HÃ£y nhồ› ráº±ng cÃ´/tháº§y luôn sáºµn sÃ ng hồ— trá»£ em khi cáº§n thiáº¿t.'
         break
     }
 
@@ -443,14 +443,14 @@ export async function submitGradesToParentsAction(
 
     return {
       success: true,
-      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cho ${studentSubmissions.length} há»c sinh thÃ nh cÃ´ng`
+      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cho ${studentSubmissions.length} hồc sinh thÃ nh công`
     }
 
   } catch (error) {
     console.error('Error submitting grades to parents:', error)
     return {
       success: false,
-      message: 'Lá»—i gá»­i báº£ng Ä‘iá»ƒm cho phá»¥ huynh',
+      message: 'Lỗi gá»­i báº£ng Ä‘iá»ƒm cho phụ huynh',
       error: error instanceof Error ? error.message : 'Unknown error'
     }
   }

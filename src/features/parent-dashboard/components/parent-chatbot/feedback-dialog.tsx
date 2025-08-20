@@ -35,7 +35,7 @@ interface FeedbackDialogProps {
 }
 
 const ratingOptions = [
-  { value: 'excellent', label: 'Tuyá»‡t vá»i', icon: 'â­â­â­â­â­', color: 'text-green-600' },
+  { value: 'excellent', label: 'Tuyá»‡t vềi', icon: 'â­â­â­â­â­', color: 'text-green-600' },
   { value: 'good', label: 'Tá»‘t', icon: 'â­â­â­â­', color: 'text-blue-600' },
   { value: 'average', label: 'Trung bÃ¬nh', icon: 'â­â­â­', color: 'text-yellow-600' },
   { value: 'poor', label: 'KÃ©m', icon: 'â­â­', color: 'text-orange-600' },
@@ -57,7 +57,7 @@ export function FeedbackDialog({
 
   const handleSubmit = async () => {
     if (!rating) {
-      toast.error('Vui lÃ²ng chá»n má»©c Ä‘á»™ Ä‘Ã¡nh giÃ¡')
+      toast.error('Vui lòng chồn mức Ä‘á»™ Ä‘Ã¡nh giá')
       return
     }
 
@@ -74,7 +74,7 @@ export function FeedbackDialog({
       })
 
       if (result.success) {
-        toast.success('Cáº£m Æ¡n báº¡n Ä‘Ã£ Ä‘Ã¡nh giÃ¡! Pháº£n há»“i cá»§a báº¡n giÃºp chÃºng tÃ´i cáº£i thiá»‡n AI.')
+        toast.success('Cáº£m Æ¡n báº¡n Ä‘Ã£ Ä‘Ã¡nh giá! Phản hồ“i của báº¡n giÃºp chÃºng tôi cải thiện AI.')
         setIsOpen(false)
         onFeedbackSubmitted?.()
         
@@ -83,11 +83,11 @@ export function FeedbackDialog({
         setRating('good')
         setComment('')
       } else {
-        toast.error(result.error || 'CÃ³ lá»—i xáº£y ra khi gá»­i Ä‘Ã¡nh giÃ¡')
+        toast.error(result.error || 'Có lỗi xảy ra khi gá»­i Ä‘Ã¡nh giá')
       }
     } catch (error) {
       console.error('Feedback submission error:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i Ä‘Ã¡nh giÃ¡')
+      toast.error('Có lỗi xảy ra khi gá»­i Ä‘Ã¡nh giá')
     } finally {
       setIsSubmitting(false)
     }
@@ -102,7 +102,7 @@ export function FeedbackDialog({
           className="h-8 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
         >
           <MessageSquare className="h-3 w-3 mr-1" />
-          ÄÃ¡nh giÃ¡
+          ÄÃ¡nh giá
         </Button>
       </DialogTrigger>
       
@@ -110,10 +110,10 @@ export function FeedbackDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Star className="h-5 w-5 text-yellow-500" />
-            <span>ÄÃ¡nh giÃ¡ cÃ¢u tráº£ lá»i cá»§a AI</span>
+            <span>ÄÃ¡nh giá cÃ¢u trả lá»i của AI</span>
           </DialogTitle>
           <DialogDescription>
-            Pháº£n há»“i cá»§a báº¡n giÃºp chÃºng tÃ´i cáº£i thiá»‡n cháº¥t lÆ°á»£ng trá»£ lÃ½ AI Ä‘á»ƒ phá»¥c vá»¥ báº¡n tá»‘t hÆ¡n.
+            Phản hồ“i của báº¡n giÃºp chÃºng tôi cải thiện cháº¥t lÆ°á»£ng trá»£ lý AI Ä‘á»ƒ phục về¥ báº¡n tá»‘t hÆ¡n.
           </DialogDescription>
         </DialogHeader>
 
@@ -121,9 +121,9 @@ export function FeedbackDialog({
           {/* Helpful Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-sm font-medium">CÃ¢u tráº£ lá»i cÃ³ há»¯u Ã­ch khÃ´ng?</Label>
+              <Label className="text-sm font-medium">CÃ¢u trả lá»i có hồ¯u Ã­ch không?</Label>
               <p className="text-xs text-gray-500">
-                ThÃ´ng tin cÃ³ giÃºp Ã­ch cho viá»‡c theo dÃµi con em cá»§a báº¡n?
+                Thông tin có giÃºp Ã­ch cho viá»‡c theo dõi con em của báº¡n?
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -138,7 +138,7 @@ export function FeedbackDialog({
 
           {/* Rating Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Má»©c Ä‘á»™ Ä‘Ã¡nh giÃ¡</Label>
+            <Label className="text-sm font-medium">Mức Ä‘á»™ Ä‘Ã¡nh giá</Label>
             <RadioGroup value={rating} onValueChange={setRating}>
               {ratingOptions.map((option) => (
                 <div key={option.value} className="flex items-center space-x-3">
@@ -158,28 +158,28 @@ export function FeedbackDialog({
           {/* Comment */}
           <div className="space-y-2">
             <Label htmlFor="comment" className="text-sm font-medium">
-              Nháº­n xÃ©t thÃªm (tÃ¹y chá»n)
+              Nháº­n xÃ©t thêm (tÃ¹y chồn)
             </Label>
             <Textarea
               id="comment"
-              placeholder="Chia sáº» thÃªm vá» tráº£i nghiá»‡m cá»§a báº¡n vá»›i AI chatbot..."
+              placeholder="Chia sáº» thêm về trải nghiá»‡m của báº¡n về›i AI chatbot..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               className="resize-none"
             />
             <p className="text-xs text-gray-500">
-              Nháº­n xÃ©t cá»§a báº¡n sáº½ giÃºp AI há»c há»i vÃ  tráº£ lá»i chÃ­nh xÃ¡c hÆ¡n trong tÆ°Æ¡ng lai.
+              Nháº­n xÃ©t của báº¡n sẽ giÃºp AI hồc hồi vÃ  trả lá»i chÃ­nh xác hÆ¡n trong tÆ°Æ¡ng lai.
             </p>
           </div>
 
           {/* Preview of question and answer */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div className="text-xs text-gray-500 font-medium">Ná»™i dung Ä‘Æ°á»£c Ä‘Ã¡nh giÃ¡:</div>
+            <div className="text-xs text-gray-500 font-medium">Ná»™i dung Ä‘Æ°á»£c Ä‘Ã¡nh giá:</div>
             <div className="text-sm">
-              <div className="font-medium text-blue-600 mb-1">CÃ¢u há»i:</div>
+              <div className="font-medium text-blue-600 mb-1">CÃ¢u hồi:</div>
               <div className="text-gray-700 mb-2 line-clamp-2">{userQuestion}</div>
-              <div className="font-medium text-purple-600 mb-1">CÃ¢u tráº£ lá»i AI:</div>
+              <div className="font-medium text-purple-600 mb-1">CÃ¢u trả lá»i AI:</div>
               <div className="text-gray-700 line-clamp-3">{aiResponse}</div>
             </div>
           </div>
@@ -190,8 +190,8 @@ export function FeedbackDialog({
             <div className="text-xs text-blue-700">
               <div className="font-medium mb-1">LÆ°u Ã½ quan trá»ng:</div>
               <div>
-                ThÃ´ng tin tá»« AI mang tÃ­nh cháº¥t tham kháº£o. Vui lÃ²ng liÃªn há»‡ trá»±c tiáº¿p vá»›i giÃ¡o viÃªn 
-                hoáº·c nhÃ  trÆ°á»ng Ä‘á»ƒ cÃ³ thÃ´ng tin chÃ­nh xÃ¡c vÃ  Ä‘áº§y Ä‘á»§ nháº¥t vá» tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em.
+                Thông tin từ AI mang tÃ­nh cháº¥t tham kháº£o. Vui lòng liên hồ‡ trá»±c tiáº¿p về›i giáo viên 
+                hoặc nhÃ  trÆ°á»ng Ä‘á»ƒ có thông tin chÃ­nh xác vÃ  Ä‘áº§y Ä‘á»§ nháº¥t về tÃ¬nh hình hồc tập của con em.
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export function FeedbackDialog({
             onClick={() => setIsOpen(false)}
             disabled={isSubmitting}
           >
-            Há»§y
+            Hủy
           </Button>
           <Button
             onClick={handleSubmit}
@@ -218,7 +218,7 @@ export function FeedbackDialog({
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Gá»­i Ä‘Ã¡nh giÃ¡
+                Gửi Ä‘Ã¡nh giá
               </>
             )}
           </Button>

@@ -245,7 +245,7 @@ export function AcademicTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(item)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Chá»‰nh sá»­a
+                          Chỉnh sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(item)}

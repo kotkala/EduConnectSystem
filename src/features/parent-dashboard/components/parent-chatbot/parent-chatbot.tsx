@@ -131,7 +131,7 @@ function isContextUsed(contextUsed: unknown): contextUsed is {
 
 export function copyMessage(content: string): void {
   navigator.clipboard.writeText(content)
-  toast.success('ÄÃ£ sao chÃ©p tin nháº¯n')
+  toast.success('ÄÃ£ sao chÃ©p tin nhắn')
 }
 
 export function handleKeyPress(e: React.KeyboardEvent, sendMessage: () => void): void {
@@ -153,7 +153,7 @@ export default function ParentChatbot({
     {
       id: '1',
       role: 'assistant',
-      content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+      content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lý AI của báº¡n. TÃ´i có thể giÃºp báº¡n theo dõi tÃ¬nh hình hồc tập của con em. HÃ£y hồi tôi về Ä‘iá»ƒm sá»‘, pháº£n hồ“i từ giáo viên, hoặc báº¥t kỳ tháº¯c máº¯c nÃ o về viá»‡c hồc của con báº¡n.',
       timestamp: new Date()
     }
   ])
@@ -180,7 +180,7 @@ export default function ParentChatbot({
         if (!currentConversationId) {
           const result = await createConversation({
             parent_id: user.id,
-            title: 'Cuá»™c trÃ² chuyá»‡n má»›i'
+            title: 'Cuá»™c trÃ² chuyá»‡n mới'
           })
 
           if (result.success && result.data) {
@@ -210,10 +210,10 @@ export default function ParentChatbot({
 
   // Memoize suggested prompts to prevent recreation
   const suggestedPrompts = useMemo(() => [
-    "Äiá»ƒm sá»‘ gáº§n Ä‘Ã¢y cá»§a con",
-    "Pháº£n há»“i tá»« giÃ¡o viÃªn",
-    "MÃ´n nÃ o cáº§n cáº£i thiá»‡n?",
-    "Tiáº¿n bá»™ tuáº§n nÃ y"
+    "Äiá»ƒm sá»‘ gáº§n Ä‘Ã¢y của con",
+    "Phản hồ“i từ giáo viên",
+    "Môn nÃ o cáº§n cải thiện?",
+    "Tiáº¿n bộ tuần nÃ y"
   ], [])
 
   // Use custom hook for chat streaming
@@ -279,7 +279,7 @@ export default function ParentChatbot({
 
     const result = await createConversation({
       parent_id: parentId,
-      title: 'Cuá»™c trÃ² chuyá»‡n má»›i'
+      title: 'Cuá»™c trÃ² chuyá»‡n mới'
     })
 
     if (result.success && result.data) {
@@ -287,7 +287,7 @@ export default function ParentChatbot({
       setMessages([{
         id: '1',
         role: 'assistant',
-        content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+        content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lý AI của báº¡n. TÃ´i có thể giÃºp báº¡n theo dõi tÃ¬nh hình hồc tập của con em. HÃ£y hồi tôi về Ä‘iá»ƒm sá»‘, pháº£n hồ“i từ giáo viên, hoặc báº¥t kỳ tháº¯c máº¯c nÃ o về viá»‡c hồc của con báº¡n.',
         timestamp: new Date()
       }])
       setShowHistory(false)
@@ -321,8 +321,8 @@ export default function ParentChatbot({
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold">Trá»£ LÃ½ AI</h2>
-                  <p className="text-xs text-blue-100">Há»— trá»£ phá»¥ huynh 24/7</p>
+                  <h2 className="text-lg font-bold">Trợ Lý AI</h2>
+                  <p className="text-xs text-blue-100">Hồ— trá»£ phụ huynh 24/7</p>
                 </div>
               </div>
               <div className="flex items-center space-x-1">
@@ -331,7 +331,7 @@ export default function ParentChatbot({
                   size="sm"
                   onClick={() => setShowHistory(!showHistory)}
                   className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                  title="Lá»‹ch sá»­ chat"
+                  title="Lịch sá»­ chat"
                 >
                   <History className="h-4 w-4" />
                 </Button>
@@ -363,7 +363,7 @@ export default function ParentChatbot({
                       <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                         <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                           <Sparkles className="h-3 w-3" />
-                          <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n há»“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘, {message.contextUsed.violationsCount} vi pháº¡m</span>
+                          <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n hồ“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘, {message.contextUsed.violationsCount} vi phạm</span>
                         </div>
                       </div>
                     )}
@@ -436,7 +436,7 @@ export default function ParentChatbot({
                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Äang tráº£ lá»i...</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Äang trả lá»i...</span>
                     </div>
                   </div>
                 </div>
@@ -452,8 +452,8 @@ export default function ParentChatbot({
             <div className="mb-3 flex items-start space-x-2 bg-amber-50 p-2 rounded-lg">
               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-amber-700">
-                <span className="font-medium">Miá»…n trá»« trÃ¡ch nhiá»‡m:</span> ThÃ´ng tin tá»« AI mang tÃ­nh cháº¥t tham kháº£o.
-                Vui lÃ²ng liÃªn há»‡ trá»±c tiáº¿p vá»›i giÃ¡o viÃªn hoáº·c nhÃ  trÆ°á»ng Ä‘á»ƒ cÃ³ thÃ´ng tin chÃ­nh xÃ¡c nháº¥t.
+                <span className="font-medium">Miá»…n trừ trách nhiệm:</span> Thông tin từ AI mang tÃ­nh cháº¥t tham kháº£o.
+                Vui lòng liên hồ‡ trá»±c tiáº¿p về›i giáo viên hoặc nhÃ  trÆ°á»ng Ä‘á»ƒ có thông tin chÃ­nh xác nháº¥t.
               </div>
             </div>
 
@@ -463,7 +463,7 @@ export default function ParentChatbot({
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Há»i vá» tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em..."
+                placeholder="Hồi về tÃ¬nh hình hồc tập của con em..."
                 disabled={isLoading || isStreaming}
                 className="flex-1"
               />
@@ -510,15 +510,15 @@ export default function ParentChatbot({
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
                   <h3 className="font-semibold text-gray-900 text-sm">EduConnect AI</h3>
-                  <span className="text-xs text-green-600 font-medium">â— Äang hoáº¡t Ä‘á»™ng</span>
+                  <span className="text-xs text-green-600 font-medium">â— Äang hoạt Ä‘á»™ng</span>
                 </div>
 
                 <p className="text-sm text-gray-700 mb-2">
-                  Con em há»c lá»›p 10A1 cÃ³ Ä‘iá»ƒm kiá»ƒm tra mÃ´n ToÃ¡n chÆ°a a?
+                  Con em hồc lớp 10A1 có Ä‘iá»ƒm kiá»ƒm tra mÃ´n ToÃ¡n chưa a?
                 </p>
 
                 <div className="bg-blue-500 text-white rounded-lg p-2 text-sm">
-                  Äiá»ƒm kiá»ƒm tra ToÃ¡n cá»§a em Nguyá»…n VÄƒn A lá»›p 10A1: 8.5 Ä‘iá»ƒm. BÃ i kiá»ƒm tra ngÃ y 15/11/2024.
+                  Äiá»ƒm kiá»ƒm tra ToÃ¡n của em Nguyá»…n VÄƒn A lớp 10A1: 8.5 Ä‘iá»ƒm. BÃ i kiá»ƒm tra ngÃ y 15/11/2024.
                 </div>
               </div>
             </div>
@@ -541,7 +541,7 @@ export default function ParentChatbot({
                   className="text-blue-600 border-blue-200 hover:bg-blue-50"
                 >
                   <Clock className="h-4 w-4 mr-1" />
-                  Xem lá»‹ch sá»­
+                  Xem lịch sá»­
                 </Button>
 
                 <Link href="/parent/chatbot">
@@ -599,8 +599,8 @@ export default function ParentChatbot({
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <CardTitle className="text-lg font-bold">Trá»£ LÃ½ AI</CardTitle>
-                <p className="text-xs text-blue-100">Há»— trá»£ phá»¥ huynh 24/7</p>
+                <CardTitle className="text-lg font-bold">Trợ Lý AI</CardTitle>
+                <p className="text-xs text-blue-100">Hồ— trá»£ phụ huynh 24/7</p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
@@ -609,7 +609,7 @@ export default function ParentChatbot({
                 size="sm"
                 onClick={() => setShowHistory(!showHistory)}
                 className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                title="Lá»‹ch sá»­ chat"
+                title="Lịch sá»­ chat"
               >
                 <History className="h-4 w-4" />
               </Button>
@@ -660,7 +660,7 @@ export default function ParentChatbot({
                         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
                           <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                             <Sparkles className="h-3 w-3" />
-                            <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n há»“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘, {message.contextUsed.violationsCount} vi pháº¡m</span>
+                            <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n hồ“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘, {message.contextUsed.violationsCount} vi phạm</span>
                           </div>
                         </div>
                       )}
@@ -733,7 +733,7 @@ export default function ParentChatbot({
                     <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Äang tráº£ lá»i...</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Äang trả lá»i...</span>
                       </div>
                     </div>
                   </div>
@@ -749,8 +749,8 @@ export default function ParentChatbot({
               <div className="mb-3 flex items-start space-x-2 bg-amber-50 p-2 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-amber-700">
-                  <span className="font-medium">Miá»…n trá»« trÃ¡ch nhiá»‡m:</span> ThÃ´ng tin tá»« AI mang tÃ­nh cháº¥t tham kháº£o.
-                  Vui lÃ²ng liÃªn há»‡ trá»±c tiáº¿p vá»›i giÃ¡o viÃªn hoáº·c nhÃ  trÆ°á»ng Ä‘á»ƒ cÃ³ thÃ´ng tin chÃ­nh xÃ¡c nháº¥t.
+                  <span className="font-medium">Miá»…n trừ trách nhiệm:</span> Thông tin từ AI mang tÃ­nh cháº¥t tham kháº£o.
+                  Vui lòng liên hồ‡ trá»±c tiáº¿p về›i giáo viên hoặc nhÃ  trÆ°á»ng Ä‘á»ƒ có thông tin chÃ­nh xác nháº¥t.
                 </div>
               </div>
 
@@ -760,7 +760,7 @@ export default function ParentChatbot({
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Há»i vá» tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em..."
+                  placeholder="Hồi về tÃ¬nh hình hồc tập của con em..."
                   disabled={isLoading || isStreaming}
                   className="flex-1"
                 />

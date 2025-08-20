@@ -61,7 +61,7 @@ export async function createEnhancedGradeReportingPeriodAction(
     if (existingPeriods && existingPeriods.length > 0) {
       return {
         success: false,
-        error: "ÄÃ£ tá»“n táº¡i ká»³ bÃ¡o cÃ¡o cÃ¹ng loáº¡i trong há»c ká»³ nÃ y"
+        error: "ÄÃ£ tá»“n táº¡i kỳ báo cáo cÃ¹ng loại trong hồc kỳ nÃ y"
       }
     }
 
@@ -83,7 +83,7 @@ export async function createEnhancedGradeReportingPeriodAction(
       console.error('Error creating grade reporting period:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº¡o ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm"
+        error: "Không thể tạo kỳ báo cáo Ä‘iá»ƒm"
       }
     }
 
@@ -95,7 +95,7 @@ export async function createEnhancedGradeReportingPeriodAction(
     console.error('Error in createEnhancedGradeReportingPeriodAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -170,7 +170,7 @@ export async function getEnhancedGradeReportingPeriodsAction(
       console.error('Error fetching grade reporting periods:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o"
+        error: "Không thể tải danh sách kỳ báo cáo"
       }
     }
 
@@ -185,7 +185,7 @@ export async function getEnhancedGradeReportingPeriodsAction(
     console.error('Error in getEnhancedGradeReportingPeriodsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -219,7 +219,7 @@ export async function updateGradeReportingPeriodStatusAction(
       console.error('Error updating period status:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ cáº­p nháº­t tráº¡ng thÃ¡i ká»³ bÃ¡o cÃ¡o"
+        error: "Không thể cập nhật trạng thái kỳ báo cáo"
       }
     }
 
@@ -236,7 +236,7 @@ export async function updateGradeReportingPeriodStatusAction(
     console.error('Error in updateGradeReportingPeriodStatusAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -287,7 +287,7 @@ export async function submitGradesForPeriodAction(
         console.error('Error updating submission:', error)
         return {
           success: false,
-          error: "KhÃ´ng thá»ƒ cáº­p nháº­t bÃ i ná»™p Ä‘iá»ƒm"
+          error: "Không thể cập nhật bÃ i ná»™p Ä‘iá»ƒm"
         }
       }
       submission = updatedSubmission
@@ -313,7 +313,7 @@ export async function submitGradesForPeriodAction(
         console.error('Error creating submission:', error)
         return {
           success: false,
-          error: "KhÃ´ng thá»ƒ táº¡o bÃ i ná»™p Ä‘iá»ƒm"
+          error: "Không thể tạo bÃ i ná»™p Ä‘iá»ƒm"
         }
       }
       submission = newSubmission
@@ -327,7 +327,7 @@ export async function submitGradesForPeriodAction(
     console.error('Error in submitGradesForPeriodAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -374,7 +374,7 @@ export async function createAIFeedbackAction(
       console.error('Error creating AI feedback:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº¡o pháº£n há»“i AI"
+        error: "Không thể tạo pháº£n hồ“i AI"
       }
     }
 
@@ -386,7 +386,7 @@ export async function createAIFeedbackAction(
     console.error('Error in createAIFeedbackAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -415,7 +415,7 @@ export async function sendFeedbackToParentsAction(
     if (feedbackError || !feedback) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y pháº£n há»“i"
+        error: "Không tìm thấy pháº£n hồ“i"
       }
     }
 
@@ -453,7 +453,7 @@ export async function sendFeedbackToParentsAction(
       console.error('Error creating delivery records:', deliveryError)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº¡o báº£n ghi gá»­i pháº£n há»“i"
+        error: "Không thể tạo báº£n ghi gá»­i pháº£n hồ“i"
       }
     }
 
@@ -484,7 +484,7 @@ export async function sendFeedbackToParentsAction(
     console.error('Error in sendFeedbackToParentsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -506,7 +506,7 @@ export async function getSubjectRegularGradeConfigAction(): Promise<ActionRespon
       console.error('Error fetching subject grade config:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº£i cáº¥u hÃ¬nh Ä‘iá»ƒm mÃ´n há»c"
+        error: "Không thể tải cáº¥u hình Ä‘iá»ƒm mÃ´n hồc"
       }
     }
 
@@ -518,7 +518,7 @@ export async function getSubjectRegularGradeConfigAction(): Promise<ActionRespon
     console.error('Error in getSubjectRegularGradeConfigAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -550,7 +550,7 @@ export async function logGradeChangeAction(
       console.error('Error creating audit log:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº¡o nháº­t kÃ½ thay Ä‘á»•i Ä‘iá»ƒm"
+        error: "Không thể tạo nhật kÃ½ thay Ä‘á»•i Ä‘iá»ƒm"
       }
     }
 
@@ -562,7 +562,7 @@ export async function logGradeChangeAction(
     console.error('Error in logGradeChangeAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -647,7 +647,7 @@ export async function getGradeSubmissionsAction(
       console.error('Error fetching grade submissions:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch bÃ i ná»™p Ä‘iá»ƒm"
+        error: "Không thể tải danh sách bÃ i ná»™p Ä‘iá»ƒm"
       }
     }
 
@@ -662,7 +662,7 @@ export async function getGradeSubmissionsAction(
     console.error('Error in getGradeSubmissionsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -687,7 +687,7 @@ export async function getTeacherClassesAction(): Promise<ActionResponse<TeacherC
       console.error('Error fetching teacher classes:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c"
+        error: "Không thể tải danh sách lớp hồc"
       }
     }
 
@@ -713,7 +713,7 @@ export async function getTeacherClassesAction(): Promise<ActionResponse<TeacherC
     console.error('Error in getTeacherClassesAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }
@@ -737,7 +737,7 @@ export async function getTeacherSubjectsAction(): Promise<ActionResponse<Teacher
       console.error('Error fetching teacher subjects:', error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch mÃ´n há»c"
+        error: "Không thể tải danh sách mÃ´n hồc"
       }
     }
 
@@ -761,7 +761,7 @@ export async function getTeacherSubjectsAction(): Promise<ActionResponse<Teacher
     console.error('Error in getTeacherSubjectsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh"
+      error: error instanceof Error ? error.message : "Lỗi không xác Ä‘á»‹nh"
     }
   }
 }

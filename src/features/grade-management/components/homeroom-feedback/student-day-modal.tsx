@@ -214,7 +214,7 @@ export function StudentDayModal({
         }))
 
       if (feedbacks.length === 0) {
-        toast.error("KhÃ´ng cÃ³ feedback nÃ o Ä‘á»ƒ tÃ³m táº¯t")
+        toast.error("Không có feedback nÃ o Ä‘á»ƒ tÃ³m táº¯t")
         return
       }
 
@@ -251,13 +251,13 @@ export function StudentDayModal({
       if (result.success) {
         setAiSummary(result.summary)
         setShowAiSummary(true)
-        toast.success("AI Ä‘Ã£ tÃ³m táº¯t feedback thÃ nh cÃ´ng!")
+        toast.success("AI Ä‘Ã£ tÃ³m táº¯t feedback thÃ nh công!")
       } else {
         throw new Error(result.error || 'Failed to generate AI summary')
       }
     } catch (error) {
       console.error('AI Summary Error:', error)
-      toast.error('KhÃ´ng thá»ƒ táº¡o tÃ³m táº¯t AI. Vui lÃ²ng thá»­ láº¡i.')
+      toast.error('Không thể tạo tÃ³m táº¯t AI. Vui lòng thồ­ láº¡i.')
       setError(error instanceof Error ? error.message : 'AI summarization failed')
     } finally {
       setGeneratingAiSummary(false)
@@ -324,7 +324,7 @@ export function StudentDayModal({
               </div>
             </div>
             <Badge variant="outline" className="text-sm font-medium">
-              {dayName} - Tuáº§n {filters.week_number}
+              {dayName} - Tuần {filters.week_number}
             </Badge>
           </DialogTitle>
         </DialogHeader>
@@ -336,7 +336,7 @@ export function StudentDayModal({
             <Card>
               <CardContent className="py-8 text-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Äang táº£i lá»‹ch há»c...</p>
+                <p className="mt-2 text-sm text-muted-foreground">Äang tải lịch hồc...</p>
               </CardContent>
             </Card>
           )}
@@ -356,18 +356,18 @@ export function StudentDayModal({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold flex items-center space-x-2">
                   <Calendar className="h-5 w-5" />
-                  <span>Lá»‹ch Há»c {dayName}</span>
+                  <span>Lịch Hồc {dayName}</span>
                 </h3>
                 <div className="flex items-center space-x-3">
                   <Badge variant="secondary" className="text-sm">
-                    {lessons.length} tiáº¿t há»c
+                    {lessons.length} tiết hồc
                   </Badge>
 
                   {/* Daily Sent Status Indicator */}
                   {lessons.some(lesson => lesson.feedback) && dailySentStatus.sent && (
                     <div className="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
                       <Check className="h-4 w-4" />
-                      <span>ÄÃ£ gá»­i phá»¥ huynh ({dailySentStatus.feedbackCount} feedback)</span>
+                      <span>ÄÃ£ gá»­i phụ huynh ({dailySentStatus.feedbackCount} feedback)</span>
                     </div>
                   )}
                 </div>
@@ -398,7 +398,7 @@ export function StudentDayModal({
                             </div>
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                               <GraduationCap className="h-4 w-4" />
-                              <span>GiÃ¡o viÃªn: {lesson.teacher_name}</span>
+                              <span>Giáo viên: {lesson.teacher_name}</span>
                             </div>
                           </div>
                         </div>
@@ -412,7 +412,7 @@ export function StudentDayModal({
                                   <div className="p-1.5 bg-green-100 dark:bg-green-900/50 rounded-full">
                                     <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
                                   </div>
-                                  <span className="font-medium text-green-800 dark:text-green-200">Pháº£n Há»“i</span>
+                                  <span className="font-medium text-green-800 dark:text-green-200">Phản Hồ“i</span>
                                 </div>
                                 <div className="flex items-center space-x-3">
                                   <div className="flex items-center space-x-1">
@@ -433,7 +433,7 @@ export function StudentDayModal({
                               )}
 
                               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Pháº£n há»“i tá»«: <span className="font-medium">{lesson.feedback.teacher_name}</span></span>
+                                <span>Phản hồ“i từ: <span className="font-medium">{lesson.feedback.teacher_name}</span></span>
                                 <span>{new Date(lesson.feedback.created_at).toLocaleDateString('vi-VN')}</span>
                               </div>
                             </div>
@@ -442,7 +442,7 @@ export function StudentDayModal({
                           <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-700">
                             <div className="flex items-center justify-center space-x-2 text-muted-foreground">
                               <MessageSquare className="h-4 w-4" />
-                              <span className="text-sm">ChÆ°a cÃ³ pháº£n há»“i cho tiáº¿t há»c nÃ y</span>
+                              <span className="text-sm">Chưa có pháº£n hồ“i cho tiết hồc nÃ y</span>
                             </div>
                           </div>
                         )}
@@ -463,9 +463,9 @@ export function StudentDayModal({
                     <Calendar className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">KhÃ´ng CÃ³ Tiáº¿t Há»c</h3>
+                    <h3 className="text-lg font-semibold">Không Có Tiáº¿t Hồc</h3>
                     <p className="text-muted-foreground max-w-sm mx-auto">
-                      Há»c sinh khÃ´ng cÃ³ tiáº¿t há»c nÃ o trong {dayName}.
+                      Hồc sinh không có tiết hồc nÃ o trong {dayName}.
                     </p>
                   </div>
                 </div>
@@ -481,7 +481,7 @@ export function StudentDayModal({
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-purple-600" />
-                    TÃ³m Táº¯t AI & Theo DÃµi Tiáº¿n Bá»™
+                    TÃ³m Táº¯t AI & Theo DÃµi Tiáº¿n Bộ
                   </h3>
                   <div className="flex items-center gap-2">
                     <Button
@@ -493,12 +493,12 @@ export function StudentDayModal({
                       {generatingAiSummary ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Äang táº¡o...
+                          Äang tạo...
                         </>
                       ) : (
                         <>
                           <Sparkles className="h-4 w-4 mr-2" />
-                          Táº¡o TÃ³m Táº¯t & Theo DÃµi Tiáº¿n Bá»™
+                          Tạo TÃ³m Táº¯t & Theo DÃµi Tiáº¿n Bộ
                         </>
                       )}
                     </Button>
@@ -531,7 +531,7 @@ export function StudentDayModal({
                     <AlertDescription className="text-sm">
                       <div className="space-y-2">
                         <p className="font-medium text-purple-800 dark:text-purple-200">
-                          TÃ³m táº¯t AI cho phá»¥ huynh:
+                          TÃ³m táº¯t AI cho phụ huynh:
                         </p>
                         <div className="bg-white dark:bg-gray-900 rounded-md p-3 border">
                           <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -554,7 +554,7 @@ export function StudentDayModal({
                       className="rounded border-gray-300"
                     />
                     <Label htmlFor="useAiSummary" className="text-sm">
-                      Gá»­i tÃ³m táº¯t AI thay vÃ¬ feedback chi tiáº¿t
+                      Gửi tÃ³m táº¯t AI thay vÃ¬ feedback chi tiết
                     </Label>
                   </div>
                 )}
@@ -566,7 +566,7 @@ export function StudentDayModal({
                   {dailySentStatus.sent ? (
                     <div className="flex items-center space-x-2 text-green-600">
                       <Check className="h-4 w-4" />
-                      <span>ÄÃ£ gá»­i feedback cho phá»¥ huynh</span>
+                      <span>ÄÃ£ gá»­i feedback cho phụ huynh</span>
                       {dailySentStatus.sentAt && (
                         <span className="text-xs">
                           ({new Date(dailySentStatus.sentAt).toLocaleString('vi-VN')})
@@ -574,7 +574,7 @@ export function StudentDayModal({
                       )}
                     </div>
                   ) : (
-                    <span>Gá»­i táº¥t cáº£ feedback ngÃ y nÃ y cho phá»¥ huynh</span>
+                    <span>Gửi táº¥t cả feedback ngÃ y nÃ y cho phụ huynh</span>
                   )}
                 </div>
                 <Button
@@ -590,7 +590,7 @@ export function StudentDayModal({
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      {useAiSummary && aiSummary ? 'Gá»­i TÃ³m Táº¯t AI' : 'Gá»­i Feedback'}
+                      {useAiSummary && aiSummary ? 'Gửi TÃ³m Táº¯t AI' : 'Gửi Feedback'}
                     </>
                   )}
                 </Button>

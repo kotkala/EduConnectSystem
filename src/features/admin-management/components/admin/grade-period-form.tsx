@@ -45,19 +45,19 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
       if (result.success) {
         onSuccess()
       } else {
-        setError(result.error || 'CÃ³ lá»—i xáº£y ra khi lÆ°u dá»¯ liá»‡u')
+        setError(result.error || 'Có lỗi xảy ra khi lưu dữ liệu')
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi lÆ°u dá»¯ liá»‡u')
+      setError('Có lỗi xảy ra khi lưu dữ liệu')
     } finally {
       setLoading(false)
     }
   }
 
   const getButtonText = () => {
-    if (loading) return 'Äang lÆ°u...'
-    return period ? 'Cáº­p nháº­t' : 'Táº¡o má»›i'
+    if (loading) return 'Äang lưu...'
+    return period ? 'Cập nhật' : 'Tạo mới'
   }
 
   return (
@@ -70,30 +70,30 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">TÃªn ká»³ bÃ¡o cÃ¡o *</Label>
+          <Label htmlFor="name">Tên kỳ báo cáo *</Label>
           <Input
             id="name"
             name="name"
-            placeholder="Nháº­p tÃªn ká»³ bÃ¡o cÃ¡o"
+            placeholder="Nhập tên kỳ báo cáo"
             defaultValue={period?.name}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="period_type">Loáº¡i ká»³ *</Label>
+          <Label htmlFor="period_type">Loáº¡i kỳ *</Label>
           <Select name="period_type" defaultValue={period?.period_type}>
             <SelectTrigger>
-              <SelectValue placeholder="Chá»n loáº¡i ká»³" />
+              <SelectValue placeholder="Chồn loại kỳ" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="midterm_1">Äiá»ƒm giá»¯a ká»³ 1</SelectItem>
-              <SelectItem value="final_1">Äiá»ƒm cuá»‘i ká»³ 1</SelectItem>
-              <SelectItem value="semester_1_summary">Tá»•ng káº¿t há»c ká»³ 1</SelectItem>
-              <SelectItem value="midterm_2">Äiá»ƒm giá»¯a ká»³ 2</SelectItem>
-              <SelectItem value="final_2">Äiá»ƒm cuá»‘i ká»³ 2</SelectItem>
-              <SelectItem value="semester_2_summary">Tá»•ng káº¿t há»c ká»³ 2</SelectItem>
-              <SelectItem value="yearly_summary">Tá»•ng káº¿t cáº£ nÄƒm</SelectItem>
+              <SelectItem value="midterm_1">Äiá»ƒm giá»¯a kỳ 1</SelectItem>
+              <SelectItem value="final_1">Äiá»ƒm cuá»‘i kỳ 1</SelectItem>
+              <SelectItem value="semester_1_summary">Tổng káº¿t hồc kỳ 1</SelectItem>
+              <SelectItem value="midterm_2">Äiá»ƒm giá»¯a kỳ 2</SelectItem>
+              <SelectItem value="final_2">Äiá»ƒm cuá»‘i kỳ 2</SelectItem>
+              <SelectItem value="semester_2_summary">Tổng káº¿t hồc kỳ 2</SelectItem>
+              <SelectItem value="yearly_summary">Tổng káº¿t cả năm</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -101,7 +101,7 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="start_date">NgÃ y báº¯t Ä‘áº§u *</Label>
+          <Label htmlFor="start_date">NgÃ y bắt Ä‘áº§u *</Label>
           <Input
             id="start_date"
             name="start_date"
@@ -136,7 +136,7 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit_deadline">Háº¡n chá»‰nh sá»­a *</Label>
+          <Label htmlFor="edit_deadline">Háº¡n chồ‰nh sửa *</Label>
           <Input
             id="edit_deadline"
             name="edit_deadline"
@@ -148,11 +148,11 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">MÃ´ táº£</Label>
+        <Label htmlFor="description">Mô tả</Label>
         <Textarea
           id="description"
           name="description"
-          placeholder="Nháº­p mÃ´ táº£ cho ká»³ bÃ¡o cÃ¡o"
+          placeholder="Nhập mô tả cho kỳ báo cáo"
           defaultValue={period?.description}
           rows={3}
         />
@@ -160,7 +160,7 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
 
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
-          Há»§y
+          Hủy
         </Button>
         <Button type="submit" disabled={loading}>
           {getButtonText()}

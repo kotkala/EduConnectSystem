@@ -136,7 +136,7 @@ export function StudentReportModal({
       }
     } catch (error) {
       console.error('Error loading report data:', error)
-      setError('KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u bÃ¡o cÃ¡o')
+      setError('Không thể tải dữ liệu báo cáo')
     } finally {
       setLoading(false)
     }
@@ -144,7 +144,7 @@ export function StudentReportModal({
 
   const handleSaveClick = useCallback(() => {
     if (!strengths.trim() || !weaknesses.trim()) {
-      toast.error('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ Æ°u Ä‘iá»ƒm vÃ  khuyáº¿t Ä‘iá»ƒm')
+      toast.error('Vui lòng Ä‘iá»n Ä‘áº§y Ä‘á»§ Æ°u Ä‘iá»ƒm vÃ  khuyáº¿t Ä‘iá»ƒm')
       return
     }
     setShowVerificationDialog(true)
@@ -165,16 +165,16 @@ export function StudentReportModal({
       })
 
       if (result.success) {
-        toast.success('BÃ¡o cÃ¡o Ä‘Ã£ Ä‘Æ°á»£c lÆ°u thÃ nh cÃ´ng')
+        toast.success('Báo cáo Ä‘Ã£ Ä‘Æ°á»£c lưu thÃ nh công')
         setShowVerificationDialog(false)
         // Don't call onSuccess() here to prevent page reload
         // Let user manually close the modal with "ÄÃ³ng" button
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ lÆ°u bÃ¡o cÃ¡o')
+        setError(result.error || 'Không thể lưu báo cáo')
       }
     } catch (error) {
       console.error('Error saving report:', error)
-      setError('KhÃ´ng thá»ƒ lÆ°u bÃ¡o cÃ¡o')
+      setError('Không thể lưu báo cáo')
     } finally {
       setSaving(false)
     }
@@ -188,15 +188,15 @@ export function StudentReportModal({
       const result = await regenerateAcademicSummaryAction(student.id, reportPeriodId, academicStyle, academicLength)
       if (result.success) {
         setAcademicPerformance(result.data || '')
-        toast.success('ÄÃ£ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p')
+        toast.success('ÄÃ£ tạo láº¡i tÃ³m táº¯t tÃ¬nh hình hồc tập')
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p')
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p')
+        setError(result.error || 'Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình hồc tập')
+        toast.error(result.error || 'Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình hồc tập')
       }
     } catch (error) {
       console.error('Error regenerating academic summary:', error)
-      setError('KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p')
-      toast.error('KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p')
+      setError('Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình hồc tập')
+      toast.error('Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình hồc tập')
     } finally {
       setRegeneratingAcademic(false)
     }
@@ -210,15 +210,15 @@ export function StudentReportModal({
       const result = await regenerateDisciplineSummaryAction(student.id, reportPeriodId, disciplineStyle, disciplineLength)
       if (result.success) {
         setDisciplineStatus(result.data || '')
-        toast.success('ÄÃ£ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t')
+        toast.success('ÄÃ£ tạo láº¡i tÃ³m táº¯t tÃ¬nh hình kỷ luật')
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t')
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t')
+        setError(result.error || 'Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình kỷ luật')
+        toast.error(result.error || 'Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình kỷ luật')
       }
     } catch (error) {
       console.error('Error regenerating discipline summary:', error)
-      setError('KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t')
-      toast.error('KhÃ´ng thá»ƒ táº¡o láº¡i tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t')
+      setError('Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình kỷ luật')
+      toast.error('Không thể tạo láº¡i tÃ³m táº¯t tÃ¬nh hình kỷ luật')
     } finally {
       setRegeneratingDiscipline(false)
     }
@@ -232,15 +232,15 @@ export function StudentReportModal({
       const result = await generateStrengthsSummaryAction(student.id, reportPeriodId, strengthsStyle, strengthsLength)
       if (result.success) {
         setStrengths(result.data || '')
-        toast.success('ÄÃ£ táº¡o Æ°u Ä‘iá»ƒm báº±ng AI')
+        toast.success('ÄÃ£ tạo Æ°u Ä‘iá»ƒm báº±ng AI')
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº¡o Æ°u Ä‘iá»ƒm')
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o Æ°u Ä‘iá»ƒm')
+        setError(result.error || 'Không thể tạo Æ°u Ä‘iá»ƒm')
+        toast.error(result.error || 'Không thể tạo Æ°u Ä‘iá»ƒm')
       }
     } catch (error) {
       console.error('Error generating strengths:', error)
-      setError('KhÃ´ng thá»ƒ táº¡o Æ°u Ä‘iá»ƒm')
-      toast.error('KhÃ´ng thá»ƒ táº¡o Æ°u Ä‘iá»ƒm')
+      setError('Không thể tạo Æ°u Ä‘iá»ƒm')
+      toast.error('Không thể tạo Æ°u Ä‘iá»ƒm')
     } finally {
       setGeneratingStrengths(false)
     }
@@ -254,15 +254,15 @@ export function StudentReportModal({
       const result = await generateWeaknessesSummaryAction(student.id, reportPeriodId, weaknessesStyle, weaknessesLength)
       if (result.success) {
         setWeaknesses(result.data || '')
-        toast.success('ÄÃ£ táº¡o khuyáº¿t Ä‘iá»ƒm báº±ng AI')
+        toast.success('ÄÃ£ tạo khuyáº¿t Ä‘iá»ƒm báº±ng AI')
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº¡o khuyáº¿t Ä‘iá»ƒm')
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o khuyáº¿t Ä‘iá»ƒm')
+        setError(result.error || 'Không thể tạo khuyáº¿t Ä‘iá»ƒm')
+        toast.error(result.error || 'Không thể tạo khuyáº¿t Ä‘iá»ƒm')
       }
     } catch (error) {
       console.error('Error generating weaknesses:', error)
-      setError('KhÃ´ng thá»ƒ táº¡o khuyáº¿t Ä‘iá»ƒm')
-      toast.error('KhÃ´ng thá»ƒ táº¡o khuyáº¿t Ä‘iá»ƒm')
+      setError('Không thể tạo khuyáº¿t Ä‘iá»ƒm')
+      toast.error('Không thể tạo khuyáº¿t Ä‘iá»ƒm')
     } finally {
       setGeneratingWeaknesses(false)
     }
@@ -270,7 +270,7 @@ export function StudentReportModal({
 
   const handleSend = useCallback(async () => {
     if (!student.report?.id) {
-      toast.error('Vui lÃ²ng lÆ°u bÃ¡o cÃ¡o trÆ°á»›c khi gá»­i')
+      toast.error('Vui lòng lưu báo cáo trước khi gá»­i')
       return
     }
 
@@ -281,16 +281,16 @@ export function StudentReportModal({
       const result = await sendStudentReportAction(student.report.id)
 
       if (result.success) {
-        toast.success('BÃ¡o cÃ¡o Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n phá»¥ huynh')
+        toast.success('Báo cáo Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n phụ huynh')
         // Don't call onSuccess() to prevent page reload
         // Just close the modal and show success message
         onOpenChange(false)
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ gá»­i bÃ¡o cÃ¡o')
+        setError(result.error || 'Không thể gá»­i báo cáo')
       }
     } catch (error) {
       console.error('Error sending report:', error)
-      setError('KhÃ´ng thá»ƒ gá»­i bÃ¡o cÃ¡o')
+      setError('Không thể gá»­i báo cáo')
     } finally {
       setSending(false)
     }
@@ -298,7 +298,7 @@ export function StudentReportModal({
 
   const handleResend = useCallback(async () => {
     if (!student.report?.id || !resendReason.trim()) {
-      toast.error('Vui lÃ²ng nháº­p lÃ½ do gá»­i láº¡i')
+      toast.error('Vui lòng nháº­p lý do gá»­i láº¡i')
       return
     }
 
@@ -312,17 +312,17 @@ export function StudentReportModal({
       const result = await resendStudentReportAction(student.report.id, resendReason.trim())
 
       if (result.success) {
-        toast.success('BÃ¡o cÃ¡o Ä‘Ã£ Ä‘Æ°á»£c gá»­i láº¡i Ä‘áº¿n phá»¥ huynh')
+        toast.success('Báo cáo Ä‘Ã£ Ä‘Æ°á»£c gá»­i láº¡i Ä‘áº¿n phụ huynh')
         setShowResendDialog(false)
         setResendReason("")
         setIsEditMode(false)
         onOpenChange(false)
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ gá»­i láº¡i bÃ¡o cÃ¡o')
+        setError(result.error || 'Không thể gá»­i láº¡i báo cáo')
       }
     } catch (error) {
       console.error('Error resending report:', error)
-      setError('KhÃ´ng thá»ƒ gá»­i láº¡i bÃ¡o cÃ¡o')
+      setError('Không thể gá»­i láº¡i báo cáo')
     } finally {
       setSending(false)
     }
@@ -352,12 +352,12 @@ export function StudentReportModal({
             {isViewMode ? (
               <>
                 <Eye className="h-5 w-5" />
-                Xem bÃ¡o cÃ¡o há»c sinh
+                Xem báo cáo hồc sinh
               </>
             ) : (
               <>
                 <MessageSquare className="h-5 w-5" />
-                {reportExists ? 'Chá»‰nh sá»­a bÃ¡o cÃ¡o' : 'Táº¡o bÃ¡o cÃ¡o má»›i'}
+                {reportExists ? 'Chỉnh sửa báo cáo' : 'Tạo báo cáo mới'}
               </>
             )}
           </DialogTitle>
@@ -371,26 +371,26 @@ export function StudentReportModal({
           <div className="space-y-6">
             {/* Student Info */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">ThÃ´ng tin há»c sinh</h3>
+              <h3 className="font-medium mb-2">Thông tin hồc sinh</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">Há» tÃªn:</span> {student.full_name}
+                  <span className="font-medium">Hồ tên:</span> {student.full_name}
                 </div>
                 <div>
-                  <span className="font-medium">MÃ£ há»c sinh:</span> {student.student_id}
+                  <span className="font-medium">MÃ£ hồc sinh:</span> {student.student_id}
                 </div>
                 <div>
-                  <span className="font-medium">Lá»›p:</span> {student.class_name}
+                  <span className="font-medium">Lớp:</span> {student.class_name}
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-medium">Tráº¡ng thÃ¡i:</span>{" "}
+                    <span className="font-medium">Trạng thái:</span>{" "}
                     {student.report?.status === 'sent' ? (
                       <Badge className="bg-green-100 text-green-800">ÄÃ£ gá»­i</Badge>
                     ) : student.report?.status === 'draft' ? (
                       <Badge variant="outline">Báº£n nhÃ¡p</Badge>
                     ) : (
-                      <Badge variant="secondary">ChÆ°a táº¡o</Badge>
+                      <Badge variant="secondary">Chưa tạo</Badge>
                     )}
                   </div>
 
@@ -402,7 +402,7 @@ export function StudentReportModal({
                       onClick={() => setIsEditMode(true)}
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Chá»‰nh sá»­a
+                      Chỉnh sửa
                     </Button>
                   )}
                 </div>
@@ -420,10 +420,10 @@ export function StudentReportModal({
             {/* Report Content */}
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Ná»™i dung bÃ¡o cÃ¡o</h4>
+                <h4 className="font-medium mb-2">Ná»™i dung báo cáo</h4>
                 <p className="text-sm text-gray-700">
-                  KÃ­nh gá»­i phá»¥ huynh <strong>{student.full_name}</strong> vá» tÃ¬nh hÃ¬nh há»c táº­p, 
-                  thá»±c hiá»‡n ná»™i quy nhÃ  trÆ°á»ng cá»§a <strong>{student.full_name}</strong> nhÆ° sau:
+                  KÃ­nh gá»­i phụ huynh <strong>{student.full_name}</strong> về tÃ¬nh hình hồc tập, 
+                  thực hiá»‡n ná»™i quy nhÃ  trÆ°á»ng của <strong>{student.full_name}</strong> nhÆ° sau:
                 </p>
               </div>
 
@@ -435,13 +435,13 @@ export function StudentReportModal({
                       <div className="flex items-center gap-2">
                         <Select value={strengthsStyle} onValueChange={setStrengthsStyle}>
                           <SelectTrigger className="w-[180px] h-8">
-                            <SelectValue placeholder="Phong cÃ¡ch" />
+                            <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="friendly">Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n</SelectItem>
-                            <SelectItem value="serious">Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t</SelectItem>
-                            <SelectItem value="encouraging">Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn</SelectItem>
-                            <SelectItem value="understanding">Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
+                            <SelectItem value="friendly">Phong cách gáº§n gÅ©i, thÃ¢n thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiÃªm tÃºc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khÃ­ch lá»‡, Ä‘á»™ng viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
                           </SelectContent>
                         </Select>
                         <Select value={strengthsLength} onValueChange={setStrengthsLength}>
@@ -449,7 +449,7 @@ export function StudentReportModal({
                             <SelectValue placeholder="Äá»™ dÃ i" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="short">VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)</SelectItem>
+                            <SelectItem value="short">VÄƒn báº£n ngắn gá»n (1-2 cÃ¢u)</SelectItem>
                             <SelectItem value="medium">VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)</SelectItem>
                             <SelectItem value="long">VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)</SelectItem>
                           </SelectContent>
@@ -467,7 +467,7 @@ export function StudentReportModal({
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
-                          Táº¡o AI
+                          Tạo AI
                         </Button>
                       </div>
                     )}
@@ -476,14 +476,14 @@ export function StudentReportModal({
                     id="strengths"
                     value={strengths}
                     onChange={(e) => setStrengths(e.target.value)}
-                    placeholder="Nháº­p Æ°u Ä‘iá»ƒm cá»§a há»c sinh..."
+                    placeholder="Nhập Æ°u Ä‘iá»ƒm của hồc sinh..."
                     className="mt-1"
                     rows={3}
                     disabled={isViewMode}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     <Sparkles className="h-3 w-3 inline mr-1" />
-                    CÃ³ thá»ƒ sá»­ dá»¥ng AI Ä‘á»ƒ táº¡o ná»™i dung dá»±a trÃªn pháº£n há»“i tÃ­ch cá»±c
+                    Có thể sá»­ dá»¥ng AI Ä‘á»ƒ tạo ná»™i dung dá»±a trÃªn pháº£n hồ“i tÃ­ch cá»±c
                   </p>
                 </div>
 
@@ -494,13 +494,13 @@ export function StudentReportModal({
                       <div className="flex items-center gap-2">
                         <Select value={weaknessesStyle} onValueChange={setWeaknessesStyle}>
                           <SelectTrigger className="w-[180px] h-8">
-                            <SelectValue placeholder="Phong cÃ¡ch" />
+                            <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="friendly">Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n</SelectItem>
-                            <SelectItem value="serious">Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t</SelectItem>
-                            <SelectItem value="encouraging">Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn</SelectItem>
-                            <SelectItem value="understanding">Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
+                            <SelectItem value="friendly">Phong cách gáº§n gÅ©i, thÃ¢n thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiÃªm tÃºc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khÃ­ch lá»‡, Ä‘á»™ng viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
                           </SelectContent>
                         </Select>
                         <Select value={weaknessesLength} onValueChange={setWeaknessesLength}>
@@ -508,7 +508,7 @@ export function StudentReportModal({
                             <SelectValue placeholder="Äá»™ dÃ i" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="short">VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)</SelectItem>
+                            <SelectItem value="short">VÄƒn báº£n ngắn gá»n (1-2 cÃ¢u)</SelectItem>
                             <SelectItem value="medium">VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)</SelectItem>
                             <SelectItem value="long">VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)</SelectItem>
                           </SelectContent>
@@ -526,7 +526,7 @@ export function StudentReportModal({
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
-                          Táº¡o AI
+                          Tạo AI
                         </Button>
                       </div>
                     )}
@@ -535,31 +535,31 @@ export function StudentReportModal({
                     id="weaknesses"
                     value={weaknesses}
                     onChange={(e) => setWeaknesses(e.target.value)}
-                    placeholder="Nháº­p khuyáº¿t Ä‘iá»ƒm cá»§a há»c sinh..."
+                    placeholder="Nhập khuyáº¿t Ä‘iá»ƒm của hồc sinh..."
                     className="mt-1"
                     rows={3}
                     disabled={isViewMode}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     <Sparkles className="h-3 w-3 inline mr-1" />
-                    CÃ³ thá»ƒ sá»­ dá»¥ng AI Ä‘á»ƒ táº¡o ná»™i dung dá»±a trÃªn pháº£n há»“i vÃ  vi pháº¡m
+                    Có thể sá»­ dá»¥ng AI Ä‘á»ƒ tạo ná»™i dung dá»±a trÃªn pháº£n hồ“i vÃ  vi phạm
                   </p>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="academic">TÃ¬nh hÃ¬nh há»c táº­p</Label>
+                    <Label htmlFor="academic">TÃ¬nh hình hồc tập</Label>
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={academicStyle} onValueChange={setAcademicStyle}>
                           <SelectTrigger className="w-[180px] h-8">
-                            <SelectValue placeholder="Phong cÃ¡ch" />
+                            <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="friendly">Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n</SelectItem>
-                            <SelectItem value="serious">Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t</SelectItem>
-                            <SelectItem value="encouraging">Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn</SelectItem>
-                            <SelectItem value="understanding">Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
+                            <SelectItem value="friendly">Phong cách gáº§n gÅ©i, thÃ¢n thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiÃªm tÃºc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khÃ­ch lá»‡, Ä‘á»™ng viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
                           </SelectContent>
                         </Select>
                         <Select value={academicLength} onValueChange={setAcademicLength}>
@@ -567,7 +567,7 @@ export function StudentReportModal({
                             <SelectValue placeholder="Äá»™ dÃ i" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="short">VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)</SelectItem>
+                            <SelectItem value="short">VÄƒn báº£n ngắn gá»n (1-2 cÃ¢u)</SelectItem>
                             <SelectItem value="medium">VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)</SelectItem>
                             <SelectItem value="long">VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)</SelectItem>
                           </SelectContent>
@@ -585,7 +585,7 @@ export function StudentReportModal({
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
-                          Táº¡o láº¡i AI
+                          Tạo láº¡i AI
                         </Button>
                       </div>
                     )}
@@ -594,31 +594,31 @@ export function StudentReportModal({
                     id="academic"
                     value={academicPerformance}
                     onChange={(e) => setAcademicPerformance(e.target.value)}
-                    placeholder="TÃ³m táº¯t AI vá» pháº£n há»“i há»c táº­p trong 4 tuáº§n..."
+                    placeholder="TÃ³m táº¯t AI về pháº£n hồ“i hồc tập trong 4 tuần..."
                     className="mt-1"
                     rows={4}
                     disabled={isViewMode}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     <Sparkles className="h-3 w-3 inline mr-1" />
-                    Ná»™i dung nÃ y Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng tá»« pháº£n há»“i cá»§a giÃ¡o viÃªn trong ká»³ bÃ¡o cÃ¡o
+                    Ná»™i dung nÃ y Ä‘Æ°á»£c tạo tá»± Ä‘á»™ng từ pháº£n hồ“i của giáo viên trong kỳ báo cáo
                   </p>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="discipline">TÃ¬nh hÃ¬nh tuÃ¢n thá»§ ná»™i quy</Label>
+                    <Label htmlFor="discipline">TÃ¬nh hình tuÃ¢n thồ§ ná»™i quy</Label>
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={disciplineStyle} onValueChange={setDisciplineStyle}>
                           <SelectTrigger className="w-[180px] h-8">
-                            <SelectValue placeholder="Phong cÃ¡ch" />
+                            <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="friendly">Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n</SelectItem>
-                            <SelectItem value="serious">Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t</SelectItem>
-                            <SelectItem value="encouraging">Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn</SelectItem>
-                            <SelectItem value="understanding">Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
+                            <SelectItem value="friendly">Phong cách gáº§n gÅ©i, thÃ¢n thiện</SelectItem>
+                            <SelectItem value="serious">Phong cách nghiÃªm tÃºc, kỷ luật</SelectItem>
+                            <SelectItem value="encouraging">Phong cách khÃ­ch lá»‡, Ä‘á»™ng viên</SelectItem>
+                            <SelectItem value="understanding">Phong cách láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
                           </SelectContent>
                         </Select>
                         <Select value={disciplineLength} onValueChange={setDisciplineLength}>
@@ -626,7 +626,7 @@ export function StudentReportModal({
                             <SelectValue placeholder="Äá»™ dÃ i" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="short">VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)</SelectItem>
+                            <SelectItem value="short">VÄƒn báº£n ngắn gá»n (1-2 cÃ¢u)</SelectItem>
                             <SelectItem value="medium">VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)</SelectItem>
                             <SelectItem value="long">VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)</SelectItem>
                           </SelectContent>
@@ -644,7 +644,7 @@ export function StudentReportModal({
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
-                          Táº¡o láº¡i AI
+                          Tạo láº¡i AI
                         </Button>
                       </div>
                     )}
@@ -653,14 +653,14 @@ export function StudentReportModal({
                     id="discipline"
                     value={disciplineStatus}
                     onChange={(e) => setDisciplineStatus(e.target.value)}
-                    placeholder="Danh sÃ¡ch vi pháº¡m trong ká»³ bÃ¡o cÃ¡o..."
+                    placeholder="Danh sách vi phạm trong kỳ báo cáo..."
                     className="mt-1"
                     rows={4}
                     disabled={isViewMode}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     <Sparkles className="h-3 w-3 inline mr-1" />
-                    Ná»™i dung nÃ y Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng tá»« danh sÃ¡ch vi pháº¡m trong ká»³ bÃ¡o cÃ¡o
+                    Ná»™i dung nÃ y Ä‘Æ°á»£c tạo tá»± Ä‘á»™ng từ danh sách vi phạm trong kỳ báo cáo
                   </p>
                 </div>
               </div>
@@ -669,7 +669,7 @@ export function StudentReportModal({
             {/* Parent Responses (View Mode Only) */}
             {isViewMode && parentResponses.length > 0 && (
               <div className="space-y-4">
-                <h4 className="font-medium">Pháº£n há»“i tá»« phá»¥ huynh</h4>
+                <h4 className="font-medium">Phản hồ“i từ phụ huynh</h4>
                 {parentResponses.map((response, index) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
@@ -683,10 +683,10 @@ export function StudentReportModal({
                         ) : response.agreement_status === 'disagree' ? (
                           <Badge variant="destructive">
                             <AlertCircle className="h-3 w-3 mr-1" />
-                            KhÃ´ng Ä‘á»“ng Ã½
+                            Không Ä‘á»“ng Ã½
                           </Badge>
                         ) : (
-                          <Badge variant="secondary">ChÆ°a pháº£n há»“i</Badge>
+                          <Badge variant="secondary">Chưa pháº£n hồ“i</Badge>
                         )}
                       </div>
                     </div>
@@ -697,7 +697,7 @@ export function StudentReportModal({
                     )}
                     {response.responded_at && (
                       <p className="text-xs text-gray-500 mt-2">
-                        Pháº£n há»“i lÃºc: {new Date(response.responded_at).toLocaleString('vi-VN')}
+                        Phản hồ“i lúc: {new Date(response.responded_at).toLocaleString('vi-VN')}
                       </p>
                     )}
                   </div>
@@ -752,7 +752,7 @@ export function StudentReportModal({
                       className="bg-orange-600 hover:bg-orange-700"
                     >
                       <Send className="h-4 w-4 mr-2" />
-                      Gá»­i láº¡i
+                      Gửi láº¡i
                     </Button>
                   )}
 
@@ -771,7 +771,7 @@ export function StudentReportModal({
                         }
                       }}
                     >
-                      Há»§y
+                      Hủy
                     </Button>
                   )}
                 </>
@@ -785,20 +785,20 @@ export function StudentReportModal({
       <Dialog open={showResendDialog} onOpenChange={setShowResendDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Gá»­i láº¡i bÃ¡o cÃ¡o</DialogTitle>
+            <DialogTitle>Gửi láº¡i báo cáo</DialogTitle>
             <DialogDescription>
-              Vui lÃ²ng nháº­p lÃ½ do gá»­i láº¡i bÃ¡o cÃ¡o cho phá»¥ huynh
+              Vui lòng nháº­p lý do gá»­i láº¡i báo cáo cho phụ huynh
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="resend-reason">LÃ½ do gá»­i láº¡i *</Label>
+              <Label htmlFor="resend-reason">Lý do gá»­i láº¡i *</Label>
               <Textarea
                 id="resend-reason"
                 value={resendReason}
                 onChange={(e) => setResendReason(e.target.value)}
-                placeholder="VÃ­ dá»¥: Cáº­p nháº­t thÃ´ng tin há»c táº­p, sá»­a lá»—i chÃ­nh táº£..."
+                placeholder="VÃ­ dá»¥: Cập nhật thông tin hồc tập, sửa lỗi chÃ­nh tả..."
                 className="mt-1"
                 rows={3}
               />
@@ -807,7 +807,7 @@ export function StudentReportModal({
 
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setShowResendDialog(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button
               onClick={handleResend}
@@ -819,7 +819,7 @@ export function StudentReportModal({
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
-              Gá»­i láº¡i
+              Gửi láº¡i
             </Button>
           </div>
         </DialogContent>
@@ -829,23 +829,23 @@ export function StudentReportModal({
       <AlertDialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>XÃ¡c nháº­n lÆ°u bÃ¡o cÃ¡o</AlertDialogTitle>
+            <AlertDialogTitle>Xác nhận lưu báo cáo</AlertDialogTitle>
             <AlertDialogDescription>
-              Vui lÃ²ng xem láº¡i ná»™i dung bÃ¡o cÃ¡o trÆ°á»›c khi lÆ°u.
+              Vui lòng xem láº¡i ná»™i dung báo cáo trước khi lưu.
               <br /><br />
-              <strong>LÆ°u Ã½:</strong> Ná»™i dung Ä‘Æ°á»£c táº¡o bá»Ÿi AI chá»‰ mang tÃ­nh cháº¥t tham kháº£o.
-              GiÃ¡o viÃªn cáº§n kiá»ƒm tra vÃ  chá»‰nh sá»­a cho phÃ¹ há»£p vá»›i tÃ¬nh hÃ¬nh thá»±c táº¿ cá»§a há»c sinh.
+              <strong>LÆ°u Ã½:</strong> Ná»™i dung Ä‘Æ°á»£c tạo bởi AI chồ‰ mang tÃ­nh cháº¥t tham kháº£o.
+              Giáo viên cáº§n kiá»ƒm tra vÃ  chồ‰nh sửa cho phù hợp về›i tÃ¬nh hình thực táº¿ của hồc sinh.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Há»§y</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave} disabled={saving}>
               {saving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              XÃ¡c nháº­n lÆ°u
+              Xác nhận lưu
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

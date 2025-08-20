@@ -150,7 +150,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* Academic Year Name */}
       <FormField
         id="name"
-        label="TÃªn nÄƒm há»c"
+        label="Tên năm hồc"
         placeholder="VÃ­ dá»¥: 2024-2025"
         register={form.register("name")}
         error={form.formState.errors.name?.message}
@@ -161,7 +161,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* Start Date */}
       <FormField
         id="start_date"
-        label="NgÃ y báº¯t Ä‘áº§u"
+        label="NgÃ y bắt Ä‘áº§u"
         type="date"
         register={form.register("start_date")}
         error={form.formState.errors.start_date?.message}
@@ -187,12 +187,12 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
           disabled={isSubmitting}
         />
         <Label htmlFor="is_current" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Äáº·t lÃ m nÄƒm há»c hiá»‡n táº¡i
+          Äáº·t lÃ m năm hồc hiá»‡n táº¡i
         </Label>
       </div>
       {form.watch("is_current") && (
         <p className="text-sm text-amber-600">
-          Äáº·t lÃ m nÄƒm há»c hiá»‡n táº¡i sáº½ tá»± Ä‘á»™ng bá» chá»n cÃ¡c nÄƒm há»c hiá»‡n táº¡i khÃ¡c vÃ  táº¡o há»c ká»³ máº·c Ä‘á»‹nh.
+          Äáº·t lÃ m năm hồc hiá»‡n táº¡i sẽ tá»± Ä‘á»™ng bá» chồn các năm hồc hiá»‡n táº¡i khÃ¡c vÃ  tạo hồc kỳ mặc Ä‘á»‹nh.
         </p>
       )}
 
@@ -221,7 +221,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <span className="text-sm sm:text-base">
-            {isEditing ? "Cáº­p nháº­t niÃªn khÃ³a" : "Táº¡o niÃªn khÃ³a"}
+            {isEditing ? "Cập nhật niÃªn khóa" : "Tạo niÃªn khóa"}
           </span>
         </Button>
 
@@ -233,23 +233,23 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
             disabled={isSubmitting}
             className="h-10 sm:h-11 sm:w-auto"
           >
-            Há»§y
+            Hủy
           </Button>
         )}
       </div>
 
       {!isEditing && (
         <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Há»c ká»³ tá»± Ä‘á»™ng táº¡o</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Hồc kỳ tá»± Ä‘á»™ng tạo</h4>
           <p className="text-xs sm:text-sm text-blue-700">
-            Khi báº¡n táº¡o nÄƒm há»c má»›i, hai há»c ká»³ máº·c Ä‘á»‹nh sáº½ Ä‘Æ°á»£c tá»± Ä‘á»™ng táº¡o:
+            Khi báº¡n tạo năm hồc mới, hai hồc kỳ mặc Ä‘á»‹nh sẽ Ä‘Æ°á»£c tá»± Ä‘á»™ng tạo:
           </p>
           <ul className="text-xs sm:text-sm text-blue-700 mt-2 space-y-1">
-            <li>â€¢ <strong>Há»c ká»³ 1:</strong> 18 tuáº§n (khoáº£ng 4 thÃ¡ng Ä‘áº§u)</li>
-            <li>â€¢ <strong>Há»c ká»³ 2:</strong> 17 tuáº§n (thá»i gian cÃ²n láº¡i)</li>
+            <li>â€¢ <strong>Hồc kỳ 1:</strong> 18 tuần (khoảng 4 tháng Ä‘áº§u)</li>
+            <li>â€¢ <strong>Hồc kỳ 2:</strong> 17 tuần (thồi gian cÃ²n láº¡i)</li>
           </ul>
           <p className="text-xs sm:text-sm text-blue-700 mt-2">
-            Báº¡n cÃ³ thá»ƒ chá»‰nh sá»­a cÃ¡c há»c ká»³ nÃ y sau khi táº¡o náº¿u cáº§n.
+            Báº¡n có thể chồ‰nh sửa các hồc kỳ nÃ y sau khi tạo nếu cáº§n.
           </p>
         </div>
       )}

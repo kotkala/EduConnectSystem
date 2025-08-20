@@ -144,21 +144,21 @@ export function TeacherGradeTrackingDialog({
           midtermGrade: 8.0,
           finalGrade: null,
           summaryGrade: null,
-          notes: 'Há»c sinh chÄƒm chá»‰',
+          notes: 'Hồc sinh chÄƒm chồ‰',
           lastModified: new Date().toISOString(),
-          modifiedBy: 'GiÃ¡o viÃªn ToÃ¡n'
+          modifiedBy: 'Giáo viên ToÃ¡n'
         },
         {
           id: '2',
           studentId: 'HS002',
-          studentName: 'Tráº§n Thá»‹ B',
+          studentName: 'Tráº§n Thồ‹ B',
           regularGrades: [9.0, 8.5, 7.5, 8.0],
           midtermGrade: 8.5,
           finalGrade: 9.0,
           summaryGrade: 8.7,
           notes: '',
           lastModified: new Date().toISOString(),
-          modifiedBy: 'GiÃ¡o viÃªn ToÃ¡n'
+          modifiedBy: 'Giáo viên ToÃ¡n'
         },
         {
           id: '3',
@@ -170,7 +170,7 @@ export function TeacherGradeTrackingDialog({
           summaryGrade: null,
           notes: '',
           lastModified: new Date().toISOString(),
-          modifiedBy: 'GiÃ¡o viÃªn ToÃ¡n'
+          modifiedBy: 'Giáo viên ToÃ¡n'
         }
       ]
 
@@ -182,7 +182,7 @@ export function TeacherGradeTrackingDialog({
 
     } catch (error) {
       console.error('Error loading grade data:', error)
-      setError('KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘')
+      setError('Không thể tải dữ liệu Ä‘iá»ƒm sá»‘')
     } finally {
       setLoading(false)
     }
@@ -285,7 +285,7 @@ export function TeacherGradeTrackingDialog({
 
   const getGradeStatusBadge = (grade: number | null | undefined) => {
     if (grade === null || grade === undefined) {
-      return <Badge variant="outline" className="text-gray-500">ChÆ°a cÃ³</Badge>
+      return <Badge variant="outline" className="text-gray-500">Chưa có</Badge>
     }
 
     if (grade >= 8) {
@@ -316,10 +316,10 @@ export function TeacherGradeTrackingDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Theo dÃµi Ä‘iá»ƒm sá»‘ - {className} - {subjectName}
+            Theo dõi Ä‘iá»ƒm sá»‘ - {className} - {subjectName}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Ká»³: {periodName}
+            Kỳ: {periodName}
           </p>
         </DialogHeader>
 
@@ -328,7 +328,7 @@ export function TeacherGradeTrackingDialog({
           <div className="flex justify-between items-center">
             <Button variant="outline" onClick={loadGradeData} disabled={loading}>
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              LÃ m mới
             </Button>
             <Button variant="outline" onClick={exportGradeData}>
               <Download className="mr-2 h-4 w-4" />
@@ -349,7 +349,7 @@ export function TeacherGradeTrackingDialog({
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
-                <p>Äang táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘...</p>
+                <p>Äang tải dữ liệu Ä‘iá»ƒm sá»‘...</p>
               </div>
             </div>
           )}
@@ -358,12 +358,12 @@ export function TeacherGradeTrackingDialog({
           {!loading && !error && (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Tá»•ng quan</TabsTrigger>
-                <TabsTrigger value="details">Chi tiáº¿t</TabsTrigger>
-                <TabsTrigger value="statistics">Thá»‘ng kÃª</TabsTrigger>
+                <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+                <TabsTrigger value="details">Chi tiết</TabsTrigger>
+                <TabsTrigger value="statistics">Thồ‘ng kÃª</TabsTrigger>
                 <TabsTrigger value="history" onClick={loadGradeHistory}>
                   <History className="mr-1 h-4 w-4" />
-                  Lá»‹ch sá»­
+                  Lịch sá»­
                 </TabsTrigger>
               </TabsList>
 
@@ -372,20 +372,20 @@ export function TeacherGradeTrackingDialog({
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Tá»•ng há»c sinh</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tổng hồc sinh</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">{statistics.totalStudents}</div>
                         <p className="text-xs text-muted-foreground">
-                          {statistics.studentsWithGrades} cÃ³ Ä‘iá»ƒm, {statistics.studentsWithoutGrades} chÆ°a cÃ³
+                          {statistics.studentsWithGrades} có Ä‘iá»ƒm, {statistics.studentsWithoutGrades} chưa có
                         </p>
                       </CardContent>
                     </Card>
 
                     <Card>
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Äiá»ƒm há»£p lá»‡</CardTitle>
+                        <CardTitle className="text-sm font-medium">Äiá»ƒm hợp lá»‡</CardTitle>
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       </CardHeader>
                       <CardContent>
@@ -459,14 +459,14 @@ export function TeacherGradeTrackingDialog({
                         <tr>
                           <th className="text-left p-3 font-medium">STT</th>
                           <th className="text-left p-3 font-medium">MÃ£ HS</th>
-                          <th className="text-left p-3 font-medium">Há» vÃ  tÃªn</th>
+                          <th className="text-left p-3 font-medium">Hồ vÃ  tên</th>
                           <th className="text-left p-3 font-medium">TX1</th>
                           <th className="text-left p-3 font-medium">TX2</th>
                           <th className="text-left p-3 font-medium">TX3</th>
                           <th className="text-left p-3 font-medium">TX4</th>
-                          <th className="text-left p-3 font-medium">Giá»¯a kÃ¬</th>
-                          <th className="text-left p-3 font-medium">Cuá»‘i kÃ¬</th>
-                          <th className="text-left p-3 font-medium">Tá»•ng káº¿t</th>
+                          <th className="text-left p-3 font-medium">Giá»¯a kì</th>
+                          <th className="text-left p-3 font-medium">Cuá»‘i kì</th>
+                          <th className="text-left p-3 font-medium">Tổng káº¿t</th>
                           <th className="text-left p-3 font-medium">Ghi chÃº</th>
                         </tr>
                       </thead>
@@ -532,7 +532,7 @@ export function TeacherGradeTrackingDialog({
 
                     <Card>
                       <CardHeader>
-                        <CardTitle>Thá»‘ng kÃª chi tiáº¿t</CardTitle>
+                        <CardTitle>Thồ‘ng kÃª chi tiết</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div className="flex justify-between items-center">
@@ -542,19 +542,19 @@ export function TeacherGradeTrackingDialog({
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">Há»c sinh cÃ³ Ä‘iá»ƒm</span>
+                          <span className="text-sm">Hồc sinh có Ä‘iá»ƒm</span>
                           <span className="font-medium">
                             {statistics.studentsWithGrades}/{statistics.totalStudents}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">Äiá»ƒm trung bÃ¬nh lá»›p</span>
+                          <span className="text-sm">Äiá»ƒm trung bÃ¬nh lớp</span>
                           <span className="font-medium">
                             {statistics.averageGrade !== null ? statistics.averageGrade : 'N/A'}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm">Tá»•ng sá»‘ Ä‘iá»ƒm</span>
+                          <span className="text-sm">Tổng sá»‘ Ä‘iá»ƒm</span>
                           <span className="font-medium">{statistics.totalGrades}</span>
                         </div>
                       </CardContent>
@@ -565,10 +565,10 @@ export function TeacherGradeTrackingDialog({
 
               <TabsContent value="history" className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Lá»‹ch sá»­ thay Ä‘á»•i Ä‘iá»ƒm</h3>
+                  <h3 className="text-lg font-medium">Lịch sá»­ thay Ä‘á»•i Ä‘iá»ƒm</h3>
                   <Button variant="outline" onClick={loadGradeHistory} disabled={historyLoading}>
                     <RefreshCw className={`mr-2 h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`} />
-                    LÃ m má»›i
+                    LÃ m mới
                   </Button>
                 </div>
 
@@ -576,7 +576,7 @@ export function TeacherGradeTrackingDialog({
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
                       <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
-                      <p>Äang táº£i lá»‹ch sá»­ thay Ä‘á»•i...</p>
+                      <p>Äang tải lịch sá»­ thay Ä‘á»•i...</p>
                     </div>
                   </div>
                 )}
@@ -584,9 +584,9 @@ export function TeacherGradeTrackingDialog({
                 {!historyLoading && gradeHistory.length === 0 && (
                   <div className="text-center py-8">
                     <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">ChÆ°a cÃ³ lá»‹ch sá»­ thay Ä‘á»•i</h3>
+                    <h3 className="text-lg font-medium mb-2">Chưa có lịch sá»­ thay Ä‘á»•i</h3>
                     <p className="text-muted-foreground">
-                      Lá»‹ch sá»­ thay Ä‘á»•i Ä‘iá»ƒm sáº½ Ä‘Æ°á»£c hiá»ƒn thá»‹ á»Ÿ Ä‘Ã¢y khi cÃ³ cáº­p nháº­t
+                      Lịch sá»­ thay Ä‘á»•i Ä‘iá»ƒm sẽ Ä‘Æ°á»£c hiá»ƒn thồ‹ á»Ÿ Ä‘Ã¢y khi có cập nhật
                     </p>
                   </div>
                 )}
@@ -602,8 +602,8 @@ export function TeacherGradeTrackingDialog({
                                 {record.students?.[0]?.full_name || 'Unknown Student'}
                               </h4>
                               <p className="text-sm text-muted-foreground">
-                                {record.component_type === 'midterm' ? 'Äiá»ƒm giá»¯a ká»³' :
-                                 record.component_type === 'final' ? 'Äiá»ƒm cuá»‘i ká»³' :
+                                {record.component_type === 'midterm' ? 'Äiá»ƒm giá»¯a kỳ' :
+                                 record.component_type === 'final' ? 'Äiá»ƒm cuá»‘i kỳ' :
                                  record.component_type === 'summary' ? 'Äiá»ƒm tá»•ng káº¿t' :
                                  `Äiá»ƒm thÆ°á»ng xuyÃªn ${record.component_type.replace('regular_', '')}`}
                               </p>
@@ -624,7 +624,7 @@ export function TeacherGradeTrackingDialog({
 
                           {record.grade_audit_logs && record.grade_audit_logs.length > 0 && (
                             <div className="mt-3 space-y-2">
-                              <h5 className="text-sm font-medium">Lá»‹ch sá»­ thay Ä‘á»•i:</h5>
+                              <h5 className="text-sm font-medium">Lịch sá»­ thay Ä‘á»•i:</h5>
                               {record.grade_audit_logs.map((log) => (
                                 <div key={log.id} className="bg-gray-50 p-3 rounded text-sm">
                                   <div className="flex justify-between items-center mb-1">
@@ -642,7 +642,7 @@ export function TeacherGradeTrackingDialog({
                                     </span>
                                   </div>
                                   <p className="text-xs text-muted-foreground mb-1">
-                                    <strong>LÃ½ do:</strong> {log.change_reason}
+                                    <strong>Lý do:</strong> {log.change_reason}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
                                     <strong>NgÆ°á»i thay Ä‘á»•i:</strong> {log.profiles?.[0]?.full_name || 'Unknown'}

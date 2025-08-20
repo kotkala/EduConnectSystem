@@ -82,14 +82,14 @@ export function AcademicYearManagementDialog({
       if (yearsResult.success) {
         setAcademicYears(yearsResult.data)
       } else {
-        setError(yearsResult.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch nÄƒm há»c')
+        setError(yearsResult.error || 'Không thể tải danh sách năm hồc')
       }
       
       if (semestersResult.success) {
         setSemesters(semestersResult.data)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'CÃ³ lá»—i xáº£y ra')
+      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra')
     } finally {
       setLoading(false)
     }
@@ -164,7 +164,7 @@ export function AcademicYearManagementDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Quáº£n lÃ½ nÄƒm há»c & há»c ká»³
+              Quản lý năm hồc & hồc kỳ
             </DialogTitle>
           </DialogHeader>
 
@@ -181,12 +181,12 @@ export function AcademicYearManagementDialog({
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  NÄƒm há»c hiá»‡n táº¡i
+                  Năm hồc hiá»‡n táº¡i
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-bold">
-                  {currentYear?.name || 'KhÃ´ng cÃ³'}
+                  {currentYear?.name || 'Không có'}
                 </div>
               </CardContent>
             </Card>
@@ -195,12 +195,12 @@ export function AcademicYearManagementDialog({
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Há»c ká»³ hiá»‡n táº¡i
+                  Hồc kỳ hiá»‡n táº¡i
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-bold">
-                  {currentSemester?.name || 'KhÃ´ng cÃ³'}
+                  {currentSemester?.name || 'Không có'}
                 </div>
               </CardContent>
             </Card>
@@ -209,12 +209,12 @@ export function AcademicYearManagementDialog({
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
-                  Tá»•ng sá»‘
+                  Tổng sá»‘
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-lg font-bold">
-                  {academicYears.length} nÄƒm, {semesters.length} ká»³
+                  {academicYears.length} năm, {semesters.length} kỳ
                 </div>
               </CardContent>
             </Card>
@@ -227,7 +227,7 @@ export function AcademicYearManagementDialog({
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              ThÃªm nÄƒm há»c
+              Thêm năm hồc
             </Button>
             <Button
               onClick={() => setShowCreateSemesterDialog(true)}
@@ -235,7 +235,7 @@ export function AcademicYearManagementDialog({
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              ThÃªm há»c ká»³
+              Thêm hồc kỳ
             </Button>
             <Button
               onClick={handleRefresh}
@@ -245,15 +245,15 @@ export function AcademicYearManagementDialog({
               className="flex items-center gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              LÃ m mới
             </Button>
           </div>
 
           {/* Tabs */}
           <Tabs defaultValue="years" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="years">NÄƒm há»c ({academicYears.length})</TabsTrigger>
-              <TabsTrigger value="semesters">Há»c ká»³ ({semesters.length})</TabsTrigger>
+              <TabsTrigger value="years">Năm hồc ({academicYears.length})</TabsTrigger>
+              <TabsTrigger value="semesters">Hồc kỳ ({semesters.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="years" className="space-y-4">
@@ -306,7 +306,7 @@ export function AcademicYearManagementDialog({
                           <div>
                             <div className="font-medium">{semester.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {semester.academic_year?.name} â€¢ {semester.weeks_count} tuáº§n
+                              {semester.academic_year?.name} â€¢ {semester.weeks_count} tuần
                             </div>
                           </div>
                           {semester.is_current && (
@@ -343,7 +343,7 @@ export function AcademicYearManagementDialog({
       <Dialog open={showCreateYearDialog} onOpenChange={setShowCreateYearDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>ThÃªm nÄƒm há»c má»›i</DialogTitle>
+            <DialogTitle>Thêm năm hồc mới</DialogTitle>
           </DialogHeader>
           <AcademicYearForm
             onSuccess={handleCreateYearSuccess}
@@ -356,7 +356,7 @@ export function AcademicYearManagementDialog({
       <Dialog open={showEditYearDialog} onOpenChange={setShowEditYearDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chá»‰nh sá»­a nÄƒm há»c</DialogTitle>
+            <DialogTitle>Chỉnh sửa năm hồc</DialogTitle>
           </DialogHeader>
           {editingYear && (
             <AcademicYearForm
@@ -375,7 +375,7 @@ export function AcademicYearManagementDialog({
       <Dialog open={showCreateSemesterDialog} onOpenChange={setShowCreateSemesterDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>ThÃªm há»c ká»³ má»›i</DialogTitle>
+            <DialogTitle>Thêm hồc kỳ mới</DialogTitle>
           </DialogHeader>
           <SemesterForm
             onSuccess={handleCreateSemesterSuccess}
@@ -388,7 +388,7 @@ export function AcademicYearManagementDialog({
       <Dialog open={showEditSemesterDialog} onOpenChange={setShowEditSemesterDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chá»‰nh sá»­a há»c ká»³</DialogTitle>
+            <DialogTitle>Chỉnh sửa hồc kỳ</DialogTitle>
           </DialogHeader>
           {editingSemester && (
             <SemesterForm

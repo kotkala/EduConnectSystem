@@ -32,7 +32,7 @@ async function checkAdminPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -42,7 +42,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (!profile || profile.role !== 'admin') {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyá»n quản trị")
   }
 
   return { userId: user.id, supabase }
@@ -54,7 +54,7 @@ async function checkHomeroomTeacherPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -64,7 +64,7 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (!profile || profile.role !== 'teacher') {
-    throw new Error("YÃªu cáº§u quyá»n giÃ¡o viÃªn")
+    throw new Error("Yêu cầu quyá»n giáo viên")
   }
 
   // Check if teacher is a homeroom teacher
@@ -76,7 +76,7 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (!homeroomClass) {
-    throw new Error("YÃªu cáº§u quyá»n giÃ¡o viÃªn chá»§ nhiá»‡m")
+    throw new Error("Yêu cầu quyá»n giáo viên chủ nhiệm")
   }
 
   return { userId: user.id, supabase, homeroomClass }
@@ -106,7 +106,7 @@ export async function createViolationCategoryAction(data: ViolationCategoryFormD
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -136,7 +136,7 @@ export async function updateViolationCategoryAction(data: UpdateViolationCategor
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -157,7 +157,7 @@ export async function getViolationCategoriesAction(): Promise<{ success: boolean
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -189,7 +189,7 @@ export async function createViolationTypeAction(data: ViolationTypeFormData) {
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -222,7 +222,7 @@ export async function updateViolationTypeAction(data: UpdateViolationTypeFormDat
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -247,7 +247,7 @@ export async function getViolationTypesAction(categoryId?: string): Promise<{ su
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -367,7 +367,7 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
     const { userId, supabase } = await checkAdminPermissions()
     const validatedData = studentViolationSchema.parse(data)
 
-    // Láº¥y points tá»« loáº¡i vi pháº¡m náº¿u points khÃ´ng Ä‘Æ°á»£c truyá»n vÃ o
+    // Lấy points từ loại vi phạm nếu points không Ä‘Æ°á»£c truyá»n vÃ o
     const { data: vtype } = await supabase
       .from('violation_types')
       .select('id, points')
@@ -376,7 +376,7 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
 
     const points = typeof validatedData.points === 'number' ? validatedData.points : (vtype?.points ?? 0)
 
-    // TÃ­nh week_index, month_index dá»±a trÃªn violation_date (hoáº·c recorded_at::date), vÃ  start_date cá»§a há»c kÃ¬
+    // TÃ­nh week_index, month_index dá»±a trÃªn violation_date (hoặc recorded_at::date), vÃ  start_date của hồc kì
     const { data: sem } = await supabase
       .from('semesters')
       .select('id, start_date')
@@ -417,7 +417,7 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -427,7 +427,7 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
     const { userId, supabase } = await checkAdminPermissions()
     const validatedData = bulkStudentViolationSchema.parse(data)
 
-    // Láº¥y points
+    // Lấy points
     const { data: vtype } = await supabase
       .from('violation_types')
       .select('id, points')
@@ -477,7 +477,7 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -507,7 +507,7 @@ export async function updateStudentViolationAction(data: UpdateStudentViolationF
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -536,7 +536,7 @@ export async function getStudentViolationsAction(filters?: ViolationFilters): Pr
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -552,7 +552,7 @@ export async function getViolationCategoriesAndTypesAction(): Promise<{
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error('YÃªu cáº§u xÃ¡c thá»±c')
+      throw new Error('Yêu cầu xác thực')
     }
 
     // Simple parallel queries
@@ -580,7 +580,7 @@ export async function getViolationCategoriesAndTypesAction(): Promise<{
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -646,7 +646,7 @@ export async function getViolationTypesWithPaginationAction(filters?: {
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -676,7 +676,7 @@ export async function createViolationNotificationAction(data: ViolationNotificat
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -713,7 +713,7 @@ export async function getHomeroomViolationsAction(): Promise<{ success: boolean;
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -740,7 +740,7 @@ export async function getParentViolationsAction(
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Set default pagination values
@@ -803,7 +803,7 @@ export async function getParentViolationsAction(
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -833,7 +833,7 @@ export async function getClassBlocksAction(): Promise<{ success: boolean; data?:
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -880,7 +880,7 @@ export async function getClassesByBlockAction(classBlockId: string): Promise<{ s
           name: currentAcademicYear?.name || '2024-2025'
         },
         semester: {
-          name: currentSemester?.name || 'Há»c ká»³ 1'
+          name: currentSemester?.name || 'Hồc kỳ 1'
         }
       }))
 
@@ -888,7 +888,7 @@ export async function getClassesByBlockAction(classBlockId: string): Promise<{ s
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -962,7 +962,7 @@ export async function getViolationStatsAction(): Promise<{
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
@@ -1034,15 +1034,15 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
   } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n'
+      error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n'
     }
   }
 }
 
 
-// ===== CÃ¡c hÃ nh Ä‘á»™ng nÃ¢ng cao cho Ä‘iá»ƒm/tuáº§n/thÃ¡ng vÃ  ká»· luáº­t =====
+// ===== Các hÃ nh Ä‘á»™ng nÃ¢ng cao cho Ä‘iá»ƒm/tuần/tháng vÃ  kỷ luật =====
 
-// TÃ­nh tuáº§n/thÃ¡ng theo há»c kÃ¬
+// TÃ­nh tuần/tháng theo hồc kì
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function computeWeekMonthIndices(violationDateISO: string, semesterStartISO: string) {
   const v = new Date(violationDateISO)
@@ -1055,7 +1055,7 @@ function computeWeekMonthIndices(violationDateISO: string, semesterStartISO: str
   return { week_index, month_index }
 }
 
-// Gom nhÃ³m vi pháº¡m theo há»c sinh trong 1 tuáº§n (máº·c Ä‘á»‹nh phá»¥c vá»¥ bÃ¡o cÃ¡o tuáº§n)
+// Gom nhóm vi phạm theo hồc sinh trong 1 tuần (mặc Ä‘á»‹nh phục về¥ báo cáo tuần)
 export async function getWeeklyGroupedViolationsAction(params: { semester_id: string; week_index: number; class_id?: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1073,7 +1073,7 @@ export async function getWeeklyGroupedViolationsAction(params: { semester_id: st
 
     if (params.class_id) query = query.eq('class_id', params.class_id)
 
-    // Chuyá»ƒn kiá»ƒu an toÃ n cho dá»¯ liá»‡u tráº£ vá» tá»« Supabase
+    // Chuyển kiểu an toÃ n cho dữ liệu trả về từ Supabase
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = (await query) as any
     type Row = { id: string; student_id: string; class_id: string; violation_type_id?: string; severity?: string; points: number; description: string | null; violation_date: string; student: { id: string; full_name: string; student_id: string } | null; class: { id: string; name: string } | null; violation_type?: { id: string; name: string } | null }
@@ -1100,11 +1100,11 @@ export async function getWeeklyGroupedViolationsAction(params: { semester_id: st
 
     return { success: true, data: Array.from(map.values()) }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Xáº¿p háº¡ng theo "thÃ¡ng há»c kÃ¬" (4 tuáº§n)
+// Xếp hạng theo "tháng hồc kì" (4 tuần)
 export async function getMonthlyRankingAction(params: { semester_id: string; month_index: number; class_id?: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1144,16 +1144,16 @@ export async function getMonthlyRankingAction(params: { semester_id: string; mon
 
     return { success: true, data: arr }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Danh sÃ¡ch HS cÃ³ >=3 vi pháº¡m trong thÃ¡ng chÆ°a Ä‘Æ°á»£c admin Ä‘Ã¡nh dáº¥u Ä‘Ã£ xem
+// Danh sách HS có >=3 vi phạm trong tháng chưa Ä‘Æ°á»£c admin Ä‘Ã¡nh dấu Ä‘Ã£ xem
 export async function getMonthlyThreePlusListAction(params: { semester_id: string; month_index: number }) {
   try {
     const { supabase } = await checkAdminPermissions()
 
-    // Láº¥y alerts chÆ°a xem tá»« báº£ng monthly_violation_alerts
+    // Lấy alerts chưa xem từ báº£ng monthly_violation_alerts
     const { data, error } = await supabase
       .from('monthly_violation_alerts')
       .select(`
@@ -1169,16 +1169,16 @@ export async function getMonthlyThreePlusListAction(params: { semester_id: strin
 
     const withDetails = (data || []).map(alert => ({
       count: alert.total_violations,
-      student: alert.student || { id: alert.student_id, full_name: 'KhÃ´ng xÃ¡c Ä‘á»‹nh', student_id: '' }
+      student: alert.student || { id: alert.student_id, full_name: 'Không xác Ä‘á»‹nh', student_id: '' }
     }))
 
     return { success: true, data: withDetails, total: withDetails.length }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Láº¥y sá»‘ lÆ°á»£ng alerts chÆ°a xem cho sidebar badge
+// Lấy sá»‘ lÆ°á»£ng alerts chưa xem cho sidebar badge
 export async function getUnseenViolationAlertsCountAction(): Promise<{
   success: boolean;
   count?: number;
@@ -1187,7 +1187,7 @@ export async function getUnseenViolationAlertsCountAction(): Promise<{
   try {
     const { supabase } = await checkAdminPermissions()
 
-    // Láº¥y há»c kÃ¬ hiá»‡n táº¡i
+    // Lấy hồc kì hiá»‡n táº¡i
     const { data: currentSemester } = await supabase
       .from('semesters')
       .select('id')
@@ -1198,7 +1198,7 @@ export async function getUnseenViolationAlertsCountAction(): Promise<{
       return { success: true, count: 0 }
     }
 
-    // Äáº¿m alerts chÆ°a xem cÃ³ >= 3 vi pháº¡m
+    // Äáº¿m alerts chưa xem có >= 3 vi phạm
     const { count, error } = await supabase
       .from('monthly_violation_alerts')
       .select('id', { count: 'exact', head: true })
@@ -1210,11 +1210,11 @@ export async function getUnseenViolationAlertsCountAction(): Promise<{
 
     return { success: true, count: count || 0 }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// ÄÃ¡nh dáº¥u Ä‘Ã£ xem cho 1 há»c sinh trong thÃ¡ng (badge giáº£m)
+// ÄÃ¡nh dấu Ä‘Ã£ xem cho 1 hồc sinh trong tháng (badge giảm)
 export async function markMonthlyAlertSeenAction(params: { student_id: string; semester_id: string; month_index: number }) {
   try {
     const { userId, supabase } = await checkAdminPermissions()
@@ -1231,11 +1231,11 @@ export async function markMonthlyAlertSeenAction(params: { student_id: string; s
     if (error) throw new Error(error.message)
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Táº¡o case ká»· luáº­t
+// Tạo case kỷ luật
 export async function createDisciplinaryCaseAction(params: { student_id: string; class_id?: string; semester_id: string; week_index: number; action_type_id: string; notes?: string; violation_ids?: string[] }) {
   try {
     const { userId, supabase } = await checkAdminPermissions()
@@ -1270,11 +1270,11 @@ export async function createDisciplinaryCaseAction(params: { student_id: string;
 
     return { success: true, data }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Láº¥y danh sÃ¡ch hÃ¬nh thá»©c ká»· luáº­t
+// Lấy danh sách hình thức kỷ luật
 export async function getDisciplinaryActionTypesAction() {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1287,11 +1287,11 @@ export async function getDisciplinaryActionTypesAction() {
     if (error) throw new Error(error.message)
     return { success: true, data: data || [] }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Táº¡o hÃ¬nh thá»©c ká»· luáº­t má»›i
+// Tạo hình thức kỷ luật mới
 export async function createDisciplinaryActionTypeAction(params: { name: string; description?: string; severity_level?: number }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1309,11 +1309,11 @@ export async function createDisciplinaryActionTypeAction(params: { name: string;
     if (error) throw new Error(error.message)
     return { success: true, data }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Cáº­p nháº­t hÃ¬nh thá»©c ká»· luáº­t
+// Cập nhật hình thức kỷ luật
 export async function updateDisciplinaryActionTypeAction(params: { id: string; name?: string; description?: string; severity_level?: number; is_active?: boolean }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1333,11 +1333,11 @@ export async function updateDisciplinaryActionTypeAction(params: { id: string; n
     if (error) throw new Error(error.message)
     return { success: true, data }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// VÃ´ hiá»‡u (soft-delete) hÃ¬nh thá»©c ká»· luáº­t
+// Vô hiệu (soft-delete) hình thức kỷ luật
 export async function deactivateDisciplinaryActionTypeAction(params: { id: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1351,11 +1351,11 @@ export async function deactivateDisciplinaryActionTypeAction(params: { id: strin
     if (error) throw new Error(error.message)
     return { success: true, data }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Láº¥y danh sÃ¡ch case ká»· luáº­t
+// Lấy danh sách case kỷ luật
 export async function getDisciplinaryCasesAction(params?: { semester_id?: string; status?: string; class_id?: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1378,11 +1378,11 @@ export async function getDisciplinaryCasesAction(params?: { semester_id?: string
     if (error) throw new Error(error.message)
     return { success: true, data: data || [] }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
-// Cáº­p nháº­t tráº¡ng thÃ¡i case ká»· luáº­t
+// Cập nhật trạng thái case kỷ luật
 export async function updateDisciplinaryCaseStatusAction(params: { case_id: string; status: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
@@ -1396,7 +1396,7 @@ export async function updateDisciplinaryCaseStatusAction(params: { case_id: stri
     if (error) throw new Error(error.message)
     return { success: true, data }
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: error instanceof Error ? error.message : 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 

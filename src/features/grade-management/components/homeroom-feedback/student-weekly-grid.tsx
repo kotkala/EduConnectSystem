@@ -25,7 +25,7 @@ export function StudentWeeklyGrid({
   loading = false
 }: StudentWeeklyGridProps) {
   // Get day names in Vietnamese
-  const dayNames = ['', 'Thá»© Hai', 'Thá»© Ba', 'Thá»© TÆ°', 'Thá»© NÄƒm', 'Thá»© SÃ¡u', 'Thá»© Báº£y']
+  const dayNames = ['', 'Thồ© Hai', 'Thồ© Ba', 'Thồ© TÆ°', 'Thồ© Năm', 'Thồ© SÃ¡u', 'Thồ© Báº£y']
 
   // Get initials for avatar
   const getInitials = (name: string): string => {
@@ -74,7 +74,7 @@ export function StudentWeeklyGrid({
       <Card>
         <CardContent className="py-12 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Äang táº£i dá»¯ liá»‡u...</p>
+          <p className="mt-4 text-muted-foreground">Äang tải dữ liệu...</p>
         </CardContent>
       </Card>
     )
@@ -85,9 +85,9 @@ export function StudentWeeklyGrid({
       <Card>
         <CardContent className="py-12 text-center">
           <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">KhÃ´ng CÃ³ Há»c Sinh</h3>
+          <h3 className="text-lg font-semibold mb-2">Không Có Hồc Sinh</h3>
           <p className="text-muted-foreground">
-            KhÃ´ng cÃ³ há»c sinh nÃ o trong lá»›p chá»§ nhiá»‡m cho tuáº§n Ä‘Ã£ chá»n.
+            Không có hồc sinh nÃ o trong lớp chủ nhiệm cho tuần Ä‘Ã£ chồn.
           </p>
         </CardContent>
       </Card>
@@ -108,7 +108,7 @@ export function StudentWeeklyGrid({
                 <CardTitle className="text-lg">{student.student_name}</CardTitle>
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                   <span>MSSV: {student.student_code}</span>
-                  <span>Lá»›p: {student.class_name}</span>
+                  <span>Lớp: {student.class_name}</span>
                 </div>
               </div>
             </div>
@@ -124,7 +124,7 @@ export function StudentWeeklyGrid({
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-sm">{dayNames[dayOfWeek]}</h4>
                       <Badge variant="outline" className="text-xs">
-                        {stats.totalLessons} tiáº¿t
+                        {stats.totalLessons} tiết
                       </Badge>
                     </div>
                     
@@ -137,7 +137,7 @@ export function StudentWeeklyGrid({
                       <div className="flex items-center justify-between w-full">
                         <div className="flex items-center space-x-1">
                           <BookOpen className="h-3 w-3" />
-                          <span className="text-xs">{stats.totalLessons} tiáº¿t</span>
+                          <span className="text-xs">{stats.totalLessons} tiết</span>
                         </div>
                         {stats.lessonsWithFeedback > 0 && (
                           <div className="flex items-center space-x-1">
@@ -164,14 +164,14 @@ export function StudentWeeklyGrid({
                       {stats.totalLessons > 0 && stats.lessonsWithFeedback === 0 && (
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span className="text-xs">ChÆ°a cÃ³ pháº£n há»“i</span>
+                          <span className="text-xs">Chưa có pháº£n hồ“i</span>
                         </div>
                       )}
                       
                       {stats.totalLessons === 0 && (
                         <div className="flex items-center space-x-1 text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span className="text-xs">KhÃ´ng cÃ³ tiáº¿t há»c</span>
+                          <span className="text-xs">Không có tiết hồc</span>
                         </div>
                       )}
                     </Button>

@@ -82,10 +82,10 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
     form.setValue("semester_number", semesterNumber)
     
     if (semesterNumber === 1) {
-      form.setValue("name", "Há»c ká»³ 1")
+      form.setValue("name", "Hồc kỳ 1")
       form.setValue("weeks_count", 18)
     } else if (semesterNumber === 2) {
-      form.setValue("name", "Há»c ká»³ 2")
+      form.setValue("name", "Hồc kỳ 2")
       form.setValue("weeks_count", 17)
     }
   }
@@ -175,7 +175,7 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
         <Label htmlFor="name">Semester Name</Label>
         <Input
           id="name"
-          placeholder="e.g., Há»c ká»³ 1"
+          placeholder="e.g., Hồc kỳ 1"
           {...form.register("name")}
           disabled={isSubmitting}
         />

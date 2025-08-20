@@ -37,9 +37,9 @@ import {
 
 // Helper function to get feedback mode text
 function getFeedbackModeText(feedbackMode: FeedbackMode): string {
-  if (feedbackMode === 'individual') return 'cÃ¡ nhÃ¢n'
-  if (feedbackMode === 'group') return 'nhÃ³m'
-  return 'cáº£ lá»›p'
+  if (feedbackMode === 'individual') return 'cá nhân'
+  if (feedbackMode === 'group') return 'nhóm'
+  return 'cả lớp'
 }
 
 interface TeacherFeedbackDialogProps {
@@ -120,7 +120,7 @@ function StudentSelectionSection({
   if (feedbackMode === 'class') {
     return (
       <div className="text-sm text-muted-foreground">
-        Feedback sáº½ Ä‘Æ°á»£c gá»­i cho táº¥t cáº£ há»c sinh trong lá»›p
+        Feedback sẽ Ä‘Æ°á»£c gá»­i cho táº¥t cả hồc sinh trong lớp
       </div>
     );
   }
@@ -129,7 +129,7 @@ function StudentSelectionSection({
     return (
       <div className="flex items-center justify-center py-4">
         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        Äang táº£i danh sÃ¡ch há»c sinh...
+        Äang tải danh sách hồc sinh...
       </div>
     );
   }
@@ -137,14 +137,14 @@ function StudentSelectionSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Chá»n há»c sinh:</span>
+        <span className="text-sm font-medium">Chồn hồc sinh:</span>
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={handleSelectAll}
         >
-          {selectedStudents.size === students.length ? 'Bá» chá»n táº¥t cáº£' : 'Chá»n táº¥t cáº£'}
+          {selectedStudents.size === students.length ? 'Bá» chồn táº¥t cả' : 'Chồn táº¥t cả'}
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ function StudentSelectionSection({
 
       {selectedStudents.size > 0 && (
         <div className="text-sm text-muted-foreground">
-          ÄÃ£ chá»n {selectedStudents.size} há»c sinh
+          ÄÃ£ chồn {selectedStudents.size} hồc sinh
         </div>
       )}
     </div>
@@ -214,10 +214,10 @@ export function TeacherFeedbackDialog({
       if (result.success && result.data) {
         setStudents(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c sinh')
+        toast.error(result.error || 'Không thể tải danh sách hồc sinh')
       }
     } catch {
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch há»c sinh')
+      toast.error('Lỗi khi tải danh sách hồc sinh')
     } finally {
       setIsLoading(false)
     }
@@ -235,17 +235,17 @@ export function TeacherFeedbackDialog({
 
   const handleSubmitFeedback = async () => {
     if (!timetableEvent || !feedbackText.trim()) {
-      toast.error('Vui lÃ²ng nháº­p ná»™i dung pháº£n há»“i')
+      toast.error('Vui lòng nháº­p ná»™i dung pháº£n hồ“i')
       return
     }
 
     let targetStudents: string[] = []
     
     if (feedbackMode === 'individual' && selectedStudents.size !== 1) {
-      toast.error('Vui lÃ²ng chá»n má»™t há»c sinh cho pháº£n há»“i cÃ¡ nhÃ¢n')
+      toast.error('Vui lòng chồn một hồc sinh cho pháº£n hồ“i cá nhân')
       return
     } else if (feedbackMode === 'group' && selectedStudents.size < 2) {
-      toast.error('Vui lÃ²ng chá»n Ã­t nháº¥t 2 há»c sinh cho pháº£n há»“i nhÃ³m')
+      toast.error('Vui lòng chồn Ã­t nháº¥t 2 hồc sinh cho pháº£n hồ“i nhóm')
       return
     } else if (feedbackMode === 'class') {
       targetStudents = students.map(s => s.id)
@@ -274,18 +274,18 @@ export function TeacherFeedbackDialog({
       const result = await createStudentFeedbackAction(request)
       
       if (result.success) {
-        const action = editingFeedback ? 'cáº­p nháº­t' : 'táº¡o'
-        toast.success(`ÄÃ£ ${action} pháº£n há»“i cho ${result.data?.created_count} há»c sinh`)
+        const action = editingFeedback ? 'cập nhật' : 'tạo'
+        toast.success(`ÄÃ£ ${action} pháº£n hồ“i cho ${result.data?.created_count} hồc sinh`)
         setFeedbackText('')
         setRating(undefined)
         setSelectedStudents(new Set())
         setEditingFeedback(null)
         // Feedback created successfully
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o pháº£n há»“i')
+        toast.error(result.error || 'Không thể tạo pháº£n hồ“i')
       }
     } catch {
-      toast.error('Lá»—i khi táº¡o pháº£n há»“i')
+      toast.error('Lỗi khi tạo pháº£n hồ“i')
     } finally {
       setIsSubmitting(false)
     }
@@ -301,17 +301,17 @@ export function TeacherFeedbackDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Pháº£n Há»“i Há»c Sinh - {timetableEvent.subject_name}
+            Phản Hồ“i Hồc Sinh - {timetableEvent.subject_name}
           </DialogTitle>
           <DialogDescription>
-            Lá»›p: {timetableEvent.class_name} | Tá»•ng sá»‘ há»c sinh: {students.length}
+            Lớp: {timetableEvent.class_name} | Tổng sá»‘ hồc sinh: {students.length}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Feedback Mode Selection */}
           <div className="space-y-3">
-            <label htmlFor="feedback-mode" className="text-sm font-medium">Cháº¿ Ä‘á»™ pháº£n há»“i:</label>
+            <label htmlFor="feedback-mode" className="text-sm font-medium">Cháº¿ Ä‘á»™ pháº£n hồ“i:</label>
             <fieldset id="feedback-mode" className="flex gap-2 border-0 p-0 m-0">
               <Button
                 variant={feedbackMode === 'individual' ? 'default' : 'outline'}
@@ -320,7 +320,7 @@ export function TeacherFeedbackDialog({
                 className="flex items-center gap-2"
               >
                 <User className="h-4 w-4" />
-                CÃ¡ nhÃ¢n
+                CÃ¡ nhân
               </Button>
               <Button
                 variant={feedbackMode === 'group' ? 'default' : 'outline'}
@@ -338,7 +338,7 @@ export function TeacherFeedbackDialog({
                 className="flex items-center gap-2"
               >
                 <Users className="h-4 w-4" />
-                Cáº£ lá»›p
+                Cáº£ lớp
               </Button>
             </fieldset>
           </div>
@@ -356,10 +356,10 @@ export function TeacherFeedbackDialog({
           {/* Feedback Form */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="feedback-text" className="text-sm font-medium">Ná»™i dung pháº£n há»“i:</label>
+              <label htmlFor="feedback-text" className="text-sm font-medium">Ná»™i dung pháº£n hồ“i:</label>
               <Textarea
                 id="feedback-text"
-                placeholder="Nháº­p pháº£n há»“i cho há»c sinh..."
+                placeholder="Nhập pháº£n hồ“i cho hồc sinh..."
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 rows={4}
@@ -367,13 +367,13 @@ export function TeacherFeedbackDialog({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="rating-select" className="text-sm font-medium">ÄÃ¡nh giÃ¡ (tÃ¹y chá»n):</label>
+              <label htmlFor="rating-select" className="text-sm font-medium">ÄÃ¡nh giá (tÃ¹y chồn):</label>
               <Select value={rating?.toString()} onValueChange={(value) => setRating(value ? parseInt(value) : undefined)}>
                 <SelectTrigger id="rating-select" className="w-48">
-                  <SelectValue placeholder="Chá»n má»©c Ä‘Ã¡nh giÃ¡" />
+                  <SelectValue placeholder="Chồn mức Ä‘Ã¡nh giá" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">â­ 1 - Cáº§n cáº£i thiá»‡n</SelectItem>
+                  <SelectItem value="1">â­ 1 - Cáº§n cải thiện</SelectItem>
                   <SelectItem value="2">â­â­ 2 - KhÃ¡</SelectItem>
                   <SelectItem value="3">â­â­â­ 3 - Tá»‘t</SelectItem>
                   <SelectItem value="4">â­â­â­â­ 4 - Ráº¥t tá»‘t</SelectItem>
@@ -386,22 +386,22 @@ export function TeacherFeedbackDialog({
           {/* Summary */}
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <p className="text-sm text-blue-800">
-              <strong>TÃ³m táº¯t:</strong> Sáº½ táº¡o pháº£n há»“i {getFeedbackModeText(feedbackMode)} cho{' '}
-              {feedbackMode === 'class' ? `táº¥t cáº£ ${students.length} há»c sinh` : `${selectedStudents.size} há»c sinh Ä‘Ã£ chá»n`}
+              <strong>TÃ³m táº¯t:</strong> Sáº½ tạo pháº£n hồ“i {getFeedbackModeText(feedbackMode)} cho{' '}
+              {feedbackMode === 'class' ? `táº¥t cả ${students.length} hồc sinh` : `${selectedStudents.size} hồc sinh Ä‘Ã£ chồn`}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Há»§y
+            Hủy
           </Button>
           <Button
             onClick={handleSubmitFeedback}
             disabled={isSubmitting || !feedbackText.trim()}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {editingFeedback ? 'Cáº­p Nháº­t Pháº£n Há»“i' : 'Táº¡o Pháº£n Há»“i'}
+            {editingFeedback ? 'Cập Nháº­t Phản Hồ“i' : 'Tạo Phản Hồ“i'}
           </Button>
         </DialogFooter>
       </DialogContent>

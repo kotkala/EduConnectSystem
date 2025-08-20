@@ -70,15 +70,15 @@ export function ClassroomEditDialog({
       })
 
       if (result.success) {
-        toast.success("ÄÃ£ cáº­p nháº­t phÃ²ng há»c thÃ nh cÃ´ng")
+        toast.success("ÄÃ£ cập nhật phÃ²ng hồc thÃ nh công")
         onSuccess()
         onOpenChange(false)
       } else {
-        toast.error(result.error || "Cáº­p nháº­t tháº¥t báº¡i")
+        toast.error(result.error || "Cập nhật tháº¥t báº¡i")
       }
     } catch (error) {
-      console.error('Lá»—i cáº­p nháº­t:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t")
+      console.error('Lỗi cập nhật:', error)
+      toast.error("Có lỗi xảy ra khi cập nhật")
     } finally {
       setIsLoading(false)
     }
@@ -88,20 +88,20 @@ export function ClassroomEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chá»‰nh sá»­a phÃ²ng há»c</DialogTitle>
+          <DialogTitle>Chỉnh sửa phÃ²ng hồc</DialogTitle>
           <DialogDescription>
-            Cáº­p nháº­t thÃ´ng tin phÃ²ng há»c
+            Cập nhật thông tin phÃ²ng hồc
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">TÃªn phÃ²ng há»c</Label>
+              <Label htmlFor="name">Tên phÃ²ng hồc</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nháº­p tÃªn phÃ²ng há»c"
+                placeholder="Nhập tên phÃ²ng hồc"
                 required
               />
             </div>
@@ -111,7 +111,7 @@ export function ClassroomEditDialog({
                 id="building"
                 value={formData.building}
                 onChange={(e) => setFormData(prev => ({ ...prev, building: e.target.value }))}
-                placeholder="Nháº­p tÃªn tÃ²a nhÃ "
+                placeholder="Nhập tên tÃ²a nhÃ "
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export function ClassroomEditDialog({
               </Select>
             </div>
             <div>
-              <Label htmlFor="capacity">Sá»©c chá»©a</Label>
+              <Label htmlFor="capacity">Sá»©c chồ©a</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -161,27 +161,27 @@ export function ClassroomEditDialog({
           </div>
 
           <div>
-            <Label htmlFor="equipment">Thiáº¿t bá»‹ (phÃ¢n cÃ¡ch báº±ng dáº¥u pháº©y)</Label>
+            <Label htmlFor="equipment">Thiáº¿t bị (phÃ¢n cách báº±ng dấu pháº©y)</Label>
             <Input
               id="equipment"
               value={formData.equipment}
               onChange={(e) => setFormData(prev => ({ ...prev, equipment: e.target.value }))}
-              placeholder="MÃ¡y chiáº¿u, Báº£ng thÃ´ng minh, MÃ¡y tÃ­nh..."
+              placeholder="MÃ¡y chiáº¿u, Bảng thông minh, MÃ¡y tÃ­nh..."
             />
           </div>
 
           <div className="flex items-center gap-2">
             <Badge variant={classroom?.is_active ? "default" : "secondary"}>
-              {classroom?.is_active ? "Hoáº¡t Ä‘á»™ng" : "KhÃ´ng hoáº¡t Ä‘á»™ng"}
+              {classroom?.is_active ? "Hoạt Ä‘á»™ng" : "Không hoạt Ä‘á»™ng"}
             </Badge>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Äang cáº­p nháº­t..." : "Cáº­p nháº­t"}
+              {isLoading ? "Äang cập nhật..." : "Cập nhật"}
             </Button>
           </DialogFooter>
         </form>

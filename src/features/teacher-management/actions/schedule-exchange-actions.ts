@@ -6,23 +6,23 @@ import { z } from 'zod'
 
 // Validation schemas
 const scheduleExchangeRequestSchema = z.object({
-  target_teacher_id: z.string().uuid('Vui lÃ²ng chá»n giÃ¡o viÃªn há»£p lá»‡'),
-  timetable_event_id: z.string().uuid('Vui lÃ²ng chá»n sá»± kiá»‡n thá»i khÃ³a biá»ƒu há»£p lá»‡'),
+  target_teacher_id: z.string().uuid('Vui lòng chồn giáo viên hợp lá»‡'),
+  timetable_event_id: z.string().uuid('Vui lòng chồn sá»± kiá»‡n thồi khóa biểu hợp lá»‡'),
   exchange_date: z.string().refine((date) => {
     const exchangeDate = new Date(date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     return exchangeDate >= today
-  }, 'NgÃ y Ä‘á»•i lá»‹ch pháº£i lÃ  hÃ´m nay hoáº·c tÆ°Æ¡ng lai'),
+  }, 'NgÃ y Ä‘á»•i lịch pháº£i lÃ  hÃ´m nay hoặc tÆ°Æ¡ng lai'),
   reason: z.string()
-    .min(10, 'LÃ½ do pháº£i cÃ³ Ã­t nháº¥t 10 kÃ½ tá»±')
-    .max(500, 'LÃ½ do pháº£i Ã­t hÆ¡n 500 kÃ½ tá»±')
+    .min(10, 'Lý do pháº£i có Ã­t nháº¥t 10 kÃ½ tá»±')
+    .max(500, 'Lý do pháº£i Ã­t hÆ¡n 500 kÃ½ tá»±')
 })
 
 const approveRejectRequestSchema = z.object({
-  request_id: z.string().uuid('ID yÃªu cáº§u khÃ´ng há»£p lá»‡'),
+  request_id: z.string().uuid('ID yêu cầu không hợp lá»‡'),
   status: z.enum(['approved', 'rejected']),
-  admin_response: z.string().max(500, 'Pháº£n há»“i pháº£i Ã­t hÆ¡n 500 kÃ½ tá»±').optional()
+  admin_response: z.string().max(500, 'Phản hồ“i pháº£i Ã­t hÆ¡n 500 kÃ½ tá»±').optional()
 })
 
 // Types
@@ -106,7 +106,7 @@ export async function getTeacherTimetableEventsAction(teacherId: string, semeste
     return { success: true, data: transformedData }
   } catch (error) {
     console.error('Error in getTeacherTimetableEventsAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -148,7 +148,7 @@ export async function getEligibleTeachersForExchangeAction(
     return { success: true, data: data || [] }
   } catch (error) {
     console.error('Error in getEligibleTeachersForExchangeAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -208,7 +208,7 @@ export async function createScheduleExchangeRequestAction(formData: ScheduleExch
 
     if (error) {
       console.error('Error creating exchange request:', error)
-      return { success: false, error: 'KhÃ´ng thá»ƒ táº¡o yÃªu cáº§u Ä‘á»•i lá»‹ch' }
+      return { success: false, error: 'Không thể tạo yêu cầu Ä‘á»•i lịch' }
     }
 
     revalidatePath('/dashboard/teacher')
@@ -218,7 +218,7 @@ export async function createScheduleExchangeRequestAction(formData: ScheduleExch
       return { success: false, error: error.issues[0].message }
     }
     console.error('Error in createScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -254,7 +254,7 @@ export async function getScheduleExchangeRequestsAction(filters?: {
 
     if (error) {
       console.error('Error fetching exchange requests:', error)
-      return { success: false, error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch yÃªu cáº§u Ä‘á»•i lá»‹ch' }
+      return { success: false, error: 'Không thể láº¥y danh sách yêu cầu Ä‘á»•i lịch' }
     }
 
     // Return basic data with mock values for now
@@ -278,7 +278,7 @@ export async function getScheduleExchangeRequestsAction(filters?: {
     return { success: true, data: transformedData }
   } catch (error) {
     console.error('Error in getScheduleExchangeRequestsAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -319,11 +319,11 @@ export async function approveRejectScheduleExchangeRequestAction(formData: Appro
       .single()
 
     if (requestError || !request) {
-      return { success: false, error: 'KhÃ´ng tÃ¬m tháº¥y yÃªu cáº§u Ä‘á»•i lá»‹ch' }
+      return { success: false, error: 'Không tìm thấy yêu cầu Ä‘á»•i lịch' }
     }
 
     if (request.status !== 'pending') {
-      return { success: false, error: 'YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c xá»­ lÃ½ trÆ°á»›c Ä‘Ã³' }
+      return { success: false, error: 'Yêu cầu Ä‘Ã£ Ä‘Æ°á»£c xá»­ lý trước Ä‘Ã³' }
     }
 
     // Update the request status
@@ -372,13 +372,13 @@ export async function approveRejectScheduleExchangeRequestAction(formData: Appro
 
     revalidatePath('/dashboard/admin')
     revalidatePath('/dashboard/teacher')
-    return { success: true, message: `YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c ${validatedData.status === 'approved' ? 'phÃª duyá»‡t' : 'tá»« chá»‘i'} thÃ nh cÃ´ng` }
+    return { success: true, message: `Yêu cầu Ä‘Ã£ Ä‘Æ°á»£c ${validatedData.status === 'approved' ? 'phÃª duyá»‡t' : 'từ chồ‘i'} thÃ nh công` }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0].message }
     }
     console.error('Error in approveRejectScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }
 
@@ -407,9 +407,9 @@ export async function deleteScheduleExchangeRequestAction(requestId: string) {
     }
 
     revalidatePath('/dashboard/teacher')
-    return { success: true, message: 'XÃ³a yÃªu cáº§u thÃ nh cÃ´ng' }
+    return { success: true, message: 'XÃ³a yêu cầu thÃ nh công' }
   } catch (error) {
     console.error('Error in deleteScheduleExchangeRequestAction:', error)
-    return { success: false, error: 'ÄÃ£ xáº£y ra lá»—i khÃ´ng mong muá»‘n' }
+    return { success: false, error: 'ÄÃ£ xảy ra lỗi không mong muá»‘n' }
   }
 }

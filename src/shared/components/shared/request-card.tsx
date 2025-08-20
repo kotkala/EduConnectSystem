@@ -72,7 +72,7 @@ export function RequestCard<T extends BaseRequest>({
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Gá»­i lÃºc {format(new Date(request.created_at), 'PPp')}
+              Gửi lúc {format(new Date(request.created_at), 'PPp')}
             </p>
           </div>
           {showActions && request.status === 'pending' && onApprove && onReject && (
@@ -84,7 +84,7 @@ export function RequestCard<T extends BaseRequest>({
                 className="text-green-600 hover:text-green-700"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
-                Cháº¥p thuáº­n
+                Chấp thuận
               </Button>
               <Button
                 size="sm"
@@ -93,7 +93,7 @@ export function RequestCard<T extends BaseRequest>({
                 className="text-red-600 hover:text-red-700"
               >
                 <XCircle className="h-4 w-4 mr-1" />
-                Tá»« chá»‘i
+                Từ chồ‘i
               </Button>
             </div>
           )}
@@ -108,7 +108,7 @@ export function RequestCard<T extends BaseRequest>({
           <>
             <Separator />
             <div>
-              <strong className="text-sm">Pháº£n há»“i tá»« quáº£n trá»‹:</strong>
+              <strong className="text-sm">Phản hồ“i từ quản trị:</strong>
               <p className="text-sm text-muted-foreground mt-1">{request.admin_response}</p>
             </div>
           </>
@@ -117,8 +117,8 @@ export function RequestCard<T extends BaseRequest>({
         {/* Status Info */}
         {request.approved_at && (
           <div className="text-xs text-muted-foreground pt-2">
-            {request.status === 'approved' ? 'ÄÃ£ cháº¥p thuáº­n' : 'ÄÃ£ tá»« chá»‘i'} lÃºc {format(new Date(request.approved_at), 'PPp')}
-            {request.approved_by_name && ` bá»Ÿi ${request.approved_by_name}`}
+            {request.status === 'approved' ? 'ÄÃ£ chấp thuận' : 'ÄÃ£ từ chồ‘i'} lúc {format(new Date(request.approved_at), 'PPp')}
+            {request.approved_by_name && ` bởi ${request.approved_by_name}`}
           </div>
         )}
       </CardContent>
@@ -141,22 +141,22 @@ export function ExchangeRequestCard({
       {/* Teaching Slot Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div>
-          <strong>MÃ´n:</strong> {req.subject_code} - {req.subject_name}
+          <strong>Môn:</strong> {req.subject_code} - {req.subject_name}
         </div>
         <div>
-          <strong>Lá»›p:</strong> {req.class_name}
+          <strong>Lớp:</strong> {req.class_name}
         </div>
         <div>
-          <strong>Thá»i gian:</strong> {dayNames[req.day_of_week]} {req.start_time}-{req.end_time}
+          <strong>Thồi gian:</strong> {dayNames[req.day_of_week]} {req.start_time}-{req.end_time}
         </div>
         <div>
-          <strong>PhÃ²ng há»c:</strong> {req.classroom_name}
+          <strong>Phòng hồc:</strong> {req.classroom_name}
         </div>
         <div>
-          <strong>Tuáº§n:</strong> {req.week_number}
+          <strong>Tuần:</strong> {req.week_number}
         </div>
         <div>
-          <strong>NgÃ y Ä‘á»•i lá»‹ch:</strong> {format(new Date(req.exchange_date), 'PPP')}
+          <strong>NgÃ y Ä‘á»•i lịch:</strong> {format(new Date(req.exchange_date), 'PPP')}
         </div>
       </div>
 
@@ -165,11 +165,11 @@ export function ExchangeRequestCard({
       {/* Teacher Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div>
-          <strong>GiÃ¡o viÃªn yÃªu cáº§u:</strong>
+          <strong>Giáo viên yêu cầu:</strong>
           <p className="text-muted-foreground">{req.requester_name} ({req.requester_email})</p>
         </div>
         <div>
-          <strong>GiÃ¡o viÃªn thay tháº¿:</strong>
+          <strong>Giáo viên thay thế:</strong>
           <p className="text-muted-foreground">{req.target_name} ({req.target_email})</p>
         </div>
       </div>
@@ -178,7 +178,7 @@ export function ExchangeRequestCard({
 
       {/* Reason */}
       <div>
-        <strong className="text-sm">LÃ½ do:</strong>
+        <strong className="text-sm">Lý do:</strong>
         <p className="text-sm text-muted-foreground mt-1">{req.reason}</p>
       </div>
     </>

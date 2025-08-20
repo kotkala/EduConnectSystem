@@ -34,7 +34,7 @@ export function useCoordinatedLoading(): CoordinatedLoadingState {
   if (authLoading) {
     return {
       isLoading: true,
-      message: "Äang xÃ¡c thá»±c tÃ i khoáº£n...",
+      message: "Äang xác thực tÃ i khoản...",
       type: 'auth',
       source: 'auth'
     }
@@ -43,7 +43,7 @@ export function useCoordinatedLoading(): CoordinatedLoadingState {
   if (globalLoading.isLoading) {
     return {
       isLoading: true,
-      message: globalLoading.message || "Äang táº£i...",
+      message: globalLoading.message || "Äang tải...",
       type: 'global', 
       source: 'global'
     }

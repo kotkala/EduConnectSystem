@@ -48,14 +48,14 @@ export function HomeroomFeedbackFilters({
     <AcademicFilters
       filters={filters}
       onFiltersChange={onFiltersChange}
-      title="Bá»™ Lá»c Pháº£n Há»“i"
+      title="Bộ Lá»c Phản Hồ“i"
       loadAcademicYears={loadAcademicYears}
       loadSemesters={loadSemesters}
       weekCalculationMode="semester-based"
       maxWeeks={20}
       statusMessage={{
-        ready: "âœ“ Sáºµn sÃ ng xem pháº£n há»“i há»c sinh",
-        instruction: "Vui lÃ²ng chá»n nÄƒm há»c, há»c ká»³ vÃ  tuáº§n Ä‘á»ƒ xem pháº£n há»“i há»c sinh"
+        ready: "âœ“ Sẵn sÃ ng xem pháº£n hồ“i hồc sinh",
+        instruction: "Vui lòng chồn năm hồc, hồc kỳ vÃ  tuần Ä‘á»ƒ xem pháº£n hồ“i hồc sinh"
       }}
     />
   )

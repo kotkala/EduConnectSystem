@@ -85,7 +85,7 @@ export function ParentGradeViewDialog({
       if (detailResult.success && detailResult.data) {
         setDetailedSubmission(detailResult.data as GradeSubmission)
       } else {
-        toast.error(detailResult.error || "KhÃ´ng thá»ƒ táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm")
+        toast.error(detailResult.error || "Không thể tải chi tiết báº£ng Ä‘iá»ƒm")
       }
 
       if (statsResult.success && statsResult.data) {
@@ -93,7 +93,7 @@ export function ParentGradeViewDialog({
       }
     } catch (error) {
       console.error('Error loading submission details:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm")
+      toast.error("Có lỗi xảy ra khi tải chi tiết báº£ng Ä‘iá»ƒm")
     } finally {
       setLoading(false)
     }
@@ -114,7 +114,7 @@ export function ParentGradeViewDialog({
   }
 
   const getGradeLabel = (grade: number | null) => {
-    if (!grade) return 'ChÆ°a cÃ³'
+    if (!grade) return 'Chưa có'
     if (grade >= 8.5) return 'Giá»i'
     if (grade >= 6.5) return 'KhÃ¡'
     if (grade >= 5.0) return 'Trung bÃ¬nh'
@@ -133,7 +133,7 @@ export function ParentGradeViewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Báº£ng Äiá»ƒm - {submission.student.full_name}
+            Bảng Äiá»ƒm - {submission.student.full_name}
           </DialogTitle>
           <DialogDescription>
             {submission.class.name} â€¢ {submission.semester.name} - {submission.academic_year.name}
@@ -143,7 +143,7 @@ export function ParentGradeViewDialog({
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Äang táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm...</span>
+            <span>Äang tải chi tiết báº£ng Ä‘iá»ƒm...</span>
           </div>
         ) : (
           <div className="space-y-6">
@@ -200,11 +200,11 @@ export function ParentGradeViewDialog({
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Xáº¿p loáº¡i</CardTitle>
+                    <CardTitle className="text-sm font-medium">Xếp loại</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Badge variant={gradeStats.averageGrade && gradeStats.averageGrade >= 8.5 ? "default" : "secondary"}>
-                      {gradeStats.averageGrade ? getGradeLabel(gradeStats.averageGrade) : 'ChÆ°a Ä‘á»§ dá»¯ liá»‡u'}
+                      {gradeStats.averageGrade ? getGradeLabel(gradeStats.averageGrade) : 'Chưa Ä‘á»§ dữ liệu'}
                     </Badge>
                   </CardContent>
                 </Card>
@@ -216,7 +216,7 @@ export function ParentGradeViewDialog({
               <CardHeader>
                 <CardTitle>Chi Tiáº¿t Äiá»ƒm Sá»‘</CardTitle>
                 <CardDescription>
-                  Báº£ng Ä‘iá»ƒm chi tiáº¿t theo tá»«ng mÃ´n há»c
+                  Bảng Ä‘iá»ƒm chi tiết theo từng mÃ´n hồc
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -224,12 +224,12 @@ export function ParentGradeViewDialog({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>MÃ´n há»c</TableHead>
+                        <TableHead>Môn hồc</TableHead>
                         <TableHead className="text-center">MÃ£ mÃ´n</TableHead>
-                        <TableHead className="text-center">Äiá»ƒm giá»¯a ká»³</TableHead>
-                        <TableHead className="text-center">Äiá»ƒm cuá»‘i ká»³</TableHead>
+                        <TableHead className="text-center">Äiá»ƒm giá»¯a kỳ</TableHead>
+                        <TableHead className="text-center">Äiá»ƒm cuá»‘i kỳ</TableHead>
                         <TableHead className="text-center">Äiá»ƒm trung bÃ¬nh</TableHead>
-                        <TableHead className="text-center">Xáº¿p loáº¡i</TableHead>
+                        <TableHead className="text-center">Xếp loại</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

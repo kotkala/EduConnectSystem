@@ -91,11 +91,11 @@ export function StudentGradeImprovementClient() {
       if (result.success && result.data) {
         setActivePeriods(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+        toast.error(result.error || 'Không thể tải danh sách kỳ cải thiện điểm')
       }
     } catch (error) {
       console.error('Error loading active periods:', error)
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+      toast.error('Lỗi khi tải danh sách kỳ cải thiện điểm')
     }
   }, [])
 
@@ -105,18 +105,18 @@ export function StudentGradeImprovementClient() {
       const isInitialLoad = myRequests.length === 0
       
       if (isInitialLoad) {
-        startPageTransition("Äang táº£i danh sÃ¡ch Ä‘Æ¡n cá»§a báº¡n...")
+        startPageTransition("Đang tải danh sách đơn của bạn...")
       }
 
       const result = await getStudentGradeImprovementRequestsAction()
       if (result.success && result.data) {
         setMyRequests(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n cá»§a báº¡n')
+        toast.error(result.error || 'Không thể tải danh sách đơn của bạn')
       }
     } catch (error) {
       console.error('Error loading my requests:', error)
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch Ä‘Æ¡n cá»§a báº¡n')
+      toast.error('Lỗi khi tải danh sách đơn của bạn')
     } finally {
       stopLoading()
     }
@@ -128,11 +128,11 @@ export function StudentGradeImprovementClient() {
       if (result.success && result.data) {
         setSubjects(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch mÃ´n há»c')
+        toast.error(result.error || 'Không thể tải danh sách môn học')
       }
     } catch (error) {
       console.error('Error loading subjects:', error)
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch mÃ´n há»c')
+      toast.error('Lỗi khi tải danh sách môn học')
     }
   }, [])
 
@@ -147,9 +147,9 @@ export function StudentGradeImprovementClient() {
   const StatusBadge = useMemo(() => {
     const StatusBadgeComponent = ({ status }: { status: string }) => {
       const statusConfig = {
-        pending: { label: 'Chá» duyá»‡t', variant: 'secondary' as const, icon: Clock },
-        approved: { label: 'ÄÃ£ duyá»‡t', variant: 'default' as const, icon: CheckCircle },
-        rejected: { label: 'Tá»« chá»‘i', variant: 'destructive' as const, icon: XCircle }
+        pending: { label: 'Chờ duyệt', variant: 'secondary' as const, icon: Clock },
+        approved: { label: 'Đã duyệt', variant: 'default' as const, icon: CheckCircle },
+        rejected: { label: 'Từ chối', variant: 'destructive' as const, icon: XCircle }
       }
       
       const config = statusConfig[status as keyof typeof statusConfig]
@@ -183,10 +183,10 @@ export function StudentGradeImprovementClient() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
-            Cáº£i thiá»‡n Ä‘iá»ƒm sá»‘
+            Cải thiện điểm số
           </h1>
           <p className="text-muted-foreground">
-            Ná»™p Ä‘Æ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm sá»‘ vÃ  theo dÃµi tráº¡ng thÃ¡i xá»­ lÃ½
+            Nộp đơn yêu cầu cải thiện điểm số và theo dõi trạng thái xử lý
           </p>
         </div>
         
@@ -195,26 +195,26 @@ export function StudentGradeImprovementClient() {
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Táº¡o Ä‘Æ¡n yÃªu cáº§u
+                Tạo đơn yêu cầu
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Táº¡o Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm</DialogTitle>
+                <DialogTitle>Tạo đơn cải thiện điểm</DialogTitle>
                 <DialogDescription>
-                  Ná»™p Ä‘Æ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm cho mÃ´n há»c cá»¥ thá»ƒ
+                  Nộp đơn yêu cầu cải thiện điểm cho môn học cụ thể
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="improvement-period">Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                  <Label htmlFor="improvement-period">Kỳ cải thiện điểm</Label>
                   <Select
                     value={requestForm.improvement_period_id}
                     onValueChange={(value) => setRequestForm(prev => ({ ...prev, improvement_period_id: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chá»n ká»³ cáº£i thiá»‡n Ä‘iá»ƒm" />
+                      <SelectValue placeholder="Chọn kỳ cải thiện điểm" />
                     </SelectTrigger>
                     <SelectContent>
                       {activePeriods.map((period) => (
@@ -227,13 +227,13 @@ export function StudentGradeImprovementClient() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="subject">MÃ´n há»c</Label>
+                  <Label htmlFor="subject">Môn học</Label>
                   <Select
                     value={requestForm.subject_id}
                     onValueChange={(value) => setRequestForm(prev => ({ ...prev, subject_id: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chá»n mÃ´n há»c" />
+                      <SelectValue placeholder="Chọn môn học" />
                     </SelectTrigger>
                     <SelectContent>
                       {subjects.map((subject) => (
@@ -245,7 +245,7 @@ export function StudentGradeImprovementClient() {
                           <div className="flex items-center justify-between w-full">
                             <span>{subject.name_vietnamese} ({subject.code})</span>
                             {requestForm.improvement_period_id && !canCreateRequest(requestForm.improvement_period_id, subject.id) && (
-                              <Badge variant="secondary" className="ml-2 text-xs">ÄÃ£ ná»™p</Badge>
+                              <Badge variant="secondary" className="ml-2 text-xs">Đã nộp</Badge>
                             )}
                           </div>
                         </SelectItem>
@@ -256,7 +256,7 @@ export function StudentGradeImprovementClient() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="current-grade">Äiá»ƒm hiá»‡n táº¡i (tÃ¹y chá»n)</Label>
+                    <Label htmlFor="current-grade">Điểm hiện tại (tùy chọn)</Label>
                     <Input
                       id="current-grade"
                       type="number"
@@ -270,7 +270,7 @@ export function StudentGradeImprovementClient() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="target-grade">Äiá»ƒm má»¥c tiÃªu (tÃ¹y chá»n)</Label>
+                    <Label htmlFor="target-grade">Điểm mục tiêu (tùy chọn)</Label>
                     <Input
                       id="target-grade"
                       type="number"
@@ -285,17 +285,17 @@ export function StudentGradeImprovementClient() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="reason">LÃ½ do yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                  <Label htmlFor="reason">Lý do yêu cầu cải thiện điểm</Label>
                   <Textarea
                     id="reason"
                     value={requestForm.reason}
                     onChange={(e) => setRequestForm(prev => ({ ...prev, reason: e.target.value }))}
-                    placeholder="MÃ´ táº£ lÃ½ do báº¡n muá»‘n cáº£i thiá»‡n Ä‘iá»ƒm cho mÃ´n há»c nÃ y..."
+                    placeholder="Mô tả lý do bạn muốn cải thiện điểm cho môn học này..."
                     rows={4}
                     className="resize-none"
                   />
                   <div className="text-xs text-muted-foreground mt-1">
-                    {requestForm.reason.length}/500 kÃ½ tá»±
+                    {requestForm.reason.length}/500 ký tự
                   </div>
                 </div>
                 
@@ -314,17 +314,17 @@ export function StudentGradeImprovementClient() {
                     }}
                     disabled={sectionLoading.creatingRequest}
                   >
-                    Há»§y
+                    Hủy
                   </Button>
                   <Button
                     onClick={async () => {
                       if (!requestForm.improvement_period_id || !requestForm.subject_id || !requestForm.reason.trim()) {
-                        toast.error('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin báº¯t buá»™c')
+                        toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
                         return
                       }
                       
                       if (requestForm.reason.length < 10) {
-                        toast.error('LÃ½ do pháº£i cÃ³ Ã­t nháº¥t 10 kÃ½ tá»±')
+                        toast.error('Lý do phải có ít nhất 10 ký tự')
                         return
                       }
                       
@@ -332,7 +332,7 @@ export function StudentGradeImprovementClient() {
                         const current = parseFloat(requestForm.current_grade)
                         const target = parseFloat(requestForm.target_grade)
                         if (target <= current) {
-                          toast.error('Äiá»ƒm má»¥c tiÃªu pháº£i cao hÆ¡n Ä‘iá»ƒm hiá»‡n táº¡i')
+                          toast.error('Điểm mục tiêu phải cao hơn điểm hiện tại')
                           return
                         }
                       }
@@ -364,14 +364,14 @@ export function StudentGradeImprovementClient() {
                         }
                       } catch (error) {
                         console.error('Error creating request:', error)
-                        toast.error('Lá»—i khi táº¡o Ä‘Æ¡n yÃªu cáº§u')
+                        toast.error('Lỗi khi tạo đơn yêu cầu')
                       } finally {
                         setSectionLoading(prev => ({ ...prev, creatingRequest: false }))
                       }
                     }}
                     disabled={sectionLoading.creatingRequest || !requestForm.improvement_period_id || !requestForm.subject_id || !requestForm.reason.trim()}
                   >
-                    {sectionLoading.creatingRequest ? 'Äang táº¡o...' : 'Táº¡o Ä‘Æ¡n'}
+                    {sectionLoading.creatingRequest ? 'Đang tạo...' : 'Tạo đơn'}
                   </Button>
                 </div>
               </div>
@@ -385,10 +385,10 @@ export function StudentGradeImprovementClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm Ä‘ang má»Ÿ
+            Kỳ cải thiện điểm đang mở
           </CardTitle>
           <CardDescription>
-            CÃ¡c ká»³ thá»i gian hiá»‡n táº¡i cho phÃ©p ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+            Các kỳ thời gian hiện tại cho phép nộp đơn cải thiện điểm
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -396,15 +396,15 @@ export function StudentGradeImprovementClient() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-muted-foreground">Äang táº£i...</p>
+                <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : activePeriods.length === 0 ? (
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Hiá»‡n táº¡i khÃ´ng cÃ³ ká»³ cáº£i thiá»‡n Ä‘iá»ƒm nÃ o Ä‘ang má»Ÿ</p>
+              <p className="text-muted-foreground">Hiện tại không có kỳ cải thiện điểm nào đang mở</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Vui lÃ²ng liÃªn há»‡ vá»›i giÃ¡o viÃªn hoáº·c ban giÃ¡m hiá»‡u Ä‘á»ƒ biáº¿t thÃªm thÃ´ng tin
+                Vui lòng liên hệ với giáo viên hoặc ban giám hiệu để biết thêm thông tin
               </p>
             </div>
           ) : (
@@ -419,14 +419,14 @@ export function StudentGradeImprovementClient() {
                       )}
                       <div className="text-xs text-muted-foreground space-y-1">
                         <div>
-                          Tá»«: {format(new Date(period.start_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                          Từ: {format(new Date(period.start_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
                         </div>
                         <div>
-                          Äáº¿n: {format(new Date(period.end_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                          Đến: {format(new Date(period.end_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
                         </div>
                       </div>
                       <Badge variant="default" className="bg-green-500">
-                        Äang má»Ÿ
+                        Đang mở
                       </Badge>
                     </div>
                   </CardContent>
@@ -442,10 +442,10 @@ export function StudentGradeImprovementClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            ÄÆ¡n yÃªu cáº§u cá»§a tÃ´i
+            Đơn yêu cầu của tôi
           </CardTitle>
           <CardDescription>
-            Danh sÃ¡ch cÃ¡c Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm báº¡n Ä‘Ã£ ná»™p vÃ  tráº¡ng thÃ¡i xá»­ lÃ½
+            Danh sách các đơn cải thiện điểm bạn đã nộp và trạng thái xử lý
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -453,16 +453,16 @@ export function StudentGradeImprovementClient() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-muted-foreground">Äang táº£i danh sÃ¡ch Ä‘Æ¡n...</p>
+                <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : myRequests.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Báº¡n chÆ°a ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm nÃ o</p>
+              <p className="text-muted-foreground">Bạn chưa nộp đơn cải thiện điểm nào</p>
               {activePeriods.length > 0 && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Nháº¥n nÃºt &ldquo;Táº¡o Ä‘Æ¡n yÃªu cáº§u&rdquo; Ä‘á»ƒ ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+                  Nhấn nút &ldquo;Tạo đơn yêu cầu&rdquo; để nộp đơn cải thiện điểm
                 </p>
               )}
             </div>
@@ -492,13 +492,13 @@ export function StudentGradeImprovementClient() {
                         <div className="flex gap-4 text-sm">
                           {request.current_grade !== null && (
                             <div>
-                              <span className="text-muted-foreground">Äiá»ƒm hiá»‡n táº¡i: </span>
+                              <span className="text-muted-foreground">Điểm hiện tại: </span>
                               <span className="font-medium">{request.current_grade}</span>
                             </div>
                           )}
                           {request.target_grade !== null && (
                             <div>
-                              <span className="text-muted-foreground">Äiá»ƒm má»¥c tiÃªu: </span>
+                              <span className="text-muted-foreground">Điểm mục tiêu: </span>
                               <span className="font-medium">{request.target_grade}</span>
                             </div>
                           )}
@@ -507,7 +507,7 @@ export function StudentGradeImprovementClient() {
                       
                       {/* Reason */}
                       <div>
-                        <div className="text-sm font-medium mb-1">LÃ½ do:</div>
+                        <div className="text-sm font-medium mb-1">Lý do:</div>
                         <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
                           {request.reason}
                         </div>
@@ -516,13 +516,13 @@ export function StudentGradeImprovementClient() {
                       {/* Admin Response */}
                       {request.status !== 'pending' && request.admin_comment && (
                         <div>
-                          <div className="text-sm font-medium mb-1">Pháº£n há»“i tá»« admin:</div>
+                          <div className="text-sm font-medium mb-1">Phản hồi từ admin:</div>
                           <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
                             {request.admin_comment}
                           </div>
                           {request.reviewed_by_profile && request.reviewed_at && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              Pháº£n há»“i bá»Ÿi {request.reviewed_by_profile.full_name} vÃ o {format(new Date(request.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                              Phản hồi bởi {request.reviewed_by_profile.full_name} vào {format(new Date(request.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
                             </div>
                           )}
                         </div>
@@ -531,7 +531,7 @@ export function StudentGradeImprovementClient() {
                       {/* Footer */}
                       <div className="flex items-center justify-between text-xs text-muted-foreground border-t pt-2">
                         <div>
-                          Ná»™p Ä‘Æ¡n: {format(new Date(request.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                          Nộp đơn: {format(new Date(request.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
                         </div>
                       </div>
                     </div>

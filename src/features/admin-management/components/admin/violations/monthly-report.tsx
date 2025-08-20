@@ -49,14 +49,14 @@ export default function MonthlyReport() {
   const [selectedClass, setSelectedClass] = useState('all')
 
   function getCurrentMonth(): number {
-    // TÃ­nh thÃ¡ng hiá»‡n táº¡i dá»±a trÃªn tuáº§n (má»—i thÃ¡ng = 4 tuáº§n)
+    // Tính tháng hiện tại dựa trên tuần (mỗi tháng = 4 tuần)
     const currentWeek = getCurrentWeek()
     return Math.ceil(currentWeek / 4)
   }
 
   function getCurrentWeek(): number {
-    // TÃ­nh tuáº§n hiá»‡n táº¡i dá»±a trÃªn ngÃ y báº¯t Ä‘áº§u há»c kÃ¬
-    // TODO: Láº¥y tá»« semester.start_date thá»±c táº¿
+    // Tính tuần hiện tại dựa trên ngày bắt đầu học kì
+    // TODO: Lấy từ semester.start_date thực tế
     const semesterStart = new Date('2024-01-01')
     const now = new Date()
     const diffTime = now.getTime() - semesterStart.getTime()
@@ -65,7 +65,7 @@ export default function MonthlyReport() {
   }
 
   function getMonthDateRange(monthIndex: number): { start: Date; end: Date; label: string } {
-    // TÃ­nh ngÃ y báº¯t Ä‘áº§u vÃ  káº¿t thÃºc cá»§a thÃ¡ng dá»±a trÃªn 4 tuáº§n
+    // Tính ngày bắt đầu và kết thúc của tháng dựa trên 4 tuần
     const semesterStart = new Date('2024-01-01')
     const startWeekNumber = (monthIndex - 1) * 4 + 1
     const endWeekNumber = monthIndex * 4
@@ -73,7 +73,7 @@ export default function MonthlyReport() {
     const monthStart = addWeeks(startOfWeek(semesterStart, { weekStartsOn: 1 }), startWeekNumber - 1)
     const monthEnd = endOfWeek(addWeeks(startOfWeek(semesterStart, { weekStartsOn: 1 }), endWeekNumber - 1), { weekStartsOn: 1 })
 
-    const label = `ThÃ¡ng ${monthIndex} (${format(monthStart, 'dd/MM', { locale: vi })} - ${format(monthEnd, 'dd/MM/yyyy', { locale: vi })})`
+    const label = `Tháng ${monthIndex} (${format(monthStart, 'dd/MM', { locale: vi })} - ${format(monthEnd, 'dd/MM/yyyy', { locale: vi })})`
 
     return { start: monthStart, end: monthEnd, label }
   }
@@ -85,7 +85,7 @@ export default function MonthlyReport() {
       const monthRange = getMonthDateRange(i)
       options.push({
         value: i,
-        label: `${monthRange.label}${i === currentMonth ? ' - Hiá»‡n táº¡i' : ''}`
+        label: `${monthRange.label}${i === currentMonth ? ' - Hiện tại' : ''}`
       })
     }
     return options
@@ -95,7 +95,7 @@ export default function MonthlyReport() {
     loadBlocks()
   }, [])
 
-  // Load dá»¯ liá»‡u khi thÃ¡ng/lá»›p thay Ä‘á»•i (khÃ´ng tá»± reset)
+  // Load dữ liệu khi tháng/lớp thay đổi (không tự reset)
   useEffect(() => {
     loadMonthlyData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,15 +104,15 @@ export default function MonthlyReport() {
   const loadBlocks = async () => {
     try {
       // TODO: Implement getClassBlocksAction
-      // Táº¡m thá»i dÃ¹ng dá»¯ liá»‡u mock
+      // Tạm thời dùng dữ liệu mock
       const mockBlocks = [
-        { id: '10', name: 'Khá»‘i 10' },
-        { id: '11', name: 'Khá»‘i 11' },
-        { id: '12', name: 'Khá»‘i 12' }
+        { id: '10', name: 'Khối 10' },
+        { id: '11', name: 'Khối 11' },
+        { id: '12', name: 'Khối 12' }
       ]
       setBlocks(mockBlocks)
     } catch (error) {
-      console.error('Lá»—i táº£i khá»‘i lá»›p:', error)
+      console.error('Lỗi tải khối lớp:', error)
     }
   }
 
@@ -124,7 +124,7 @@ export default function MonthlyReport() {
     if (blockId && blockId !== 'all') {
       try {
         // TODO: Implement getClassesByBlockAction
-        // Táº¡m thá»i dÃ¹ng dá»¯ liá»‡u mock
+        // Tạm thời dùng dữ liệu mock
         const mockClasses = [
           { id: '10A1', name: '10A1', block: blockId },
           { id: '10A2', name: '10A2', block: blockId },
@@ -132,7 +132,7 @@ export default function MonthlyReport() {
         ]
         setClasses(mockClasses)
       } catch (error) {
-        console.error('Lá»—i táº£i lá»›p:', error)
+        console.error('Lỗi tải lớp:', error)
       }
     }
   }
@@ -152,7 +152,7 @@ export default function MonthlyReport() {
         setMonthlyData([])
       }
     } catch (error) {
-      console.error('Lá»—i táº£i dá»¯ liá»‡u thÃ¡ng:', error)
+      console.error('Lỗi tải dữ liệu tháng:', error)
       setMonthlyData([])
     } finally {
       setIsLoading(false)
@@ -170,25 +170,25 @@ export default function MonthlyReport() {
       if (result.success) {
         // Trigger custom event to refresh violation alert count
         window.dispatchEvent(new CustomEvent('violation-alert-updated'))
-        console.log('ÄÃ£ Ä‘Ã¡nh dáº¥u xem cho há»c sinh:', studentId)
+        console.log('Đã đánh dấu xem cho học sinh:', studentId)
       }
     } catch (error) {
-      console.error('Lá»—i Ä‘Ã¡nh dáº¥u Ä‘Ã£ xem:', error)
+      console.error('Lỗi đánh dấu đã xem:', error)
     }
   }
 
   const getRankBadge = (index: number) => {
-    if (index === 0) return { variant: 'destructive' as const, icon: 'ðŸ¥‡', label: 'Nhiá»u nháº¥t' }
-    if (index === 1) return { variant: 'secondary' as const, icon: 'ðŸ¥ˆ', label: 'Thá»© 2' }
-    if (index === 2) return { variant: 'outline' as const, icon: 'ðŸ¥‰', label: 'Thá»© 3' }
-    return { variant: 'outline' as const, icon: '', label: `Thá»© ${index + 1}` }
+    if (index === 0) return { variant: 'destructive' as const, icon: 'ðŸ¥‡', label: 'Nhiều nhất' }
+    if (index === 1) return { variant: 'secondary' as const, icon: 'ðŸ¥ˆ', label: 'Thứ 2' }
+    if (index === 2) return { variant: 'outline' as const, icon: 'ðŸ¥‰', label: 'Thứ 3' }
+    return { variant: 'outline' as const, icon: '', label: `Thứ ${index + 1}` }
   }
 
   const getViolationLevel = (violations: number) => {
-    if (violations >= 5) return { variant: 'destructive' as const, label: 'NghiÃªm trá»ng' }
-    if (violations >= 3) return { variant: 'secondary' as const, label: 'Cáº£nh bÃ¡o' }
-    if (violations >= 1) return { variant: 'outline' as const, label: 'Nháº¹' }
-    return { variant: 'default' as const, label: 'Tá»‘t' }
+    if (violations >= 5) return { variant: 'destructive' as const, label: 'Nghiêm trọng' }
+    if (violations >= 3) return { variant: 'secondary' as const, label: 'Cảnh báo' }
+    if (violations >= 1) return { variant: 'outline' as const, label: 'Nhẹ' }
+    return { variant: 'default' as const, label: 'Tốt' }
   }
 
   const totalStudentsWithViolations = monthlyData.length
@@ -198,21 +198,21 @@ export default function MonthlyReport() {
 
   return (
     <div className="space-y-6">
-      {/* Bá»™ lá»c */}
+      {/* Bộ lọc */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            BÃ¡o cÃ¡o vi pháº¡m theo thÃ¡ng há»c kÃ¬
+            Báo cáo vi phạm theo tháng học kì
           </CardTitle>
           <CardDescription>
-            Xáº¿p háº¡ng há»c sinh theo sá»‘ láº§n vi pháº¡m trong thÃ¡ng (4 tuáº§n)
+            Xếp hạng học sinh theo số lần vi phạm trong tháng (4 tuần)
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label htmlFor="month-select" className="text-sm font-medium">ThÃ¡ng há»c kÃ¬</label>
+              <label htmlFor="month-select" className="text-sm font-medium">Tháng học kì</label>
               <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -228,13 +228,13 @@ export default function MonthlyReport() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Khá»‘i lá»›p</label>
+              <label className="text-sm font-medium">Khối lớp</label>
               <Select value={selectedBlock} onValueChange={handleBlockChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Táº¥t cáº£ khá»‘i" />
+                  <SelectValue placeholder="Tất cả khối" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ khá»‘i</SelectItem>
+                  <SelectItem value="all">Tất cả khối</SelectItem>
                   {blocks.map((block) => (
                     <SelectItem key={block.id} value={block.id}>
                       {block.name}
@@ -245,13 +245,13 @@ export default function MonthlyReport() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Lá»›p</label>
+              <label className="text-sm font-medium">Lớp</label>
               <Select value={selectedClass} onValueChange={setSelectedClass} disabled={!selectedBlock}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Táº¥t cáº£ lá»›p" />
+                  <SelectValue placeholder="Tất cả lớp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ lá»›p</SelectItem>
+                  <SelectItem value="all">Tất cả lớp</SelectItem>
                   {classes.map((cls) => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name}
@@ -263,90 +263,90 @@ export default function MonthlyReport() {
 
             <div className="flex items-end">
               <Button onClick={loadMonthlyData} disabled={isLoading} className="w-full">
-                {isLoading ? 'Äang táº£i...' : 'Táº£i dá»¯ liá»‡u'}
+                {isLoading ? 'Đang tải...' : 'Tải dữ liệu'}
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Thá»‘ng kÃª tá»•ng quan */}
+      {/* Thống kê tổng quan */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Há»c sinh vi pháº¡m</CardTitle>
+            <CardTitle className="text-sm font-medium">Học sinh vi phạm</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStudentsWithViolations}</div>
             <p className="text-xs text-muted-foreground">
-              ThÃ¡ng {selectedMonth}
+              Tháng {selectedMonth}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tá»•ng vi pháº¡m</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng vi phạm</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalViolations}</div>
             <p className="text-xs text-muted-foreground">
-              Láº§n vi pháº¡m
+              Lần vi phạm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cáº§n cáº£nh bÃ¡o</CardTitle>
+            <CardTitle className="text-sm font-medium">Cần cảnh báo</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{studentsWithWarning}</div>
             <p className="text-xs text-muted-foreground">
-              â‰¥3 láº§n vi pháº¡m
+              â‰¥3 lần vi phạm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Äiá»ƒm bá»‹ trá»«</CardTitle>
+            <CardTitle className="text-sm font-medium">Điểm bị trừ</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPointsDeducted}</div>
             <p className="text-xs text-muted-foreground">
-              Tá»•ng Ä‘iá»ƒm trá»«
+              Tổng điểm trừ
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Báº£ng xáº¿p háº¡ng */}
+      {/* Bảng xếp hạng */}
       <Card>
         <CardHeader>
-          <CardTitle>Xáº¿p háº¡ng vi pháº¡m theo thÃ¡ng</CardTitle>
+          <CardTitle>Xếp hạng vi phạm theo tháng</CardTitle>
           <CardDescription>
-            Há»c sinh vi pháº¡m nhiá»u nháº¥t hiá»ƒn thá»‹ trÃªn cÃ¹ng
+            Học sinh vi phạm nhiều nhất hiển thị trên cùng
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Äang táº£i dá»¯ liá»‡u...</div>
+            <div className="text-center py-8">Đang tải dữ liệu...</div>
           ) : monthlyData.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Háº¡ng</TableHead>
-                  <TableHead>Há»c sinh</TableHead>
-                  <TableHead>Lá»›p</TableHead>
-                  <TableHead>Sá»‘ vi pháº¡m</TableHead>
-                  <TableHead>Äiá»ƒm trá»«</TableHead>
-                  <TableHead>Má»©c Ä‘á»™</TableHead>
-                  <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                  <TableHead>Hạng</TableHead>
+                  <TableHead>Học sinh</TableHead>
+                  <TableHead>Lớp</TableHead>
+                  <TableHead>Số vi phạm</TableHead>
+                  <TableHead>Điểm trừ</TableHead>
+                  <TableHead>Mức độ</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -371,12 +371,12 @@ export default function MonthlyReport() {
                       <TableCell>{item.class!.name}</TableCell>
                       <TableCell>
                         <Badge variant={item.total_violations >= 3 ? 'destructive' : 'outline'}>
-                          {item.total_violations} láº§n
+                          {item.total_violations} lần
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          -{item.total_points} Ä‘iá»ƒm
+                          -{item.total_points} điểm
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -391,7 +391,7 @@ export default function MonthlyReport() {
                             size="sm"
                             onClick={() => handleMarkSeen(item.student!.id)}
                           >
-                            ÄÃ¡nh dáº¥u Ä‘Ã£ xem
+                            Đánh dấu đã xem
                           </Button>
                         )}
                       </TableCell>
@@ -402,7 +402,7 @@ export default function MonthlyReport() {
             </Table>
           ) : (
             <div className="text-center text-muted-foreground py-8">
-              KhÃ´ng cÃ³ vi pháº¡m nÃ o trong thÃ¡ng {selectedMonth}
+              Không có vi phạm nào trong tháng {selectedMonth}
             </div>
           )}
         </CardContent>

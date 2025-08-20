@@ -59,12 +59,12 @@ export default function ParentFeedbackDashboard() {
 
   // Day names
   const dayNames = useMemo(() => ({
-    1: "Thá»© Hai",
-    2: "Thá»© Ba",
-    3: "Thá»© TÆ°",
-    4: "Thá»© NÄƒm",
-    5: "Thá»© SÃ¡u",
-    6: "Thá»© Báº£y"
+    1: "Thứ Hai",
+    2: "Thứ Ba",
+    3: "Thứ Tư",
+    4: "Thứ Năm",
+    5: "Thứ Sáu",
+    6: "Thứ Bảy"
   } as Record<number, string>), [])
 
   // Get initials for avatar
@@ -170,7 +170,7 @@ export default function ParentFeedbackDashboard() {
           number: weekNumber,
           startDate: weekStartDate,
           endDate: weekEndDate,
-          label: `Tuáº§n ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
         })
         weekNumber++
       }
@@ -260,7 +260,7 @@ export default function ParentFeedbackDashboard() {
           <div className="flex items-center space-x-2">
             <Sparkles className="h-4 w-4 text-green-600" />
             <span className="text-xs font-medium text-green-800 dark:text-green-200">
-              TÃ³m táº¯t tá»« GiÃ¡o viÃªn - {dayNames[dayOfWeek]}
+              Tóm tắt từ Giáo viên - {dayNames[dayOfWeek]}
             </span>
           </div>
           <div className="text-xs text-green-600 dark:text-green-400">
@@ -275,7 +275,7 @@ export default function ParentFeedbackDashboard() {
         <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-between">
           <div className="flex items-center space-x-1">
             <Sparkles className="h-3 w-3" />
-            <span>TÃ³m táº¯t AI tá»« giÃ¡o viÃªn</span>
+            <span>Tóm tắt AI từ giáo viên</span>
           </div>
           <span className="text-gray-400">
             {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 â­
@@ -288,16 +288,16 @@ export default function ParentFeedbackDashboard() {
         <div className="flex items-center space-x-2 mb-2">
           <MessageSquare className="h-4 w-4 text-gray-500" />
           <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-            TÃ³m táº¯t AI - {dayNames[dayOfWeek]}
+            Tóm tắt AI - {dayNames[dayOfWeek]}
           </span>
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-md p-2 border">
           <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed italic">
-            GiÃ¡o viÃªn chÆ°a táº¡o tÃ³m táº¯t AI cho ngÃ y nÃ y.
+            Giáo viên chưa tạo tóm tắt AI cho ngày này.
           </p>
         </div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center justify-between">
-          <span>CÃ³ {dayFeedback.length} pháº£n há»“i chi tiáº¿t</span>
+          <span>Có {dayFeedback.length} phản hồi chi tiết</span>
           <span className="text-gray-400">
             {dayFeedback.reduce((sum, f) => sum + f.rating, 0) / dayFeedback.length}/5 â­
           </span>
@@ -311,9 +311,9 @@ export default function ParentFeedbackDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">Pháº£n Há»“i Há»c Táº­p</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Phản Hồi Học Tập</h2>
           <p className="text-muted-foreground">
-            Xem pháº£n há»“i há»c táº­p cá»§a con em tá»« giÃ¡o viÃªn theo tuáº§n há»c
+            Xem phản hồi học tập của con em từ giáo viên theo tuần học
           </p>
         </div>
       </div>
@@ -321,7 +321,7 @@ export default function ParentFeedbackDashboard() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Bá»™ Lá»c</CardTitle>
+          <CardTitle className="text-base">Bộ Lọc</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -334,10 +334,10 @@ export default function ParentFeedbackDashboard() {
                   onValueChange={(value) => handleFiltersChange('student_id', value === "ALL_CHILDREN" ? "" : value)}
                 >
                   <SelectTrigger id="student-select">
-                    <SelectValue placeholder="Táº¥t cáº£ con em" />
+                    <SelectValue placeholder="Tất cả con em" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ALL_CHILDREN">Táº¥t cáº£ con em</SelectItem>
+                    <SelectItem value="ALL_CHILDREN">Tất cả con em</SelectItem>
                     {children.map((child) => (
                       <SelectItem key={child.id} value={child.id}>
                         <div className="flex items-center space-x-2">
@@ -353,13 +353,13 @@ export default function ParentFeedbackDashboard() {
 
             {/* Academic Year */}
             <div className="space-y-2">
-              <label htmlFor="academic-year-select" className="text-sm font-medium">NÄƒm Há»c</label>
+              <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
               <Select
                 value={filters.academic_year_id}
                 onValueChange={(value) => handleFiltersChange('academic_year_id', value)}
               >
                 <SelectTrigger id="academic-year-select">
-                  <SelectValue placeholder="Chá»n nÄƒm há»c" />
+                  <SelectValue placeholder="Chọn năm học" />
                 </SelectTrigger>
                 <SelectContent>
                   {academicYears.map((year) => (
@@ -373,14 +373,14 @@ export default function ParentFeedbackDashboard() {
 
             {/* Week */}
             <div className="space-y-2">
-              <label htmlFor="week-select" className="text-sm font-medium">Tuáº§n Há»c</label>
+              <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
               <Select
                 value={filters.week_number.toString()}
                 onValueChange={(value) => handleFiltersChange('week_number', parseInt(value))}
                 disabled={weekOptions.length === 0}
               >
                 <SelectTrigger id="week-select">
-                  <SelectValue placeholder="Chá»n tuáº§n" />
+                  <SelectValue placeholder="Chọn tuần" />
                 </SelectTrigger>
                 <SelectContent>
                   {weekOptions.map((week) => (
@@ -400,7 +400,7 @@ export default function ParentFeedbackDashboard() {
         <Card>
           <CardContent className="py-8 text-center">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-sm text-muted-foreground">Äang táº£i pháº£n há»“i...</p>
+            <p className="mt-2 text-sm text-muted-foreground">Đang tải phản hồi...</p>
           </CardContent>
         </Card>
       )}
@@ -444,9 +444,9 @@ export default function ParentFeedbackDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Tuáº§n {filters.week_number}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Tuần {filters.week_number}</div>
                     <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                      {Object.values(student.daily_feedback).flat().length} pháº£n há»“i
+                      {Object.values(student.daily_feedback).flat().length} phản hồi
                     </div>
                   </div>
                 </div>
@@ -459,12 +459,12 @@ export default function ParentFeedbackDashboard() {
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 text-purple-800 dark:text-purple-200">
                         <Sparkles className="h-5 w-5" />
-                        <span>TÃ³m Táº¯t AI & Tiáº¿n Bá»™ - Tuáº§n {filters.week_number}</span>
+                        <span>Tóm Tắt AI & Tiến Bộ - Tuần {filters.week_number}</span>
                       </div>
                       {filters.week_number > 1 && (
                         <div className="flex items-center space-x-1 text-xs text-purple-600 dark:text-purple-400">
                           <TrendingUp className="h-3 w-3" />
-                          <span>So vá»›i tuáº§n trÆ°á»›c</span>
+                          <span>So với tuần trước</span>
                         </div>
                       )}
                     </CardTitle>
@@ -475,16 +475,16 @@ export default function ParentFeedbackDashboard() {
                         {/* Mock AI summary with progress - In real implementation, this would come from the database */}
                         <div className="space-y-2">
                           <span className="italic text-purple-600 dark:text-purple-400">
-                            &ldquo;{student.student_name} tiáº¿n bá»™ rÃµ rá»‡t tuáº§n nÃ y! Äiá»ƒm ToÃ¡n tÄƒng tá»« 3.5 lÃªn 4.5. Tiáº¿p tá»¥c duy trÃ¬.&rdquo;
+                            &ldquo;{student.student_name} tiến bộ rõ rệt tuần này! Điểm Toán tăng từ 3.5 lên 4.5. Tiếp tục duy trì.&rdquo;
                           </span>
                           {filters.week_number > 1 && (
                             <div className="flex items-center space-x-2 text-xs">
                               <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
                                 <TrendingUp className="h-3 w-3" />
-                                <span>Äiá»ƒm trung bÃ¬nh: +0.8</span>
+                                <span>Điểm trung bình: +0.8</span>
                               </div>
                               <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                              <span className="text-gray-500">So vá»›i tuáº§n {filters.week_number - 1}</span>
+                              <span className="text-gray-500">So với tuần {filters.week_number - 1}</span>
                             </div>
                           )}
                         </div>
@@ -492,9 +492,9 @@ export default function ParentFeedbackDashboard() {
                       <div className="mt-3 text-xs text-purple-600 dark:text-purple-400 flex items-center justify-between">
                         <div className="flex items-center space-x-1">
                           <Sparkles className="h-3 w-3" />
-                          <span>ÄÆ°á»£c táº¡o bá»Ÿi AI vá»›i theo dÃµi tiáº¿n bá»™</span>
+                          <span>Được tạo bởi AI với theo dõi tiến bộ</span>
                         </div>
-                        <span className="text-gray-400">Tuáº§n {filters.week_number}</span>
+                        <span className="text-gray-400">Tuần {filters.week_number}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -516,11 +516,11 @@ export default function ParentFeedbackDashboard() {
                           </div>
                           {dayFeedback.length > 0 ? (
                             <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                              {dayFeedback.length} pháº£n há»“i
+                              {dayFeedback.length} phản hồi
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-gray-500">
-                              KhÃ´ng cÃ³
+                              Không có
                             </Badge>
                           )}
                         </CardTitle>
@@ -581,7 +581,7 @@ export default function ParentFeedbackDashboard() {
                                       className="h-6 text-xs border-blue-300 text-blue-600 hover:bg-blue-50"
                                     >
                                       <Eye className="h-3 w-3 mr-1" />
-                                      ÄÃ£ Ä‘á»c
+                                      Đã đọc
                                     </Button>
                                   )}
                                 </div>
@@ -591,7 +591,7 @@ export default function ParentFeedbackDashboard() {
                         ) : (
                           <div className="text-center py-8">
                             <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500 text-sm">ChÆ°a cÃ³ pháº£n há»“i</p>
+                            <p className="text-gray-500 text-sm">Chưa có phản hồi</p>
                           </div>
                         )}
                       </CardContent>
@@ -612,13 +612,13 @@ export default function ParentFeedbackDashboard() {
               <MessageSquare className="h-12 w-12 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-              ChÆ°a CÃ³ Pháº£n Há»“i
+              Chưa Có Phản Hồi
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-              ChÆ°a cÃ³ pháº£n há»“i nÃ o tá»« giÃ¡o viÃªn cho <span className="font-semibold text-blue-600">tuáº§n {filters.week_number}</span> trong nÄƒm há»c nÃ y.
+              Chưa có phản hồi nào từ giáo viên cho <span className="font-semibold text-blue-600">tuần {filters.week_number}</span> trong năm học này.
             </p>
             <div className="mt-6 text-sm text-gray-500 dark:text-gray-500">
-              Pháº£n há»“i sáº½ xuáº¥t hiá»‡n á»Ÿ Ä‘Ã¢y khi giÃ¡o viÃªn gá»­i Ä‘Ã¡nh giÃ¡ vá» con em báº¡n.
+              Phản hồi sẽ xuất hiện ở đây khi giáo viên gửi đánh giá về con em bạn.
             </div>
           </div>
         </div>

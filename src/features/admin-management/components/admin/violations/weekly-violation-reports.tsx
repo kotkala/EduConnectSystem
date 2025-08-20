@@ -61,12 +61,12 @@ export default function WeeklyViolationReports() {
   }
 
   function getWeekDateRange(weekNumber: number): { start: Date; end: Date; label: string } {
-    // TÃ­nh ngÃ y báº¯t Ä‘áº§u vÃ  káº¿t thÃºc cá»§a tuáº§n dá»±a trÃªn sá»‘ tuáº§n
+    // Tính ngày bắt đầu và kết thúc của tuần dựa trên số tuần
     const semesterStart = currentSemester?.start_date ? new Date(currentSemester.start_date) : new Date('2024-01-01')
     const weekStart = addWeeks(startOfWeek(semesterStart, { weekStartsOn: 1 }), weekNumber - 1)
     const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 })
 
-    const label = `Tuáº§n ${weekNumber} (${format(weekStart, 'dd/MM', { locale: vi })} - ${format(weekEnd, 'dd/MM/yyyy', { locale: vi })})`
+    const label = `Tuần ${weekNumber} (${format(weekStart, 'dd/MM', { locale: vi })} - ${format(weekEnd, 'dd/MM/yyyy', { locale: vi })})`
 
     return { start: weekStart, end: weekEnd, label }
   }
@@ -78,7 +78,7 @@ export default function WeeklyViolationReports() {
       const weekRange = getWeekDateRange(i)
       options.push({
         value: i,
-        label: `${weekRange.label}${i === currentWeek ? ' - Hiá»‡n táº¡i' : ''}`
+        label: `${weekRange.label}${i === currentWeek ? ' - Hiện tại' : ''}`
       })
     }
     return options
@@ -101,7 +101,7 @@ export default function WeeklyViolationReports() {
     loadCurrentSemester()
   }, [])
 
-  // Khá»Ÿi táº¡o tuáº§n hiá»‡n táº¡i má»™t láº§n khi há»c kÃ¬ sáºµn sÃ ng
+  // Khởi tạo tuần hiện tại một lần khi học kì sẵn sàng
   useEffect(() => {
     if (currentSemester?.start_date && !isWeekInitialized) {
       const semesterStart = new Date(currentSemester.start_date)
@@ -114,7 +114,7 @@ export default function WeeklyViolationReports() {
   }, [currentSemester, isWeekInitialized])
 
 
-  // Chá»‰ load dá»¯ liá»‡u sau khi Ä‘Ã£ khá»Ÿi táº¡o tuáº§n hiá»‡n táº¡i
+  // Chỉ load dữ liệu sau khi đã khởi tạo tuần hiện tại
   useEffect(() => {
     if (currentSemester && isWeekInitialized) {
       loadWeeklyReports()
@@ -136,7 +136,7 @@ export default function WeeklyViolationReports() {
         }
       }
     } catch (error) {
-      console.error('Lá»—i táº£i há»c kÃ¬ hiá»‡n táº¡i:', error)
+      console.error('Lỗi tải học kì hiện tại:', error)
     }
   }
 
@@ -184,7 +184,7 @@ export default function WeeklyViolationReports() {
         setReports([])
       }
     } catch (error) {
-      console.error('Lá»—i táº£i bÃ¡o cÃ¡o tuáº§n:', error)
+      console.error('Lỗi tải báo cáo tuần:', error)
       setReports([])
     } finally {
       setIsLoading(false)
@@ -194,11 +194,11 @@ export default function WeeklyViolationReports() {
   const handleSendToTeachers = async () => {
     try {
       // For now, just mark as sent - can implement actual sending later
-      toast.success(`ÄÃ£ gá»­i bÃ¡o cÃ¡o tuáº§n ${selectedWeek} cho cÃ¡c GVCN`)
+      toast.success(`Đã gửi báo cáo tuần ${selectedWeek} cho các GVCN`)
       loadWeeklyReports()
     } catch (error) {
-      console.error('Lá»—i gá»­i bÃ¡o cÃ¡o:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i bÃ¡o cÃ¡o')
+      console.error('Lỗi gửi báo cáo:', error)
+      toast.error('Có lỗi xảy ra khi gửi báo cáo')
     }
   }
 
@@ -218,21 +218,21 @@ export default function WeeklyViolationReports() {
 
   return (
     <div className="space-y-6">
-      {/* Bá»™ lá»c */}
+      {/* Bộ lọc */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5" />
-            BÃ¡o cÃ¡o vi pháº¡m theo tuáº§n
+            Báo cáo vi phạm theo tuần
           </CardTitle>
           <CardDescription>
-            Gá»™p vi pháº¡m theo há»c sinh trong tá»«ng tuáº§n há»c - Má»—i há»c sinh báº¯t Ä‘áº§u vá»›i 100 Ä‘iá»ƒm/tuáº§n
+            Gộp vi phạm theo học sinh trong từng tuần học - Mỗi học sinh bắt đầu với 100 điểm/tuần
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label htmlFor="week-select" className="text-sm font-medium">Tuáº§n</label>
+              <label htmlFor="week-select" className="text-sm font-medium">Tuần</label>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -268,13 +268,13 @@ export default function WeeklyViolationReports() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="class-select" className="text-sm font-medium">Lá»›p (tÃ¹y chá»n)</label>
+              <label htmlFor="class-select" className="text-sm font-medium">Lớp (tùy chọn)</label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger id="class-select">
-                  <SelectValue placeholder="Táº¥t cáº£ lá»›p" />
+                  <SelectValue placeholder="Tất cả lớp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ lá»›p</SelectItem>
+                  <SelectItem value="all">Tất cả lớp</SelectItem>
                   <SelectItem value="10A1">10A1</SelectItem>
                   <SelectItem value="10A2">10A2</SelectItem>
                   <SelectItem value="10A3">10A3</SelectItem>
@@ -284,12 +284,12 @@ export default function WeeklyViolationReports() {
 
             <div className="flex items-end gap-2">
               <Button onClick={loadWeeklyReports} disabled={isLoading} variant="outline">
-                {isLoading ? 'Äang táº£i...' : 'Táº£i dá»¯ liá»‡u'}
+                {isLoading ? 'Đang tải...' : 'Tải dữ liệu'}
               </Button>
               {reports.length > 0 && (
                 <Button onClick={handleSendToTeachers} className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
-                  Gá»­i cho GVCN
+                  Gửi cho GVCN
                 </Button>
               )}
             </div>
@@ -297,88 +297,88 @@ export default function WeeklyViolationReports() {
         </CardContent>
       </Card>
 
-      {/* Thá»‘ng kÃª tá»•ng quan */}
+      {/* Thống kê tổng quan */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Há»c sinh vi pháº¡m</CardTitle>
+            <CardTitle className="text-sm font-medium">Học sinh vi phạm</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalStudentsWithViolations}</div>
             <p className="text-xs text-muted-foreground">
-              Tuáº§n {selectedWeek}
+              Tuần {selectedWeek}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tá»•ng vi pháº¡m</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng vi phạm</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalViolations}</div>
             <p className="text-xs text-muted-foreground">
-              Láº§n vi pháº¡m
+              Lần vi phạm
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Äiá»ƒm bá»‹ trá»«</CardTitle>
+            <CardTitle className="text-sm font-medium">Điểm bị trừ</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPointsDeducted}</div>
             <p className="text-xs text-muted-foreground">
-              Tá»•ng Ä‘iá»ƒm trá»«
+              Tổng điểm trừ
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Äiá»ƒm TB</CardTitle>
+            <CardTitle className="text-sm font-medium">Điểm TB</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{averageScore.toFixed(1)}</div>
             <p className="text-xs text-muted-foreground">
-              Äiá»ƒm trung bÃ¬nh
+              Điểm trung bình
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Báº£ng chi tiáº¿t */}
+      {/* Bảng chi tiết */}
       <Card>
         <CardHeader>
-          <CardTitle>Chi tiáº¿t vi pháº¡m theo há»c sinh</CardTitle>
+          <CardTitle>Chi tiết vi phạm theo học sinh</CardTitle>
           <CardDescription>
-            Má»—i há»c sinh lÃ  má»™t item gá»™p táº¥t cáº£ vi pháº¡m trong tuáº§n
+            Mỗi học sinh là một item gộp tất cả vi phạm trong tuần
           </CardDescription>
         </CardHeader>
         <CardContent>
           {(() => {
-            if (isLoading) return <div className="text-center py-8">Äang táº£i dá»¯ liá»‡u...</div>
+            if (isLoading) return <div className="text-center py-8">Đang tải dữ liệu...</div>
             if (reports.length === 0) return (
               <div className="text-center text-muted-foreground py-8">
-                KhÃ´ng cÃ³ vi pháº¡m nÃ o trong tuáº§n {selectedWeek}
+                Không có vi phạm nào trong tuần {selectedWeek}
               </div>
             )
             return (
               <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Há»c sinh</TableHead>
-                  <TableHead>Lá»›p</TableHead>
-                  <TableHead>Sá»‘ vi pháº¡m</TableHead>
-                  <TableHead>Äiá»ƒm trá»«</TableHead>
-                  <TableHead>Äiá»ƒm tuáº§n</TableHead>
-                  <TableHead>Chi tiáº¿t vi pháº¡m</TableHead>
-                  <TableHead>Tráº¡ng thÃ¡i</TableHead>
+                  <TableHead>Học sinh</TableHead>
+                  <TableHead>Lớp</TableHead>
+                  <TableHead>Số vi phạm</TableHead>
+                  <TableHead>Điểm trừ</TableHead>
+                  <TableHead>Điểm tuần</TableHead>
+                  <TableHead>Chi tiết vi phạm</TableHead>
+                  <TableHead>Trạng thái</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -393,12 +393,12 @@ export default function WeeklyViolationReports() {
                     <TableCell>{report.class.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {report.total_violations} láº§n
+                        {report.total_violations} lần
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant="destructive">
-                        -{report.total_points_deducted} Ä‘iá»ƒm
+                        -{report.total_points_deducted} điểm
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -411,7 +411,7 @@ export default function WeeklyViolationReports() {
                         {report.violation_details.map((violation) => (
                           <div key={`${violation.type}-${violation.points}-${violation.description ?? ''}`} className="text-sm">
                             <span className="font-medium">{violation.type}</span>
-                            <span className="text-muted-foreground"> (-{violation.points} Ä‘iá»ƒm)</span>
+                            <span className="text-muted-foreground"> (-{violation.points} điểm)</span>
                             {violation.description && (
                               <div className="text-xs text-muted-foreground mt-1">
                                 {violation.description}
@@ -423,9 +423,9 @@ export default function WeeklyViolationReports() {
                     </TableCell>
                     <TableCell>
                       {report.is_sent_to_teacher ? (
-                        <Badge variant="default">ÄÃ£ gá»­i GVCN</Badge>
+                        <Badge variant="default">Đã gửi GVCN</Badge>
                       ) : (
-                        <Badge variant="secondary">ChÆ°a gá»­i</Badge>
+                        <Badge variant="secondary">Chưa gửi</Badge>
                       )}
                     </TableCell>
                   </TableRow>

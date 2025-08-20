@@ -92,7 +92,7 @@ export function TeacherGradeImportDialog({
   const handleValidateFile = async (fileToValidate?: File) => {
     const targetFile = fileToValidate || file
     if (!targetFile || !subjectName || !classId) {
-      setError('Thiáº¿u thÃ´ng tin cáº§n thiáº¿t Ä‘á»ƒ xÃ¡c thá»±c file')
+      setError('Thiếu thông tin cần thiết để xác thực file')
       return
     }
 
@@ -120,7 +120,7 @@ export function TeacherGradeImportDialog({
       }
     } catch (error) {
       console.error('Error validating file:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi xÃ¡c thá»±c file Excel')
+      setError('Có lỗi xảy ra khi xác thực file Excel')
     } finally {
       setValidating(false)
     }
@@ -128,7 +128,7 @@ export function TeacherGradeImportDialog({
 
   const handleImport = async () => {
     if (!file || !periodId || !classId || !subjectId || !validationResult?.success || !validationResult.data) {
-      setError('Thiáº¿u thÃ´ng tin cáº§n thiáº¿t hoáº·c file chÆ°a Ä‘Æ°á»£c xÃ¡c thá»±c')
+      setError('Thiếu thông tin cần thiết hoặc file chưa được xác thực')
       return
     }
 
@@ -143,7 +143,7 @@ export function TeacherGradeImportDialog({
       // Get student UUIDs from student numbers for override detection
       const studentsResponse = await getClassStudentsAction(classId)
       if (!studentsResponse.success || !studentsResponse.data) {
-        throw new Error('KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c sinh')
+        throw new Error('Không thể lấy danh sách học sinh')
       }
 
       // Create mapping from student number to student UUID
@@ -187,14 +187,14 @@ export function TeacherGradeImportDialog({
       await proceedWithImport(validationResult.data)
     } catch (error) {
       console.error('Error importing file:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi nháº­p file Excel')
+      setError('Có lỗi xảy ra khi nhập file Excel')
       setLoading(false)
     }
   }
 
   const proceedWithImport = async (data: ValidatedGradeData[], overrideReasons?: Record<string, string>) => {
     if (!classId || !subjectId) {
-      setError('Thiáº¿u thÃ´ng tin lá»›p há»c hoáº·c mÃ´n há»c')
+      setError('Thiếu thông tin lớp học hoặc môn học')
       return
     }
 
@@ -231,7 +231,7 @@ export function TeacherGradeImportDialog({
       }
     } catch (error) {
       console.error('Error importing file:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi nháº­p file Excel')
+      setError('Có lỗi xảy ra khi nhập file Excel')
     } finally {
       setLoading(false)
     }
@@ -249,7 +249,7 @@ export function TeacherGradeImportDialog({
     setOverrideDialogOpen(false)
     setPendingImportData(null)
     setDetectedOverrides([])
-    setError('Nháº­p Ä‘iá»ƒm bá»‹ há»§y do cÃ³ Ä‘iá»ƒm ghi Ä‘Ã¨ cáº§n lÃ½ do')
+    setError('Nhập điểm bị hủy do có điểm ghi đè cần lý do')
   }
 
   const handleClose = () => {
@@ -277,7 +277,7 @@ export function TeacherGradeImportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Nháº­p Ä‘iá»ƒm tá»« Excel
+            Nhập điểm từ Excel
           </DialogTitle>
         </DialogHeader>
 
@@ -285,15 +285,15 @@ export function TeacherGradeImportDialog({
           {!success ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="upload">Táº£i file</TabsTrigger>
-                <TabsTrigger value="preview" disabled={!validationResult?.success}>Xem trÆ°á»›c</TabsTrigger>
-                <TabsTrigger value="errors" disabled={!validationResult || validationResult.success}>Lá»—i</TabsTrigger>
-                <TabsTrigger value="statistics" disabled={!validationResult}>Thá»‘ng kÃª</TabsTrigger>
+                <TabsTrigger value="upload">Tải file</TabsTrigger>
+                <TabsTrigger value="preview" disabled={!validationResult?.success}>Xem trước</TabsTrigger>
+                <TabsTrigger value="errors" disabled={!validationResult || validationResult.success}>Lỗi</TabsTrigger>
+                <TabsTrigger value="statistics" disabled={!validationResult}>Thống kê</TabsTrigger>
               </TabsList>
 
               <TabsContent value="upload" className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="excel-file">Chá»n file Excel *</Label>
+                  <Label htmlFor="excel-file">Chọn file Excel *</Label>
                   <div className="flex items-center space-x-2">
                     <Input
                       id="excel-file"
@@ -307,12 +307,12 @@ export function TeacherGradeImportDialog({
                   {file && (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        ÄÃ£ chá»n: {file.name} ({Math.round(file.size / 1024)} KB)
+                        Đã chọn: {file.name} ({Math.round(file.size / 1024)} KB)
                       </p>
                       {validating && (
                         <div className="flex items-center gap-2 text-sm text-blue-600">
                           <AlertCircle className="h-4 w-4 animate-pulse" />
-                          Äang xÃ¡c thá»±c file...
+                          Đang xác thực file...
                         </div>
                       )}
                     </div>
@@ -329,13 +329,13 @@ export function TeacherGradeImportDialog({
                     <AlertDescription>
                       {validationResult.success ? (
                         <>
-                          <strong>XÃ¡c thá»±c thÃ nh cÃ´ng!</strong> TÃ¬m tháº¥y {validationResult.statistics.validRows} dÃ²ng há»£p lá»‡
-                          vá»›i {validationResult.statistics.validGrades} Ä‘iá»ƒm sá»‘.
+                          <strong>Xác thực thành công!</strong> Tìm thấy {validationResult.statistics.validRows} dòng hợp lệ
+                          với {validationResult.statistics.validGrades} điểm số.
                         </>
                       ) : (
                         <>
-                          <strong>XÃ¡c thá»±c tháº¥t báº¡i!</strong> TÃ¬m tháº¥y {validationResult.errors.filter(e => e.severity === 'error').length} lá»—i
-                          cáº§n kháº¯c phá»¥c.
+                          <strong>Xác thực thất bại!</strong> Tìm thấy {validationResult.errors.filter(e => e.severity === 'error').length} lỗi
+                          cần khắc phục.
                         </>
                       )}
                     </AlertDescription>
@@ -345,8 +345,8 @@ export function TeacherGradeImportDialog({
                 <Alert>
                   <FileSpreadsheet className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>LÆ°u Ã½:</strong> File Excel pháº£i Ä‘Ãºng Ä‘á»‹nh dáº¡ng template Ä‘Ã£ táº£i vá».
-                    Há»‡ thá»‘ng sáº½ kiá»ƒm tra vÃ  xÃ¡c thá»±c dá»¯ liá»‡u trÆ°á»›c khi nháº­p.
+                    <strong>Lưu ý:</strong> File Excel phải đúng định dạng template đã tải về.
+                    Hệ thống sẽ kiểm tra và xác thực dữ liệu trước khi nhập.
                   </AlertDescription>
                 </Alert>
               </TabsContent>
@@ -355,9 +355,9 @@ export function TeacherGradeImportDialog({
                 {validationResult?.success && validationResult.data && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium">Xem trÆ°á»›c dá»¯ liá»‡u ({validationResult.data.length} há»c sinh)</h3>
+                      <h3 className="text-lg font-medium">Xem trước dữ liệu ({validationResult.data.length} học sinh)</h3>
                       <Badge variant="default" className="bg-green-100 text-green-800">
-                        {validationResult.statistics.validGrades} Ä‘iá»ƒm há»£p lá»‡
+                        {validationResult.statistics.validGrades} điểm hợp lệ
                       </Badge>
                     </div>
 
@@ -366,12 +366,12 @@ export function TeacherGradeImportDialog({
                         <thead className="border-b bg-muted/50 sticky top-0">
                           <tr>
                             <th className="text-left p-2">STT</th>
-                            <th className="text-left p-2">MÃ£ HS</th>
-                            <th className="text-left p-2">Há» tÃªn</th>
-                            <th className="text-left p-2">Äiá»ƒm TX</th>
-                            <th className="text-left p-2">Giá»¯a kÃ¬</th>
-                            <th className="text-left p-2">Cuá»‘i kÃ¬</th>
-                            <th className="text-left p-2">Ghi chÃº</th>
+                            <th className="text-left p-2">Mã HS</th>
+                            <th className="text-left p-2">Họ tên</th>
+                            <th className="text-left p-2">Điểm TX</th>
+                            <th className="text-left p-2">Giữa kì</th>
+                            <th className="text-left p-2">Cuối kì</th>
+                            <th className="text-left p-2">Ghi chú</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -397,7 +397,7 @@ export function TeacherGradeImportDialog({
                       </table>
                       {validationResult.data.length > 10 && (
                         <div className="p-2 text-center text-sm text-muted-foreground border-t">
-                          VÃ  {validationResult.data.length - 10} há»c sinh khÃ¡c...
+                          Và {validationResult.data.length - 10} học sinh khác...
                         </div>
                       )}
                     </div>
@@ -409,7 +409,7 @@ export function TeacherGradeImportDialog({
                 {validationResult && validationResult.errors.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium text-red-600">
-                      Danh sÃ¡ch lá»—i ({validationResult.errors.filter(e => e.severity === 'error').length})
+                      Danh sách lỗi ({validationResult.errors.filter(e => e.severity === 'error').length})
                     </h3>
 
                     <ScrollArea className="h-96 border rounded-lg p-4">
@@ -424,15 +424,15 @@ export function TeacherGradeImportDialog({
                             <AlertDescription>
                               <div className="space-y-1">
                                 <div className="font-medium">
-                                  DÃ²ng {error.rowNumber}: {error.message}
+                                  Dòng {error.rowNumber}: {error.message}
                                 </div>
                                 {error.studentId && (
                                   <div className="text-sm text-muted-foreground">
-                                    Há»c sinh: {error.studentId} - {error.studentName}
+                                    Học sinh: {error.studentId} - {error.studentName}
                                   </div>
                                 )}
                                 <div className="text-sm text-muted-foreground">
-                                  TrÆ°á»ng: {error.field} | GiÃ¡ trá»‹: &quot;{String(error.value)}&quot;
+                                  Trường: {error.field} | Giá trị: &quot;{String(error.value)}&quot;
                                 </div>
                               </div>
                             </AlertDescription>
@@ -445,7 +445,7 @@ export function TeacherGradeImportDialog({
 
                 {validationResult && validationResult.warnings.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium text-yellow-600">Cáº£nh bÃ¡o</h4>
+                    <h4 className="font-medium text-yellow-600">Cảnh báo</h4>
                     {validationResult.warnings.map((warning, index) => (
                       <Alert key={index}>
                         <AlertTriangle className="h-4 w-4" />
@@ -463,15 +463,15 @@ export function TeacherGradeImportDialog({
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
-                          Thá»‘ng kÃª há»c sinh
+                          Thống kê học sinh
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {getStatisticsBadge("Tá»•ng sá»‘ dÃ²ng", validationResult.statistics.totalRows)}
-                        {getStatisticsBadge("DÃ²ng há»£p lá»‡", validationResult.statistics.validRows, "default")}
-                        {getStatisticsBadge("DÃ²ng lá»—i", validationResult.statistics.invalidRows, "destructive")}
-                        {getStatisticsBadge("DÃ²ng trá»‘ng", validationResult.statistics.emptyRows, "secondary")}
-                        {getStatisticsBadge("Há»c sinh trÃ¹ng", validationResult.statistics.duplicateStudents, "destructive")}
+                        {getStatisticsBadge("Tổng số dòng", validationResult.statistics.totalRows)}
+                        {getStatisticsBadge("Dòng hợp lệ", validationResult.statistics.validRows, "default")}
+                        {getStatisticsBadge("Dòng lỗi", validationResult.statistics.invalidRows, "destructive")}
+                        {getStatisticsBadge("Dòng trống", validationResult.statistics.emptyRows, "secondary")}
+                        {getStatisticsBadge("Học sinh trùng", validationResult.statistics.duplicateStudents, "destructive")}
                       </CardContent>
                     </Card>
 
@@ -479,17 +479,17 @@ export function TeacherGradeImportDialog({
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <TrendingUp className="h-4 w-4" />
-                          Thá»‘ng kÃª Ä‘iá»ƒm sá»‘
+                          Thống kê điểm số
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {getStatisticsBadge("Tá»•ng Ä‘iá»ƒm", validationResult.statistics.validGrades + validationResult.statistics.invalidGrades)}
-                        {getStatisticsBadge("Äiá»ƒm há»£p lá»‡", validationResult.statistics.validGrades, "default")}
-                        {getStatisticsBadge("Äiá»ƒm lá»—i", validationResult.statistics.invalidGrades, "destructive")}
-                        {getStatisticsBadge("Äiá»ƒm thiáº¿u", validationResult.statistics.missingGrades, "secondary")}
+                        {getStatisticsBadge("Tổng điểm", validationResult.statistics.validGrades + validationResult.statistics.invalidGrades)}
+                        {getStatisticsBadge("Điểm hợp lệ", validationResult.statistics.validGrades, "default")}
+                        {getStatisticsBadge("Điểm lỗi", validationResult.statistics.invalidGrades, "destructive")}
+                        {getStatisticsBadge("Điểm thiếu", validationResult.statistics.missingGrades, "secondary")}
                         <div className="pt-2 border-t">
                           <div className="text-sm text-muted-foreground">
-                            Tá»· lá»‡ hoÃ n thÃ nh: {Math.round((validationResult.statistics.validGrades / (validationResult.statistics.validGrades + validationResult.statistics.missingGrades)) * 100)}%
+                            Tỷ lệ hoàn thành: {Math.round((validationResult.statistics.validGrades / (validationResult.statistics.validGrades + validationResult.statistics.missingGrades)) * 100)}%
                           </div>
                         </div>
                       </CardContent>
@@ -501,9 +501,9 @@ export function TeacherGradeImportDialog({
           ) : (
             <div className="text-center py-6">
               <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nháº­p Ä‘iá»ƒm thÃ nh cÃ´ng!</h3>
+              <h3 className="text-lg font-medium mb-2">Nhập điểm thành công!</h3>
               <p className="text-muted-foreground">
-                Dá»¯ liá»‡u Ä‘iá»ƒm Ä‘Ã£ Ä‘Æ°á»£c nháº­p vÃ o há»‡ thá»‘ng.
+                Dữ liệu điểm đã được nhập vào hệ thống.
               </p>
             </div>
           )}
@@ -512,7 +512,7 @@ export function TeacherGradeImportDialog({
           {loading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Äang nháº­p Ä‘iá»ƒm...</span>
+                <span className="text-sm font-medium">Đang nhập điểm...</span>
                 <span className="text-sm text-muted-foreground">{progress}%</span>
               </div>
               <Progress value={progress} className="w-full" />
@@ -530,14 +530,14 @@ export function TeacherGradeImportDialog({
           {/* Action Buttons */}
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={handleClose} disabled={loading || validating}>
-              {success ? 'ÄÃ³ng' : 'Há»§y'}
+              {success ? 'Đóng' : 'Hủy'}
             </Button>
             {!success && (
               <>
                 {file && !validationResult && (
                   <Button onClick={() => handleValidateFile()} disabled={validating || loading}>
                     <Eye className="mr-2 h-4 w-4" />
-                    {validating ? 'Äang xÃ¡c thá»±c...' : 'XÃ¡c thá»±c file'}
+                    {validating ? 'Đang xác thực...' : 'Xác thực file'}
                   </Button>
                 )}
                 <Button
@@ -545,7 +545,7 @@ export function TeacherGradeImportDialog({
                   disabled={!file || loading || !validationResult?.success}
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {loading ? 'Äang nháº­p...' : 'Nháº­p Ä‘iá»ƒm'}
+                  {loading ? 'Đang nhập...' : 'Nhập điểm'}
                 </Button>
               </>
             )}

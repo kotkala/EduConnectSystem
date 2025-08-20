@@ -64,7 +64,7 @@ export default function MonthlyViolationSummary() {
       const endWeek = i * 4
       options.push({
         value: i,
-        label: `ThÃ¡ng ${i} (Tuáº§n ${startWeek}-${endWeek})${i === currentMonth ? ' - Hiá»‡n táº¡i' : ''}`
+        label: `Tháng ${i} (Tuần ${startWeek}-${endWeek})${i === currentMonth ? ' - Hiện tại' : ''}`
       })
     }
     return options
@@ -74,7 +74,7 @@ export default function MonthlyViolationSummary() {
     loadCurrentSemester()
   }, [])
 
-  // Chá»‰ Ä‘áº·t thÃ¡ng hiá»‡n táº¡i khi semester Ä‘Æ°á»£c táº£i
+  // Chỉ đặt tháng hiện tại khi semester được tải
   useEffect(() => {
     if (currentSemester?.start_date) {
       const start = new Date(currentSemester.start_date)
@@ -99,7 +99,7 @@ export default function MonthlyViolationSummary() {
         }
       }
     } catch (error) {
-      console.error('Lá»—i táº£i há»c kÃ¬ hiá»‡n táº¡i:', error)
+      console.error('Lỗi tải học kì hiện tại:', error)
     }
   }
 
@@ -138,14 +138,14 @@ export default function MonthlyViolationSummary() {
         setSummaries([])
       }
     } catch (error) {
-      console.error('Lá»—i táº£i tá»•ng káº¿t thÃ¡ng:', error)
+      console.error('Lỗi tải tổng kết tháng:', error)
       setSummaries([])
     } finally {
       setIsLoading(false)
     }
   }, [currentSemester, selectedMonth, selectedClass])
 
-  // Load dá»¯ liá»‡u khi thÃ¡ng/lá»›p thay Ä‘á»•i
+  // Load dữ liệu khi tháng/lớp thay đổi
   useEffect(() => {
     if (currentSemester) {
       loadMonthlySummaries()
@@ -173,13 +173,13 @@ export default function MonthlyViolationSummary() {
         // Trigger custom event to refresh violation alert count
         window.dispatchEvent(new CustomEvent('violation-alert-updated'))
 
-        toast.success('ÄÃ£ Ä‘Ã¡nh dáº¥u Ä‘Ã£ xem')
+        toast.success('Đã đánh dấu đã xem')
       } else {
-        toast.error(res.error || 'KhÃ´ng thá»ƒ lÆ°u tráº¡ng thÃ¡i Ä‘Ã£ xem')
+        toast.error(res.error || 'Không thể lưu trạng thái đã xem')
       }
     } catch (error) {
-      console.error('Lá»—i Ä‘Ã¡nh dáº¥u Ä‘Ã£ xem:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi Ä‘Ã¡nh dáº¥u Ä‘Ã£ xem')
+      console.error('Lỗi đánh dấu đã xem:', error)
+      toast.error('Có lỗi xảy ra khi đánh dấu đã xem')
     }
   }
 
@@ -187,13 +187,13 @@ export default function MonthlyViolationSummary() {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="text-center py-8">Äang táº£i dá»¯ liá»‡u...</div>
+      return <div className="text-center py-8">Đang tải dữ liệu...</div>
     }
 
     if (summaries.length === 0) {
       return (
         <div className="text-center text-muted-foreground py-8">
-          KhÃ´ng cÃ³ vi pháº¡m nÃ o trong thÃ¡ng {selectedMonth}
+          Không có vi phạm nào trong tháng {selectedMonth}
         </div>
       )
     }
@@ -202,13 +202,13 @@ export default function MonthlyViolationSummary() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Háº¡ng</TableHead>
-            <TableHead>Há»c sinh</TableHead>
-            <TableHead>Lá»›p</TableHead>
-            <TableHead>Sá»‘ vi pháº¡m</TableHead>
-            <TableHead>Äiá»ƒm trá»«</TableHead>
-            <TableHead>Tráº¡ng thÃ¡i</TableHead>
-            <TableHead>Thao tÃ¡c</TableHead>
+            <TableHead>Hạng</TableHead>
+            <TableHead>Học sinh</TableHead>
+            <TableHead>Lớp</TableHead>
+            <TableHead>Số vi phạm</TableHead>
+            <TableHead>Điểm trừ</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead>Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -231,12 +231,12 @@ export default function MonthlyViolationSummary() {
               <TableCell>{summary.class.name}</TableCell>
               <TableCell>
                 <Badge variant={summary.total_violations >= 3 ? 'destructive' : 'outline'}>
-                  {summary.total_violations} láº§n
+                  {summary.total_violations} lần
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge variant="destructive">
-                  -{summary.total_points_deducted} Ä‘iá»ƒm
+                  -{summary.total_points_deducted} điểm
                 </Badge>
               </TableCell>
               <TableCell>
@@ -244,13 +244,13 @@ export default function MonthlyViolationSummary() {
                   {summary.is_flagged && (
                     <Badge variant="destructive" className="flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3" />
-                      Cáº£nh bÃ¡o
+                      Cảnh báo
                     </Badge>
                   )}
                   {summary.is_admin_viewed && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Eye className="h-3 w-3" />
-                      ÄÃ£ xem
+                      Đã xem
                     </Badge>
                   )}
                 </div>
@@ -264,7 +264,7 @@ export default function MonthlyViolationSummary() {
                     className="flex items-center gap-1"
                   >
                     <Eye className="h-3 w-3" />
-                    ÄÃ¡nh dáº¥u Ä‘Ã£ xem
+                    Đánh dấu đã xem
                   </Button>
                 )}
               </TableCell>
@@ -277,21 +277,21 @@ export default function MonthlyViolationSummary() {
 
   return (
     <div className="space-y-6">
-      {/* Bá»™ lá»c */}
+      {/* Bộ lọc */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Tá»•ng káº¿t vi pháº¡m theo thÃ¡ng há»c kÃ¬
+            Tổng kết vi phạm theo tháng học kì
           </CardTitle>
           <CardDescription>
-            Xáº¿p háº¡ng há»c sinh theo sá»‘ láº§n vi pháº¡m trong thÃ¡ng (4 tuáº§n) - Cáº£nh bÃ¡o khi â‰¥3 vi pháº¡m
+            Xếp hạng học sinh theo số lần vi phạm trong tháng (4 tuần) - Cảnh báo khi â‰¥3 vi phạm
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label htmlFor="month-select" className="text-sm font-medium">ThÃ¡ng há»c kÃ¬</label>
+              <label htmlFor="month-select" className="text-sm font-medium">Tháng học kì</label>
               <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
                 <SelectTrigger id="month-select">
                   <SelectValue />
@@ -307,13 +307,13 @@ export default function MonthlyViolationSummary() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="class-select" className="text-sm font-medium">Lá»›p (tÃ¹y chá»n)</label>
+              <label htmlFor="class-select" className="text-sm font-medium">Lớp (tùy chọn)</label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger id="class-select">
-                  <SelectValue placeholder="Táº¥t cáº£ lá»›p" />
+                  <SelectValue placeholder="Tất cả lớp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ lá»›p</SelectItem>
+                  <SelectItem value="all">Tất cả lớp</SelectItem>
                   <SelectItem value="10A1">10A1</SelectItem>
                   <SelectItem value="10A2">10A2</SelectItem>
                   <SelectItem value="10A3">10A3</SelectItem>
@@ -323,7 +323,7 @@ export default function MonthlyViolationSummary() {
 
             <div className="flex items-end">
               <Button onClick={loadMonthlySummaries} disabled={isLoading} className="w-full">
-                {isLoading ? 'Äang táº£i...' : 'Táº£i dá»¯ liá»‡u'}
+                {isLoading ? 'Đang tải...' : 'Tải dữ liệu'}
               </Button>
             </div>
           </div>
@@ -332,12 +332,12 @@ export default function MonthlyViolationSummary() {
 
 
 
-      {/* Báº£ng xáº¿p háº¡ng */}
+      {/* Bảng xếp hạng */}
       <Card>
         <CardHeader>
-          <CardTitle>Xáº¿p háº¡ng vi pháº¡m theo thÃ¡ng</CardTitle>
+          <CardTitle>Xếp hạng vi phạm theo tháng</CardTitle>
           <CardDescription>
-            Há»c sinh vi pháº¡m nhiá»u nháº¥t hiá»ƒn thá»‹ trÃªn cÃ¹ng - Click &quot;ÄÃ£ xem&quot; Ä‘á»ƒ giáº£m sá»‘ Ä‘áº¿m á»Ÿ sidebar
+            Học sinh vi phạm nhiều nhất hiển thị trên cùng - Click &quot;Đã xem&quot; để giảm số đếm ở sidebar
           </CardDescription>
         </CardHeader>
         <CardContent>

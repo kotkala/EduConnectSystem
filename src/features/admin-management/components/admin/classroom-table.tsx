@@ -299,14 +299,14 @@ export function ClassroomTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(classroom)}>
                           <Edit className="mr-2 h-4 w-4" />
-                          Chá»‰nh sá»­a
+                          Chỉnh sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(classroom)}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          XÃ³a
+                          Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -3,8 +3,8 @@ import FullPageChatbot from '@/features/parent-dashboard/components/parent-chatb
 import { Bot } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Trá»£ LÃ½ AI - EduConnect',
-  description: 'Trá»£ lÃ½ AI thÃ´ng minh há»— trá»£ phá»¥ huynh theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em',
+  title: 'Trợ Lý AI - EduConnect',
+  description: 'Trợ lý AI thông minh hỗ trợ phụ huynh theo dõi tình hình học tập của con em',
 }
 
 export default function ChatbotPage() {
@@ -20,10 +20,10 @@ export default function ChatbotPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  Trá»£ LÃ½ AI
+                  Trợ Lý AI
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Trá»£ lÃ½ AI thÃ´ng minh há»— trá»£ phá»¥ huynh theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em
+                  Trợ lý AI thông minh hỗ trợ phụ huynh theo dõi tình hình học tập của con em
                 </p>
               </div>
             </div>

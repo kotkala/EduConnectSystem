@@ -49,10 +49,10 @@ export default function ParentLeaveStatusPage() {
       if (result.success && result.data) {
         setApplications(result.data)
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n xin nghá»‰')
+        setError(result.error || 'Không thể tải danh sách đơn xin nghỉ')
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i')
+      setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       setIsLoading(false)
     }
@@ -61,11 +61,11 @@ export default function ParentLeaveStatusPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="w-3 h-3 mr-1" />Äang chá» duyá»‡t</Badge>
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="w-3 h-3 mr-1" />Đang chờ duyệt</Badge>
       case 'approved':
-        return <Badge variant="outline" className="text-green-600 border-green-600"><Check className="w-3 h-3 mr-1" />ÄÃ£ duyá»‡t</Badge>
+        return <Badge variant="outline" className="text-green-600 border-green-600"><Check className="w-3 h-3 mr-1" />Đã duyệt</Badge>
       case 'rejected':
-        return <Badge variant="outline" className="text-red-600 border-red-600"><X className="w-3 h-3 mr-1" />Tá»« chá»‘i</Badge>
+        return <Badge variant="outline" className="text-red-600 border-red-600"><X className="w-3 h-3 mr-1" />Từ chối</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -90,11 +90,11 @@ export default function ParentLeaveStatusPage() {
   // Show loading state
   if (loading || isLoading) {
     return (
-      <SidebarLayout role="parent" title="Tráº¡ng thÃ¡i Ä‘Æ¡n xin nghá»‰">
+      <SidebarLayout role="parent" title="Trạng thái đơn xin nghỉ">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Äang táº£i danh sÃ¡ch Ä‘Æ¡n xin nghá»‰...</p>
+            <p className="mt-2 text-gray-600">Đang tải danh sách đơn xin nghỉ...</p>
           </div>
         </div>
       </SidebarLayout>
@@ -104,13 +104,13 @@ export default function ParentLeaveStatusPage() {
   // Show access denied if no permission
   if (!user || profile?.role !== 'parent') {
     return (
-      <SidebarLayout role="parent" title="Tá»« chá»‘i truy cáº­p">
+      <SidebarLayout role="parent" title="Từ chối truy cập">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Tá»« chá»‘i truy cáº­p</h2>
-          <p className="text-gray-600">Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p trang nÃ y.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/parent')}>
-            Quay láº¡i báº£ng Ä‘iá»u khiá»ƒn
+            Quay lại bảng điều khiển
           </Button>
         </div>
       </SidebarLayout>
@@ -118,7 +118,7 @@ export default function ParentLeaveStatusPage() {
   }
 
   return (
-    <SidebarLayout role="parent" title="Tráº¡ng thÃ¡i Ä‘Æ¡n xin nghá»‰">
+    <SidebarLayout role="parent" title="Trạng thái đơn xin nghỉ">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -130,12 +130,12 @@ export default function ParentLeaveStatusPage() {
               className="w-fit"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay láº¡i báº£ng Ä‘iá»u khiá»ƒn
+              Quay lại bảng điều khiển
             </Button>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tráº¡ng thÃ¡i Ä‘Æ¡n xin nghá»‰</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Trạng thái đơn xin nghỉ</h1>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Theo dÃµi tráº¡ng thÃ¡i Ä‘Æ¡n xin nghá»‰ cá»§a con em
+                Theo dõi trạng thái đơn xin nghỉ của con em
               </p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function ParentLeaveStatusPage() {
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Táº¡o Ä‘Æ¡n má»›i
+            Tạo đơn mới
           </Button>
         </div>
 
@@ -158,7 +158,7 @@ export default function ParentLeaveStatusPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tá»•ng sá»‘ Ä‘Æ¡n</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng số đơn</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -167,7 +167,7 @@ export default function ParentLeaveStatusPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Äang chá»</CardTitle>
+              <CardTitle className="text-sm font-medium">Đang chờ</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -178,7 +178,7 @@ export default function ParentLeaveStatusPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ÄÃ£ duyá»‡t</CardTitle>
+              <CardTitle className="text-sm font-medium">Đã duyệt</CardTitle>
               <Check className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -189,7 +189,7 @@ export default function ParentLeaveStatusPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tá»« chá»‘i</CardTitle>
+              <CardTitle className="text-sm font-medium">Từ chối</CardTitle>
               <X className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
@@ -206,13 +206,13 @@ export default function ParentLeaveStatusPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">ChÆ°a cÃ³ Ä‘Æ¡n xin nghá»‰</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ</h3>
                 <p className="text-gray-600 text-center mb-4">
-                  Báº¡n chÆ°a gá»­i Ä‘Æ¡n xin nghá»‰ nÃ o.
+                  Bạn chưa gửi đơn xin nghỉ nào.
                 </p>
                 <Button onClick={() => router.push('/dashboard/parent/leave-application')}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Táº¡o Ä‘Æ¡n Ä‘áº§u tiÃªn
+                  Tạo đơn đầu tiên
                 </Button>
               </CardContent>
             </Card>
@@ -234,12 +234,12 @@ export default function ParentLeaveStatusPage() {
                           <Calendar className="h-3 w-3" />
                           {formatDate(application.start_date)} - {formatDate(application.end_date)}
                         </div>
-                        <span>({getDaysDifference(application.start_date, application.end_date)} ngÃ y)</span>
+                        <span>({getDaysDifference(application.start_date, application.end_date)} ngày)</span>
                         <Badge variant="secondary">{application.leave_type}</Badge>
                       </div>
                       {application.class?.name && (
                         <div className="text-sm text-muted-foreground">
-                          Lá»›p: {application.class.name}
+                          Lớp: {application.class.name}
                         </div>
                       )}
                       {application.homeroom_teacher?.full_name && (
@@ -249,9 +249,9 @@ export default function ParentLeaveStatusPage() {
                       )}
                     </div>
                     <div className="text-right text-sm text-muted-foreground">
-                      <div>Gá»­i: {formatDate(application.created_at)}</div>
+                      <div>Gửi: {formatDate(application.created_at)}</div>
                       {application.responded_at && (
-                        <div>Pháº£n há»“i: {formatDate(application.responded_at)}</div>
+                        <div>Phản hồi: {formatDate(application.responded_at)}</div>
                       )}
                     </div>
                   </div>

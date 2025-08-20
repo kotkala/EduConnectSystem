@@ -17,7 +17,7 @@ export function SharedPaginationControls({
   totalPages,
   totalCount,
   onPageChange,
-  itemName = 'má»¥c'
+  itemName = 'mục'
 }: Readonly<SharedPaginationControlsProps>) {
   if (totalPages <= 1) {
     return null
@@ -28,7 +28,7 @@ export function SharedPaginationControls({
       <CardContent className="pt-6">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Trang {currentPage} / {totalPages} - Tá»•ng {totalCount} {itemName}
+            Trang {currentPage} / {totalPages} - Tổng {totalCount} {itemName}
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -38,7 +38,7 @@ export function SharedPaginationControls({
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              TrÆ°á»›c
+              Trước
             </Button>
 
             {/* Page Numbers */}

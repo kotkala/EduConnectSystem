@@ -128,7 +128,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
       if (selectedClass) {
         // Use actual current academic year and semester IDs
         form.setValue('academic_year_id', 'f378e4a3-d0ea-4401-829b-7c841610ce8d') // 2024-2025
-        form.setValue('semester_id', '62f2a9ae-8aeb-43c6-ba14-17f7b82ce609') // Há»c ká»³ 1
+        form.setValue('semester_id', '62f2a9ae-8aeb-43c6-ba14-17f7b82ce609') // Học kỳ 1
       }
     } else {
       setStudents([])
@@ -248,7 +248,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
       const result = await createBulkStudentViolationsAction(data)
       
       if (result.success) {
-        toast.success(`Ghi nháº­n vi pháº¡m thÃ nh cÃ´ng cho ${data.student_ids.length} há»c sinh`)
+        toast.success(`Ghi nhận vi phạm thành công cho ${data.student_ids.length} học sinh`)
         // Reset form with safe default values
         form.reset({
           student_ids: [],
@@ -263,10 +263,10 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
         setSelectedStudents([])
         onSuccess?.()
       } else {
-        toast.error(result.error || 'Ghi nháº­n vi pháº¡m tháº¥t báº¡i')
+        toast.error(result.error || 'Ghi nhận vi phạm thất bại')
       }
     } catch {
-      toast.error('CÃ³ lá»—i xáº£y ra khi ghi nháº­n vi pháº¡m')
+      toast.error('Có lỗi xảy ra khi ghi nhận vi phạm')
     } finally {
       setLoading(false)
     }

@@ -83,7 +83,7 @@ export async function createConversation(data: z.infer<typeof createConversation
       .from('chat_conversations')
       .insert({
         parent_id: validatedData.parent_id,
-        title: validatedData.title || 'Cuá»™c trÃ² chuyá»‡n má»›i'
+        title: validatedData.title || 'Cuộc trò chuyện mới'
       })
       .select()
       .single()

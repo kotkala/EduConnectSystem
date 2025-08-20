@@ -40,10 +40,10 @@ export default function ClassroomsPage() {
         setClassrooms(result.data)
         setTotal(result.total)
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch phÃ²ng há»c')
+        setError(result.error || 'Không thể tải danh sách phòng học')
       }
     } catch {
-      setError('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch phÃ²ng há»c')
+      setError('Không thể tải danh sách phòng học')
     } finally {
       setLoading(false)
     }
@@ -94,20 +94,20 @@ export default function ClassroomsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ phÃ²ng há»c</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý phòng học</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ phÃ²ng há»c, sá»©c chá»©a, trang thiáº¿t bá»‹ vÃ  tráº¡ng thÃ¡i sá»­ dá»¥ng
+            Quản lý phòng học, sức chứa, trang thiết bị và trạng thái sử dụng
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">LÃ m má»›i</span>
-            <span className="sm:hidden">LÃ m má»›i</span>
+            <span className="hidden sm:inline">Làm mới</span>
+            <span className="sm:hidden">Làm mới</span>
           </Button>
           <Button onClick={handleCreateClassroom} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            ThÃªm phÃ²ng há»c
+            Thêm phòng học
           </Button>
         </div>
       </div>
@@ -116,46 +116,46 @@ export default function ClassroomsPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»‘ phÃ²ng há»c</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng số phòng học</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              {activeClassrooms} Ä‘ang hoáº¡t Ä‘á»™ng
+              {activeClassrooms} đang hoạt động
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»©c chá»©a</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng sức chứa</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{totalCapacity}</div>
             <p className="text-xs text-muted-foreground">
-              há»c sinh trÃªn táº¥t cáº£ phÃ²ng
+              học sinh trên tất cả phòng
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Loáº¡i phÃ²ng</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Loại phòng</CardTitle>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{roomTypes}</div>
             <p className="text-xs text-muted-foreground">
-              sá»‘ loáº¡i phÃ²ng khÃ¡c nhau
+              số loại phòng khác nhau
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Sá»©c chá»©a trung bÃ¬nh</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Sức chứa trung bình</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -163,7 +163,7 @@ export default function ClassroomsPage() {
               {total > 0 ? Math.round(totalCapacity / total) : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              há»c sinh má»—i phÃ²ng
+              học sinh mỗi phòng
             </p>
           </CardContent>
         </Card>
@@ -179,7 +179,7 @@ export default function ClassroomsPage() {
       {/* Classrooms Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sÃ¡ch phÃ²ng há»c</CardTitle>
+          <CardTitle>Danh sách phòng học</CardTitle>
         </CardHeader>
         <CardContent>
           <ClassroomTable
@@ -199,7 +199,7 @@ export default function ClassroomsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingClassroom ? 'Chá»‰nh sá»­a phÃ²ng há»c' : 'Táº¡o phÃ²ng há»c má»›i'}
+              {editingClassroom ? 'Chỉnh sửa phòng học' : 'Tạo phòng học mới'}
             </DialogTitle>
           </DialogHeader>
           <ClassroomForm

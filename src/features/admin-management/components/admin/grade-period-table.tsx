@@ -41,19 +41,19 @@ export function GradePeriodTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>TÃªn ká»³ bÃ¡o cÃ¡o</TableHead>
-              <TableHead>Loáº¡i ká»³</TableHead>
-              <TableHead>Há»c ká»³</TableHead>
-              <TableHead>Thá»i gian</TableHead>
-              <TableHead>Tráº¡ng thÃ¡i</TableHead>
-              <TableHead>Thao tÃ¡c</TableHead>
+              <TableHead>Tên kỳ báo cáo</TableHead>
+              <TableHead>Loại kỳ</TableHead>
+              <TableHead>Học kỳ</TableHead>
+              <TableHead>Thời gian</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  KhÃ´ng cÃ³ dá»¯ liá»‡u
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (
@@ -74,7 +74,7 @@ export function GradePeriodTable({
                     <div className="text-sm">
                       <div>{new Date(period.start_date).toLocaleDateString('vi-VN')} - {new Date(period.end_date).toLocaleDateString('vi-VN')}</div>
                       <div className="text-muted-foreground">
-                        Háº¡n: {new Date(period.import_deadline).toLocaleDateString('vi-VN')}
+                        Hạn: {new Date(period.import_deadline).toLocaleDateString('vi-VN')}
                       </div>
                     </div>
                   </TableCell>
@@ -113,7 +113,7 @@ export function GradePeriodTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Hiá»ƒn thá»‹ {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} cá»§a {total} káº¿t quáº£
+            Hiển thị {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, total)} của {total} kết quả
           </div>
           <div className="flex space-x-2">
             <Button
@@ -122,7 +122,7 @@ export function GradePeriodTable({
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage <= 1}
             >
-              TrÆ°á»›c
+              Trước
             </Button>
             <Button
               variant="outline"

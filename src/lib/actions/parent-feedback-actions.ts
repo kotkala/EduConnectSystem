@@ -135,7 +135,7 @@ export async function getParentChildrenAction(): Promise<{
     console.error("Get parent children error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch con"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách con"
     }
   }
 }
@@ -170,7 +170,7 @@ export async function getParentAcademicYearsAction(): Promise<{ success: boolean
     console.error("Get parent academic years error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch niÃªn khÃ³a"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách niên khóa"
     }
   }
 }
@@ -310,7 +310,7 @@ export async function getStudentFeedbackForParentAction(
     console.error("Get student feedback for parent error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y pháº£n há»“i cá»§a há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể lấy phản hồi của học sinh"
     }
   }
 }
@@ -339,7 +339,7 @@ export async function markFeedbackAsReadAction(
     console.error("Mark feedback as read error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ Ä‘Ã¡nh dáº¥u pháº£n há»“i lÃ  Ä‘Ã£ Ä‘á»c"
+      error: error instanceof Error ? error.message : "Không thể đánh dấu phản hồi là đã đọc"
     }
   }
 }

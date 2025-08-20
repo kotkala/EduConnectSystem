@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
 
     // Helper function to get rating text
     const getRatingText = (rating: number): string => {
-      if (rating === 5) return 'Xuáº¥t sáº¯c'
-      if (rating === 4) return 'Tá»‘t'
-      if (rating === 3) return 'Trung bÃ¬nh'
-      if (rating === 2) return 'Cáº§n cáº£i thiá»‡n'
-      return 'KÃ©m'
+      if (rating === 5) return 'Xuất sắc'
+      if (rating === 4) return 'Tốt'
+      if (rating === 3) return 'Trung bình'
+      if (rating === 2) return 'Cần cải thiện'
+      return 'Kém'
     }
 
     // Prepare feedback data for AI summarization
@@ -70,24 +70,24 @@ export async function POST(request: NextRequest) {
     const avgRating = feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
 
     // Create AI prompt for daily summarization
-    const prompt = `TÃ³m táº¯t ngÃ y há»c ${dayName} cá»§a ${studentName} cho phá»¥ huynh:
+    const prompt = `Tóm tắt ngày học ${dayName} của ${studentName} cho phụ huynh:
 
 ${feedbackText}
 
-ÄIá»‚M TRUNG BÃŒNH: ${avgRating.toFixed(1)}/5
+ĐIỂM TRUNG BÌNH: ${avgRating.toFixed(1)}/5
 
-YÃŠU Cáº¦U NGHIÃŠM NGáº¶T:
-- Chá»‰ 1 cÃ¢u ngáº¯n gá»n (tá»‘i Ä‘a 30 tá»«)
-- Táº­p trung vÃ o Ä‘iá»ƒm ná»•i báº­t nháº¥t trong ngÃ y
-- Náº¿u cÃ³ nhiá»u mÃ´n, nÃªu mÃ´n tá»‘t nháº¥t hoáº·c cáº§n chÃº Ã½ nháº¥t
-- Giá»ng Ä‘iá»‡u tÃ­ch cá»±c, khuyáº¿n khÃ­ch
+YÊU CẦU NGHIÊM NGẶT:
+- Chỉ 1 câu ngắn gọn (tối đa 30 từ)
+- Tập trung vào điểm nổi bật nhất trong ngày
+- Nếu có nhiều môn, nêu môn tốt nhất hoặc cần chú ý nhất
+- Giọng điệu tích cực, khuyến khích
 
-VÃ­ dá»¥ format:
-- Tá»‘t: "HÃ´m nay con há»c táº­p tÃ­ch cá»±c, Ä‘áº·c biá»‡t xuáº¥t sáº¯c á»Ÿ mÃ´n ToÃ¡n (5/5)."
-- Trung bÃ¬nh: "NgÃ y há»c á»•n Ä‘á»‹nh vá»›i 3 mÃ´n, cáº§n chÃº Ã½ hÆ¡n á»Ÿ mÃ´n VÄƒn."
-- Cáº§n cáº£i thiá»‡n: "Con cáº§n táº­p trung hÆ¡n, phá»¥ huynh há»— trá»£ Ã´n bÃ i mÃ´n Anh."
+Ví dụ format:
+- Tốt: "Hôm nay con học tập tích cực, đặc biệt xuất sắc ở môn Toán (5/5)."
+- Trung bình: "Ngày học ổn định với 3 môn, cần chú ý hơn ở môn Văn."
+- Cần cải thiện: "Con cần tập trung hơn, phụ huynh hỗ trợ ôn bài môn Anh."
 
-TÃ³m táº¯t ngÃ y ${dayName}:`
+Tóm tắt ngày ${dayName}:`
 
     try {
       // Generate AI summary using Gemini

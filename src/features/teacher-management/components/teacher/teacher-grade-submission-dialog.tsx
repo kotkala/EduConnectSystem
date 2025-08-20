@@ -42,7 +42,7 @@ export function TeacherGradeSubmissionDialog({
       onSuccess()
     } catch (error) {
       console.error('Error submitting grades:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi gá»­i Ä‘iá»ƒm')
+      setError('Có lỗi xảy ra khi gửi điểm')
     } finally {
       setLoading(false)
     }
@@ -63,7 +63,7 @@ export function TeacherGradeSubmissionDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isResubmission ? 'Gá»­i láº¡i Ä‘iá»ƒm' : 'Gá»­i Ä‘iá»ƒm'}
+            {isResubmission ? 'Gửi lại điểm' : 'Gửi điểm'}
           </DialogTitle>
         </DialogHeader>
 
@@ -74,19 +74,19 @@ export function TeacherGradeSubmissionDialog({
             </h4>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                Láº§n gá»­i: {submission.submission_count}
+                Lần gửi: {submission.submission_count}
               </span>
-              <Badge variant="outline">NhÃ¡p</Badge>
+              <Badge variant="outline">Nháp</Badge>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isResubmission && (
               <div className="space-y-2">
-                <Label htmlFor="reason">LÃ½ do gá»­i láº¡i *</Label>
+                <Label htmlFor="reason">Lý do gửi lại *</Label>
                 <Textarea
                   id="reason"
-                  placeholder="Nháº­p lÃ½ do gá»­i láº¡i Ä‘iá»ƒm (vÃ­ dá»¥: sá»­a lá»—i nháº­p liá»‡u, cáº­p nháº­t Ä‘iá»ƒm má»›i...)"
+                  placeholder="Nhập lý do gửi lại điểm (ví dụ: sửa lỗi nhập liệu, cập nhật điểm mới...)"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   rows={3}
@@ -105,18 +105,18 @@ export function TeacherGradeSubmissionDialog({
             <Alert>
               <Send className="h-4 w-4" />
               <AlertDescription>
-                <strong>XÃ¡c nháº­n gá»­i Ä‘iá»ƒm:</strong> Sau khi gá»­i, báº¡n sáº½ khÃ´ng thá»ƒ chá»‰nh sá»­a Ä‘iá»ƒm 
-                cho Ä‘áº¿n khi admin duyá»‡t hoáº·c yÃªu cáº§u chá»‰nh sá»­a.
+                <strong>Xác nhận gửi điểm:</strong> Sau khi gửi, bạn sẽ không thể chỉnh sửa điểm 
+                cho đến khi admin duyệt hoặc yêu cầu chỉnh sửa.
               </AlertDescription>
             </Alert>
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
-                Há»§y
+                Hủy
               </Button>
               <Button type="submit" disabled={loading || (isResubmission && !reason.trim())}>
                 <Send className="mr-2 h-4 w-4" />
-                {loading ? 'Äang gá»­i...' : (isResubmission ? 'Gá»­i láº¡i' : 'Gá»­i Ä‘iá»ƒm')}
+                {loading ? 'Đang gửi...' : (isResubmission ? 'Gửi lại' : 'Gửi điểm')}
               </Button>
             </div>
           </form>

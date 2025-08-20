@@ -24,7 +24,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -34,7 +34,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id }
@@ -100,7 +100,7 @@ export async function createAcademicYearAction(formData: AcademicYearFormData) {
     const defaultSemesters = [
       {
         academic_year_id: academicYear.id,
-        name: "Há»c ká»³ 1",
+        name: "Học kỳ 1",
         semester_number: 1,
         start_date: semester1StartDate,
         end_date: semester1EndDate.toISOString().split('T')[0],
@@ -109,7 +109,7 @@ export async function createAcademicYearAction(formData: AcademicYearFormData) {
       },
       {
         academic_year_id: academicYear.id,
-        name: "Há»c ká»³ 2",
+        name: "Học kỳ 2",
         semester_number: 2,
         start_date: semester2StartDate.toISOString().split('T')[0],
         end_date: semester2EndDate,

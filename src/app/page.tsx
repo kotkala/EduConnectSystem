@@ -113,19 +113,19 @@ export default function Home() {
             {/* Desktop Navigation */}
             <div className="hidden xl:flex items-center space-x-6">
               <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-                Chá»©c nÄƒng
+                Chức năng
               </Link>
               <Link href="#roles" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-                Vai trÃ²
+                Vai trò
               </Link>
               <Link href="#docs" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-                HÆ°á»›ng dáº«n
+                Hướng dẫn
               </Link>
               <Link href="#about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-                Vá» há»‡ thá»‘ng
+                Về hệ thống
               </Link>
               <Link href="#contact" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
-                LiÃªn há»‡
+                Liên hệ
               </Link>
             </div>
 
@@ -135,7 +135,7 @@ export default function Home() {
                 onClick={() => setAuthModalOpen(true)}
                 className="min-h-[44px] px-4 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
               >
-                ÄÄƒng nháº­p
+                Đăng nhập
               </Button>
             </div>
 
@@ -170,35 +170,35 @@ export default function Home() {
                 className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Chá»©c nÄƒng
+                Chức năng
               </Link>
               <Link
                 href="#roles"
                 className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Vai trÃ²
+                Vai trò
               </Link>
               <Link
                 href="#docs"
                 className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                HÆ°á»›ng dáº«n
+                Hướng dẫn
               </Link>
               <Link
                 href="#about"
                 className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Vá» há»‡ thá»‘ng
+                Về hệ thống
               </Link>
               <Link
                 href="#contact"
                 className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                LiÃªn há»‡
+                Liên hệ
               </Link>
 
                 <div className="px-3 pt-2 border-t border-border">
@@ -209,7 +209,7 @@ export default function Home() {
                     }}
                     className="w-full h-10 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
                   >
-                    ÄÄƒng nháº­p
+                    Đăng nhập
                   </Button>
                 </div>
                 </div>
@@ -231,22 +231,22 @@ export default function Home() {
           >
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
-                Káº¿t Ná»‘i GiÃ¡o Dá»¥c{' '}
+                Kết Nối Giáo Dục{' '}
                 <span className="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
-                  ThÃ´ng Minh Vá»›i AI
+                  Thông Minh Với AI
                 </span>
               </h1>
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                EduConnect giÃºp tá»± Ä‘á»™ng hÃ³a giao tiáº¿p giá»¯a nhÃ  trÆ°á»ng, giÃ¡o viÃªn vÃ  phá»¥ huynh qua trá»£ lÃ½ áº£o AI tiÃªn tiáº¿n
+                EduConnect giúp tự động hóa giao tiếp giữa nhà trường, giáo viên và phụ huynh qua trợ lý ảo AI tiên tiến
               </p>
               <div className="flex flex-wrap gap-4 text-sm font-medium">
                 <div className="flex items-center gap-2 text-emerald-600">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Tiáº¿t kiá»‡m 70% thá»i gian xá»­ lÃ½ thÃ´ng tin</span>
+                  <span>Tiết kiệm 70% thời gian xử lý thông tin</span>
                 </div>
                 <div className="flex items-center gap-2 text-emerald-600">
                   <CheckCircle className="w-4 h-4" />
-                  <span>TÄƒng 90% hiá»‡u quáº£ giao tiáº¿p</span>
+                  <span>Tăng 90% hiệu quả giao tiếp</span>
                 </div>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function Home() {
                   size="lg"
                   className="h-12 px-8 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
                 >
-                  ÄÄƒng nháº­p
+                  Đăng nhập
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button
@@ -270,18 +270,18 @@ export default function Home() {
                 >
                   <Link href="#docs">
                     <Play className="w-4 h-4 mr-2" />
-                    HÆ°á»›ng dáº«n
+                    Hướng dẫn
                   </Link>
                 </Button>
               </div>
 
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex-1 h-px bg-gray-200"></div>
-                <span className="text-xs sm:text-sm text-gray-500 px-2">hoáº·c</span>
+                <span className="text-xs sm:text-sm text-gray-500 px-2">hoặc</span>
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              {/* OAuth náº±m trong AuthModal Ä‘á»ƒ giáº£m nhiá»…u giao diá»‡n */}
+              {/* OAuth nằm trong AuthModal để giảm nhiễu giao diện */}
             </div>
 
             {/* Trust Indicator */}
@@ -293,7 +293,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <span>ÄÃ£ Ä‘Æ°á»£c tin dÃ¹ng bá»Ÿi <strong>100+ trÆ°á»ng THPT</strong></span>
+              <span>Đã được tin dùng bởi <strong>100+ trường THPT</strong></span>
             </div>
           </motion.div>
 
@@ -313,7 +313,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">EduConnect AI</h3>
-                    <p className="text-sm text-emerald-600">â— Äang hoáº¡t Ä‘á»™ng</p>
+                    <p className="text-sm text-emerald-600">â— Đang hoạt động</p>
                   </div>
                 </div>
 
@@ -324,13 +324,13 @@ export default function Home() {
                       <Users className="w-4 h-4 text-gray-600" />
                     </div>
                     <div className="bg-gray-100 rounded-lg p-3 max-w-xs">
-                      <p className="text-sm text-gray-700">Con em há»c lá»›p 10A1 cÃ³ Ä‘iá»ƒm kiá»ƒm tra mÃ´n ToÃ¡n chÆ°a áº¡?</p>
+                      <p className="text-sm text-gray-700">Con em học lớp 10A1 có điểm kiểm tra môn Toán chưa ạ?</p>
                     </div>
                   </div>
 
                   <div className="flex gap-3 justify-end">
                     <div className="bg-primary rounded-lg p-3 max-w-xs">
-                      <p className="text-sm text-white">Äiá»ƒm kiá»ƒm tra ToÃ¡n cá»§a em Nguyá»…n VÄƒn A lá»›p 10A1: 8.5 Ä‘iá»ƒm. BÃ i kiá»ƒm tra ngÃ y 15/11/2024.</p>
+                      <p className="text-sm text-white">Điểm kiểm tra Toán của em Nguyễn Văn A lớp 10A1: 8.5 điểm. Bài kiểm tra ngày 15/11/2024.</p>
                     </div>
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                       <Brain className="w-4 h-4 text-white" />
@@ -364,10 +364,10 @@ export default function Home() {
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            ThÃ¡ch Thá»©c Trong Giao Tiáº¿p GiÃ¡o Dá»¥c Hiá»‡n Táº¡i
+            Thách Thức Trong Giao Tiếp Giáo Dục Hiện Tại
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Nhá»¯ng khÃ³ khÄƒn mÃ  cÃ¡c trÆ°á»ng há»c Ä‘ang gáº·p pháº£i trong viá»‡c giao tiáº¿p vá»›i phá»¥ huynh vÃ  há»c sinh
+            Những khó khăn mà các trường học đang gặp phải trong việc giao tiếp với phụ huynh và học sinh
           </p>
         </div>
 
@@ -375,23 +375,23 @@ export default function Home() {
           {[
             {
               icon: X,
-              title: "Phá»¥ huynh khÃ³ tiáº¿p cáº­n thÃ´ng tin há»c táº­p cá»§a con",
-              description: "ThÃ´ng tin phÃ¢n tÃ¡n qua nhiá»u kÃªnh khÃ¡c nhau, khÃ³ theo dÃµi vÃ  cáº­p nháº­t",
-              stat: "85% phá»¥ huynh gáº·p khÃ³ khÄƒn liÃªn láº¡c vá»›i giÃ¡o viÃªn",
+              title: "Phụ huynh khó tiếp cận thông tin học tập của con",
+              description: "Thông tin phân tán qua nhiều kênh khác nhau, khó theo dõi và cập nhật",
+              stat: "85% phụ huynh gặp khó khăn liên lạc với giáo viên",
               color: "text-red-600"
             },
             {
               icon: Clock,
-              title: "GiÃ¡o viÃªn quÃ¡ táº£i vá»›i viá»‡c tráº£ lá»i cÃ¢u há»i láº·p Ä‘i láº·p láº¡i",
-              description: "Thá»i gian dÃ nh cho giáº£ng dáº¡y bá»‹ giáº£m do pháº£i xá»­ lÃ½ quÃ¡ nhiá»u tin nháº¯n",
-              stat: "GiÃ¡o viÃªn dÃ nh 3+ giá»/ngÃ y chá»‰ Ä‘á»ƒ tráº£ lá»i tin nháº¯n",
+              title: "Giáo viên quá tải với việc trả lời câu hỏi lặp đi lặp lại",
+              description: "Thời gian dành cho giảng dạy bị giảm do phải xử lý quá nhiều tin nhắn",
+              stat: "Giáo viên dành 3+ giờ/ngày chỉ để trả lời tin nhắn",
               color: "text-orange-600"
             },
             {
               icon: FileX,
-              title: "ThÃ´ng tin phÃ¢n tÃ¡n, khÃ´ng Ä‘á»“ng bá»™ giá»¯a cÃ¡c kÃªnh",
-              description: "Dá»¯ liá»‡u khÃ´ng nháº¥t quÃ¡n, dáº«n Ä‘áº¿n hiá»ƒu láº§m vÃ  thÃ´ng tin sai lá»‡ch",
-              stat: "60% thÃ´ng tin bá»‹ máº¥t hoáº·c khÃ´ng cáº­p nháº­t",
+              title: "Thông tin phân tán, không đồng bộ giữa các kênh",
+              description: "Dữ liệu không nhất quán, dẫn đến hiểu lầm và thông tin sai lệch",
+              stat: "60% thông tin bị mất hoặc không cập nhật",
               color: "text-purple-600"
             }
           ].map((problem, index) => (
@@ -426,18 +426,18 @@ export default function Home() {
           >
             <div className="space-y-4">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-                Tá»•ng quan cá»•ng thÃ´ng tin trÆ°á»ng
+                Tổng quan cổng thông tin trường
               </h2>
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
-                Cá»•ng thÃ´ng tin táº­p trung cho giÃ¡o viÃªn, há»c sinh, phá»¥ huynh vÃ  quáº£n trá»‹, tÃ­ch há»£p trá»£ lÃ½ AI Ä‘á»ƒ há»— trá»£ tra cá»©u nhanh.
+                Cổng thông tin tập trung cho giáo viên, học sinh, phụ huynh và quản trị, tích hợp trợ lý AI để hỗ trợ tra cứu nhanh.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { icon: MessageCircle, title: "Tá»± Ä‘á»™ng tráº£ lá»i 24/7", color: "bg-orange-100 text-primary" },
-                { icon: Smartphone, title: "TÃ­ch há»£p Ä‘a ná»n táº£ng", color: "bg-emerald-100 text-emerald-600" },
-                { icon: TrendingUp, title: "Há»c há»i vÃ  cáº£i thiá»‡n liÃªn tá»¥c", color: "bg-purple-100 text-purple-600" }
+                { icon: MessageCircle, title: "Tự động trả lời 24/7", color: "bg-orange-100 text-primary" },
+                { icon: Smartphone, title: "Tích hợp đa nền tảng", color: "bg-emerald-100 text-emerald-600" },
+                { icon: TrendingUp, title: "Học hỏi và cải thiện liên tục", color: "bg-purple-100 text-purple-600" }
               ].map((benefit, index) => (
                 <motion.div
                   key={benefit.title}
@@ -464,8 +464,8 @@ export default function Home() {
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8 border border-border">
               <div className="space-y-6">
                 <div className="text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Demo TÆ°Æ¡ng TÃ¡c</h3>
-                  <p className="text-gray-600">Tráº£i nghiá»‡m EduConnect AI ngay bÃ¢y giá»</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Demo Tương Tác</h3>
+                  <p className="text-gray-600">Trải nghiệm EduConnect AI ngay bây giờ</p>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 shadow-sm">
@@ -477,13 +477,13 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-3 text-sm">
-                    <p className="text-gray-700">Xin chÃ o! TÃ´i cÃ³ thá»ƒ giÃºp báº¡n:</p>
+                    <p className="text-gray-700">Xin chào! Tôi có thể giúp bạn:</p>
                     <div className="space-y-2">
                       {[
-                        "ðŸ“Š Kiá»ƒm tra Ä‘iá»ƒm sá»‘ há»c sinh",
-                        "ðŸ“… Xem lá»‹ch há»c vÃ  lá»‹ch thi",
-                        "ðŸ“¢ Nháº­n thÃ´ng bÃ¡o tá»« nhÃ  trÆ°á»ng",
-                        "ðŸ’¬ LiÃªn láº¡c vá»›i giÃ¡o viÃªn"
+                        "ðŸ“Š Kiểm tra điểm số học sinh",
+                        "ðŸ“… Xem lịch học và lịch thi",
+                        "ðŸ“¢ Nhận thông báo từ nhà trường",
+                        "ðŸ’¬ Liên lạc với giáo viên"
                       ].map((item) => (
                         <div key={item} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                           <span>{item}</span>
@@ -502,10 +502,10 @@ export default function Home() {
       <section id="features" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            TÃ­nh NÄƒng Ná»•i Báº­t
+            Tính Năng Nổi Bật
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Giáº£i phÃ¡p AI toÃ n diá»‡n vá»›i cÃ¡c tÃ­nh nÄƒng tiÃªn tiáº¿n cho giÃ¡o dá»¥c hiá»‡n Ä‘áº¡i
+            Giải pháp AI toàn diện với các tính năng tiên tiến cho giáo dục hiện đại
           </p>
         </div>
 
@@ -513,29 +513,29 @@ export default function Home() {
           {[
             {
               icon: Brain,
-              title: "TrÃ­ Tuá»‡ NhÃ¢n Táº¡o TiÃªn Tiáº¿n",
-              description: "Sá»­ dá»¥ng NLP vÃ  Machine Learning Ä‘á»ƒ hiá»ƒu vÃ  tráº£ lá»i chÃ­nh xÃ¡c cÃ¡c cÃ¢u há»i vá» há»c táº­p, lá»‹ch trÃ¬nh, Ä‘iá»ƒm sá»‘",
-              benefits: ["Äá»™ chÃ­nh xÃ¡c 95%", "Há»c tá»« dá»¯ liá»‡u trÆ°á»ng", "Cáº­p nháº­t liÃªn tá»¥c"],
+              title: "Trí Tuệ Nhân Tạo Tiên Tiến",
+              description: "Sử dụng NLP và Machine Learning để hiểu và trả lời chính xác các câu hỏi về học tập, lịch trình, điểm số",
+              benefits: ["Độ chính xác 95%", "Học từ dữ liệu trường", "Cập nhật liên tục"],
               color: "from-primary to-orange-600"
             },
             {
               icon: Smartphone,
-              title: "TÃ­ch Há»£p Äa Ná»n Táº£ng",
-              description: "Káº¿t ná»‘i vá»›i website trÆ°á»ng, app mobile, Zalo, Facebook Messenger, SMS",
-              benefits: ["KhÃ´ng cáº§n thay Ä‘á»•i há»‡ thá»‘ng", "Deployment nhanh", "API má»Ÿ rá»™ng"],
+              title: "Tích Hợp Đa Nền Tảng",
+              description: "Kết nối với website trường, app mobile, Zalo, Facebook Messenger, SMS",
+              benefits: ["Không cần thay đổi hệ thống", "Deployment nhanh", "API mở rộng"],
               color: "from-emerald-500 to-emerald-600"
             },
             {
               icon: BarChart3,
-              title: "PhÃ¢n TÃ­ch ThÃ´ng Minh",
-              description: "Dashboard theo dÃµi hiá»‡u quáº£ giao tiáº¿p, xu hÆ°á»›ng cÃ¢u há»i, má»©c Ä‘á»™ hÃ i lÃ²ng",
-              benefits: ["BÃ¡o cÃ¡o real-time", "Insights tá»± Ä‘á»™ng", "KPI tracking"],
+              title: "Phân Tích Thông Minh",
+              description: "Dashboard theo dõi hiệu quả giao tiếp, xu hướng câu hỏi, mức độ hài lòng",
+              benefits: ["Báo cáo real-time", "Insights tự động", "KPI tracking"],
               color: "from-purple-500 to-purple-600"
             },
             {
               icon: FileEdit,
-              title: "Quáº£n LÃ½ Ná»™i Dung Dá»… DÃ ng",
-              description: "Cáº­p nháº­t thÃ´ng tin trÆ°á»ng, lá»‹ch há»c, thÃ´ng bÃ¡o qua giao diá»‡n trá»±c quan",
+              title: "Quản Lý Nội Dung Dễ Dàng",
+              description: "Cập nhật thông tin trường, lịch học, thông báo qua giao diện trực quan",
               benefits: ["Drag & drop editor", "Bulk upload", "Version control"],
               color: "from-orange-500 to-orange-600"
             }
@@ -573,10 +573,10 @@ export default function Home() {
       <section id="docs" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            EduConnect Hoáº¡t Äá»™ng NhÆ° Tháº¿ NÃ o?
+            EduConnect Hoạt Động Như Thế Nào?
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Quy trÃ¬nh triá»ƒn khai Ä‘Æ¡n giáº£n vÃ  hiá»‡u quáº£ trong 4 bÆ°á»›c
+            Quy trình triển khai đơn giản và hiệu quả trong 4 bước
           </p>
         </div>
 
@@ -585,29 +585,29 @@ export default function Home() {
             {
               step: "01",
               icon: Settings,
-              title: "TÃ­ch Há»£p Há»‡ Thá»‘ng",
-              description: "Káº¿t ná»‘i vá»›i há»‡ thá»‘ng quáº£n lÃ½ há»c sinh hiá»‡n cÃ³ cá»§a trÆ°á»ng",
+              title: "Tích Hợp Hệ Thống",
+              description: "Kết nối với hệ thống quản lý học sinh hiện có của trường",
               color: "bg-primary"
             },
             {
               step: "02",
               icon: Brain,
-              title: "Cáº¥u HÃ¬nh AI",
-              description: "Huáº¥n luyá»‡n AI vá»›i dá»¯ liá»‡u vÃ  quy trÃ¬nh riÃªng cá»§a trÆ°á»ng",
+              title: "Cấu Hình AI",
+              description: "Huấn luyện AI với dữ liệu và quy trình riêng của trường",
               color: "bg-emerald-500"
             },
             {
               step: "03",
               icon: Smartphone,
-              title: "Triá»ƒn Khai Äa KÃªnh",
-              description: "PhÃ¡t hÃ nh chatbot trÃªn website, app, social media",
+              title: "Triển Khai Đa Kênh",
+              description: "Phát hành chatbot trên website, app, social media",
               color: "bg-purple-500"
             },
             {
               step: "04",
               icon: Monitor,
-              title: "GiÃ¡m SÃ¡t & Tá»‘i Æ¯u",
-              description: "Theo dÃµi hiá»‡u quáº£ vÃ  liÃªn tá»¥c cáº£i thiá»‡n AI",
+              title: "Giám Sát & Tối Ưu",
+              description: "Theo dõi hiệu quả và liên tục cải thiện AI",
               color: "bg-orange-500"
             }
           ].map((step, index) => (
@@ -637,10 +637,10 @@ export default function Home() {
       <section id="roles" className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            Quyá»n truy cáº­p theo vai trÃ²
+            Quyền truy cập theo vai trò
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Thiáº¿t káº¿ phá»¥c vá»¥ Ä‘á»“ng thá»i Ban giÃ¡m hiá»‡u, giÃ¡o viÃªn, há»c sinh vÃ  phá»¥ huynh
+            Thiết kế phục vụ đồng thời Ban giám hiệu, giáo viên, học sinh và phụ huynh
           </p>
         </div>
 
@@ -657,14 +657,14 @@ export default function Home() {
                 <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">DÃ nh Cho Ban GiÃ¡m Hiá»‡u</h3>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Dành Cho Ban Giám Hiệu</h3>
               </div>
 
               <div className="space-y-4">
                 {[
-                  "Giáº£m 60% khá»‘i lÆ°á»£ng cÃ´ng viá»‡c hÃ nh chÃ­nh",
-                  "TÄƒng sá»± hÃ i lÃ²ng cá»§a phá»¥ huynh lÃªn 90%",
-                  "Tiáº¿t kiá»‡m chi phÃ­ váº­n hÃ nh 40%"
+                  "Giảm 60% khối lượng công việc hành chính",
+                  "Tăng sự hài lòng của phụ huynh lên 90%",
+                  "Tiết kiệm chi phí vận hành 40%"
                 ].map((benefit) => (
                   <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -675,8 +675,8 @@ export default function Home() {
 
               <div className="grid sm:grid-cols-3 gap-4">
                 {[
-                  { icon: BarChart3, title: "BÃ¡o cÃ¡o tá»•ng quan" },
-                  { icon: Settings, title: "Quáº£n lÃ½ nhiá»u bot" },
+                  { icon: BarChart3, title: "Báo cáo tổng quan" },
+                  { icon: Settings, title: "Quản lý nhiều bot" },
                   { icon: TrendingUp, title: "ROI tracking" }
                 ].map((feature) => (
                   <div key={feature.title} className="text-center p-4 bg-gray-50 rounded-lg">
@@ -692,14 +692,14 @@ export default function Home() {
                 <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">Dashboard Quáº£n LÃ½</h4>
-                <p className="text-gray-600 mb-6">Theo dÃµi toÃ n bá»™ hoáº¡t Ä‘á»™ng cá»§a há»‡ thá»‘ng</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Dashboard Quản Lý</h4>
+                <p className="text-gray-600 mb-6">Theo dõi toàn bộ hoạt động của hệ thống</p>
 
                 <div className="space-y-3 text-left">
                   {[
-                    { label: "Tin nháº¯n Ä‘Ã£ xá»­ lÃ½", value: "2,847", trend: "+12%" },
-                    { label: "Äá»™ hÃ i lÃ²ng", value: "94%", trend: "+5%" },
-                    { label: "Thá»i gian pháº£n há»“i", value: "< 30s", trend: "-40%" }
+                    { label: "Tin nhắn đã xử lý", value: "2,847", trend: "+12%" },
+                    { label: "Độ hài lòng", value: "94%", trend: "+5%" },
+                    { label: "Thời gian phản hồi", value: "< 30s", trend: "-40%" }
                   ].map((stat) => (
                     <div key={stat.label} className="flex justify-between items-center p-3 bg-white rounded-lg">
                       <span className="text-sm text-gray-600">{stat.label}</span>
@@ -726,14 +726,14 @@ export default function Home() {
                 <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">DÃ nh Cho GiÃ¡o ViÃªn</h3>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Dành Cho Giáo Viên</h3>
               </div>
 
               <div className="space-y-4">
                 {[
-                  "Táº­p trung vÃ o giáº£ng dáº¡y thay vÃ¬ tráº£ lá»i email",
-                  "Tá»± Ä‘á»™ng thÃ´ng bÃ¡o Ä‘iá»ƒm sá»‘, bÃ i táº­p",
-                  "Quáº£n lÃ½ lá»‹ch há»p phá»¥ huynh thÃ´ng minh"
+                  "Tập trung vào giảng dạy thay vì trả lời email",
+                  "Tự động thông báo điểm số, bài tập",
+                  "Quản lý lịch họp phụ huynh thông minh"
                 ].map((benefit) => (
                   <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -761,15 +761,15 @@ export default function Home() {
                 <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                   <GraduationCap className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">Giao Diá»‡n GiÃ¡o ViÃªn</h4>
-                <p className="text-gray-600 mb-6">Quáº£n lÃ½ lá»›p há»c vÃ  giao tiáº¿p hiá»‡u quáº£</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Giao Diện Giáo Viên</h4>
+                <p className="text-gray-600 mb-6">Quản lý lớp học và giao tiếp hiệu quả</p>
 
                 <div className="space-y-3 text-left">
                   {[
-                    "ðŸ“š Lá»›p 10A1 - 35 há»c sinh",
-                    "ðŸ“ 5 bÃ i táº­p chÆ°a cháº¥m",
-                    "ðŸ’¬ 12 tin nháº¯n tá»« phá»¥ huynh",
-                    "ðŸ“… Há»p phá»¥ huynh 15/12"
+                    "ðŸ“š Lớp 10A1 - 35 học sinh",
+                    "ðŸ“ 5 bài tập chưa chấm",
+                    "ðŸ’¬ 12 tin nhắn từ phụ huynh",
+                    "ðŸ“… Họp phụ huynh 15/12"
                   ].map((item) => (
                     <div key={item} className="p-3 bg-white rounded-lg text-sm text-gray-700">
                       {item}
@@ -792,14 +792,14 @@ export default function Home() {
                 <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
                   <Heart className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">DÃ nh Cho Phá»¥ Huynh</h3>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">Dành Cho Phụ Huynh</h3>
               </div>
 
               <div className="space-y-4">
                 {[
-                  "Nháº­n thÃ´ng tin con em 24/7",
-                  "KhÃ´ng bá» lá»¡ thÃ´ng bÃ¡o quan trá»ng",
-                  "Giao tiáº¿p thuáº­n tiá»‡n qua kÃªnh quen thuá»™c"
+                  "Nhận thông tin con em 24/7",
+                  "Không bỏ lỡ thông báo quan trọng",
+                  "Giao tiếp thuận tiện qua kênh quen thuộc"
                 ].map((benefit) => (
                   <div key={benefit} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -827,14 +827,14 @@ export default function Home() {
                 <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Heart className="w-8 h-8 text-white" />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">á»¨ng Dá»¥ng Phá»¥ Huynh</h4>
-                <p className="text-gray-600 mb-6">Theo dÃµi con em má»i lÃºc má»i nÆ¡i</p>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Ứng Dụng Phụ Huynh</h4>
+                <p className="text-gray-600 mb-6">Theo dõi con em mọi lúc mọi nơi</p>
 
                 <div className="space-y-3 text-left">
                   {[
-                    { icon: "ðŸ“Š", title: "Äiá»ƒm sá»‘ má»›i nháº¥t", desc: "ToÃ¡n: 8.5, VÄƒn: 9.0" },
-                    { icon: "ðŸ“…", title: "Lá»‹ch há»c hÃ´m nay", desc: "7 tiáº¿t, nghá»‰ tiáº¿t 4" },
-                    { icon: "ðŸ“¢", title: "ThÃ´ng bÃ¡o", desc: "Há»p phá»¥ huynh 20/12" }
+                    { icon: "ðŸ“Š", title: "Điểm số mới nhất", desc: "Toán: 8.5, Văn: 9.0" },
+                    { icon: "ðŸ“…", title: "Lịch học hôm nay", desc: "7 tiết, nghỉ tiết 4" },
+                    { icon: "ðŸ“¢", title: "Thông báo", desc: "Họp phụ huynh 20/12" }
                   ].map((item) => (
                     <div key={item.title} className="flex items-start gap-3 p-3 bg-white rounded-lg">
                       <span className="text-lg">{item.icon}</span>
@@ -855,19 +855,19 @@ export default function Home() {
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            ThÃ´ng tin chung vá» há»‡ thá»‘ng
+            Thông tin chung về hệ thống
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Sá»‘ liá»‡u minh há»a vÃ  pháº¡m vi sá»­ dá»¥ng cá»§a cá»•ng thÃ´ng tin
+            Số liệu minh họa và phạm vi sử dụng của cổng thông tin
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { number: "100+", label: "TrÆ°á»ng THPT", icon: GraduationCap, color: "text-primary" },
-            { number: "50,000+", label: "Phá»¥ huynh", icon: Heart, color: "text-emerald-600" },
-            { number: "1,000+", label: "GiÃ¡o viÃªn", icon: Users, color: "text-purple-600" },
-            { number: "95%", label: "Má»©c Ä‘á»™ hÃ i lÃ²ng", icon: Star, color: "text-orange-600" }
+            { number: "100+", label: "Trường THPT", icon: GraduationCap, color: "text-primary" },
+            { number: "50,000+", label: "Phụ huynh", icon: Heart, color: "text-emerald-600" },
+            { number: "1,000+", label: "Giáo viên", icon: Users, color: "text-purple-600" },
+            { number: "95%", label: "Mức độ hài lòng", icon: Star, color: "text-orange-600" }
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -892,33 +892,33 @@ export default function Home() {
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            Chia sáº» tá»« ngÆ°á»i dÃ¹ng
+            Chia sẻ từ người dùng
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Nhá»¯ng cÃ¢u chuyá»‡n thá»±c táº¿ trong quÃ¡ trÃ¬nh váº­n hÃ nh cá»•ng thÃ´ng tin
+            Những câu chuyện thực tế trong quá trình vận hành cổng thông tin
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {[
             {
-              quote: "EduConnect Ä‘Ã£ thay Ä‘á»•i hoÃ n toÃ n cÃ¡ch chÃºng tÃ´i giao tiáº¿p vá»›i phá»¥ huynh. Hiá»‡u quáº£ vÆ°á»£t mong Ä‘á»£i!",
-              name: "Tháº§y Nguyá»…n VÄƒn A",
-              position: "Hiá»‡u trÆ°á»Ÿng THPT LÃª QuÃ½ ÄÃ´n",
+              quote: "EduConnect đã thay đổi hoàn toàn cách chúng tôi giao tiếp với phụ huynh. Hiệu quả vượt mong đợi!",
+              name: "Thầy Nguyễn Văn A",
+              position: "Hiệu trưởng THPT Lê Quý Đôn",
               avatar: "ðŸ‘¨â€ðŸ’¼",
               rating: 5
             },
             {
-              quote: "TÃ´i cÃ³ thá»ƒ theo dÃµi há»c táº­p cá»§a con báº¥t cá»© lÃºc nÃ o. Ráº¥t tiá»‡n lá»£i vÃ  nhanh chÃ³ng!",
-              name: "CÃ´ Tráº§n Thá»‹ B",
-              position: "Phá»¥ huynh há»c sinh lá»›p 11A",
+              quote: "Tôi có thể theo dõi học tập của con bất cứ lúc nào. Rất tiện lợi và nhanh chóng!",
+              name: "Cô Trần Thị B",
+              position: "Phụ huynh học sinh lớp 11A",
               avatar: "ðŸ‘©â€ðŸ’¼",
               rating: 5
             },
             {
-              quote: "Chatbot tráº£ lá»i chÃ­nh xÃ¡c vÃ  nhanh chÃ³ng. TÃ´i tiáº¿t kiá»‡m Ä‘Æ°á»£c ráº¥t nhiá»u thá»i gian.",
-              name: "CÃ´ LÃª Thá»‹ C",
-              position: "GiÃ¡o viÃªn chá»§ nhiá»‡m",
+              quote: "Chatbot trả lời chính xác và nhanh chóng. Tôi tiết kiệm được rất nhiều thời gian.",
+              name: "Cô Lê Thị C",
+              position: "Giáo viên chủ nhiệm",
               avatar: "ðŸ‘©â€ðŸ«",
               rating: 5
             }
@@ -958,30 +958,30 @@ export default function Home() {
       <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 bg-white">
         <div className="text-center mb-12 lg:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-            CÃ¢u Há»i ThÆ°á»ng Gáº·p
+            Câu Hỏi Thường Gặp
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-            Nhá»¯ng tháº¯c máº¯c phá»• biáº¿n vá» EduConnect vÃ  giáº£i Ä‘Ã¡p chi tiáº¿t
+            Những thắc mắc phổ biến về EduConnect và giải đáp chi tiết
           </p>
         </div>
 
         <div className="max-w-3xl mx-auto space-y-4">
           {[
             {
-              question: "EduConnect cÃ³ khÃ³ cÃ i Ä‘áº·t khÃ´ng?",
-              answer: "KhÃ´ng, chÃºng tÃ´i há»— trá»£ cÃ i Ä‘áº·t vÃ  tÃ­ch há»£p hoÃ n toÃ n miá»…n phÃ­. Thá»i gian triá»ƒn khai chá»‰ 1-2 tuáº§n."
+              question: "EduConnect có khó cài đặt không?",
+              answer: "Không, chúng tôi hỗ trợ cài đặt và tích hợp hoàn toàn miễn phí. Thời gian triển khai chỉ 1-2 tuần."
             },
             {
-              question: "Dá»¯ liá»‡u há»c sinh cÃ³ Ä‘Æ°á»£c báº£o máº­t khÃ´ng?",
-              answer: "Tuyá»‡t Ä‘á»‘i. EduConnect tuÃ¢n thá»§ nghiÃªm ngáº·t cÃ¡c tiÃªu chuáº©n báº£o máº­t dá»¯ liá»‡u quá»‘c táº¿ vÃ  Viá»‡t Nam."
+              question: "Dữ liệu học sinh có được bảo mật không?",
+              answer: "Tuyệt đối. EduConnect tuân thủ nghiêm ngặt các tiêu chuẩn bảo mật dữ liệu quốc tế và Việt Nam."
             },
             {
-              question: "AI cÃ³ thá»ƒ tráº£ lá»i chÃ­nh xÃ¡c cÃ¡c cÃ¢u há»i phá»©c táº¡p khÃ´ng?",
-              answer: "AI Ä‘Æ°á»£c huáº¥n luyá»‡n vá»›i dá»¯ liá»‡u cá»¥ thá»ƒ cá»§a tá»«ng trÆ°á»ng, Ä‘áº£m báº£o Ä‘á»™ chÃ­nh xÃ¡c 95%+ cho cÃ¡c cÃ¢u há»i thÆ°á»ng gáº·p."
+              question: "AI có thể trả lời chính xác các câu hỏi phức tạp không?",
+              answer: "AI được huấn luyện với dữ liệu cụ thể của từng trường, đảm bảo độ chính xác 95%+ cho các câu hỏi thường gặp."
             },
             {
-              question: "EduConnect cÃ³ tÃ­ch há»£p Ä‘Æ°á»£c vá»›i há»‡ thá»‘ng hiá»‡n táº¡i khÃ´ng?",
-              answer: "CÃ³, EduConnect Ä‘Æ°á»£c thiáº¿t káº¿ Ä‘á»ƒ tÃ­ch há»£p dá»… dÃ ng vá»›i háº§u háº¿t cÃ¡c há»‡ thá»‘ng quáº£n lÃ½ há»c sinh hiá»‡n cÃ³."
+              question: "EduConnect có tích hợp được với hệ thống hiện tại không?",
+              answer: "Có, EduConnect được thiết kế để tích hợp dễ dàng với hầu hết các hệ thống quản lý học sinh hiện có."
             }
           ].map((faq, index) => (
             <motion.div
@@ -1022,10 +1022,10 @@ export default function Home() {
             className="space-y-6"
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Truy cáº­p cá»•ng thÃ´ng tin cá»§a trÆ°á»ng
+              Truy cập cổng thông tin của trường
             </h2>
             <p className="text-lg sm:text-xl opacity-90 leading-relaxed">
-              ÄÄƒng nháº­p Ä‘á»ƒ xem thÃ´ng bÃ¡o, thá»i khÃ³a biá»ƒu, káº¿t quáº£ há»c táº­p vÃ  trao Ä‘á»•i vá»›i nhÃ  trÆ°á»ng
+              Đăng nhập để xem thông báo, thời khóa biểu, kết quả học tập và trao đổi với nhà trường
             </p>
 
              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -1034,7 +1034,7 @@ export default function Home() {
                  size="lg"
                  className="h-14 px-8 text-lg font-semibold bg-white text-primary hover:bg-gray-100 shadow-lg"
                >
-                 ÄÄƒng nháº­p
+                 Đăng nhập
                  <ArrowRight className="w-5 h-5 ml-2" />
                </Button>
                <Button
@@ -1043,22 +1043,22 @@ export default function Home() {
                  size="lg"
                  className="h-14 px-8 text-lg font-semibold bg-white text-primary hover:bg-gray-100 shadow-lg"
                >
-                 <Link href="#docs">HÆ°á»›ng dáº«n</Link>
+                 <Link href="#docs">Hướng dẫn</Link>
                </Button>
              </div>
 
             <div className="flex flex-wrap justify-center gap-6 text-sm opacity-80">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Báº£o máº­t theo chuáº©n</span>
+                <span>Bảo mật theo chuẩn</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>TÃ­ch há»£p tÃ i khoáº£n trÆ°á»ng</span>
+                <span>Tích hợp tài khoản trường</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                <span>Há»— trá»£ ká»¹ thuáº­t</span>
+                <span>Hỗ trợ kỹ thuật</span>
               </div>
             </div>
           </motion.div>
@@ -1082,12 +1082,12 @@ export default function Home() {
                 <span className="text-xl font-bold">EduConnect</span>
               </div>
               <p className="text-gray-300 text-sm leading-relaxed">
-                Giáº£i phÃ¡p AI hÃ ng Ä‘áº§u cho giÃ¡o dá»¥c Viá»‡t Nam
+                Giải pháp AI hàng đầu cho giáo dục Việt Nam
               </p>
               <div className="space-y-2 text-sm text-gray-300">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  <span>123 ÄÆ°á»ng ABC, Quáº­n 1, TP.HCM</span>
+                  <span>123 Đường ABC, Quận 1, TP.HCM</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
@@ -1102,9 +1102,9 @@ export default function Home() {
 
             {/* Quick Links */}
             <div className="space-y-4">
-              <h4 className="font-semibold">LiÃªn Káº¿t Nhanh</h4>
+              <h4 className="font-semibold">Liên Kết Nhanh</h4>
               <div className="space-y-2 text-sm text-gray-300">
-                {["ÄÄƒng nháº­p", "HÆ°á»›ng dáº«n sá»­ dá»¥ng", "LiÃªn há»‡ há»— trá»£", "ThÃ´ng bÃ¡o", "Tin tá»©c"].map((link) => (
+                {["Đăng nhập", "Hướng dẫn sử dụng", "Liên hệ hỗ trợ", "Thông báo", "Tin tức"].map((link) => (
                   <div key={link}>
                     <Link href="#" className="hover:text-primary transition-colors">{link}</Link>
                   </div>
@@ -1114,9 +1114,9 @@ export default function Home() {
 
             {/* Legal Links */}
             <div className="space-y-4">
-              <h4 className="font-semibold">PhÃ¡p LÃ½</h4>
+              <h4 className="font-semibold">Pháp Lý</h4>
               <div className="space-y-2 text-sm text-gray-300">
-                {["ChÃ­nh sÃ¡ch báº£o máº­t", "Äiá»u khoáº£n sá»­ dá»¥ng", "Cookie Policy"].map((link) => (
+                {["Chính sách bảo mật", "Điều khoản sử dụng", "Cookie Policy"].map((link) => (
                   <div key={link}>
                     <Link href="#" className="hover:text-primary transition-colors">{link}</Link>
                   </div>
@@ -1126,7 +1126,7 @@ export default function Home() {
 
             {/* Social Links */}
             <div className="space-y-4">
-              <h4 className="font-semibold">Theo DÃµi ChÃºng TÃ´i</h4>
+              <h4 className="font-semibold">Theo Dõi Chúng Tôi</h4>
               <div className="flex gap-3">
                 {[
                   { icon: ExternalLink, href: "#", label: "LinkedIn" },

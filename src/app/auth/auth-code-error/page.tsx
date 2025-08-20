@@ -10,30 +10,30 @@ export default function AuthCodeErrorPage() {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-destructive">
-              Lá»—i xÃ¡c thá»±c
+              Lỗi xác thực
             </CardTitle>
             <CardDescription className="text-center">
-              ÄÃ£ xáº£y ra sá»± cá»‘ vá»›i quÃ¡ trÃ¬nh xÃ¡c thá»±c
+              Đã xảy ra sự cố với quá trình xác thực
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>
-                LiÃªn káº¿t xÃ¡c thá»±c cÃ³ thá»ƒ Ä‘Ã£ háº¿t háº¡n hoáº·c Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng.
-                Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.
+                Liên kết xác thực có thể đã hết hạn hoặc đã được sử dụng.
+                Vui lòng đăng nhập lại.
               </AlertDescription>
             </Alert>
             
             <div className="space-y-2">
               <Button asChild className="w-full">
                 <Link href="/">
-                  Thá»­ láº¡i
+                  Thử lại
                 </Link>
               </Button>
 
               <Button asChild variant="outline" className="w-full">
                 <Link href="/">
-                  Vá» trang chá»§
+                  Về trang chủ
                 </Link>
               </Button>
             </div>

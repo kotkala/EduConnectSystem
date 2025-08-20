@@ -55,7 +55,7 @@ export async function createSubjectAction(formData: SubjectFormData) {
 
   if (error) {
     console.error('Error creating subject:', error)
-    return { subject: null, error: 'KhÃ´ng thá»ƒ táº¡o mÃ´n há»c' }
+    return { subject: null, error: 'Không thể tạo môn học' }
   }
 
   revalidatePath('/dashboard/admin/subjects')
@@ -188,7 +188,7 @@ export async function getSubjectsAction() {
 
   if (error) {
     console.error('Error fetching subjects:', error)
-    return { subjects: [], error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch mÃ´n há»c' }
+    return { subjects: [], error: 'Không thể lấy danh sách môn học' }
   }
 
   return { subjects: subjects || [], error: null }

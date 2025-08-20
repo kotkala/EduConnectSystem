@@ -399,7 +399,7 @@ export async function getClassProgressAction(reportPeriodId: string, classBlockI
         class_id: classItem.id,
         class_name: classItem.name,
         homeroom_teacher_id: classItem.homeroom_teacher_id || '',
-        homeroom_teacher_name: (homeroomTeacher as { full_name?: string } | null)?.full_name || 'ChÆ°a phÃ¢n cÃ´ng',
+        homeroom_teacher_name: (homeroomTeacher as { full_name?: string } | null)?.full_name || 'Chưa phân công',
         total_students: totalStudents,
         sent_reports: sentReportsCount,
         status: sentReportsCount >= totalStudents && totalStudents > 0 ? 'complete' : 'incomplete',
@@ -455,9 +455,9 @@ export async function adminBulkSendReportsAction(reportPeriodId: string) {
       // More helpful error message
       const totalReports = allReports?.length || 0
       if (totalReports === 0) {
-        return { success: false, error: 'No student reports found for this period. Please generate reports first using "Táº¡o bÃ¡o cÃ¡o há»c sinh" button.' }
+        return { success: false, error: 'No student reports found for this period. Please generate reports first using "Tạo báo cáo học sinh" button.' }
       } else {
-        return { success: false, error: `Found ${totalReports} reports but none are in draft status. Reports have already been sent. Use "Reset bÃ¡o cÃ¡o vá» Draft" button to reset them back to draft status if you want to resend.` }
+        return { success: false, error: `Found ${totalReports} reports but none are in draft status. Reports have already been sent. Use "Reset báo cáo về Draft" button to reset them back to draft status if you want to resend.` }
       }
     }
 

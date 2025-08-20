@@ -43,15 +43,15 @@ export function AcademicDeleteDialog({
         : await deleteSemesterAction(item.id)
 
       if (result.success) {
-        toast.success(`ÄÃ£ xÃ³a ${type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"} thÃ nh cÃ´ng`)
+        toast.success(`Đã xóa ${type === "academic-years" ? "năm học" : "học kỳ"} thành công`)
         onSuccess()
         onOpenChange(false)
       } else {
-        toast.error(result.error || "XÃ³a tháº¥t báº¡i")
+        toast.error(result.error || "Xóa thất bại")
       }
     } catch (error) {
-      console.error('Lá»—i xÃ³a:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi xÃ³a")
+      console.error('Lỗi xóa:', error)
+      toast.error("Có lỗi xảy ra khi xóa")
     } finally {
       setIsLoading(false)
     }
@@ -63,17 +63,17 @@ export function AcademicDeleteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            XÃ¡c nháº­n xÃ³a
+            Xác nhận xóa
           </DialogTitle>
           <DialogDescription>
-            Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a {type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"} &quot;{item?.name}&quot;?
+            Bạn có chắc chắn muốn xóa {type === "academic-years" ? "năm học" : "học kỳ"} &quot;{item?.name}&quot;?
           </DialogDescription>
         </DialogHeader>
         
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c. Táº¥t cáº£ dá»¯ liá»‡u liÃªn quan sáº½ bá»‹ xÃ³a vÄ©nh viá»…n.
+            Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn.
           </AlertDescription>
         </Alert>
 
@@ -84,14 +84,14 @@ export function AcademicDeleteDialog({
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Há»§y
+            Hủy
           </Button>
           <Button 
             variant="destructive" 
             onClick={handleDelete}
             disabled={isLoading}
           >
-            {isLoading ? "Äang xÃ³a..." : "XÃ³a"}
+            {isLoading ? "Đang xóa..." : "Xóa"}
           </Button>
         </DialogFooter>
       </DialogContent>

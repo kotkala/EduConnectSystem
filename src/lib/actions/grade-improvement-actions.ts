@@ -34,14 +34,14 @@ export async function createGradeImprovementPeriodAction(formData: GradeImprovem
       .single()
 
     if (periodError) {
-      throw new Error('KhÃ´ng tÃ¬m tháº¥y ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+      throw new Error('Không tìm thấy kỳ báo cáo điểm')
     }
 
     const improvementEndDate = new Date(validatedData.end_date)
     const reportingEndDate = new Date(gradeReportingPeriod.end_date)
 
     if (improvementEndDate >= reportingEndDate) {
-      throw new Error('Thá»i gian káº¿t thÃºc nháº­n Ä‘Æ¡n pháº£i nhá» hÆ¡n thá»i gian káº¿t thÃºc ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+      throw new Error('Thời gian kết thúc nhận đơn phải nhỏ hơn thời gian kết thúc kỳ báo cáo điểm')
     }
 
     // Check for overlapping periods
@@ -52,7 +52,7 @@ export async function createGradeImprovementPeriodAction(formData: GradeImprovem
       .eq('is_active', true)
 
     if (overlapError) {
-      throw new Error('Lá»—i khi kiá»ƒm tra ká»³ cáº£i thiá»‡n Ä‘iá»ƒm hiá»‡n cÃ³')
+      throw new Error('Lỗi khi kiểm tra kỳ cải thiện điểm hiện có')
     }
 
     const newStartDate = new Date(validatedData.start_date)
@@ -65,7 +65,7 @@ export async function createGradeImprovementPeriodAction(formData: GradeImprovem
     })
 
     if (hasOverlap) {
-      throw new Error('Khoáº£ng thá»i gian bá»‹ trÃ¹ng láº·p vá»›i ká»³ cáº£i thiá»‡n Ä‘iá»ƒm khÃ¡c')
+      throw new Error('Khoảng thời gian bị trùng lặp với kỳ cải thiện điểm khác')
     }
 
     const { data: period, error } = await supabase
@@ -97,13 +97,13 @@ export async function createGradeImprovementPeriodAction(formData: GradeImprovem
     return {
       success: true,
       data: period as GradeImprovementPeriod,
-      message: 'Táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm thÃ nh cÃ´ng'
+      message: 'Tạo kỳ cải thiện điểm thành công'
     }
   } catch (error) {
     console.error('createGradeImprovementPeriodAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tạo kỳ cải thiện điểm'
     }
   }
 }
@@ -142,7 +142,7 @@ export async function getGradeImprovementPeriodsAction() {
     console.error('getGradeImprovementPeriodsAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách kỳ cải thiện điểm'
     }
   }
 }
@@ -219,7 +219,7 @@ export async function getGradeImprovementRequestsAction(filters: GradeImprovemen
     console.error('getGradeImprovementRequestsAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách đơn cải thiện điểm'
     }
   }
 }
@@ -269,13 +269,13 @@ export async function respondToGradeImprovementRequestAction(formData: GradeImpr
     return {
       success: true,
       data: request as GradeImprovementRequest,
-      message: `${validatedData.status === 'approved' ? 'PhÃª duyá»‡t' : 'Tá»« chá»‘i'} Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm thÃ nh cÃ´ng`
+      message: `${validatedData.status === 'approved' ? 'Phê duyệt' : 'Từ chối'} đơn cải thiện điểm thành công`
     }
   } catch (error) {
     console.error('respondToGradeImprovementRequestAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ xá»­ lÃ½ Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể xử lý đơn cải thiện điểm'
     }
   }
 }
@@ -318,7 +318,7 @@ export async function getActiveGradeImprovementPeriodsAction() {
     console.error('getActiveGradeImprovementPeriodsAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách kỳ cải thiện điểm'
     }
   }
 }
@@ -342,7 +342,7 @@ export async function createGradeImprovementRequestAction(formData: GradeImprove
       .single()
 
     if (periodError || !period) {
-      throw new Error('Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm khÃ´ng cÃ²n hiá»‡u lá»±c hoáº·c Ä‘Ã£ háº¿t háº¡n')
+      throw new Error('Kỳ cải thiện điểm không còn hiệu lực hoặc đã hết hạn')
     }
 
     // Check if student already has a request for this subject in this period
@@ -355,7 +355,7 @@ export async function createGradeImprovementRequestAction(formData: GradeImprove
       .single()
 
     if (existingRequest) {
-      throw new Error('Báº¡n Ä‘Ã£ táº¡o Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm cho mÃ´n há»c nÃ y trong ká»³ nÃ y')
+      throw new Error('Bạn đã tạo đơn cải thiện điểm cho môn học này trong kỳ này')
     }
 
     const { data: request, error } = await supabase
@@ -390,13 +390,13 @@ export async function createGradeImprovementRequestAction(formData: GradeImprove
     return {
       success: true,
       data: request as GradeImprovementRequest,
-      message: 'Táº¡o Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm thÃ nh cÃ´ng'
+      message: 'Tạo đơn cải thiện điểm thành công'
     }
   } catch (error) {
     console.error('createGradeImprovementRequestAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tạo đơn cải thiện điểm'
     }
   }
 }
@@ -441,7 +441,7 @@ export async function getStudentGradeImprovementRequestsAction() {
     console.error('getStudentGradeImprovementRequestsAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách đơn cải thiện điểm'
     }
   }
 }
@@ -468,12 +468,12 @@ export async function getStudentSubjectsForImprovementAction() {
 
     if (classError) {
       console.error('Error fetching class assignments:', classError)
-      throw new Error('Lá»—i khi táº£i thÃ´ng tin lá»›p há»c')
+      throw new Error('Lỗi khi tải thông tin lớp học')
     }
 
     if (!classAssignments || classAssignments.length === 0) {
       console.error('No class assignments found for student:', userId)
-      throw new Error('Báº¡n chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng vÃ o lá»›p há»c nÃ o. Vui lÃ²ng liÃªn há»‡ vá»›i ban giÃ¡m hiá»‡u Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£.')
+      throw new Error('Bạn chưa được phân công vào lớp học nào. Vui lòng liên hệ với ban giám hiệu để được hỗ trợ.')
     }
 
     // Get all class IDs (both main and combined classes)
@@ -518,7 +518,7 @@ export async function getStudentSubjectsForImprovementAction() {
     console.error('getStudentSubjectsForImprovementAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch mÃ´n há»c'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách môn học'
     }
   }
 }

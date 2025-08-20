@@ -63,12 +63,12 @@ export async function getStudentTimetableAction(filters: StudentTimetableFilters
 
     if (classError) {
       console.error('Error fetching class assignments:', classError)
-      throw new Error('Lá»—i khi táº£i thÃ´ng tin lá»›p há»c')
+      throw new Error('Lỗi khi tải thông tin lớp học')
     }
 
     if (!classAssignments || classAssignments.length === 0) {
       console.error('No class assignments found for student:', userId)
-      throw new Error('Báº¡n chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng vÃ o lá»›p há»c nÃ o. Vui lÃ²ng liÃªn há»‡ vá»›i ban giÃ¡m hiá»‡u Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£.')
+      throw new Error('Bạn chưa được phân công vào lớp học nào. Vui lòng liên hệ với ban giám hiệu để được hỗ trợ.')
     }
 
     // Transform class assignments
@@ -127,7 +127,7 @@ export async function getStudentTimetableAction(filters: StudentTimetableFilters
 
     if (timetableError) {
       console.error('Error fetching timetable events:', timetableError)
-      throw new Error('Lá»—i khi táº£i thá»i khÃ³a biá»ƒu')
+      throw new Error('Lỗi khi tải thời khóa biểu')
     }
 
     return {
@@ -141,7 +141,7 @@ export async function getStudentTimetableAction(filters: StudentTimetableFilters
     console.error('getStudentTimetableAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i thá»i khÃ³a biá»ƒu'
+      error: error instanceof Error ? error.message : 'Không thể tải thời khóa biểu'
     }
   }
 }
@@ -161,11 +161,11 @@ export async function getStudentGradesAction() {
 
     if (classError) {
       console.error('Error fetching class assignments:', classError)
-      throw new Error('Lá»—i khi táº£i thÃ´ng tin lá»›p há»c')
+      throw new Error('Lỗi khi tải thông tin lớp học')
     }
 
     if (!classAssignments || classAssignments.length === 0) {
-      throw new Error('Báº¡n chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng vÃ o lá»›p há»c nÃ o.')
+      throw new Error('Bạn chưa được phân công vào lớp học nào.')
     }
 
     const classIds = classAssignments.map(assignment => assignment.class_id)
@@ -202,7 +202,7 @@ export async function getStudentGradesAction() {
 
     if (gradesError) {
       console.error('Error fetching student grades:', gradesError)
-      throw new Error('Lá»—i khi táº£i Ä‘iá»ƒm sá»‘')
+      throw new Error('Lỗi khi tải điểm số')
     }
 
     return {
@@ -213,7 +213,7 @@ export async function getStudentGradesAction() {
     console.error('getStudentGradesAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể tải điểm số'
     }
   }
 }
@@ -232,11 +232,11 @@ export async function getStudentGradeSummaryAction() {
       .eq('is_active', true)
 
     if (classError) {
-      throw new Error('Lá»—i khi táº£i thÃ´ng tin lá»›p há»c')
+      throw new Error('Lỗi khi tải thông tin lớp học')
     }
 
     if (!classAssignments || classAssignments.length === 0) {
-      throw new Error('Báº¡n chÆ°a Ä‘Æ°á»£c phÃ¢n cÃ´ng vÃ o lá»›p há»c nÃ o.')
+      throw new Error('Bạn chưa được phân công vào lớp học nào.')
     }
 
     const classIds = classAssignments.map(assignment => assignment.class_id)
@@ -268,7 +268,7 @@ export async function getStudentGradeSummaryAction() {
       .order('subject_id')
 
     if (summaryError) {
-      throw new Error('Lá»—i khi táº£i tá»•ng há»£p Ä‘iá»ƒm sá»‘')
+      throw new Error('Lỗi khi tải tổng hợp điểm số')
     }
 
     // Group grades by subject and period
@@ -329,7 +329,7 @@ export async function getStudentGradeSummaryAction() {
     console.error('getStudentGradeSummaryAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i tá»•ng há»£p Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể tải tổng hợp điểm số'
     }
   }
 }

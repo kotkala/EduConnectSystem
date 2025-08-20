@@ -41,7 +41,7 @@ export default function TeachersPageClient() {
         setTotal(listRes.total)
         setCurrentPage(listRes.page || 1)
       } else {
-        setError(listRes.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch giÃ¡o viÃªn")
+        setError(listRes.error || "Không thể tải danh sách giáo viên")
       }
 
       if (statsRes.success) {
@@ -49,7 +49,7 @@ export default function TeachersPageClient() {
         setNewThisMonth(statsRes.newThisMonth ?? 0)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch giÃ¡o viÃªn")
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
     } finally {
       setLoading(false)
     }
@@ -101,14 +101,14 @@ export default function TeachersPageClient() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ giÃ¡o viÃªn</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý giáo viên</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ tÃ i khoáº£n vÃ  thÃ´ng tin giÃ¡o viÃªn
+            Quản lý tài khoản và thông tin giáo viên
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          ThÃªm giÃ¡o viÃªn
+          Thêm giáo viên
         </Button>
       </div>
 
@@ -116,20 +116,20 @@ export default function TeachersPageClient() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng sá»‘ giÃ¡o viÃªn</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số giáo viên</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              TÃ i khoáº£n giÃ¡o viÃªn Ä‘ang hoáº¡t Ä‘á»™ng
+              Tài khoản giáo viên đang hoạt động
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">GiÃ¡o viÃªn chá»§ nhiá»‡m</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Giáo viên chủ nhiệm</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -137,14 +137,14 @@ export default function TeachersPageClient() {
               {homeroomCount ?? teachers.filter(t => t.homeroom_enabled).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              GiÃ¡o viÃªn cÃ³ quyá»n GVCN
+              Giáo viên có quyền GVCN
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Má»›i trong thÃ¡ng</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Mới trong tháng</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -158,7 +158,7 @@ export default function TeachersPageClient() {
               })()}
             </div>
             <p className="text-xs text-muted-foreground">
-              GiÃ¡o viÃªn Ä‘Æ°á»£c thÃªm trong thÃ¡ng nÃ y
+              Giáo viên được thêm trong tháng này
             </p>
           </CardContent>
         </Card>

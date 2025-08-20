@@ -65,21 +65,21 @@ export function UserTable({
 
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "KhÃ´ng cÃ³"
+    if (!dateString) return "Không có"
     return new Date(dateString).toLocaleDateString()
   }
 
   const getGenderBadge = (gender: string | null) => {
-    if (!gender) return <Badge variant="secondary">KhÃ´ng cÃ³</Badge>
+    if (!gender) return <Badge variant="secondary">Không có</Badge>
 
     const variants = {
       male: "default",
       female: "secondary"
     } as const
 
-    let label = "KhÃ´ng rÃµ"
+    let label = "Không rõ"
     if (gender === "male") label = "Nam"
-    else if (gender === "female") label = "Ná»¯"
+    else if (gender === "female") label = "Nữ"
 
     return (
       <Badge variant={variants[gender as keyof typeof variants] || "secondary"}>
@@ -95,14 +95,14 @@ export function UserTable({
           <div>
             <CardTitle className="flex items-center gap-2">
               {userType === "teacher" ? <User className="h-5 w-5" /> : <Users className="h-5 w-5" />}
-              {userType === "teacher" ? "GiÃ¡o viÃªn" : "Há»c sinh & Phá»¥ huynh"}
+              {userType === "teacher" ? "Giáo viên" : "Học sinh & Phụ huynh"}
             </CardTitle>
             <CardDescription>
-              {userType === "teacher" ? "Quáº£n lÃ½ tÃ i khoáº£n giÃ¡o viÃªn" : "Quáº£n lÃ½ tÃ i khoáº£n há»c sinh vÃ  phá»¥ huynh"}
+              {userType === "teacher" ? "Quản lý tài khoản giáo viên" : "Quản lý tài khoản học sinh và phụ huynh"}
             </CardDescription>
           </div>
           <div className="text-sm text-muted-foreground">
-            Tá»•ng: {total} {userType === "teacher" ? "giÃ¡o viÃªn" : "há»c sinh"}
+            Tổng: {total} {userType === "teacher" ? "giáo viên" : "học sinh"}
           </div>
         </div>
       </CardHeader>
@@ -112,7 +112,7 @@ export function UserTable({
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={`TÃ¬m kiáº¿m ${userType === "teacher" ? "giÃ¡o viÃªn" : "há»c sinh"} theo tÃªn, email hoáº·c mÃ£`}
+              placeholder={`Tìm kiếm ${userType === "teacher" ? "giáo viên" : "học sinh"} theo tên, email hoặc mã`}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
@@ -122,12 +122,12 @@ export function UserTable({
             <Select value={genderFilter} onValueChange={handleGenderFilter}>
               <SelectTrigger className="w-32">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Giá»›i tÃ­nh" />
+                <SelectValue placeholder="Giới tính" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Táº¥t cáº£</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="male">Nam</SelectItem>
-                <SelectItem value="female">Ná»¯</SelectItem>
+                <SelectItem value="female">Nữ</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -138,15 +138,15 @@ export function UserTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>MÃ£</TableHead>
-                <TableHead>Há» vÃ  tÃªn</TableHead>
-                <TableHead>LiÃªn há»‡</TableHead>
-                <TableHead>Giá»›i tÃ­nh</TableHead>
-                <TableHead>NgÃ y sinh</TableHead>
-                {userType === "student" && <TableHead>Phá»¥ huynh</TableHead>}
+                <TableHead>Mã</TableHead>
+                <TableHead>Họ và tên</TableHead>
+                <TableHead>Liên hệ</TableHead>
+                <TableHead>Giới tính</TableHead>
+                <TableHead>Ngày sinh</TableHead>
+                {userType === "student" && <TableHead>Phụ huynh</TableHead>}
                 {userType === "teacher" && <TableHead>GVCN</TableHead>}
-                <TableHead>NgÃ y táº¡o</TableHead>
-                <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                <TableHead>Ngày tạo</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -155,7 +155,7 @@ export function UserTable({
                   <TableCell colSpan={userType === "teacher" ? 8 : 9} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2">
                       {userType === "teacher" ? <User className="h-8 w-8 text-muted-foreground" /> : <Users className="h-8 w-8 text-muted-foreground" />}
-                      <p className="text-muted-foreground">KhÃ´ng cÃ³ dá»¯ liá»‡u {userType === "teacher" ? "giÃ¡o viÃªn" : "há»c sinh"}</p>
+                      <p className="text-muted-foreground">Không có dữ liệu {userType === "teacher" ? "giáo viên" : "học sinh"}</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -200,7 +200,7 @@ export function UserTable({
                             </div>
                           </div>
                         ) : (
-                          <Badge variant="destructive">ChÆ°a cÃ³ phá»¥ huynh</Badge>
+                          <Badge variant="destructive">Chưa có phụ huynh</Badge>
                         )}
                       </TableCell>
                     )}
@@ -222,7 +222,7 @@ export function UserTable({
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => onEdit(user)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Chá»‰nh sá»­a
+                            Chỉnh sửa
                           </DropdownMenuItem>
 
                         </DropdownMenuContent>

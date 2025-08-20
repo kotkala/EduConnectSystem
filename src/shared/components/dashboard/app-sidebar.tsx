@@ -75,66 +75,66 @@ interface PlatformItem {
 const platformItems: Record<string, PlatformItem[]> = {
   admin: [
     // Core Dashboard
-    { title: "Tá»•ng quan", url: "/dashboard/admin", icon: Home },
-    { title: "ThÃ´ng bÃ¡o", url: "/dashboard/admin/notifications", icon: Bell },
+    { title: "Tổng quan", url: "/dashboard/admin", icon: Home },
+    { title: "Thông báo", url: "/dashboard/admin/notifications", icon: Bell },
 
     // User Management
-    { title: "Quáº£n lÃ½ ngÆ°á»i dÃ¹ng", url: "/dashboard/admin/users", icon: Users },
+    { title: "Quản lý người dùng", url: "/dashboard/admin/users", icon: Users },
 
     // Academic Structure
-    { title: "NÄƒm há»c", url: "/dashboard/admin/academic-years", icon: Calendar },
-    { title: "Lá»›p há»c", url: "/dashboard/admin/classes", icon: GraduationCap },
-    { title: "MÃ´n há»c", url: "/dashboard/admin/subjects", icon: BookOpen },
-    { title: "PhÃ²ng há»c", url: "/dashboard/admin/classrooms", icon: Building },
+    { title: "Năm học", url: "/dashboard/admin/academic-years", icon: Calendar },
+    { title: "Lớp học", url: "/dashboard/admin/classes", icon: GraduationCap },
+    { title: "Môn học", url: "/dashboard/admin/subjects", icon: BookOpen },
+    { title: "Phòng học", url: "/dashboard/admin/classrooms", icon: Building },
 
     // Schedule & Timetable
-    { title: "Thá»i khÃ³a biá»ƒu", url: "/dashboard/admin/timetable", icon: Clock },
-    { title: "YÃªu cáº§u Ä‘á»•i lá»‹ch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
+    { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Clock },
+    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
 
     // Academic Performance
-    { title: "Ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm", url: "/dashboard/admin/grade-periods", icon: Calculator },
-    { title: "Theo dÃµi Ä‘iá»ƒm sá»‘", url: "/dashboard/admin/grade-tracking", icon: BarChart3 },
-    { title: "BÃ¡o cÃ¡o há»c táº­p", url: "/dashboard/admin/report-periods", icon: FileBarChart },
-    { title: "Cáº£i thiá»‡n Ä‘iá»ƒm sá»‘", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
+    { title: "Kỳ báo cáo điểm", url: "/dashboard/admin/grade-periods", icon: Calculator },
+    { title: "Theo dõi điểm số", url: "/dashboard/admin/grade-tracking", icon: BarChart3 },
+    { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
+    { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 
     // Student Management
-    { title: "Vi pháº¡m há»c sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
+    { title: "Vi phạm học sinh", url: "/dashboard/admin/violations", icon: AlertTriangle },
   ],
 
   teacher: [
-    { title: "Tá»•ng quan", url: "/dashboard/teacher", icon: Home },
-    { title: "ThÃ´ng bÃ¡o", url: "/dashboard/teacher/notifications", icon: Bell },
-    { title: "Lá»‹ch giáº£ng dáº¡y", url: "/dashboard/teacher/schedule", icon: Calendar },
-    { title: "Nháº­p Ä‘iá»ƒm sá»‘", url: "/dashboard/teacher/grade-management", icon: Calculator },
-    { title: "Báº£ng Ä‘iá»ƒm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
-    { title: "BÃ¡o cÃ¡o há»c táº­p", url: "/dashboard/teacher/reports", icon: BookCheck },
-    { title: "Há»p phá»¥ huynh", url: "/dashboard/teacher/meetings", icon: Users },
-    { title: "Há»c sinh chá»§ nhiá»‡m", url: "/dashboard/teacher/homeroom-students", icon: Heart },
-    { title: "Äiá»ƒm lá»›p chá»§ nhiá»‡m", url: "/dashboard/teacher/homeroom-grades", icon: Award },
-    { title: "ÄÆ¡n xin nghá»‰", url: "/dashboard/teacher/leave-requests", icon: FileText },
+    { title: "Tổng quan", url: "/dashboard/teacher", icon: Home },
+    { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
+    { title: "Lịch giảng dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Nhập điểm số", url: "/dashboard/teacher/grade-management", icon: Calculator },
+    { title: "Bảng điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
+    { title: "Báo cáo học tập", url: "/dashboard/teacher/reports", icon: BookCheck },
+    { title: "Họp phụ huynh", url: "/dashboard/teacher/meetings", icon: Users },
+    { title: "Học sinh chủ nhiệm", url: "/dashboard/teacher/homeroom-students", icon: Heart },
+    { title: "Điểm lớp chủ nhiệm", url: "/dashboard/teacher/homeroom-grades", icon: Award },
+    { title: "Đơn xin nghỉ", url: "/dashboard/teacher/leave-requests", icon: FileText },
   ],
   student: [
-    { title: "Tá»•ng quan", url: "/student", icon: Home },
-    { title: "ThÃ´ng bÃ¡o", url: "/student/notifications", icon: Bell },
-    { title: "KhÃ³a há»c", url: "/student/courses", icon: BookOpen },
-    { title: "BÃ i táº­p", url: "/student/assignments", icon: FileText },
-    { title: "Äiá»ƒm sá»‘", url: "/student/grades", icon: Award },
-    { title: "Thá»i khÃ³a biá»ƒu", url: "/student/timetable", icon: Calendar },
-    { title: "Cáº£i thiá»‡n Ä‘iá»ƒm", url: "/student/grade-improvement", icon: TrendingUp },
+    { title: "Tổng quan", url: "/student", icon: Home },
+    { title: "Thông báo", url: "/student/notifications", icon: Bell },
+    { title: "Khóa học", url: "/student/courses", icon: BookOpen },
+    { title: "Bài tập", url: "/student/assignments", icon: FileText },
+    { title: "Điểm số", url: "/student/grades", icon: Award },
+    { title: "Thời khóa biểu", url: "/student/timetable", icon: Calendar },
+    { title: "Cải thiện điểm", url: "/student/grade-improvement", icon: TrendingUp },
   ],
   parent: [
-    { title: "Tá»•ng quan", url: "/dashboard/parent", icon: Home },
-    { title: "ThÃ´ng bÃ¡o", url: "/dashboard/parent/notifications", icon: Bell },
-    { title: "Trá»£ lÃ½ AI", url: "/dashboard/parent/chatbot", icon: Bot },
-    { title: "Báº£ng Ä‘iá»ƒm con em", url: "/dashboard/parent/grades", icon: Award },
-    { title: "BÃ¡o cÃ¡o há»c táº­p", url: "/dashboard/parent/reports", icon: BookCheck },
-    { title: "Pháº£n há»“i há»c táº­p", url: "/dashboard/parent/feedback", icon: BarChart3 },
-    { title: "Vi pháº¡m con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
-    { title: "Lá»‹ch há»p", url: "/dashboard/parent/meetings", icon: Calendar },
-    { title: "ÄÆ¡n xin nghá»‰", url: "/dashboard/parent/leave-application", icon: FileText },
-    { title: "Tráº¡ng thÃ¡i nghá»‰", url: "/parent/leave-status", icon: Clock },
-    { title: "Con cá»§a tÃ´i", url: "/parent/children", icon: Heart },
-    { title: "Tin nháº¯n", url: "/parent/messages", icon: MessageSquare },
+    { title: "Tổng quan", url: "/dashboard/parent", icon: Home },
+    { title: "Thông báo", url: "/dashboard/parent/notifications", icon: Bell },
+    { title: "Trợ lý AI", url: "/dashboard/parent/chatbot", icon: Bot },
+    { title: "Bảng điểm con em", url: "/dashboard/parent/grades", icon: Award },
+    { title: "Báo cáo học tập", url: "/dashboard/parent/reports", icon: BookCheck },
+    { title: "Phản hồi học tập", url: "/dashboard/parent/feedback", icon: BarChart3 },
+    { title: "Vi phạm con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
+    { title: "Lịch họp", url: "/dashboard/parent/meetings", icon: Calendar },
+    { title: "Đơn xin nghỉ", url: "/dashboard/parent/leave-application", icon: FileText },
+    { title: "Trạng thái nghỉ", url: "/parent/leave-status", icon: Clock },
+    { title: "Con của tôi", url: "/parent/children", icon: Heart },
+    { title: "Tin nhắn", url: "/parent/messages", icon: MessageSquare },
   ],
 }
 
@@ -161,8 +161,8 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const items: PlatformItem[] = role === 'teacher'
     ? [
         ...baseItems.slice(0, 5), // Keep first 5 items (Dashboard, Notifications, Schedule, Grade Management, Grade Reports)
-        { title: "Pháº£n Há»“i Há»c Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
-        { title: "Vi Pháº¡m Há»c Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
+        { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
+        { title: "Vi Phạm Học Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
         ...baseItems.slice(5) // Add remaining items
       ]
     : baseItems
@@ -183,10 +183,10 @@ export function AppSidebar({ role }: AppSidebarProps) {
 
   const getRoleDisplayName = (userRole: string) => {
     switch (userRole) {
-      case 'admin': return 'Quáº£n trá»‹ viÃªn'
-      case 'teacher': return 'GiÃ¡o viÃªn'
-      case 'parent': return 'Phá»¥ huynh'
-      default: return 'Há»c sinh'
+      case 'admin': return 'Quản trị viên'
+      case 'teacher': return 'Giáo viên'
+      case 'parent': return 'Phụ huynh'
+      default: return 'Học sinh'
     }
   }
 
@@ -264,7 +264,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
         {/* User & Academic Management */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2 mb-1">
-            Quáº£n lÃ½ há»c vá»¥
+            Quản lý học vụ
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -285,14 +285,14 @@ export function AppSidebar({ role }: AppSidebarProps) {
         {/* Schedule & Performance */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-2 mb-1">
-            Lá»‹ch trÃ¬nh & ÄÃ¡nh giÃ¡
+            Lịch trình & Đánh giá
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {items.slice(8).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   {/* Special handling for chatbot button */}
-                  {item.isSpecial && item.title === "Trá»£ LÃ½ AI" ? (
+                  {item.isSpecial && item.title === "Trợ Lý AI" ? (
                     <SidebarMenuButton onClick={handleChatbotClick} className="cursor-pointer rounded-xl h-11 px-3 hover:bg-orange-50 hover:text-orange-700 transition-all duration-200">
                       <item.icon />
                       <span className="font-medium">{item.title}</span>
@@ -359,13 +359,13 @@ export function AppSidebar({ role }: AppSidebarProps) {
                   className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200"
                 >
                   <User2 className="mr-3 h-4 w-4" />
-                  <span className="font-medium">Há»“ sÆ¡ cÃ¡ nhÃ¢n</span>
+                  <span className="font-medium">Hồ sơ cá nhân</span>
                 </DropdownMenuItem>
 
                 {/* Theme Toggle in Dropdown */}
                 <div className="mx-1 my-1 px-3 py-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Giao diá»‡n</span>
+                    <span className="text-sm font-medium">Giao diện</span>
                     <ThemeToggle />
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                   className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-orange-50 hover:text-orange-700 transition-colors duration-200"
                 >
                   <Settings className="mr-3 h-4 w-4" />
-                  <span className="font-medium">CÃ i Ä‘áº·t</span>
+                  <span className="font-medium">Cài đặt</span>
                 </DropdownMenuItem>
                 <div className="h-px bg-border mx-2 my-2" />
                 <DropdownMenuItem
@@ -383,7 +383,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                   className="rounded-xl mx-1 my-1 h-10 px-3 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
                 >
                   <LogOut className="mr-3 h-4 w-4" />
-                  <span className="font-medium">ÄÄƒng xuáº¥t</span>
+                  <span className="font-medium">Đăng xuất</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

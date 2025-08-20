@@ -229,7 +229,7 @@ export function EventItem({
             <div className="truncate font-semibold text-sm">{event.title}</div>
             {event.location && event.location !== 'TBD' && (
               <div className="truncate font-medium opacity-80 text-xs mt-0.5">
-                ðŸ“ PhÃ²ng {event.location}
+                ðŸ“ Phòng {event.location}
               </div>
             )}
             {showTime && (

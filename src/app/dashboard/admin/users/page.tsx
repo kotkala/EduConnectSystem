@@ -10,31 +10,31 @@ export default function UsersPage() {
 
   const userTypes = [
     {
-      title: "GiÃ¡o viÃªn",
-      description: "Quáº£n lÃ½ tÃ i khoáº£n vÃ  thÃ´ng tin giÃ¡o viÃªn",
+      title: "Giáo viên",
+      description: "Quản lý tài khoản và thông tin giáo viên",
       icon: Users,
-      count: "Quáº£n lÃ½ toÃ n bá»™ Ä‘á»™i ngÅ© giáº£ng dáº¡y",
+      count: "Quản lý toàn bộ đội ngũ giảng dạy",
       href: "/dashboard/admin/users/teachers",
       color: "bg-blue-500",
       features: [
-        "Táº¡o vÃ  chá»‰nh sá»­a há»“ sÆ¡ giÃ¡o viÃªn",
-        "Quáº£n lÃ½ mÃ£ nhÃ¢n viÃªn",
-        "Báº­t/táº¯t quyá»n GVCN",
-        "Xem thá»‘ng kÃª giÃ¡o viÃªn"
+        "Tạo và chỉnh sửa hồ sơ giáo viên",
+        "Quản lý mã nhân viên",
+        "Bật/tắt quyền GVCN",
+        "Xem thống kê giáo viên"
       ]
     },
     {
-      title: "Há»c sinh & Phá»¥ huynh",
-      description: "Quáº£n lÃ½ tÃ i khoáº£n há»c sinh kÃ¨m má»‘i quan há»‡ phá»¥ huynh báº¯t buá»™c",
+      title: "Học sinh & Phụ huynh",
+      description: "Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc",
       icon: GraduationCap,
-      count: "Há»c sinh báº¯t buá»™c cÃ³ tÃ i khoáº£n phá»¥ huynh",
+      count: "Học sinh bắt buộc có tài khoản phụ huynh",
       href: "/dashboard/admin/users/students",
       color: "bg-green-500",
       features: [
-        "Táº¡o há»c sinh + phá»¥ huynh cÃ¹ng lÃºc",
-        "Quáº£n lÃ½ mÃ£ há»c sinh",
-        "Má»‘i quan há»‡ phá»¥ huynh - há»c sinh",
-        "Xem káº¿t ná»‘i gia Ä‘Ã¬nh"
+        "Tạo học sinh + phụ huynh cùng lúc",
+        "Quản lý mã học sinh",
+        "Mối quan hệ phụ huynh - học sinh",
+        "Xem kết nối gia đình"
       ]
     }
   ]
@@ -43,9 +43,9 @@ export default function UsersPage() {
     <div className="space-y-6 p-6">
       {/* Header */}
       <div className="space-y-2 sm:space-y-3">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Quáº£n lÃ½ toÃ n bá»™ tÃ i khoáº£n trong há»‡ thá»‘ng EduConnect
+          Quản lý toàn bộ tài khoản trong hệ thống EduConnect
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export default function UsersPage() {
                     onClick={() => router.push(userType.href)}
                     className="w-full sm:w-auto shrink-0"
                   >
-                    Quáº£n lÃ½
+                    Quản lý
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -84,7 +84,7 @@ export default function UsersPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Chá»©c nÄƒng chÃ­nh:</h4>
+                    <h4 className="text-sm font-medium">Chức năng chính:</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       {userType.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2">
@@ -106,29 +106,29 @@ export default function UsersPage() {
         <CardHeader>
           <CardTitle className="text-amber-800 flex items-center gap-2">
             <Heart className="h-5 w-5" />
-            Ghi chÃº quan trá»ng
+            Ghi chú quan trọng
           </CardTitle>
         </CardHeader>
         <CardContent className="text-amber-700 space-y-2">
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>Má»‘i quan há»‡ Há»c sinh - Phá»¥ huynh:</strong> Khi táº¡o tÃ i khoáº£n há»c sinh,
-              báº¡n pháº£i táº¡o kÃ¨m tÃ i khoáº£n phá»¥ huynh trong cÃ¹ng biá»ƒu máº«u. KhÃ´ng thá»ƒ thÃªm phá»¥ huynh Ä‘á»™c láº­p.
+              <strong>Mối quan hệ Học sinh - Phụ huynh:</strong> Khi tạo tài khoản học sinh,
+              bạn phải tạo kèm tài khoản phụ huynh trong cùng biểu mẫu. Không thể thêm phụ huynh độc lập.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>GiÃ¡o viÃªn chá»§ nhiá»‡m (GVCN):</strong> Admin cÃ³ thá»ƒ báº­t/táº¯t quyá»n GVCN
-              cho giÃ¡o viÃªn, cho phÃ©p há» quáº£n lÃ½ há»c sinh vÃ  liÃªn láº¡c vá»›i phá»¥ huynh.
+              <strong>Giáo viên chủ nhiệm (GVCN):</strong> Admin có thể bật/tắt quyền GVCN
+              cho giáo viên, cho phép họ quản lý học sinh và liên lạc với phụ huynh.
             </p>
           </div>
           <div className="flex items-start gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-600 mt-2 shrink-0" />
             <p>
-              <strong>Vai trÃ² ngÆ°á»i dÃ¹ng:</strong> Há»‡ thá»‘ng duy trÃ¬ 4 vai trÃ²: Admin, GiÃ¡o viÃªn,
-              Há»c sinh vÃ  Phá»¥ huynh. Giá»¯ há»‡ thá»‘ng vai trÃ² Ä‘Æ¡n giáº£n vÃ  táº­p trung.
+              <strong>Vai trò người dùng:</strong> Hệ thống duy trì 4 vai trò: Admin, Giáo viên,
+              Học sinh và Phụ huynh. Giữ hệ thống vai trò đơn giản và tập trung.
             </p>
           </div>
         </CardContent>
@@ -137,9 +137,9 @@ export default function UsersPage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Thao tÃ¡c nhanh</CardTitle>
+          <CardTitle>Thao tác nhanh</CardTitle>
           <CardDescription>
-            CÃ¡c tÃ¡c vá»¥ quáº£n lÃ½ ngÆ°á»i dÃ¹ng thÆ°á»ng dÃ¹ng
+            Các tác vụ quản lý người dùng thường dùng
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,8 +154,8 @@ export default function UsersPage() {
                   <UserPlus className="w-5 h-5 text-blue-600" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">ThÃªm giÃ¡o viÃªn</div>
-                  <div className="text-sm text-muted-foreground">Táº¡o tÃ i khoáº£n giÃ¡o viÃªn</div>
+                  <div className="font-medium">Thêm giáo viên</div>
+                  <div className="text-sm text-muted-foreground">Tạo tài khoản giáo viên</div>
                 </div>
               </div>
             </Button>
@@ -170,8 +170,8 @@ export default function UsersPage() {
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="text-left">
-                  <div className="font-medium">ThÃªm há»c sinh & phá»¥ huynh</div>
-                  <div className="text-sm text-muted-foreground">Táº¡o tÃ i khoáº£n Ä‘Æ°á»£c liÃªn káº¿t</div>
+                  <div className="font-medium">Thêm học sinh & phụ huynh</div>
+                  <div className="text-sm text-muted-foreground">Tạo tài khoản được liên kết</div>
                 </div>
               </div>
             </Button>

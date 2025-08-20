@@ -3,8 +3,8 @@ import ParentFeedbackDashboard from "@/features/parent-dashboard/components/pare
 import { BarChart3 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Pháº£n Há»“i Há»c Táº­p",
-  description: "Xem pháº£n há»“i há»c táº­p cá»§a con em tá»« giÃ¡o viÃªn",
+  title: "Phản Hồi Học Tập",
+  description: "Xem phản hồi học tập của con em từ giáo viên",
 };
 
 export default function ParentFeedbackPage() {
@@ -20,10 +20,10 @@ export default function ParentFeedbackPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  Pháº£n Há»“i Há»c Táº­p
+                  Phản Hồi Học Tập
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Xem pháº£n há»“i vÃ  Ä‘Ã¡nh giÃ¡ há»c táº­p cá»§a con em tá»« giÃ¡o viÃªn
+                  Xem phản hồi và đánh giá học tập của con em từ giáo viên
                 </p>
               </div>
             </div>

@@ -94,10 +94,10 @@ export async function getGradeDistributionAction() {
 
       const total = gradeValues.length
       const distributionData = [
-        { name: 'Xuáº¥t sáº¯c (â‰¥8.5)', count: distribution.excellent, percentage: total > 0 ? Math.round((distribution.excellent / total) * 100) : 0 },
-        { name: 'KhÃ¡ (7.0-8.4)', count: distribution.good, percentage: total > 0 ? Math.round((distribution.good / total) * 100) : 0 },
-        { name: 'Trung bÃ¬nh (5.0-6.9)', count: distribution.average, percentage: total > 0 ? Math.round((distribution.average / total) * 100) : 0 },
-        { name: 'Yáº¿u (<5.0)', count: distribution.poor, percentage: total > 0 ? Math.round((distribution.poor / total) * 100) : 0 }
+        { name: 'Xuất sắc (â‰¥8.5)', count: distribution.excellent, percentage: total > 0 ? Math.round((distribution.excellent / total) * 100) : 0 },
+        { name: 'Khá (7.0-8.4)', count: distribution.good, percentage: total > 0 ? Math.round((distribution.good / total) * 100) : 0 },
+        { name: 'Trung bình (5.0-6.9)', count: distribution.average, percentage: total > 0 ? Math.round((distribution.average / total) * 100) : 0 },
+        { name: 'Yếu (<5.0)', count: distribution.poor, percentage: total > 0 ? Math.round((distribution.poor / total) * 100) : 0 }
       ]
 
       return {

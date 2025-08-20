@@ -2,9 +2,9 @@
 
 const adminConfig: NotificationPageConfig = {
   role: 'admin',
-  title: 'ThÃ´ng bÃ¡o',
-  description: 'Gá»­i vÃ  quáº£n lÃ½ thÃ´ng bÃ¡o tá»›i giÃ¡o viÃªn, há»c sinh vÃ  phá»¥ huynh',
-  emptyStateMessage: 'Gá»­i thÃ´ng bÃ¡o Ä‘áº§u tiÃªn Ä‘á»ƒ báº¯t Ä‘áº§u',
+  title: 'Thông báo',
+  description: 'Gửi và quản lý thông báo tới giáo viên, học sinh và phụ huynh',
+  emptyStateMessage: 'Gửi thông báo đầu tiên để bắt đầu',
   dashboardPath: '/dashboard/admin',
   canSendNotifications: true,
   useSidebarLayout: false

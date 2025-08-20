@@ -330,11 +330,11 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .single()
 
     if (classError || !classInfo) {
-      return createErrorResponse(null, "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin lá»›p há»c")
+      return createErrorResponse(null, "Không tìm thấy thông tin lớp học")
     }
 
     if (!classInfo.homeroom_teacher_id) {
-      return createErrorResponse(null, "Lá»›p há»c chÆ°a cÃ³ giÃ¡o viÃªn chá»§ nhiá»‡m")
+      return createErrorResponse(null, "Lớp học chưa có giáo viên chủ nhiệm")
     }
 
     // Get academic year and semester info
@@ -366,11 +366,11 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
     const submittedStudents = submissions?.filter(s => s.status === 'submitted').length || 0
 
     if (submittedStudents === 0) {
-      return createErrorResponse(null, "ChÆ°a cÃ³ há»c sinh nÃ o Ä‘Æ°á»£c nháº­p Ä‘iá»ƒm")
+      return createErrorResponse(null, "Chưa có học sinh nào được nhập điểm")
     }
 
     // Create class grade summary
-    const summaryName = `Báº£ng Ä‘iá»ƒm ${classInfo.name} - ${semester?.name} - ${academicYear?.name}`
+    const summaryName = `Bảng điểm ${classInfo.name} - ${semester?.name} - ${academicYear?.name}`
 
     const { data: summary, error: summaryError } = await supabase
       .from('class_grade_summaries')
@@ -413,9 +413,9 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
       .insert({
         recipient_id: classInfo.homeroom_teacher_id,
         sender_id: userId,
-        title: `Báº£ng Ä‘iá»ƒm lá»›p ${classInfo.name} Ä‘Ã£ sáºµn sÃ ng`,
-        content: `Báº£ng Ä‘iá»ƒm ${semester?.name} cá»§a lá»›p ${classInfo.name} Ä‘Ã£ Ä‘Æ°á»£c hoÃ n thÃ nh vá»›i ${submittedStudents}/${totalStudents} há»c sinh. Vui lÃ²ng kiá»ƒm tra vÃ  gá»­i cho phá»¥ huynh.`,
-        message: `Báº£ng Ä‘iá»ƒm ${semester?.name} cá»§a lá»›p ${classInfo.name} Ä‘Ã£ Ä‘Æ°á»£c hoÃ n thÃ nh vá»›i ${submittedStudents}/${totalStudents} há»c sinh. Vui lÃ²ng kiá»ƒm tra vÃ  gá»­i cho phá»¥ huynh.`,
+        title: `Bảng điểm lớp ${classInfo.name} đã sẵn sàng`,
+        content: `Bảng điểm ${semester?.name} của lớp ${classInfo.name} đã được hoàn thành với ${submittedStudents}/${totalStudents} học sinh. Vui lòng kiểm tra và gửi cho phụ huynh.`,
+        message: `Bảng điểm ${semester?.name} của lớp ${classInfo.name} đã được hoàn thành với ${submittedStudents}/${totalStudents} học sinh. Vui lòng kiểm tra và gửi cho phụ huynh.`,
         type: 'grade_report',
         target_roles: ['teacher'],
         metadata: {
@@ -434,7 +434,7 @@ export async function sendGradesToHomeroomTeacherAction(classId: string, academi
     revalidateGradeReports()
     return createSuccessResponse(
       undefined,
-      `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cho GVCN ${(classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A'}. Tá»•ng cá»™ng ${submittedStudents}/${totalStudents} há»c sinh.`
+      `Đã gửi bảng điểm cho GVCN ${(classInfo.homeroom_teacher as { full_name?: string })?.full_name || 'N/A'}. Tổng cộng ${submittedStudents}/${totalStudents} học sinh.`
     )
   } catch (error) {
     console.error('Error sending grades to homeroom teacher:', error)

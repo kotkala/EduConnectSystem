@@ -60,20 +60,20 @@ export default function ViolationsPageClient() {
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Tá»•ng quan</TabsTrigger>
-          <TabsTrigger value="categories">Danh má»¥c & Loáº¡i</TabsTrigger>
-          <TabsTrigger value="record">Ghi nháº­n vi pháº¡m</TabsTrigger>
-          <TabsTrigger value="violations">Táº¥t cáº£ vi pháº¡m</TabsTrigger>
-          <TabsTrigger value="weekly">BÃ¡o cÃ¡o tuáº§n</TabsTrigger>
-          <TabsTrigger value="monthly">BÃ¡o cÃ¡o thÃ¡ng</TabsTrigger>
-          <TabsTrigger value="discipline">Xá»­ lÃ½ ká»· luáº­t</TabsTrigger>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="categories">Danh mục & Loại</TabsTrigger>
+          <TabsTrigger value="record">Ghi nhận vi phạm</TabsTrigger>
+          <TabsTrigger value="violations">Tất cả vi phạm</TabsTrigger>
+          <TabsTrigger value="weekly">Báo cáo tuần</TabsTrigger>
+          <TabsTrigger value="monthly">Báo cáo tháng</TabsTrigger>
+          <TabsTrigger value="discipline">Xử lý kỷ luật</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tá»•ng vi pháº¡m</CardTitle>
+                <CardTitle className="text-sm font-medium">Tổng vi phạm</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -81,13 +81,13 @@ export default function ViolationsPageClient() {
                   {isLoadingStats ? '...' : stats.totalViolations}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Tá»•ng Ä‘Ã£ ghi nháº­n
+                  Tổng đã ghi nhận
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tuáº§n nÃ y</CardTitle>
+                <CardTitle className="text-sm font-medium">Tuần này</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
@@ -95,13 +95,13 @@ export default function ViolationsPageClient() {
                   {isLoadingStats ? '...' : stats.thisWeekViolations}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Tuáº§n hiá»‡n táº¡i
+                  Tuần hiện tại
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Danh má»¥c</CardTitle>
+                <CardTitle className="text-sm font-medium">Danh mục</CardTitle>
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -109,13 +109,13 @@ export default function ViolationsPageClient() {
                   {isLoadingStats ? '...' : stats.totalCategories}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Danh má»¥c hoáº¡t Ä‘á»™ng
+                  Danh mục hoạt động
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">ThÃ´ng bÃ¡o Ä‘Ã£ gá»­i</CardTitle>
+                <CardTitle className="text-sm font-medium">Thông báo đã gửi</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -123,7 +123,7 @@ export default function ViolationsPageClient() {
                   {isLoadingStats ? '...' : stats.notificationsSent}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Gá»­i phá»¥ huynh thÃ¡ng nÃ y
+                  Gửi phụ huynh tháng này
                 </p>
               </CardContent>
             </Card>
@@ -132,37 +132,37 @@ export default function ViolationsPageClient() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Thao tÃ¡c nhanh</CardTitle>
+                <CardTitle>Thao tác nhanh</CardTitle>
                 <CardDescription>
-                  CÃ¡c tÃ¡c vá»¥ quáº£n lÃ½ vi pháº¡m thÆ°á»ng dÃ¹ng
+                  Các tác vụ quản lý vi phạm thường dùng
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button className="w-full justify-start" onClick={() => setActiveTab('record')}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Ghi nháº­n vi pháº¡m má»›i
+                  Ghi nhận vi phạm mới
                 </Button>
                 <Button variant="outline" className="w-full justify-start" onClick={() => setActiveTab('categories')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  Quáº£n lÃ½ danh má»¥c
+                  Quản lý danh mục
                 </Button>
                 <Button variant="outline" className="w-full justify-start" onClick={() => setActiveTab('violations')}>
                   <FileText className="mr-2 h-4 w-4" />
-                  Xem táº¥t cáº£ vi pháº¡m
+                  Xem tất cả vi phạm
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Vi pháº¡m gáº§n Ä‘Ã¢y</CardTitle>
+                <CardTitle>Vi phạm gần đây</CardTitle>
                 <CardDescription>
-                  Vi pháº¡m Ä‘Æ°á»£c ghi nháº­n má»›i nháº¥t
+                  Vi phạm được ghi nhận mới nhất
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center text-muted-foreground py-8">
-                  ChÆ°a cÃ³ vi pháº¡m nÃ o Ä‘Æ°á»£c ghi nháº­n
+                  Chưa có vi phạm nào được ghi nhận
                 </div>
               </CardContent>
             </Card>

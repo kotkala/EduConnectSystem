@@ -3,8 +3,8 @@ import { CalendarProvider } from "@/features/timetable/components/event-calendar
 import TeacherScheduleBigCalendar from "@/features/timetable/components/teacher-schedule-big-calendar";
 
 export const metadata: Metadata = {
-  title: "Lá»‹ch Giáº£ng Dáº¡y Cá»§a TÃ´i",
-  description: "Xem lá»‹ch giáº£ng dáº¡y vÃ  phÃ¢n cÃ´ng lá»›p há»c cá»§a báº¡n",
+  title: "Lịch Giảng Dạy Của Tôi",
+  description: "Xem lịch giảng dạy và phân công lớp học của bạn",
 };
 
 export default function TeacherSchedulePage() {

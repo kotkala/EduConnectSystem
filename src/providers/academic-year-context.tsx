@@ -67,11 +67,11 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
           }
         }
       } else {
-        toast.error('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch nÄƒm há»c')
+        toast.error('Không thể tải danh sách năm học')
       }
     } catch (error) {
       console.error('Error loading academic years:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº£i danh sÃ¡ch nÄƒm há»c')
+      toast.error('Có lỗi xảy ra khi tải danh sách năm học')
     } finally {
       setLoading(false)
     }

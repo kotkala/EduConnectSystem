@@ -3,8 +3,8 @@ import { ParentMeetingSchedules } from "@/features/parent-dashboard/components/p
 import { Calendar } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Lá»‹ch há»p phá»¥ huynh",
-  description: "Xem lá»‹ch há»p tá»« giÃ¡o viÃªn chá»§ nhiá»‡m",
+  title: "Lịch họp phụ huynh",
+  description: "Xem lịch họp từ giáo viên chủ nhiệm",
 };
 
 export default function ParentMeetingSchedulesPage() {
@@ -20,10 +20,10 @@ export default function ParentMeetingSchedulesPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  Lá»‹ch há»p phá»¥ huynh
+                  Lịch họp phụ huynh
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Xem lá»‹ch há»p vÃ  cuá»™c háº¹n tá»« giÃ¡o viÃªn chá»§ nhiá»‡m
+                  Xem lịch họp và cuộc hẹn từ giáo viên chủ nhiệm
                 </p>
               </div>
             </div>

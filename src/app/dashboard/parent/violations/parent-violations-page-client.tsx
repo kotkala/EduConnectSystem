@@ -23,7 +23,7 @@ function renderViolationsContent(
     return (
       <Card>
         <CardContent className="text-center py-8">
-          Äang táº£i danh sÃ¡ch vi pháº¡m...
+          Đang tải danh sách vi phạm...
         </CardContent>
       </Card>
     )
@@ -34,11 +34,11 @@ function renderViolationsContent(
       <Card>
         <CardContent className="text-center py-8">
           <AlertTriangle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">KhÃ´ng cÃ³ vi pháº¡m nÃ o</h3>
+          <h3 className="text-lg font-semibold mb-2">Không có vi phạm nào</h3>
           <p className="text-muted-foreground">
             {selectedStudent
-              ? `${selectedStudent.full_name} khÃ´ng cÃ³ vi pháº¡m nÃ o.`
-              : 'Con em báº¡n khÃ´ng cÃ³ vi pháº¡m nÃ o.'
+              ? `${selectedStudent.full_name} không có vi phạm nào.`
+              : 'Con em bạn không có vi phạm nào.'
             }
           </p>
         </CardContent>
@@ -53,10 +53,10 @@ function renderViolationsContent(
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Danh sÃ¡ch vi pháº¡m ({violations.length})
+              Danh sách vi phạm ({violations.length})
             </CardTitle>
             <CardDescription>
-              Táº¥t cáº£ vi pháº¡m Ä‘Ã£ ghi nháº­n cá»§a con em báº¡n
+              Tất cả vi phạm đã ghi nhận của con em bạn
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -83,7 +83,7 @@ function renderViolationsContent(
                         <Clock className="h-3 w-3" />
                         {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
                       </span>
-                      <span>NgÆ°á»i ghi nháº­n: {violation.recorded_by.full_name}</span>
+                      <span>Người ghi nhận: {violation.recorded_by.full_name}</span>
                     </div>
                   </div>
                 </div>
@@ -123,10 +123,10 @@ export default function ParentViolationsPageClient() {
             setSelectedStudentId(result.data[0].id)
           }
         } else {
-          toast.error(result?.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c sinh')
+          toast.error(result?.error || 'Không thể tải danh sách học sinh')
         }
       } catch {
-        toast.error('ÄÃ£ xáº£y ra lá»—i khi táº£i danh sÃ¡ch há»c sinh')
+        toast.error('Đã xảy ra lỗi khi tải danh sách học sinh')
       }
     }
 
@@ -181,10 +181,10 @@ export default function ParentViolationsPageClient() {
           const weeks = [...new Set(violationsWithWeeks.map(v => v.calculatedWeekNumber).filter((week): week is number => week !== null))]
           setAvailableWeeks(weeks.toSorted((a, b) => a - b))
         } else {
-          toast.error(result?.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch vi pháº¡m')
+          toast.error(result?.error || 'Không thể tải danh sách vi phạm')
         }
       } catch {
-        toast.error('ÄÃ£ xáº£y ra lá»—i khi táº£i danh sÃ¡ch vi pháº¡m')
+        toast.error('Đã xảy ra lỗi khi tải danh sách vi phạm')
       } finally {
         setLoading(false)
       }
@@ -208,9 +208,9 @@ export default function ParentViolationsPageClient() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vi pháº¡m con em</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm con em</h1>
             <p className="text-muted-foreground">
-              Xem cÃ¡c vi pháº¡m cá»§a con em báº¡n
+              Xem các vi phạm của con em bạn
             </p>
           </div>
         </div>
@@ -223,9 +223,9 @@ export default function ParentViolationsPageClient() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vi Pháº¡m Con Em</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Vi Phạm Con Em</h1>
           <p className="text-muted-foreground">
-            Theo dÃµi cÃ¡c vi pháº¡m cá»§a con em trong quÃ¡ trÃ¬nh há»c táº­p
+            Theo dõi các vi phạm của con em trong quá trình học tập
           </p>
         </div>
 
@@ -234,10 +234,10 @@ export default function ParentViolationsPageClient() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Bá»™ Lá»c
+              Bộ Lọc
             </CardTitle>
             <CardDescription>
-              Lá»c vi pháº¡m theo há»c sinh, tuáº§n há»c vÃ  má»©c Ä‘á»™ nghiÃªm trá»ng
+              Lọc vi phạm theo học sinh, tuần học và mức độ nghiêm trọng
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -247,10 +247,10 @@ export default function ParentViolationsPageClient() {
                 <User className="h-4 w-4" />
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Chá»n con em" />
+                    <SelectValue placeholder="Chọn con em" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ con em</SelectItem>
+                    <SelectItem value="all">Tất cả con em</SelectItem>
                     {students.map((student) => (
                       <SelectItem key={student.id} value={student.id}>
                         {student.full_name} ({student.student_id})
@@ -266,13 +266,13 @@ export default function ParentViolationsPageClient() {
                 <Clock className="h-4 w-4" />
                 <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Tuáº§n há»c" />
+                    <SelectValue placeholder="Tuần học" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ tuáº§n</SelectItem>
+                    <SelectItem value="all">Tất cả tuần</SelectItem>
                     {availableWeeks.map((week) => (
                       <SelectItem key={week} value={week.toString()}>
-                        Tuáº§n {week}
+                        Tuần {week}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -284,10 +284,10 @@ export default function ParentViolationsPageClient() {
                 <AlertTriangle className="h-4 w-4" />
                 <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Má»©c Ä‘á»™" />
+                    <SelectValue placeholder="Mức độ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {violationSeverityLevels.map((severity) => (
                       <SelectItem key={severity} value={severity}>
                         {getSeverityLabel(severity)}
@@ -304,12 +304,12 @@ export default function ParentViolationsPageClient() {
                 onClick={resetFilters}
                 className="ml-auto"
               >
-                Äáº·t láº¡i bá»™ lá»c
+                Đặt lại bộ lọc
               </Button>
 
               {/* Results Summary */}
               <div className="text-sm text-muted-foreground">
-                Hiá»ƒn thá»‹ {violations.length} / {totalCount} vi pháº¡m
+                Hiển thị {violations.length} / {totalCount} vi phạm
               </div>
             </div>
           </CardContent>
@@ -351,7 +351,7 @@ export default function ParentViolationsPageClient() {
         totalPages={totalPages}
         totalCount={totalCount}
         onPageChange={setCurrentPage}
-        itemName="vi pháº¡m"
+        itemName="vi phạm"
       />
     </div>
   )

@@ -57,7 +57,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
     return (
       <div className={cn("flex items-center gap-2", className)}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-muted-foreground">Äang táº£i...</span>
+        <span className="text-sm text-muted-foreground">Đang tải...</span>
       </div>
     )
   }
@@ -76,11 +76,11 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="truncate">
-                {selectedAcademicYear?.name || 'Chá»n nÄƒm há»c'}
+                {selectedAcademicYear?.name || 'Chọn năm học'}
               </span>
               {selectedAcademicYear && isCurrentYear(selectedAcademicYear.id) && (
                 <Badge variant="secondary" className="text-xs">
-                  Hiá»‡n táº¡i
+                  Hiện tại
                 </Badge>
               )}
             </div>
@@ -89,7 +89,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
         </DropdownMenuTrigger>
         
         <DropdownMenuContent align="end" className="w-[250px]">
-          <DropdownMenuLabel>Chá»n nÄƒm há»c quáº£n lÃ½</DropdownMenuLabel>
+          <DropdownMenuLabel>Chọn năm học quản lý</DropdownMenuLabel>
           <DropdownMenuSeparator />
           
           {academicYears.length > 0 ? (
@@ -103,7 +103,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
                 <div className="flex items-center gap-1">
                   {isCurrentYear(year.id) && (
                     <Badge variant="secondary" className="text-xs">
-                      Hiá»‡n táº¡i
+                      Hiện tại
                     </Badge>
                   )}
                   {selectedAcademicYear?.id === year.id && (
@@ -114,7 +114,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
             ))
           ) : (
             <DropdownMenuItem disabled>
-              KhÃ´ng cÃ³ nÄƒm há»c nÃ o
+              Không có năm học nào
             </DropdownMenuItem>
           )}
           
@@ -125,7 +125,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            Táº¡o nÄƒm há»c má»›i
+            Tạo năm học mới
           </DropdownMenuItem>
           
           <DropdownMenuItem
@@ -133,7 +133,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
             className="flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
-            Quáº£n lÃ½ nÄƒm há»c
+            Quản lý năm học
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -142,7 +142,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Táº¡o nÄƒm há»c má»›i</DialogTitle>
+            <DialogTitle>Tạo năm học mới</DialogTitle>
           </DialogHeader>
           <AcademicYearForm
             onSuccess={handleCreateSuccess}

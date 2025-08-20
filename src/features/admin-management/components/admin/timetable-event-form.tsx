@@ -41,14 +41,14 @@ import {
 
 // Helper function to get floor text
 function getFloorText(floor?: number | null): string {
-  return floor ? `, Táº§ng ${floor}` : ''
+  return floor ? `, Tầng ${floor}` : ''
 }
 
 // Helper function to get button text
 function getButtonText(loading: boolean, isEditing: boolean): string {
-  if (loading) return 'Äang lÆ°u...'
-  if (isEditing) return 'Cáº­p nháº­t sá»± kiá»‡n'
-  return 'Táº¡o sá»± kiá»‡n'
+  if (loading) return 'Đang lưu...'
+  if (isEditing) return 'Cập nhật sự kiện'
+  return 'Tạo sự kiện'
 }
 
 interface TimetableEventFormProps {

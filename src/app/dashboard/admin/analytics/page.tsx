@@ -23,7 +23,7 @@ export default async function AnalyticsPage() {
   }
 
   return (
-    <SidebarLayout role="admin" title="PhÃ¢n TÃ­ch Äiá»ƒm Sá»‘">
+    <SidebarLayout role="admin" title="Phân Tích Điểm Số">
       <Suspense fallback={<div>Loading...</div>}>
         <AnalyticsClient />
       </Suspense>

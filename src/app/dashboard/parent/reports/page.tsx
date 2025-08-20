@@ -34,10 +34,10 @@ export default async function ParentReportsPage() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  BÃ¡o cÃ¡o há»c táº­p
+                  Báo cáo học tập
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Xem bÃ¡o cÃ¡o há»c táº­p vÃ  rÃ¨n luyá»‡n cá»§a con em tá»« giÃ¡o viÃªn chá»§ nhiá»‡m
+                  Xem báo cáo học tập và rèn luyện của con em từ giáo viên chủ nhiệm
                 </p>
               </div>
             </div>

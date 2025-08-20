@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/shared/utils/supabase/server'
 import nodemailer from 'nodemailer'
 
 // Initialize SMTP transporter (Gmail)
@@ -30,6 +30,25 @@ interface TeacherReminderEmailData {
   deadline: string
 }
 
+interface GradeNotificationEmailData {
+  parentEmail: string
+  parentName: string
+  studentName: string
+  className: string
+  periodName: string
+  teacherName: string
+}
+
+interface TeacherGradeNotificationEmailData {
+  teacherEmail: string
+  teacherName: string
+  className: string
+  periodName: string
+  studentCount: number
+  submissionCount: number
+  isResubmission: boolean
+}
+
 /**
  * Send email notification to parent about new report using Resend
  */
@@ -51,8 +70,8 @@ export async function sendReportNotificationEmail(data: ReportNotificationEmailD
 
     // Create email subject and content
     const subject = data.resendReason
-      ? `[Cáº­p nháº­t] BÃ¡o cÃ¡o há»c táº­p ${data.reportPeriodName} - ${data.studentName}`
-      : `BÃ¡o cÃ¡o há»c táº­p ${data.reportPeriodName} - ${data.studentName}`
+      ? `[Cập nhật] Báo cáo học tập ${data.reportPeriodName} - ${data.studentName}`
+      : `Báo cáo học tập ${data.reportPeriodName} - ${data.studentName}`
 
     // HTML content for better deliverability
     const htmlContent = `
@@ -73,36 +92,36 @@ export async function sendReportNotificationEmail(data: ReportNotificationEmailD
 </head>
 <body>
     <div class="header">
-        <h2>ðŸŽ“ Há»‡ thá»‘ng Quáº£n lÃ½ GiÃ¡o dá»¥c EduConnect</h2>
+        <h2>🎓 Hệ thống Quản lý Giáo dục EduConnect</h2>
     </div>
 
     <div class="content">
-        <p>KÃ­nh gá»­i <strong>${data.parentName}</strong>,</p>
+        <p>Kính gửi <strong>${data.parentName}</strong>,</p>
 
         <p>${data.resendReason
-          ? `GiÃ¡o viÃªn Ä‘Ã£ cáº­p nháº­t vÃ  gá»­i láº¡i bÃ¡o cÃ¡o há»c táº­p cá»§a con em. <strong>LÃ½ do gá»­i láº¡i:</strong> ${data.resendReason}`
-          : 'ChÃºng tÃ´i xin thÃ´ng bÃ¡o bÃ¡o cÃ¡o há»c táº­p cá»§a con em Ä‘Ã£ sáºµn sÃ ng.'
+          ? `Giáo viên đã cập nhật và gửi lại báo cáo học tập của con em. <strong>Lý do gửi lại:</strong> ${data.resendReason}`
+          : 'Chúng tôi xin thông báo báo cáo học tập của con em đã sẵn sàng.'
         }</p>
 
         <div class="info-box">
-            <h3>ðŸ“š ThÃ´ng tin bÃ¡o cÃ¡o:</h3>
+            <h3>📚 Thông tin báo cáo:</h3>
             <ul>
-                <li><strong>Há»c sinh:</strong> ${data.studentName}</li>
-                <li><strong>Ká»³ bÃ¡o cÃ¡o:</strong> ${data.reportPeriodName}</li>
-                <li><strong>Thá»i gian:</strong> ${startDate} - ${endDate}</li>
+                <li><strong>Học sinh:</strong> ${data.studentName}</li>
+                <li><strong>Kỳ báo cáo:</strong> ${data.reportPeriodName}</li>
+                <li><strong>Thời gian:</strong> ${startDate} - ${endDate}</li>
             </ul>
         </div>
 
-        <p>QuÃ½ phá»¥ huynh vui lÃ²ng Ä‘Äƒng nháº­p vÃ o há»‡ thá»‘ng Ä‘á»ƒ xem chi tiáº¿t bÃ¡o cÃ¡o há»c táº­p vÃ  tÃ¬nh hÃ¬nh rÃ¨n luyá»‡n cá»§a con em.</p>
+        <p>Quý phụ huynh vui lòng đăng nhập vào hệ thống để xem chi tiết báo cáo học tập và tình hình rèn luyện của con em.</p>
 
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/auth/login" class="button">ðŸ”— ÄÄƒng nháº­p há»‡ thá»‘ng</a>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/auth/login" class="button">🔗 Đăng nhập hệ thống</a>
 
-        <p>Náº¿u cÃ³ báº¥t ká»³ tháº¯c máº¯c nÃ o, quÃ½ phá»¥ huynh vui lÃ²ng liÃªn há»‡ vá»›i giÃ¡o viÃªn chá»§ nhiá»‡m hoáº·c nhÃ  trÆ°á»ng.</p>
+        <p>Nếu có bất kỳ thắc mắc nào, quý phụ huynh vui lòng liên hệ với giáo viên chủ nhiệm hoặc nhà trường.</p>
     </div>
 
     <div class="footer">
-        <p>TrÃ¢n trá»ng,<br><strong>Ban GiÃ¡m hiá»‡u</strong></p>
-        <p><em>Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ thá»‘ng EduConnect. Vui lÃ²ng khÃ´ng tráº£ lá»i email nÃ y.</em></p>
+        <p>Trân trọng,<br><strong>Ban Giám hiệu</strong></p>
+        <p><em>Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.</em></p>
     </div>
 </body>
 </html>
@@ -110,29 +129,29 @@ export async function sendReportNotificationEmail(data: ReportNotificationEmailD
 
     // Plain text version for better deliverability
     const textContent = `
-KÃ­nh gá»­i ${data.parentName},
+Kính gửi ${data.parentName},
 
 ${data.resendReason
-  ? `GiÃ¡o viÃªn Ä‘Ã£ cáº­p nháº­t vÃ  gá»­i láº¡i bÃ¡o cÃ¡o há»c táº­p cá»§a con em. LÃ½ do gá»­i láº¡i: ${data.resendReason}`
-  : 'ChÃºng tÃ´i xin thÃ´ng bÃ¡o bÃ¡o cÃ¡o há»c táº­p cá»§a con em Ä‘Ã£ sáºµn sÃ ng.'
+  ? `Giáo viên đã cập nhật và gửi lại báo cáo học tập của con em. Lý do gửi lại: ${data.resendReason}`
+  : 'Chúng tôi xin thông báo báo cáo học tập của con em đã sẵn sàng.'
 }
 
-THÃ”NG TIN BÃO CÃO:
-- Há»c sinh: ${data.studentName}
-- Ká»³ bÃ¡o cÃ¡o: ${data.reportPeriodName}
-- Thá»i gian: ${startDate} - ${endDate}
+THÔNG TIN BÁO CÁO:
+- Học sinh: ${data.studentName}
+- Kỳ báo cáo: ${data.reportPeriodName}
+- Thời gian: ${startDate} - ${endDate}
 
-QuÃ½ phá»¥ huynh vui lÃ²ng Ä‘Äƒng nháº­p vÃ o há»‡ thá»‘ng Ä‘á»ƒ xem chi tiáº¿t bÃ¡o cÃ¡o há»c táº­p vÃ  tÃ¬nh hÃ¬nh rÃ¨n luyá»‡n cá»§a con em.
+Quý phụ huynh vui lòng đăng nhập vào hệ thống để xem chi tiết báo cáo học tập và tình hình rèn luyện của con em.
 
-Truy cáº­p há»‡ thá»‘ng: ${process.env.NEXT_PUBLIC_APP_URL}/auth/login
+Truy cập hệ thống: ${process.env.NEXT_PUBLIC_APP_URL}/auth/login
 
-Náº¿u cÃ³ báº¥t ká»³ tháº¯c máº¯c nÃ o, quÃ½ phá»¥ huynh vui lÃ²ng liÃªn há»‡ vá»›i giÃ¡o viÃªn chá»§ nhiá»‡m hoáº·c nhÃ  trÆ°á»ng.
+Nếu có bất kỳ thắc mắc nào, quý phụ huynh vui lòng liên hệ với giáo viên chủ nhiệm hoặc nhà trường.
 
-TrÃ¢n trá»ng,
-Ban GiÃ¡m hiá»‡u
+Trân trọng,
+Ban Giám hiệu
 
 ---
-Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ thá»‘ng EduConnect. Vui lÃ²ng khÃ´ng tráº£ lá»i email nÃ y.
+Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.
     `.trim()
 
     // Send email using SMTP (Gmail)
@@ -146,13 +165,13 @@ Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ t
           text: textContent,
         })
 
-        console.log('âœ… Email sent successfully via SMTP:', emailResult.messageId)
+        console.log('✅ Email sent successfully via SMTP:', emailResult.messageId)
       } catch (smtpError) {
-        console.error('âŒ Failed to send email via SMTP:', smtpError)
+        console.error('❌ Failed to send email via SMTP:', smtpError)
         // Don't fail the entire operation if email fails
       }
     } else {
-      console.log('ðŸ“§ SMTP not configured, skipping email send')
+      console.log('📧 SMTP not configured, skipping email send')
     }
 
     // Store email in database for tracking (if table exists)
@@ -195,7 +214,7 @@ export async function sendTeacherReminderEmail(data: TeacherReminderEmailData) {
   try {
     const supabase = await createClient()
 
-    const subject = `Nháº¯c nhá»Ÿ: HoÃ n thÃ nh bÃ¡o cÃ¡o há»c táº­p ${data.reportPeriodName}`
+    const subject = `Nhắc nhở: Hoàn thành báo cáo học tập ${data.reportPeriodName}`
 
     // HTML content for teacher reminder
     const htmlContent = `
@@ -217,35 +236,35 @@ export async function sendTeacherReminderEmail(data: TeacherReminderEmailData) {
 </head>
 <body>
     <div class="header">
-        <h2>âš ï¸ Nháº¯c nhá»Ÿ hoÃ n thÃ nh bÃ¡o cÃ¡o há»c táº­p</h2>
+        <h2>⚠️ Nhắc nhở hoàn thành báo cáo học tập</h2>
     </div>
 
     <div class="content">
-        <p>KÃ­nh gá»­i <strong>${data.teacherName}</strong>,</p>
+        <p>Kính gửi <strong>${data.teacherName}</strong>,</p>
 
         <div class="warning-box">
-            <p><strong>ThÃ´ng bÃ¡o quan trá»ng:</strong> Há»‡ thá»‘ng phÃ¡t hiá»‡n má»™t sá»‘ lá»›p cá»§a tháº§y/cÃ´ chÆ°a hoÃ n thÃ nh bÃ¡o cÃ¡o há»c táº­p cho ká»³ <strong>${data.reportPeriodName}</strong>.</p>
+            <p><strong>Thông báo quan trọng:</strong> Hệ thống phát hiện một số lớp của thầy/cô chưa hoàn thành báo cáo học tập cho kỳ <strong>${data.reportPeriodName}</strong>.</p>
         </div>
 
         <div class="class-list">
-            <h3>ðŸ“‹ CÃ¡c lá»›p chÆ°a hoÃ n thÃ nh:</h3>
+            <h3>📋 Các lớp chưa hoàn thành:</h3>
             <ul>
                 ${data.incompleteClasses.map(className => `<li><strong>${className}</strong></li>`).join('')}
             </ul>
         </div>
 
-        <p><strong>Thá»i háº¡n hoÃ n thÃ nh:</strong> ${data.deadline}</p>
+        <p><strong>Thời hạn hoàn thành:</strong> ${data.deadline}</p>
 
-        <p>Äá»ƒ Ä‘áº£m báº£o cháº¥t lÆ°á»£ng giÃ¡o dá»¥c vÃ  thÃ´ng tin ká»‹p thá»i cho phá»¥ huynh, tháº§y/cÃ´ vui lÃ²ng hoÃ n thÃ nh bÃ¡o cÃ¡o cho cÃ¡c lá»›p trÃªn trÆ°á»›c thá»i háº¡n.</p>
+        <p>Để đảm bảo chất lượng giáo dục và thông tin kịp thời cho phụ huynh, thầy/cô vui lòng hoàn thành báo cáo cho các lớp trên trước thời hạn.</p>
 
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/reports" class="button">ðŸ“ HoÃ n thÃ nh bÃ¡o cÃ¡o ngay</a>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/reports" class="button">📝 Hoàn thành báo cáo ngay</a>
 
-        <p>Náº¿u cÃ³ báº¥t ká»³ khÃ³ khÄƒn nÃ o trong viá»‡c hoÃ n thÃ nh bÃ¡o cÃ¡o, tháº§y/cÃ´ vui lÃ²ng liÃªn há»‡ vá»›i ban giÃ¡m hiá»‡u Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£.</p>
+        <p>Nếu có bất kỳ khó khăn nào trong việc hoàn thành báo cáo, thầy/cô vui lòng liên hệ với ban giám hiệu để được hỗ trợ.</p>
     </div>
 
     <div class="footer">
-        <p>TrÃ¢n trá»ng,<br><strong>Ban GiÃ¡m hiá»‡u</strong></p>
-        <p><em>Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ thá»‘ng EduConnect.</em></p>
+        <p>Trân trọng,<br><strong>Ban Giám hiệu</strong></p>
+        <p><em>Email này được gửi tự động từ hệ thống EduConnect.</em></p>
     </div>
 </body>
 </html>
@@ -253,26 +272,26 @@ export async function sendTeacherReminderEmail(data: TeacherReminderEmailData) {
 
     // Plain text version
     const textContent = `
-KÃ­nh gá»­i ${data.teacherName},
+Kính gửi ${data.teacherName},
 
-THÃ”NG BÃO QUAN TRá»ŒNG: Há»‡ thá»‘ng phÃ¡t hiá»‡n má»™t sá»‘ lá»›p cá»§a tháº§y/cÃ´ chÆ°a hoÃ n thÃ nh bÃ¡o cÃ¡o há»c táº­p cho ká»³ ${data.reportPeriodName}.
+THÔNG BÁO QUAN TRỌNG: Hệ thống phát hiện một số lớp của thầy/cô chưa hoàn thành báo cáo học tập cho kỳ ${data.reportPeriodName}.
 
-CÃC Lá»šP CHÆ¯A HOÃ€N THÃ€NH:
+CÁC LỚP CHƯA HOÀN THÀNH:
 ${data.incompleteClasses.map(className => `- ${className}`).join('\n')}
 
-Thá»i háº¡n hoÃ n thÃ nh: ${data.deadline}
+Thời hạn hoàn thành: ${data.deadline}
 
-Äá»ƒ Ä‘áº£m báº£o cháº¥t lÆ°á»£ng giÃ¡o dá»¥c vÃ  thÃ´ng tin ká»‹p thá»i cho phá»¥ huynh, tháº§y/cÃ´ vui lÃ²ng hoÃ n thÃ nh bÃ¡o cÃ¡o cho cÃ¡c lá»›p trÃªn trÆ°á»›c thá»i háº¡n.
+Để đảm bảo chất lượng giáo dục và thông tin kịp thời cho phụ huynh, thầy/cô vui lòng hoàn thành báo cáo cho các lớp trên trước thời hạn.
 
-Truy cáº­p há»‡ thá»‘ng: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/reports
+Truy cập hệ thống: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/reports
 
-Náº¿u cÃ³ báº¥t ká»³ khÃ³ khÄƒn nÃ o trong viá»‡c hoÃ n thÃ nh bÃ¡o cÃ¡o, tháº§y/cÃ´ vui lÃ²ng liÃªn há»‡ vá»›i ban giÃ¡m hiá»‡u Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£.
+Nếu có bất kỳ khó khăn nào trong việc hoàn thành báo cáo, thầy/cô vui lòng liên hệ với ban giám hiệu để được hỗ trợ.
 
-TrÃ¢n trá»ng,
-Ban GiÃ¡m hiá»‡u
+Trân trọng,
+Ban Giám hiệu
 
 ---
-Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ thá»‘ng EduConnect.
+Email này được gửi tự động từ hệ thống EduConnect.
     `.trim()
 
     // Send email using SMTP (Gmail)
@@ -287,13 +306,13 @@ Email nÃ y Ä‘Æ°á»£c gá»­i tá»± Ä‘á»™ng tá»« há»‡ t
           priority: 'high'
         })
 
-        console.log('âœ… Teacher reminder email sent successfully via SMTP:', emailResult.messageId)
+        console.log('✅ Teacher reminder email sent successfully via SMTP:', emailResult.messageId)
       } catch (smtpError) {
-        console.error('âŒ Failed to send teacher reminder email via SMTP:', smtpError)
+        console.error('❌ Failed to send teacher reminder email via SMTP:', smtpError)
         throw smtpError
       }
     } else {
-      console.log('ðŸ“§ SMTP not configured, skipping teacher reminder email')
+      console.log('📧 SMTP not configured, skipping teacher reminder email')
     }
 
     // Store email in database for tracking
@@ -334,4 +353,215 @@ export async function sendResendNotificationEmail(
   data: Omit<ReportNotificationEmailData, 'resendReason'> & { resendReason: string }
 ) {
   return sendReportNotificationEmail(data)
+}
+
+// Send grade notification email to parents
+export async function sendGradeNotificationEmail(data: GradeNotificationEmailData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const subject = `[EduConnect] Thông báo điểm số mới của con em ${data.studentName} - ${data.periodName}`
+
+    // HTML email template
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; }
+        .footer { background: #64748b; color: white; padding: 15px; text-align: center; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .highlight { background: #dbeafe; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Thông báo điểm số mới</h1>
+            <p>Hệ thống quản lý giáo dục EduConnect</p>
+        </div>
+
+        <div class="content">
+            <p>Kính gửi <strong>${data.parentName}</strong>,</p>
+
+            <div class="highlight">
+                <h3>📋 Thông tin điểm số</h3>
+                <p><strong>Học sinh:</strong> ${data.studentName}</p>
+                <p><strong>Lớp:</strong> ${data.className}</p>
+                <p><strong>Kỳ báo cáo:</strong> ${data.periodName}</p>
+                <p><strong>Giáo viên:</strong> ${data.teacherName}</p>
+            </div>
+
+            <p>Điểm số mới của con em đã được cập nhật trong hệ thống. Quý phụ huynh vui lòng đăng nhập để xem chi tiết điểm số và nhận xét của giáo viên.</p>
+
+            <a href="https://edu-connect-system.vercel.app/auth/login" class="button">🔗 Đăng nhập xem điểm</a>
+
+            <p>Nếu có bất kỳ thắc mắc nào về điểm số, quý phụ huynh vui lòng liên hệ trực tiếp với giáo viên hoặc nhà trường.</p>
+        </div>
+
+        <div class="footer">
+            <p>Trân trọng,<br><strong>Giáo viên ${data.teacherName}</strong></p>
+            <p><em>Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.</em></p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim()
+
+    // Plain text version
+    const textContent = `
+Kính gửi ${data.parentName},
+
+Thông báo điểm số mới của con em ${data.studentName}
+
+Thông tin chi tiết:
+- Học sinh: ${data.studentName}
+- Lớp: ${data.className}
+- Kỳ báo cáo: ${data.periodName}
+- Giáo viên: ${data.teacherName}
+
+Điểm số mới của con em đã được cập nhật trong hệ thống. Quý phụ huynh vui lòng đăng nhập vào hệ thống để xem chi tiết.
+
+Đăng nhập tại: https://edu-connect-system.vercel.app/auth/login
+
+Nếu có thắc mắc, vui lòng liên hệ với giáo viên hoặc nhà trường.
+
+Trân trọng,
+Giáo viên ${data.teacherName}
+
+---
+Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.
+    `.trim()
+
+    // Send email using SMTP (Gmail)
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const emailResult = await transporter.sendMail({
+          from: process.env.EMAIL_FROM || 'EduConnect <noreply@gmail.com>',
+          to: data.parentEmail,
+          subject: subject,
+          html: htmlContent,
+          text: textContent,
+        })
+
+        console.log('✅ Grade notification email sent successfully via SMTP:', emailResult.messageId)
+      } catch (smtpError) {
+        console.error('❌ Failed to send grade notification email via SMTP:', smtpError)
+        // Don't fail the entire operation if email fails
+      }
+    } else {
+      console.log('📧 SMTP not configured, skipping grade notification email')
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('❌ Failed to send grade notification email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send grade notification email'
+    }
+  }
+}
+
+// Send grade notification email to homeroom teacher
+export async function sendTeacherGradeNotificationEmail(data: TeacherGradeNotificationEmailData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const submissionText = data.isResubmission ? `lần ${data.submissionCount}` : 'lần 1'
+    const subject = `[EduConnect] Bảng điểm mới từ Ban Giám Hiệu - ${data.className} (${submissionText})`
+
+    // HTML email template
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #059669; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; }
+        .footer { background: #64748b; color: white; padding: 15px; text-align: center; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        .highlight { background: #d1fae5; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #059669; }
+        .warning { background: #fef3c7; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Thông báo bảng điểm mới</h1>
+            <p>Hệ thống quản lý giáo dục EduConnect</p>
+        </div>
+
+        <div class="content">
+            <p>Kính gửi <strong>${data.teacherName}</strong>,</p>
+
+            <div class="highlight">
+                <h3>📋 Thông tin bảng điểm</h3>
+                <p><strong>Lớp chủ nhiệm:</strong> ${data.className}</p>
+                <p><strong>Kỳ báo cáo:</strong> ${data.periodName}</p>
+                <p><strong>Số học sinh:</strong> ${data.studentCount} học sinh</p>
+                <p><strong>Lần gửi:</strong> ${submissionText}</p>
+            </div>
+
+            ${data.isResubmission ? `
+            <div class="warning">
+                <h3>⚠️ Gửi lại bảng điểm</h3>
+                <p>Đây là lần gửi thứ ${data.submissionCount} cho kỳ báo cáo này. Vui lòng kiểm tra và xử lý bảng điểm mới.</p>
+            </div>
+            ` : ''}
+
+            <p>Ban Giám Hiệu đã gửi bảng điểm cho lớp ${data.className} của bạn. Vui lòng đăng nhập vào hệ thống để xem chi tiết và thực hiện các thao tác cần thiết.</p>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/grade-reports" class="button">
+                    Xem bảng điểm ngay
+                </a>
+            </div>
+
+            <p><strong>Lưu ý:</strong></p>
+            <ul>
+                <li>Vui lòng kiểm tra và xác nhận nhận bảng điểm trong hệ thống</li>
+                <li>Nếu có thắc mắc, vui lòng liên hệ với Ban Giám Hiệu</li>
+                <li>Bảng điểm này cần được xử lý trong thời gian sớm nhất</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Trân trọng,<br>
+            <strong>Hệ thống EduConnect</strong></p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                Email này được gửi tự động từ hệ thống. Vui lòng không trả lời email này.
+            </p>
+        </div>
+    </div>
+</body>
+</html>`
+
+    // Send email using SMTP (Gmail)
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const emailResult = await transporter.sendMail({
+          from: `"EduConnect System" <${process.env.SMTP_USER}>`,
+          to: data.teacherEmail,
+          subject: subject,
+          html: htmlContent,
+        })
+
+        console.log('✅ Teacher grade notification email sent successfully via SMTP:', emailResult.messageId)
+        return { success: true }
+      } catch (smtpError) {
+        console.error('❌ Failed to send teacher grade notification email via SMTP:', smtpError)
+        throw smtpError
+      }
+    } else {
+      console.log('📧 SMTP not configured, skipping teacher grade notification email')
+      return { success: false, error: 'SMTP not configured' }
+    }
+  } catch (error) {
+    console.error('Error sending teacher grade notification email:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
 }

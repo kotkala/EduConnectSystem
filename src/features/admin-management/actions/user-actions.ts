@@ -24,7 +24,7 @@ async function checkAdminPermissions() {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -34,7 +34,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { userId: user.id }
@@ -71,7 +71,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     if (existingEmail) {
       return {
         success: false,
-        error: "Email Ä‘Ã£ tá»“n táº¡i"
+        error: "Email đã tồn tại"
       }
     }
 
@@ -89,7 +89,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     if (authError || !authData.user) {
       return {
         success: false,
-        error: authError?.message || "KhÃ´ng thá»ƒ táº¡o tÃ i khoáº£n ngÆ°á»i dÃ¹ng"
+        error: authError?.message || "Không thể tạo tài khoản người dùng"
       }
     }
 
@@ -121,7 +121,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
     revalidatePath("/dashboard/admin/users/teachers")
     return {
       success: true,
-      message: "Táº¡o giÃ¡o viÃªn thÃ nh cÃ´ng"
+      message: "Tạo giáo viên thành công"
     }
 
   } catch (error) {
@@ -183,7 +183,7 @@ export async function updateTeacherAction(formData: UpdateTeacherFormData) {
       if (duplicateEmail) {
         return {
           success: false,
-          error: "Email Ä‘Ã£ tá»“n táº¡i"
+          error: "Email đã tồn tại"
         }
       }
     }
@@ -395,7 +395,7 @@ async function checkStudentDuplicates(supabase: ReturnType<typeof createAdminCli
     .single()
 
   if (existingStudentEmail) {
-    return { isDuplicate: true, error: "Email cá»§a há»c sinh Ä‘Ã£ tá»“n táº¡i" }
+    return { isDuplicate: true, error: "Email của học sinh đã tồn tại" }
   }
 
   return { isDuplicate: false }
@@ -583,8 +583,8 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       return {
         success: true,
         message: existingParent
-          ? "Táº¡o há»c sinh vÃ  liÃªn káº¿t vá»›i phá»¥ huynh hiá»‡n cÃ³ thÃ nh cÃ´ng"
-          : "Táº¡o há»c sinh vÃ  phá»¥ huynh thÃ nh cÃ´ng"
+          ? "Tạo học sinh và liên kết với phụ huynh hiện có thành công"
+          : "Tạo học sinh và phụ huynh thành công"
       }
 
     } catch (error) {
@@ -946,7 +946,7 @@ export async function searchUsersByEmailAction(emailQuery: string) {
     console.error('Error searching users by email:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ tÃ¬m kiáº¿m ngÆ°á»i dÃ¹ng"
+      error: error instanceof Error ? error.message : "Không thể tìm kiếm người dùng"
     }
   }
 }

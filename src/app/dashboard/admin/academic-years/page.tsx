@@ -64,10 +64,10 @@ export default function AcademicYearsManagementPage() {
         setAcademicYears(result.data)
         setAcademicYearsTotal(result.total)
       } else {
-        setAcademicYearsError(result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch nÄƒm há»c")
+        setAcademicYearsError(result.error || "Không thể tải danh sách năm học")
       }
     } catch (err) {
-      setAcademicYearsError(err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch nÄƒm há»c")
+      setAcademicYearsError(err instanceof Error ? err.message : "Không thể tải danh sách năm học")
     } finally {
       setAcademicYearsLoading(false)
     }
@@ -85,10 +85,10 @@ export default function AcademicYearsManagementPage() {
         setSemesters(result.data)
         setSemestersTotal(result.total)
       } else {
-        setSemestersError(result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c ká»³")
+        setSemestersError(result.error || "Không thể tải danh sách học kỳ")
       }
     } catch (err) {
-      setSemestersError(err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c ká»³")
+      setSemestersError(err instanceof Error ? err.message : "Không thể tải danh sách học kỳ")
     } finally {
       setSemestersLoading(false)
     }
@@ -167,9 +167,9 @@ export default function AcademicYearsManagementPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ nÄƒm há»c & há»c ká»³</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý năm học & học kỳ</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Quáº£n lÃ½ toÃ n bá»™ nÄƒm há»c vÃ  há»c ká»³ trong há»‡ thá»‘ng
+              Quản lý toàn bộ năm học và học kỳ trong hệ thống
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -178,7 +178,7 @@ export default function AcademicYearsManagementPage() {
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              ThÃªm nÄƒm há»c
+              Thêm năm học
             </Button>
             <Button
               onClick={() => setShowCreateSemesterDialog(true)}
@@ -186,7 +186,7 @@ export default function AcademicYearsManagementPage() {
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              ThÃªm há»c ká»³
+              Thêm học kỳ
             </Button>
             <Button
               onClick={handleRefresh}
@@ -196,7 +196,7 @@ export default function AcademicYearsManagementPage() {
               className="flex items-center gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${(academicYearsLoading || semestersLoading) ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              Làm mới
             </Button>
           </div>
         </div>
@@ -205,56 +205,56 @@ export default function AcademicYearsManagementPage() {
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">NÄƒm há»c hiá»‡n táº¡i</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Năm học hiện tại</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">
-                {currentYear?.name || 'KhÃ´ng cÃ³'}
+                {currentYear?.name || 'Không có'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {currentYear ? `${new Date(currentYear.start_date).getFullYear()} - ${new Date(currentYear.end_date).getFullYear()}` : 'ChÆ°a thiáº¿t láº­p'}
+                {currentYear ? `${new Date(currentYear.start_date).getFullYear()} - ${new Date(currentYear.end_date).getFullYear()}` : 'Chưa thiết lập'}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Há»c ká»³ hiá»‡n táº¡i</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Học kỳ hiện tại</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">
-                {currentSemester?.name || 'KhÃ´ng cÃ³'}
+                {currentSemester?.name || 'Không có'}
               </div>
               <p className="text-xs text-muted-foreground">
-                {currentSemester ? `${currentSemester.weeks_count} tuáº§n` : 'ChÆ°a thiáº¿t láº­p'}
+                {currentSemester ? `${currentSemester.weeks_count} tuần` : 'Chưa thiết lập'}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng nÄƒm há»c</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Tổng năm học</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{academicYearsTotal}</div>
               <p className="text-xs text-muted-foreground">
-                Trong há»‡ thá»‘ng
+                Trong hệ thống
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng há»c ká»³</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Tổng học kỳ</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{semestersTotal}</div>
               <p className="text-xs text-muted-foreground">
-                Trong há»‡ thá»‘ng
+                Trong hệ thống
               </p>
             </CardContent>
           </Card>
@@ -278,15 +278,15 @@ export default function AcademicYearsManagementPage() {
         {/* Tabs */}
         <Tabs defaultValue="years" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="years">NÄƒm há»c ({academicYearsTotal})</TabsTrigger>
-            <TabsTrigger value="semesters">Há»c ká»³ ({semestersTotal})</TabsTrigger>
+            <TabsTrigger value="years">Năm học ({academicYearsTotal})</TabsTrigger>
+            <TabsTrigger value="semesters">Học kỳ ({semestersTotal})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="years" className="space-y-4">
             {academicYearsLoading ? (
               <div className="flex items-center justify-center h-32">
                 <RefreshCw className="h-8 w-8 animate-spin" />
-                <span className="ml-2">Äang táº£i nÄƒm há»c...</span>
+                <span className="ml-2">Đang tải năm học...</span>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -299,14 +299,14 @@ export default function AcademicYearsManagementPage() {
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold text-lg">{year.name}</h3>
                               {year.is_current && (
-                                <Badge variant="secondary">Hiá»‡n táº¡i</Badge>
+                                <Badge variant="secondary">Hiện tại</Badge>
                               )}
                             </div>
                             <div className="text-sm text-muted-foreground mt-1">
                               {new Date(year.start_date).toLocaleDateString('vi-VN')} - {new Date(year.end_date).toLocaleDateString('vi-VN')}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {year.semesters?.length || 0} há»c ká»³
+                              {year.semesters?.length || 0} học kỳ
                             </div>
                           </div>
                         </div>
@@ -338,7 +338,7 @@ export default function AcademicYearsManagementPage() {
             {semestersLoading ? (
               <div className="flex items-center justify-center h-32">
                 <RefreshCw className="h-8 w-8 animate-spin" />
-                <span className="ml-2">Äang táº£i há»c ká»³...</span>
+                <span className="ml-2">Đang tải học kỳ...</span>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -351,14 +351,14 @@ export default function AcademicYearsManagementPage() {
                             <div className="flex items-center gap-2">
                               <h3 className="font-semibold text-lg">{semester.name}</h3>
                               {semester.is_current && (
-                                <Badge variant="secondary">Hiá»‡n táº¡i</Badge>
+                                <Badge variant="secondary">Hiện tại</Badge>
                               )}
                             </div>
                             <div className="text-sm text-muted-foreground mt-1">
-                              NÄƒm há»c: {semester.academic_year?.name}
+                              Năm học: {semester.academic_year?.name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {semester.weeks_count} tuáº§n
+                              {semester.weeks_count} tuần
                             </div>
                           </div>
                         </div>
@@ -391,7 +391,7 @@ export default function AcademicYearsManagementPage() {
         <Dialog open={showCreateAcademicYearDialog} onOpenChange={setShowCreateAcademicYearDialog}>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>ThÃªm nÄƒm há»c má»›i</DialogTitle>
+              <DialogTitle>Thêm năm học mới</DialogTitle>
             </DialogHeader>
             <AcademicYearForm
               onSuccess={handleCreateAcademicYearSuccess}
@@ -404,7 +404,7 @@ export default function AcademicYearsManagementPage() {
         <Dialog open={showEditAcademicYearDialog} onOpenChange={setShowEditAcademicYearDialog}>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Chá»‰nh sá»­a nÄƒm há»c</DialogTitle>
+              <DialogTitle>Chỉnh sửa năm học</DialogTitle>
             </DialogHeader>
             {editingAcademicYear && (
               <AcademicYearForm
@@ -423,7 +423,7 @@ export default function AcademicYearsManagementPage() {
         <Dialog open={showCreateSemesterDialog} onOpenChange={setShowCreateSemesterDialog}>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>ThÃªm há»c ká»³ má»›i</DialogTitle>
+              <DialogTitle>Thêm học kỳ mới</DialogTitle>
             </DialogHeader>
             <SemesterForm
               onSuccess={handleCreateSemesterSuccess}
@@ -436,7 +436,7 @@ export default function AcademicYearsManagementPage() {
         <Dialog open={showEditSemesterDialog} onOpenChange={setShowEditSemesterDialog}>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Chá»‰nh sá»­a há»c ká»³</DialogTitle>
+              <DialogTitle>Chỉnh sửa học kỳ</DialogTitle>
             </DialogHeader>
             {editingSemester && (
               <SemesterForm

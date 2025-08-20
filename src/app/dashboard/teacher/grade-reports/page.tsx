@@ -1,5 +1,5 @@
 ﻿import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from 'next/navigation'
 
 import TeacherGradeReportsClient from './teacher-grade-reports-client'
@@ -24,7 +24,7 @@ export default async function TeacherGradeReportsPage() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Äang táº£i...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <TeacherGradeReportsClient />
       </Suspense>
     </div>

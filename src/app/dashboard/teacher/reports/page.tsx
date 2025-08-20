@@ -28,9 +28,9 @@ export default async function TeacherReportsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold">BÃ¡o cÃ¡o káº¿t quáº£ há»c táº­p</h1>
+          <h1 className="text-3xl font-bold">Báo cáo kết quả học tập</h1>
           <p className="text-muted-foreground">
-            Quáº£n lÃ½ bÃ¡o cÃ¡o há»c táº­p vÃ  rÃ¨n luyá»‡n cá»§a há»c sinh
+            Quản lý báo cáo học tập và rèn luyện của học sinh
           </p>
         </div>
 

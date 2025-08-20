@@ -250,10 +250,10 @@ export async function getFormattedParentContextData(parentId: string): Promise<F
 
 // Severity labels mapping
 export const severityLabels: Record<string, string> = {
-  minor: 'Nháº¹',
-  moderate: 'Trung bÃ¬nh',
-  serious: 'NghiÃªm trá»ng',
-  severe: 'Ráº¥t nghiÃªm trá»ng'
+  minor: 'Nhẹ',
+  moderate: 'Trung bình',
+  serious: 'Nghiêm trọng',
+  severe: 'Rất nghiêm trọng'
 }
 
 // Helper function to format violation data for display
@@ -268,7 +268,7 @@ export function formatViolationForDisplay(violation: unknown): string {
   };
   
   const description = v.description ? `"${v.description}"` : '';
-  return `- ${v.student?.full_name} (${v.student?.student_id}): ${v.violation_type?.violation_categories?.name} - ${v.violation_type?.name} [${severityLabels[v.severity || ''] || v.severity}] ${description} (${new Date(v.recorded_at || '').toLocaleDateString('vi-VN')}, ghi nháº­n bá»Ÿi ${v.recorded_by?.full_name})`;
+  return `- ${v.student?.full_name} (${v.student?.student_id}): ${v.violation_type?.violation_categories?.name} - ${v.violation_type?.name} [${severityLabels[v.severity || ''] || v.severity}] ${description} (${new Date(v.recorded_at || '').toLocaleDateString('vi-VN')}, ghi nhận bởi ${v.recorded_by?.full_name})`;
 }
 
 // Helper function to format feedback data for display
@@ -283,7 +283,7 @@ export function formatFeedbackForDisplay(feedback: unknown): string {
     week_number?: number;
   };
   
-  return `- ${f.student_name} - ${f.subject_name}: ${f.rating}/5 sao, "${f.comment || f.ai_summary || 'KhÃ´ng cÃ³ nháº­n xÃ©t'}" (${f.teacher_name}, tuáº§n ${f.week_number})`;
+  return `- ${f.student_name} - ${f.subject_name}: ${f.rating}/5 sao, "${f.comment || f.ai_summary || 'Không có nhận xét'}" (${f.teacher_name}, tuần ${f.week_number})`;
 }
 
 // Helper function to format grade data for display
@@ -295,5 +295,5 @@ export function formatGradeForDisplay(grade: unknown): string {
     submission_date?: string;
   };
   
-  return `- ${g.profiles?.full_name} - ${g.subjects?.name_vietnamese}: ${g.grade} Ä‘iá»ƒm (${new Date(g.submission_date || '').toLocaleDateString('vi-VN')})`;
+  return `- ${g.profiles?.full_name} - ${g.subjects?.name_vietnamese}: ${g.grade} điểm (${new Date(g.submission_date || '').toLocaleDateString('vi-VN')})`;
 }

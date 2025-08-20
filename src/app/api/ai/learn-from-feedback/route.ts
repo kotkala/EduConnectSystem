@@ -77,7 +77,7 @@ function extractCommonIssues(feedbackData: {
     .forEach(f => {
       if (f.comment) {
         // Simple keyword extraction for common issues
-        const keywords = ['khÃ´ng chÃ­nh xÃ¡c', 'sai thÃ´ng tin', 'khÃ´ng hiá»ƒu', 'khÃ´ng rÃµ rÃ ng', 'thiáº¿u thÃ´ng tin']
+        const keywords = ['không chính xác', 'sai thông tin', 'không hiểu', 'không rõ ràng', 'thiếu thông tin']
         keywords.forEach(keyword => {
           if (f.comment?.toLowerCase().includes(keyword)) {
             issues[keyword] = (issues[keyword] || 0) + 1
@@ -102,16 +102,16 @@ function generateImprovementSuggestions(feedbackData: {
   const excellentRatings = feedbackData.filter(f => f.rating === 'excellent')
   
   if (poorRatings.length > feedbackData.length * 0.2) {
-    suggestions.push('Cáº§n cáº£i thiá»‡n Ä‘á»™ chÃ­nh xÃ¡c cá»§a thÃ´ng tin')
+    suggestions.push('Cần cải thiện độ chính xác của thông tin')
   }
   
   if (excellentRatings.length > feedbackData.length * 0.6) {
-    suggestions.push('Duy trÃ¬ cháº¥t lÆ°á»£ng tráº£ lá»i hiá»‡n táº¡i')
+    suggestions.push('Duy trì chất lượng trả lời hiện tại')
   }
   
   const unhelpfulCount = feedbackData.filter(f => !f.is_helpful).length
   if (unhelpfulCount > feedbackData.length * 0.3) {
-    suggestions.push('Cáº§n tÄƒng tÃ­nh há»¯u Ã­ch cá»§a cÃ¢u tráº£ lá»i')
+    suggestions.push('Cần tăng tính hữu ích của câu trả lời')
   }
 
   return suggestions
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'AI Ä‘Ã£ há»c tá»« pháº£n há»“i cá»§a báº¡n'
+      message: 'AI đã học từ phản hồi của bạn'
     })
 
   } catch (error) {

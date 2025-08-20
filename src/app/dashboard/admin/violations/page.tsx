@@ -25,14 +25,14 @@ export default async function ViolationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quáº£n lÃ½ vi pháº¡m há»c sinh</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý vi phạm học sinh</h1>
           <p className="text-muted-foreground">
-            Quáº£n lÃ½ danh má»¥c vi pháº¡m, ghi nháº­n vi pháº¡m vÃ  theo dÃµi ká»· luáº­t há»c sinh
+            Quản lý danh mục vi phạm, ghi nhận vi phạm và theo dõi kỷ luật học sinh
           </p>
         </div>
       </div>
 
-      <Suspense fallback={<div>Äang táº£i...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <ViolationsPageClient />
       </Suspense>
     </div>

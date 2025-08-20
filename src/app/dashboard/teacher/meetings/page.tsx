@@ -2,8 +2,8 @@
 import TeacherMeetingsPage from "@/features/meetings/components/teacher-meetings/teacher-meetings-page";
 
 export const metadata: Metadata = {
-  title: "Há»p Phá»¥ Huynh",
-  description: "Quáº£n lÃ½ lá»‹ch há»p phá»¥ huynh cho lá»›p chá»§ nhiá»‡m",
+  title: "Họp Phụ Huynh",
+  description: "Quản lý lịch họp phụ huynh cho lớp chủ nhiệm",
 };
 
 export default function TeacherMeetingsPageRoute() {

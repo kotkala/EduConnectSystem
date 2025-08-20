@@ -92,7 +92,7 @@ export default function DisciplinaryProcessing() {
       // Fallback: if no data, keep empty
       setActionTypes([])
     } catch (error) {
-      console.error('Lá»—i táº£i hÃ¬nh thá»©c ká»· luáº­t:', error)
+      console.error('Lỗi tải hình thức kỷ luật:', error)
       setActionTypes([])
     }
   }
@@ -107,7 +107,7 @@ export default function DisciplinaryProcessing() {
         setCases([])
       }
     } catch (error) {
-      console.error('Lá»—i táº£i case ká»· luáº­t:', error)
+      console.error('Lỗi tải case kỷ luật:', error)
       setCases([])
     }
   }
@@ -125,13 +125,13 @@ export default function DisciplinaryProcessing() {
       const res = await updateDisciplinaryCaseStatusAction({ case_id: caseId, status: 'sent_to_homeroom' })
       if (res.success) {
         setCases(prev => prev.map(c => c.id === caseId ? { ...c, status: 'sent_to_homeroom' as const } : c))
-        toast.success('ÄÃ£ gá»­i case cho GVCN')
+        toast.success('Đã gửi case cho GVCN')
       } else {
-        toast.error(res.error || 'CÃ³ lá»—i xáº£y ra khi gá»­i case')
+        toast.error(res.error || 'Có lỗi xảy ra khi gửi case')
       }
     } catch (error) {
-      console.error('Lá»—i gá»­i case:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i case')
+      console.error('Lỗi gửi case:', error)
+      toast.error('Có lỗi xảy ra khi gửi case')
     }
   }
 
@@ -163,7 +163,7 @@ export default function DisciplinaryProcessing() {
       })
 
       if (res.success) {
-        toast.success('ÄÃ£ cáº­p nháº­t hÃ¬nh thá»©c ká»· luáº­t')
+        toast.success('Đã cập nhật hình thức kỷ luật')
         setActionTypes(prev => prev.map(t =>
           t.id === editingActionType.id
             ? { ...t, name: editForm.name, description: editForm.description, severity_level: editForm.severity_level }
@@ -172,11 +172,11 @@ export default function DisciplinaryProcessing() {
         setEditModalOpen(false)
         setEditingActionType(null)
       } else {
-        toast.error(res.error || 'Cáº­p nháº­t tháº¥t báº¡i')
+        toast.error(res.error || 'Cập nhật thất bại')
       }
     } catch (error) {
-      console.error('Lá»—i cáº­p nháº­t:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t')
+      console.error('Lỗi cập nhật:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật')
     }
   }
 
@@ -186,18 +186,18 @@ export default function DisciplinaryProcessing() {
     try {
       const res = await deactivateDisciplinaryActionTypeAction({ id: deletingActionType.id })
       if (res.success) {
-        toast.success('ÄÃ£ vÃ´ hiá»‡u hÃ³a hÃ¬nh thá»©c ká»· luáº­t')
+        toast.success('Đã vô hiệu hóa hình thức kỷ luật')
         setActionTypes(prev => prev.map(t =>
           t.id === deletingActionType.id ? { ...t, is_active: false } : t
         ))
         setDeleteModalOpen(false)
         setDeletingActionType(null)
       } else {
-        toast.error(res.error || 'Thao tÃ¡c tháº¥t báº¡i')
+        toast.error(res.error || 'Thao tác thất bại')
       }
     } catch (error) {
-      console.error('Lá»—i xÃ³a:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi xÃ³a')
+      console.error('Lỗi xóa:', error)
+      toast.error('Có lỗi xảy ra khi xóa')
     }
   }
 
@@ -207,7 +207,7 @@ export default function DisciplinaryProcessing() {
 
   const handleCreateActionType = async () => {
     if (!newActionType.name.trim()) {
-      toast.error('Vui lÃ²ng nháº­p tÃªn hÃ¬nh thá»©c ká»· luáº­t')
+      toast.error('Vui lòng nhập tên hình thức kỷ luật')
       return
     }
 
@@ -220,19 +220,19 @@ export default function DisciplinaryProcessing() {
       if (res.success && res.data) {
         setActionTypes(prev => [...prev, res.data as unknown as DisciplinaryActionType])
         setNewActionType({ name: '', description: '', severity_level: 1 })
-        toast.success('ÄÃ£ táº¡o hÃ¬nh thá»©c ká»· luáº­t má»›i')
+        toast.success('Đã tạo hình thức kỷ luật mới')
       } else {
-        toast.error(res.error || 'CÃ³ lá»—i xáº£y ra khi táº¡o hÃ¬nh thá»©c ká»· luáº­t')
+        toast.error(res.error || 'Có lỗi xảy ra khi tạo hình thức kỷ luật')
       }
     } catch (error) {
-      console.error('Lá»—i táº¡o hÃ¬nh thá»©c ká»· luáº­t:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº¡o hÃ¬nh thá»©c ká»· luáº­t')
+      console.error('Lỗi tạo hình thức kỷ luật:', error)
+      toast.error('Có lỗi xảy ra khi tạo hình thức kỷ luật')
     }
   }
 
   const handleCreateCase = async () => {
     if (!selectedStudent || !selectedActionType || !caseDescription.trim()) {
-      toast.error('Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin')
+      toast.error('Vui lòng điền đầy đủ thông tin')
       return
     }
 
@@ -247,7 +247,7 @@ export default function DisciplinaryProcessing() {
         ? semestersRes.data.find((s: { is_current: boolean }) => s.is_current)
         : null
       if (!current) {
-        toast.error('KhÃ´ng tÃ¬m tháº¥y há»c kÃ¬ hiá»‡n táº¡i')
+        toast.error('Không tìm thấy học kì hiện tại')
         return
       }
 
@@ -264,17 +264,17 @@ export default function DisciplinaryProcessing() {
         notes: caseDescription
       })
       if (res.success) {
-        toast.success('ÄÃ£ táº¡o case ká»· luáº­t má»›i')
+        toast.success('Đã tạo case kỷ luật mới')
         setCaseDescription('')
         setSelectedStudent('')
         setSelectedActionType('')
         loadCases()
       } else {
-        toast.error(res.error || 'CÃ³ lá»—i xáº£y ra khi táº¡o case ká»· luáº­t')
+        toast.error(res.error || 'Có lỗi xảy ra khi tạo case kỷ luật')
       }
     } catch (error) {
-      console.error('Lá»—i táº¡o case ká»· luáº­t:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº¡o case ká»· luáº­t')
+      console.error('Lỗi tạo case kỷ luật:', error)
+      toast.error('Có lỗi xảy ra khi tạo case kỷ luật')
     }
   }
 
@@ -283,21 +283,21 @@ export default function DisciplinaryProcessing() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      draft: { variant: 'outline' as const, label: 'NhÃ¡p' },
-      sent_to_homeroom: { variant: 'secondary' as const, label: 'ÄÃ£ gá»­i GVCN' },
-      acknowledged: { variant: 'default' as const, label: 'GVCN Ä‘Ã£ xÃ¡c nháº­n' },
-      meeting_scheduled: { variant: 'default' as const, label: 'ÄÃ£ lÃªn lá»‹ch há»p' },
-      resolved: { variant: 'default' as const, label: 'ÄÃ£ giáº£i quyáº¿t' }
+      draft: { variant: 'outline' as const, label: 'Nháp' },
+      sent_to_homeroom: { variant: 'secondary' as const, label: 'Đã gửi GVCN' },
+      acknowledged: { variant: 'default' as const, label: 'GVCN đã xác nhận' },
+      meeting_scheduled: { variant: 'default' as const, label: 'Đã lên lịch họp' },
+      resolved: { variant: 'default' as const, label: 'Đã giải quyết' }
     }
     const config = statusMap[status as keyof typeof statusMap] || statusMap.draft
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
 
   const getSeverityBadge = (level: number) => {
-    if (level >= 4) return <Badge variant="destructive">Ráº¥t nghiÃªm trá»ng</Badge>
-    if (level >= 3) return <Badge variant="secondary">NghiÃªm trá»ng</Badge>
-    if (level >= 2) return <Badge variant="outline">Trung bÃ¬nh</Badge>
-    return <Badge variant="default">Nháº¹</Badge>
+    if (level >= 4) return <Badge variant="destructive">Rất nghiêm trọng</Badge>
+    if (level >= 3) return <Badge variant="secondary">Nghiêm trọng</Badge>
+    if (level >= 2) return <Badge variant="outline">Trung bình</Badge>
+    return <Badge variant="default">Nhẹ</Badge>
   }
 
   return (
@@ -306,51 +306,51 @@ export default function DisciplinaryProcessing() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Xá»­ lÃ½ ká»· luáº­t vi pháº¡m
+            Xử lý kỷ luật vi phạm
           </CardTitle>
           <CardDescription>
-            Quáº£n lÃ½ hÃ¬nh thá»©c ká»· luáº­t vÃ  táº¡o case xá»­ lÃ½ cho há»c sinh vi pháº¡m
+            Quản lý hình thức kỷ luật và tạo case xử lý cho học sinh vi phạm
           </CardDescription>
         </CardHeader>
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="add-case">Táº¡o case ká»· luáº­t</TabsTrigger>
-          <TabsTrigger value="manage-types">Quáº£n lÃ½ hÃ¬nh thá»©c</TabsTrigger>
-          <TabsTrigger value="view-cases">Xem táº¥t cáº£ case</TabsTrigger>
+          <TabsTrigger value="add-case">Tạo case kỷ luật</TabsTrigger>
+          <TabsTrigger value="manage-types">Quản lý hình thức</TabsTrigger>
+          <TabsTrigger value="view-cases">Xem tất cả case</TabsTrigger>
         </TabsList>
 
-        {/* Tab táº¡o case ká»· luáº­t */}
+        {/* Tab tạo case kỷ luật */}
         <TabsContent value="add-case" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Táº¡o case ká»· luáº­t má»›i</CardTitle>
+              <CardTitle>Tạo case kỷ luật mới</CardTitle>
               <CardDescription>
-                Chá»n há»c sinh vÃ  hÃ¬nh thá»©c ká»· luáº­t phÃ¹ há»£p
+                Chọn học sinh và hình thức kỷ luật phù hợp
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Khá»‘i lá»›p</Label>
+                  <Label>Khối lớp</Label>
                   <Select value={selectedBlock} onValueChange={setSelectedBlock}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chá»n khá»‘i" />
+                      <SelectValue placeholder="Chọn khối" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10">Khá»‘i 10</SelectItem>
-                      <SelectItem value="11">Khá»‘i 11</SelectItem>
-                      <SelectItem value="12">Khá»‘i 12</SelectItem>
+                      <SelectItem value="10">Khối 10</SelectItem>
+                      <SelectItem value="11">Khối 11</SelectItem>
+                      <SelectItem value="12">Khối 12</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Lá»›p</Label>
+                  <Label>Lớp</Label>
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chá»n lá»›p" />
+                      <SelectValue placeholder="Chọn lớp" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="10A1">10A1</SelectItem>
@@ -361,11 +361,11 @@ export default function DisciplinaryProcessing() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>TÃ¬m há»c sinh</Label>
+                  <Label>Tìm học sinh</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Nháº­p tÃªn hoáº·c mÃ£ há»c sinh"
+                      placeholder="Nhập tên hoặc mã học sinh"
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                       className="pl-10"
@@ -375,24 +375,24 @@ export default function DisciplinaryProcessing() {
               </div>
 
               <div className="space-y-2">
-                <Label>Há»c sinh</Label>
+                <Label>Học sinh</Label>
                 <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chá»n há»c sinh" />
+                    <SelectValue placeholder="Chọn học sinh" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student1">Nguyá»…n VÄƒn An (SU0001)</SelectItem>
-                    <SelectItem value="student2">Tráº§n Thá»‹ BÃ¬nh (SU002)</SelectItem>
-                    <SelectItem value="student3">LÃª VÄƒn CÆ°á»ng (SU006)</SelectItem>
+                    <SelectItem value="student1">Nguyễn Văn An (SU0001)</SelectItem>
+                    <SelectItem value="student2">Trần Thị Bình (SU002)</SelectItem>
+                    <SelectItem value="student3">Lê Văn Cường (SU006)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>HÃ¬nh thá»©c ká»· luáº­t</Label>
+                <Label>Hình thức kỷ luật</Label>
                 <Select value={selectedActionType} onValueChange={setSelectedActionType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chá»n hÃ¬nh thá»©c ká»· luáº­t" />
+                    <SelectValue placeholder="Chọn hình thức kỷ luật" />
                   </SelectTrigger>
                   <SelectContent>
                     {actionTypes.filter(type => type.is_active).map((type) => (
@@ -408,9 +408,9 @@ export default function DisciplinaryProcessing() {
               </div>
 
               <div className="space-y-2">
-                <Label>Ná»™i dung cá»¥ thá»ƒ vi pháº¡m</Label>
+                <Label>Nội dung cụ thể vi phạm</Label>
                 <Textarea
-                  placeholder="MÃ´ táº£ chi tiáº¿t cÃ¡c vi pháº¡m vÃ  lÃ½ do Ã¡p dá»¥ng hÃ¬nh thá»©c ká»· luáº­t nÃ y..."
+                  placeholder="Mô tả chi tiết các vi phạm và lý do áp dụng hình thức kỷ luật này..."
                   value={caseDescription}
                   onChange={(e) => setCaseDescription(e.target.value)}
                   rows={4}
@@ -419,31 +419,31 @@ export default function DisciplinaryProcessing() {
 
               <Button onClick={handleCreateCase} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
-                Táº¡o case ká»· luáº­t
+                Tạo case kỷ luật
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab quáº£n lÃ½ hÃ¬nh thá»©c ká»· luáº­t */}
+        {/* Tab quản lý hình thức kỷ luật */}
         <TabsContent value="manage-types" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>ThÃªm hÃ¬nh thá»©c ká»· luáº­t má»›i</CardTitle>
+              <CardTitle>Thêm hình thức kỷ luật mới</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>TÃªn hÃ¬nh thá»©c</Label>
+                  <Label>Tên hình thức</Label>
                   <Input
-                    placeholder="VD: Khiá»ƒn trÃ¡ch trÆ°á»›c lá»›p"
+                    placeholder="VD: Khiển trách trước lớp"
                     value={newActionType.name}
                     onChange={(e) => setNewActionType(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Má»©c Ä‘á»™ nghiÃªm trá»ng</Label>
+                  <Label>Mức độ nghiêm trọng</Label>
                   <Select 
                     value={newActionType.severity_level.toString()} 
                     onValueChange={(value) => setNewActionType(prev => ({ ...prev, severity_level: parseInt(value) }))}
@@ -452,19 +452,19 @@ export default function DisciplinaryProcessing() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">1 - Nháº¹</SelectItem>
-                      <SelectItem value="2">2 - Trung bÃ¬nh</SelectItem>
-                      <SelectItem value="3">3 - NghiÃªm trá»ng</SelectItem>
-                      <SelectItem value="4">4 - Ráº¥t nghiÃªm trá»ng</SelectItem>
+                      <SelectItem value="1">1 - Nhẹ</SelectItem>
+                      <SelectItem value="2">2 - Trung bình</SelectItem>
+                      <SelectItem value="3">3 - Nghiêm trọng</SelectItem>
+                      <SelectItem value="4">4 - Rất nghiêm trọng</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>MÃ´ táº£</Label>
+                <Label>Mô tả</Label>
                 <Textarea
-                  placeholder="MÃ´ táº£ chi tiáº¿t vá» hÃ¬nh thá»©c ká»· luáº­t nÃ y..."
+                  placeholder="Mô tả chi tiết về hình thức kỷ luật này..."
                   value={newActionType.description}
                   onChange={(e) => setNewActionType(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
@@ -473,24 +473,24 @@ export default function DisciplinaryProcessing() {
 
               <Button onClick={handleCreateActionType}>
                 <Plus className="h-4 w-4 mr-2" />
-                ThÃªm hÃ¬nh thá»©c ká»· luáº­t
+                Thêm hình thức kỷ luật
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Danh sÃ¡ch hÃ¬nh thá»©c ká»· luáº­t</CardTitle>
+              <CardTitle>Danh sách hình thức kỷ luật</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>TÃªn hÃ¬nh thá»©c</TableHead>
-                    <TableHead>Má»©c Ä‘á»™</TableHead>
-                    <TableHead>MÃ´ táº£</TableHead>
-                    <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                    <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                    <TableHead>Tên hình thức</TableHead>
+                    <TableHead>Mức độ</TableHead>
+                    <TableHead>Mô tả</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -501,7 +501,7 @@ export default function DisciplinaryProcessing() {
                       <TableCell className="max-w-xs truncate">{type.description}</TableCell>
                       <TableCell>
                         <Badge variant={type.is_active ? 'default' : 'secondary'}>
-                          {type.is_active ? 'Hoáº¡t Ä‘á»™ng' : 'Táº¡m dá»«ng'}
+                          {type.is_active ? 'Hoạt động' : 'Tạm dừng'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -530,25 +530,25 @@ export default function DisciplinaryProcessing() {
           </Card>
         </TabsContent>
 
-        {/* Tab xem táº¥t cáº£ case */}
+        {/* Tab xem tất cả case */}
         <TabsContent value="view-cases" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Táº¥t cáº£ case ká»· luáº­t</CardTitle>
+              <CardTitle>Tất cả case kỷ luật</CardTitle>
               <CardDescription>
-                Theo dÃµi tiáº¿n Ä‘á»™ xá»­ lÃ½ cÃ¡c case ká»· luáº­t
+                Theo dõi tiến độ xử lý các case kỷ luật
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Há»c sinh</TableHead>
-                    <TableHead>Lá»›p</TableHead>
-                    <TableHead>HÃ¬nh thá»©c ká»· luáº­t</TableHead>
-                    <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                    <TableHead>NgÃ y táº¡o</TableHead>
-                    <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                    <TableHead>Học sinh</TableHead>
+                    <TableHead>Lớp</TableHead>
+                    <TableHead>Hình thức kỷ luật</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>Ngày tạo</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -556,14 +556,14 @@ export default function DisciplinaryProcessing() {
                     <TableRow key={caseItem.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{caseItem.student?.full_name || 'KhÃ´ng xÃ¡c Ä‘á»‹nh'}</div>
+                          <div className="font-medium">{caseItem.student?.full_name || 'Không xác định'}</div>
                           <div className="text-sm text-muted-foreground">{caseItem.student?.student_id || 'N/A'}</div>
                         </div>
                       </TableCell>
-                      <TableCell>{caseItem.class?.name || 'KhÃ´ng xÃ¡c Ä‘á»‹nh'}</TableCell>
+                      <TableCell>{caseItem.class?.name || 'Không xác định'}</TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{caseItem.action_type?.name || 'KhÃ´ng xÃ¡c Ä‘á»‹nh'}</div>
+                          <div className="font-medium">{caseItem.action_type?.name || 'Không xác định'}</div>
                           {caseItem.action_type?.severity_level ? getSeverityBadge(caseItem.action_type.severity_level) : <Badge variant="outline">N/A</Badge>}
                         </div>
                       </TableCell>
@@ -580,7 +580,7 @@ export default function DisciplinaryProcessing() {
                             className="flex items-center gap-2"
                           >
                             <Send className="h-4 w-4" />
-                            Gá»­i GVCN
+                            Gửi GVCN
                           </Button>
                         )}
                       </TableCell>
@@ -597,33 +597,33 @@ export default function DisciplinaryProcessing() {
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Chá»‰nh sá»­a hÃ¬nh thá»©c ká»· luáº­t</DialogTitle>
+            <DialogTitle>Chỉnh sửa hình thức kỷ luật</DialogTitle>
             <DialogDescription>
-              Cáº­p nháº­t thÃ´ng tin hÃ¬nh thá»©c ká»· luáº­t
+              Cập nhật thông tin hình thức kỷ luật
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-name">TÃªn hÃ¬nh thá»©c</Label>
+              <Label htmlFor="edit-name">Tên hình thức</Label>
               <Input
                 id="edit-name"
                 value={editForm.name}
                 onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nháº­p tÃªn hÃ¬nh thá»©c"
+                placeholder="Nhập tên hình thức"
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">MÃ´ táº£</Label>
+              <Label htmlFor="edit-description">Mô tả</Label>
               <Textarea
                 id="edit-description"
                 value={editForm.description}
                 onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Nháº­p mÃ´ táº£"
+                placeholder="Nhập mô tả"
                 rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="edit-severity">Má»©c Ä‘á»™ nghiÃªm trá»ng</Label>
+              <Label htmlFor="edit-severity">Mức độ nghiêm trọng</Label>
               <Select
                 value={String(editForm.severity_level)}
                 onValueChange={(value) => setEditForm(prev => ({ ...prev, severity_level: parseInt(value) }))}
@@ -632,20 +632,20 @@ export default function DisciplinaryProcessing() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Má»©c 1 - Nháº¹</SelectItem>
-                  <SelectItem value="2">Má»©c 2 - Trung bÃ¬nh</SelectItem>
-                  <SelectItem value="3">Má»©c 3 - Náº·ng</SelectItem>
-                  <SelectItem value="4">Má»©c 4 - Ráº¥t náº·ng</SelectItem>
+                  <SelectItem value="1">Mức 1 - Nhẹ</SelectItem>
+                  <SelectItem value="2">Mức 2 - Trung bình</SelectItem>
+                  <SelectItem value="3">Mức 3 - Nặng</SelectItem>
+                  <SelectItem value="4">Mức 4 - Rất nặng</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditModalOpen(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button onClick={handleEditSubmit}>
-              Cáº­p nháº­t
+              Cập nhật
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -655,18 +655,18 @@ export default function DisciplinaryProcessing() {
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>XÃ¡c nháº­n vÃ´ hiá»‡u hÃ³a</DialogTitle>
+            <DialogTitle>Xác nhận vô hiệu hóa</DialogTitle>
             <DialogDescription>
-              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n vÃ´ hiá»‡u hÃ³a hÃ¬nh thá»©c ká»· luáº­t &quot;{deletingActionType?.name}&quot;?
-              HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.
+              Bạn có chắc chắn muốn vô hiệu hóa hình thức kỷ luật &quot;{deletingActionType?.name}&quot;?
+              Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button variant="destructive" onClick={handleDeleteSubmit}>
-              VÃ´ hiá»‡u hÃ³a
+              Vô hiệu hóa
             </Button>
           </DialogFooter>
         </DialogContent>

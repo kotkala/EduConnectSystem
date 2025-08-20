@@ -66,15 +66,15 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
   onFiltersChange,
   onRefresh,
   loading = false,
-  title = "Bá»™ Lá»c",
+  title = "Bộ Lọc",
   showRefreshButton = false,
   loadAcademicYears,
   loadSemesters,
   weekCalculationMode = 'simple',
   maxWeeks = 52,
   statusMessage = {
-    ready: "âœ“ Sáºµn sÃ ng xem dá»¯ liá»‡u",
-    instruction: "Vui lÃ²ng chá»n nÄƒm há»c, há»c ká»³ vÃ  tuáº§n Ä‘á»ƒ xem dá»¯ liá»‡u"
+    ready: "âœ“ Sẵn sàng xem dữ liệu",
+    instruction: "Vui lòng chọn năm học, học kỳ và tuần để xem dữ liệu"
   }
 }: AcademicFiltersProps<T>) {
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
@@ -129,7 +129,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
           number: i + 1,
           startDate: new Date(),
           endDate: new Date(),
-          label: `Tuáº§n ${i + 1}`
+          label: `Tuần ${i + 1}`
         }))
         setWeekOptions(weeks)
         return
@@ -159,7 +159,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
           number: weekNumber,
           startDate: weekStartDate,
           endDate: weekEndDate,
-          label: `Tuáº§n ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+          label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
         })
         weekNumber++
       }
@@ -201,7 +201,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
           {showRefreshButton && onRefresh && (
             <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading || isLoadingData}>
               <RefreshCw className={`mr-2 h-4 w-4 ${(loading || isLoadingData) ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              Làm mới
             </Button>
           )}
         </div>
@@ -210,7 +210,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Academic Year Selection */}
           <div className="space-y-2">
-            <label htmlFor="academic-year-select" className="text-sm font-medium">NÄƒm Há»c</label>
+            <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
             <Select
               value={filters.academic_year_id || ""}
               onValueChange={(value) => handleFilterChange('academic_year_id', value)}
@@ -218,7 +218,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
               name="academic-year-select"
             >
               <SelectTrigger id="academic-year-select">
-                <SelectValue placeholder="Chá»n nÄƒm há»c" />
+                <SelectValue placeholder="Chọn năm học" />
               </SelectTrigger>
               <SelectContent>
                 {academicYears.map((year) => (
@@ -232,7 +232,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
 
           {/* Semester Selection */}
           <div className="space-y-2">
-            <label htmlFor="semester-select" className="text-sm font-medium">Há»c Ká»³</label>
+            <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
             <Select
               value={filters.semester_id || ""}
               onValueChange={(value) => handleFilterChange('semester_id', value)}
@@ -240,7 +240,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
               name="semester-select"
             >
               <SelectTrigger id="semester-select">
-                <SelectValue placeholder="Chá»n há»c ká»³" />
+                <SelectValue placeholder="Chọn học kỳ" />
               </SelectTrigger>
               <SelectContent>
                 {semesters.map((semester) => (
@@ -254,7 +254,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
 
           {/* Week Selection */}
           <div className="space-y-2">
-            <label htmlFor="week-select" className="text-sm font-medium">Tuáº§n Há»c</label>
+            <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
             <Select
               value={filters.week_number?.toString() || ""}
               onValueChange={(value) => handleFilterChange('week_number', parseInt(value))}
@@ -262,7 +262,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
               name="week-select"
             >
               <SelectTrigger id="week-select">
-                <SelectValue placeholder="Chá»n tuáº§n" />
+                <SelectValue placeholder="Chọn tuần" />
               </SelectTrigger>
               <SelectContent>
                 {weekOptions.map((week) => (
@@ -279,7 +279,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
         <div className="text-sm text-muted-foreground">
           {isFilterComplete ? (
             <span className="text-green-600">
-              {statusMessage.ready} {filters.week_number ? `cho Tuáº§n ${filters.week_number}` : ''}
+              {statusMessage.ready} {filters.week_number ? `cho Tuần ${filters.week_number}` : ''}
             </span>
           ) : (
             <span>

@@ -2,11 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
+
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
@@ -15,18 +14,39 @@ import {
   markNotificationAsReadAction,
   type Notification
 } from '@/features/notifications/actions/notification-actions'
-import { Bell, Clock, User, AlertCircle, Eye, Plus } from 'lucide-react'
+import { Bell, Clock, User, AlertCircle, Eye, Plus, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
+import { vi } from 'date-fns/locale'
 import { SharedPaginationControls } from '@/shared/components/shared/shared-pagination-controls'
-import { NotificationForm } from '@/features/notifications/components/notifications/notification-form'
+
+
+// Helper functions
+const getBasePath = (role: string) => {
+  switch (role) {
+    case 'admin': return '/dashboard/admin'
+    case 'teacher': return '/dashboard/teacher'
+    case 'parent': return '/dashboard/parent'
+    default: return '/student'
+  }
+}
+
+const getRoleDisplayName = (role: string) => {
+  switch (role) {
+    case 'admin': return 'Quản trị'
+    case 'teacher': return 'Giáo viên'
+    case 'parent': return 'Phụ huynh'
+    case 'student': return 'Học sinh'
+    default: return role
+  }
+}
 
 // Helper function to render notifications content
 function renderNotificationsContent(
   notificationsLoading: boolean,
   notifications: Notification[],
   config: NotificationPageConfig,
-  setSelectedNotification: (notification: Notification) => void,
+  router: { push: (path: string) => void },
   handleMarkAsRead: (id: string) => void
 ) {
   if (notificationsLoading) {
@@ -70,15 +90,27 @@ function renderNotificationsContent(
     )
   }
 
+
+
   return notifications.map((notification) => (
-    <div
+    <button
       key={notification.id}
-      className={`card-modern p-6 cursor-pointer transition-all duration-200 hover:shadow-medium group ${
+      className={`card-modern p-6 cursor-pointer transition-all duration-200 hover:shadow-medium group text-left w-full ${
         !notification.is_read
           ? 'border-orange-200 bg-orange-50/30 hover:bg-orange-50/50'
           : 'hover:bg-gray-50/50'
       }`}
-      onClick={() => setSelectedNotification(notification)}
+      onClick={() => {
+        const basePath = getBasePath(config.role)
+        router.push(`${basePath}/notifications/${notification.id}`)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          const basePath = getBasePath(config.role)
+          router.push(`${basePath}/notifications/${notification.id}`)
+        }
+      }}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 space-y-3">
@@ -106,10 +138,24 @@ function renderNotificationsContent(
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-400" />
-              <span>
-                {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-              </span>
+              <div className="flex flex-col">
+                <span>
+                  Tạo: {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: vi })}
+                </span>
+                {notification.edited_at && (
+                  <span className="text-xs text-blue-600">
+                    Sửa: {formatDistanceToNow(new Date(notification.edited_at), { addSuffix: true, locale: vi })}
+                  </span>
+                )}
+              </div>
             </div>
+            {/* Attachment indicator */}
+            {notification.attachments && notification.attachments.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <FileText className="h-3 w-3" />
+                <span>{notification.attachments.length} tệp</span>
+              </div>
+            )}
           </div>
 
           {/* Content Preview */}
@@ -128,10 +174,7 @@ function renderNotificationsContent(
                 variant="outline"
                 className="text-xs px-2 py-1 rounded-lg border-gray-200 text-gray-600"
               >
-                {role === 'admin' ? 'Quản trị' :
-                 role === 'teacher' ? 'Giáo viên' :
-                 role === 'parent' ? 'Phụ huynh' :
-                 role === 'student' ? 'Học sinh' : role}
+                {getRoleDisplayName(role)}
               </Badge>
             ))}
           </div>
@@ -152,7 +195,7 @@ function renderNotificationsContent(
           )}
         </div>
       </div>
-    </div>
+    </button>
   ))
 }
 
@@ -179,8 +222,9 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
+
+
+
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -198,6 +242,8 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   const unreadCount = useMemo(() => notifications.filter(n => !n.is_read).length, [notifications])
 
   const loadNotifications = useCallback(async () => {
+    if (!user?.id) return
+
     setNotificationsLoading(true)
     try {
       const result = await getUserNotificationsAction(currentPage, pageSize)
@@ -219,20 +265,19 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
       }
     } catch (error) {
       console.error('Error loading notifications:', error)
-      setError('An error occurred while loading notifications')
+      setError('Đã xảy ra lỗi khi tải thông báo')
       setNotifications([])
       setTotalCount(0)
       setTotalPages(1)
     }
     setNotificationsLoading(false)
-  }, [currentPage])
+  }, [currentPage, user?.id])
 
   useEffect(() => {
     if (!loading && user && profile?.role === config.role) {
       loadNotifications()
     }
-    // Only depend on primitives and stable callback to avoid loops
-  }, [loading, user, profile?.role, config.role, loadNotifications])
+  }, [loading, user?.id, profile?.role, config.role, currentPage]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMarkAsRead = async (notificationId: string) => {
     const result = await markNotificationAsReadAction(notificationId)
@@ -250,10 +295,9 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
     }
   }
 
-  const handleCreateSuccess = () => {
-    setShowCreateDialog(false)
-    loadNotifications()
-  }
+
+
+
 
   // Loading content
   const loadingContent = (
@@ -337,11 +381,14 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
         {config.canSendNotifications && (
           <Button
-            onClick={() => setShowCreateDialog(true)}
+            onClick={() => {
+              const basePath = getBasePath(config.role)
+              router.push(`${basePath}/notifications/create`)
+            }}
             className="btn-modern bg-orange-brand hover:bg-orange-600 text-white shadow-soft w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Gửi thông báo
+            Tạo thông báo
           </Button>
         )}
       </div>
@@ -354,7 +401,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
       {/* Notifications List */}
       <div className="space-y-4">
-        {renderNotificationsContent(notificationsLoading, notifications, config, setSelectedNotification, handleMarkAsRead)}
+        {renderNotificationsContent(notificationsLoading, notifications, config, router, handleMarkAsRead)}
       </div>
 
       {/* Pagination Controls */}
@@ -366,127 +413,11 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
         itemName="thông báo"
       />
 
-      {/* Create Notification Dialog */}
-      {config.canSendNotifications && (
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Send New Notification</DialogTitle>
-            </DialogHeader>
-            <NotificationForm
-              onSuccess={handleCreateSuccess}
-              onCancel={() => setShowCreateDialog(false)}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
 
-      {/* Modern Notification Detail Dialog */}
-      <Dialog
-        open={!!selectedNotification}
-        onOpenChange={() => setSelectedNotification(null)}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          {selectedNotification && (
-            <>
-              <DialogHeader className="pb-6">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                    <Bell className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <DialogTitle className="text-xl font-semibold text-foreground mb-2">
-                      {selectedNotification.title}
-                    </DialogTitle>
-                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                          <User className="h-3 w-3 text-gray-600" />
-                        </div>
-                        <span className="font-medium">
-                          {selectedNotification.sender?.full_name || 'Hệ thống'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span>
-                          {formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {!selectedNotification.is_read && (
-                    <Badge className="bg-orange-100 text-orange-700 border-orange-200 rounded-xl">
-                      Mới
-                    </Badge>
-                  )}
-                </div>
-              </DialogHeader>
 
-              <div className="space-y-6">
-                {/* Target Roles */}
-                {selectedNotification.target_roles && selectedNotification.target_roles.length > 0 && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground">Gửi tới:</span>
-                    <div className="flex gap-2">
-                      {selectedNotification.target_roles.map(role => (
-                        <Badge
-                          key={role}
-                          variant="outline"
-                          className="text-xs px-3 py-1 rounded-xl border-gray-200"
-                        >
-                          {role === 'admin' ? 'Quản trị viên' :
-                           role === 'teacher' ? 'Giáo viên' :
-                           role === 'parent' ? 'Phụ huynh' :
-                           role === 'student' ? 'Học sinh' : role}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
-                {/* Image Attachment */}
-                {selectedNotification.image_url && (
-                  <div className="rounded-2xl overflow-hidden border border-gray-200">
-                    <Image
-                      src={selectedNotification.image_url}
-                      alt="Tệp đính kèm thông báo"
-                      width={800}
-                      height={500}
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                )}
 
-                {/* Content */}
-                <div className="prose prose-sm max-w-none">
-                  <div className="bg-gray-50 rounded-2xl p-6">
-                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed m-0">
-                      {selectedNotification.content}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Actions */}
-                {!selectedNotification.is_read && (
-                  <div className="flex justify-end pt-4 border-t border-gray-100">
-                    <Button
-                      onClick={() => {
-                        handleMarkAsRead(selectedNotification.id)
-                        setSelectedNotification(null)
-                      }}
-                      className="btn-modern bg-orange-brand hover:bg-orange-600 text-white"
-                    >
-                      <Eye className="mr-2 h-4 w-4" />
-                      Đánh dấu đã đọc
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 

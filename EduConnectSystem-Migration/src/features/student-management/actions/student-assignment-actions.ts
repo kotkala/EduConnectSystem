@@ -19,7 +19,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -29,11 +29,11 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || !profile) {
-    throw new Error("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡")
+    throw new Error("Không tìm thấy hồ“ sơ")
   }
 
   if (profile.role !== "admin") {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyá»n quản trị")
   }
 
   return { user, profile }
@@ -55,7 +55,7 @@ export async function getAvailableStudentsAction(classId: string, assignmentType
     if (classError || !classData) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y lá»›p",
+        error: "Không tìm thấy lớp",
         data: []
       }
     }
@@ -93,7 +93,7 @@ export async function getAvailableStudentsAction(classId: string, assignmentType
       console.error("Error fetching available students:", error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c sinh kháº£ dá»¥ng",
+        error: "Không thể láº¥y danh sách hồc sinh kháº£ dá»¥ng",
         data: []
       }
     }
@@ -106,7 +106,7 @@ export async function getAvailableStudentsAction(classId: string, assignmentType
     console.error("Error in getAvailableStudentsAction:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c sinh kháº£ dá»¥ng",
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách hồc sinh kháº£ dá»¥ng",
       data: []
     }
   }
@@ -161,7 +161,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
       
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ phÃ¢n cÃ´ng há»c sinh vÃ o lá»›p"
+        error: "Không thể phÃ¢n công hồc sinh vÃ o lớp"
       }
     }
 
@@ -176,7 +176,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     console.error("Error in assignStudentToClassAction:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ phÃ¢n cÃ´ng há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể phÃ¢n công hồc sinh"
     }
   }
 }
@@ -216,7 +216,7 @@ export async function bulkAssignStudentsToClassAction(formData: BulkStudentAssig
       
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ phÃ¢n cÃ´ng há»c sinh vÃ o lá»›p"
+        error: "Không thể phÃ¢n công hồc sinh vÃ o lớp"
       }
     }
 
@@ -231,7 +231,7 @@ export async function bulkAssignStudentsToClassAction(formData: BulkStudentAssig
     console.error("Error in bulkAssignStudentsToClassAction:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ phÃ¢n cÃ´ng há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể phÃ¢n công hồc sinh"
     }
   }
 }
@@ -281,7 +281,7 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
       console.error("Error fetching class assignments:", error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng lá»›p",
+        error: "Không thể láº¥y danh sách phÃ¢n công lớp",
         data: [],
         total: 0,
         page: validatedFilters.page
@@ -298,7 +298,7 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
     console.error("Error in getClassAssignmentsAction:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng lá»›p",
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách phÃ¢n công lớp",
       data: [],
       total: 0,
       page: 1
@@ -321,7 +321,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
       console.error("Error removing student from class:", error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ gá»¡ há»c sinh khá»i lá»›p"
+        error: "Không thể gá»¡ hồc sinh khồi lớp"
       }
     }
 
@@ -335,7 +335,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     console.error("Error in removeStudentFromClassAction:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ gá»¡ há»c sinh khá»i lá»›p"
+      error: error instanceof Error ? error.message : "Không thể gá»¡ hồc sinh khồi lớp"
     }
   }
 }

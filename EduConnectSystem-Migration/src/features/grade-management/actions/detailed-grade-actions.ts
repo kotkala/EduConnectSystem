@@ -138,13 +138,13 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
     return {
       success: true,
       data: result,
-      message: existingGrade ? 'Cáº­p nháº­t Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng' : 'Táº¡o Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng'
+      message: existingGrade ? 'Cập nhật Ä‘iá»ƒm sá»‘ thÃ nh công' : 'Tạo Ä‘iá»ƒm sá»‘ thÃ nh công'
     }
   } catch (error) {
     console.error('Error creating/updating detailed grade:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o/cáº­p nháº­t Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể tạo/cập nhật Ä‘iá»ƒm sá»‘'
     }
   }
 }
@@ -249,7 +249,7 @@ export async function getDetailedGradesAction(
     console.error('Error fetching detailed grades:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch Ä‘iá»ƒm sá»‘',
+      error: error instanceof Error ? error.message : 'Không thể láº¥y danh sách Ä‘iá»ƒm sá»‘',
       data: [],
       count: 0
     }
@@ -386,19 +386,19 @@ export async function bulkImportDetailedGradesAction(formData: BulkDetailedGrade
       return {
         success: true,
         data: grades,
-        message: `Nháº­p thÃ nh cÃ´ng ${gradeEntries.length} Ä‘iá»ƒm sá»‘`
+        message: `Nhập thÃ nh công ${gradeEntries.length} Ä‘iá»ƒm sá»‘`
       }
     } else {
       return {
         success: false,
-        error: 'KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘ há»£p lá»‡ Ä‘á»ƒ nháº­p'
+        error: 'Không có dữ liệu Ä‘iá»ƒm sá»‘ hợp lá»‡ Ä‘á»ƒ nháº­p'
       }
     }
   } catch (error) {
     console.error('Error bulk importing detailed grades:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ nháº­p Ä‘iá»ƒm sá»‘ hÃ ng loáº¡t'
+      error: error instanceof Error ? error.message : 'Không thể nháº­p Ä‘iá»ƒm sá»‘ hÃ ng loáº¡t'
     }
   }
 }
@@ -514,13 +514,13 @@ export async function updateDetailedGradeAction(data: {
     return {
       success: true,
       data: updatedGrade,
-      message: 'Cáº­p nháº­t Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng'
+      message: 'Cập nhật Ä‘iá»ƒm sá»‘ thÃ nh công'
     }
   } catch (error) {
     console.error('updateDetailedGradeAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ cáº­p nháº­t Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể cập nhật Ä‘iá»ƒm sá»‘'
     }
   }
 }
@@ -543,7 +543,7 @@ export async function checkClassGradeCompletionAction(
 
     if (studentsError) {
       console.error('Error fetching class students:', studentsError)
-      throw new Error(`Lá»—i khi láº¥y danh sÃ¡ch há»c sinh: ${studentsError.message}`)
+      throw new Error(`Lỗi khi láº¥y danh sách hồc sinh: ${studentsError.message}`)
     }
 
     if (!classStudents || classStudents.length === 0) {
@@ -578,7 +578,7 @@ export async function checkClassGradeCompletionAction(
 
     if (gradesError) {
       console.error('Error fetching subject grades:', gradesError)
-      throw new Error(`Lá»—i khi láº¥y Ä‘iá»ƒm sá»‘ mÃ´n há»c: ${gradesError.message}`)
+      throw new Error(`Lỗi khi láº¥y Ä‘iá»ƒm sá»‘ mÃ´n hồc: ${gradesError.message}`)
     }
 
     // Group by subject to get unique subjects
@@ -617,7 +617,7 @@ export async function checkClassGradeCompletionAction(
 
     if (completionError) {
       console.error('Error fetching completion data:', completionError)
-      throw new Error(`Lá»—i khi kiá»ƒm tra tÃ¬nh tráº¡ng hoÃ n thÃ nh: ${completionError.message}`)
+      throw new Error(`Lỗi khi kiá»ƒm tra tÃ¬nh trạng hoÃ n thÃ nh: ${completionError.message}`)
     }
 
     // Count students with grades per subject
@@ -663,7 +663,7 @@ export async function checkClassGradeCompletionAction(
     console.error('checkClassGradeCompletionAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ kiá»ƒm tra tÃ¬nh tráº¡ng hoÃ n thÃ nh Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể kiá»ƒm tra tÃ¬nh trạng hoÃ n thÃ nh Ä‘iá»ƒm sá»‘'
     }
   }
 }
@@ -682,7 +682,7 @@ export async function sendGradesToHomeroomTeacherAction(
     if (!completionResult.success || !completionResult.data?.all_completed) {
       return {
         success: false,
-        error: 'ChÆ°a hoÃ n thÃ nh Ä‘iá»ƒm sá»‘ cho táº¥t cáº£ mÃ´n há»c cá»§a lá»›p nÃ y'
+        error: 'Chưa hoÃ n thÃ nh Ä‘iá»ƒm sá»‘ cho táº¥t cả mÃ´n hồc của lớp nÃ y'
       }
     }
 
@@ -703,7 +703,7 @@ export async function sendGradesToHomeroomTeacherAction(
       .single()
 
     if (classError || !classInfo?.homeroom_teacher_id) {
-      throw new Error('KhÃ´ng tÃ¬m tháº¥y giÃ¡o viÃªn chá»§ nhiá»‡m cho lá»›p nÃ y')
+      throw new Error('Không tìm thấy giáo viên chủ nhiệm cho lớp nÃ y')
     }
 
     // Create notification for homeroom teacher
@@ -711,8 +711,8 @@ export async function sendGradesToHomeroomTeacherAction(
       .from('notifications')
       .insert({
         user_id: classInfo.homeroom_teacher_id,
-        title: 'Báº£ng Ä‘iá»ƒm má»›i',
-        message: `Báº£ng Ä‘iá»ƒm lá»›p ${classInfo.name} Ä‘Ã£ Ä‘Æ°á»£c gá»­i tá»« admin. Vui lÃ²ng kiá»ƒm tra trong má»¥c quáº£n lÃ½ báº£ng Ä‘iá»ƒm.`,
+        title: 'Bảng Ä‘iá»ƒm mới',
+        message: `Bảng Ä‘iá»ƒm lớp ${classInfo.name} Ä‘Ã£ Ä‘Æ°á»£c gá»­i từ admin. Vui lòng kiá»ƒm tra trong mục quản lý báº£ng Ä‘iá»ƒm.`,
         type: 'grade_report',
         data: {
           period_id: periodId,
@@ -731,19 +731,19 @@ export async function sendGradesToHomeroomTeacherAction(
 
     // Extract teacher name safely
     const teacherName = classInfo.homeroom_teacher && typeof classInfo.homeroom_teacher === 'object'
-      ? (classInfo.homeroom_teacher as { full_name?: string }).full_name || 'GiÃ¡o viÃªn chá»§ nhiá»‡m'
-      : 'GiÃ¡o viÃªn chá»§ nhiá»‡m'
+      ? (classInfo.homeroom_teacher as { full_name?: string }).full_name || 'Giáo viên chủ nhiệm'
+      : 'Giáo viên chủ nhiệm'
 
     return {
       success: true,
       data: { period_id: periodId, class_id: classId },
-      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm lá»›p ${classInfo.name} tá»›i ${teacherName}`
+      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm lớp ${classInfo.name} tá»›i ${teacherName}`
     }
   } catch (error) {
     console.error('sendGradesToHomeroomTeacherAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ gá»­i báº£ng Ä‘iá»ƒm tá»›i giÃ¡o viÃªn chá»§ nhiá»‡m'
+      error: error instanceof Error ? error.message : 'Không thể gá»­i báº£ng Ä‘iá»ƒm tá»›i giáo viên chủ nhiệm'
     }
   }
 }
@@ -776,7 +776,7 @@ export async function bulkSendGradesToHomeroomTeachersAction(periodId: string) {
     if (!classes || classes.length === 0) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y lá»›p há»c nÃ o cÃ³ giÃ¡o viÃªn chá»§ nhiá»‡m'
+        error: 'Không tìm thấy lớp hồc nÃ o có giáo viên chủ nhiệm'
       }
     }
 
@@ -797,7 +797,7 @@ export async function bulkSendGradesToHomeroomTeachersAction(periodId: string) {
             className: classInfo.name,
             reason: incompleteSubjects.length
               ? `Thiáº¿u Ä‘iá»ƒm mÃ´n: ${incompleteSubjects.map(s => (s.subject as { code?: string })?.code || 'N/A').join(', ')}`
-              : 'ChÆ°a hoÃ n thÃ nh Ä‘iá»ƒm sá»‘'
+              : 'Chưa hoÃ n thÃ nh Ä‘iá»ƒm sá»‘'
           })
           errorCount++
           continue
@@ -827,21 +827,21 @@ export async function bulkSendGradesToHomeroomTeachersAction(periodId: string) {
         results.push({
           className: classInfo.name,
           status: 'error',
-          error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+          error: error instanceof Error ? error.message : 'Lỗi không xác Ä‘á»‹nh'
         })
       }
     }
 
     // Prepare response message
-    let message = `ÄÃ£ gá»­i thÃ nh cÃ´ng ${successCount}/${classes.length} báº£ng Ä‘iá»ƒm`
+    let message = `ÄÃ£ gá»­i thÃ nh công ${successCount}/${classes.length} báº£ng Ä‘iá»ƒm`
 
     if (incompleteClasses.length > 0) {
       const incompleteList = incompleteClasses.map(c => `- ${c.className}: ${c.reason}`).join('\n')
-      message += `\n\nCÃ¡c lá»›p chÆ°a hoÃ n thÃ nh Ä‘iá»ƒm sá»‘:\n${incompleteList}`
+      message += `\n\nCác lớp chưa hoÃ n thÃ nh Ä‘iá»ƒm sá»‘:\n${incompleteList}`
     }
 
     if (errorCount > 0 && incompleteClasses.length < errorCount) {
-      message += `\n\n${errorCount - incompleteClasses.length} lá»›p gáº·p lá»—i khÃ¡c khi gá»­i`
+      message += `\n\n${errorCount - incompleteClasses.length} lớp gáº·p lỗi khÃ¡c khi gá»­i`
     }
 
     return {
@@ -859,7 +859,7 @@ export async function bulkSendGradesToHomeroomTeachersAction(periodId: string) {
     console.error('bulkSendGradesToHomeroomTeachersAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ gá»­i báº£ng Ä‘iá»ƒm tá»›i cÃ¡c giÃ¡o viÃªn chá»§ nhiá»‡m'
+      error: error instanceof Error ? error.message : 'Không thể gá»­i báº£ng Ä‘iá»ƒm tá»›i các giáo viên chủ nhiệm'
     }
   }
 }
@@ -893,7 +893,7 @@ export async function generateAIFeedbackForGradesAction(
       .single()
 
     if (submissionError || !submission) {
-      throw new Error('KhÃ´ng tÃ¬m tháº¥y báº£ng Ä‘iá»ƒm')
+      throw new Error('Không tìm thấy báº£ng Ä‘iá»ƒm')
     }
 
     // Get all grades for this class and period
@@ -923,7 +923,7 @@ export async function generateAIFeedbackForGradesAction(
     }
 
     if (!grades || grades.length === 0) {
-      throw new Error('KhÃ´ng cÃ³ Ä‘iá»ƒm sá»‘ Ä‘á»ƒ táº¡o pháº£n há»“i')
+      throw new Error('Không có Ä‘iá»ƒm sá»‘ Ä‘á»ƒ tạo pháº£n hồ“i')
     }
 
     // Group grades by student
@@ -983,35 +983,35 @@ export async function generateAIFeedbackForGradesAction(
 
     // Extract class and period names safely
     const className = submission.class && typeof submission.class === 'object'
-      ? (submission.class as { name?: string }).name || 'Lá»›p há»c'
-      : 'Lá»›p há»c'
+      ? (submission.class as { name?: string }).name || 'Lớp hồc'
+      : 'Lớp hồc'
     const periodName = submission.period && typeof submission.period === 'object'
-      ? (submission.period as { name?: string }).name || 'Ká»³ há»c'
-      : 'Ká»³ há»c'
+      ? (submission.period as { name?: string }).name || 'Kỳ hồc'
+      : 'Kỳ hồc'
 
-    const prompt = `Báº¡n lÃ  má»™t giÃ¡o viÃªn chá»§ nhiá»‡m cÃ³ kinh nghiá»‡m. HÃ£y táº¡o nháº­n xÃ©t tá»•ng quan vá» káº¿t quáº£ há»c táº­p cá»§a lá»›p ${className} trong ${periodName}.
+    const prompt = `Báº¡n lÃ  một giáo viên chủ nhiệm có kinh nghiá»‡m. HÃ£y tạo nhận xÃ©t tá»•ng quan về káº¿t quáº£ hồc tập của lớp ${className} trong ${periodName}.
 
-THÃ”NG TIN Lá»šP Há»ŒC:
-- Tá»•ng sá»‘ há»c sinh: ${classStats.totalStudents}
-- Sá»‘ mÃ´n há»c: ${classStats.totalSubjects}
-- Äiá»ƒm trung bÃ¬nh lá»›p: ${classStats.averageGrade.toFixed(2)}
+THÃ”NG TIN Lá»šP HồŒC:
+- Tổng sá»‘ hồc sinh: ${classStats.totalStudents}
+- Sá»‘ mÃ´n hồc: ${classStats.totalSubjects}
+- Äiá»ƒm trung bÃ¬nh lớp: ${classStats.averageGrade.toFixed(2)}
 - PhÃ¢n bá»‘ Ä‘iá»ƒm:
-  + Giá»i (8.0-10): ${classStats.gradeDistribution.excellent} há»c sinh
-  + KhÃ¡ (6.5-7.9): ${classStats.gradeDistribution.good} há»c sinh
-  + Trung bÃ¬nh (5.0-6.4): ${classStats.gradeDistribution.average} há»c sinh
-  + Yáº¿u (<5.0): ${classStats.gradeDistribution.poor} há»c sinh
+  + Giá»i (8.0-10): ${classStats.gradeDistribution.excellent} hồc sinh
+  + KhÃ¡ (6.5-7.9): ${classStats.gradeDistribution.good} hồc sinh
+  + Trung bÃ¬nh (5.0-6.4): ${classStats.gradeDistribution.average} hồc sinh
+  + Yáº¿u (<5.0): ${classStats.gradeDistribution.poor} hồc sinh
 
 YÃŠU Cáº¦U:
-- Viáº¿t nháº­n xÃ©t tÃ­ch cá»±c, khuyáº¿n khÃ­ch
-- NÃªu Ä‘iá»ƒm máº¡nh cá»§a lá»›p
-- ÄÆ°a ra gá»£i Ã½ cáº£i thiá»‡n náº¿u cáº§n
-- Äá»™ dÃ i: 150-200 tá»«
-- Giá»ng Ä‘iá»‡u: ChuyÃªn nghiá»‡p, áº¥m Ã¡p cá»§a giÃ¡o viÃªn
-- Káº¿t thÃºc báº±ng lá»i Ä‘á»™ng viÃªn
+- Viáº¿t nhận xÃ©t tÃ­ch cá»±c, khuyáº¿n khÃ­ch
+- NÃªu Ä‘iá»ƒm máº¡nh của lớp
+- ÄÆ°a ra gá»£i Ã½ cải thiện nếu cáº§n
+- Äá»™ dÃ i: 150-200 từ
+- Giá»ng Ä‘iá»‡u: ChuyÃªn nghiá»‡p, áº¥m Ã¡p của giáo viên
+- Káº¿t thÃºc báº±ng lá»i Ä‘á»™ng viên
 
-LÆ¯U Ã: ÄÃ¢y lÃ  nháº­n xÃ©t Ä‘Æ°á»£c táº¡o báº±ng AI chá»‰ mang tÃ­nh cháº¥t tham kháº£o, giÃ¡o viÃªn cÃ³ thá»ƒ chá»‰nh sá»­a trÆ°á»›c khi gá»­i phá»¥ huynh.
+LÆ¯U Ã: ÄÃ¢y lÃ  nhận xÃ©t Ä‘Æ°á»£c tạo báº±ng AI chồ‰ mang tÃ­nh cháº¥t tham kháº£o, giáo viên có thể chồ‰nh sửa trước khi gá»­i phụ huynh.
 
-Nháº­n xÃ©t tá»•ng quan vá» lá»›p:`
+Nháº­n xÃ©t tá»•ng quan về lớp:`
 
     const response = await genAI.models.generateContent({
       model: 'gemini-2.0-flash-001',
@@ -1027,11 +1027,11 @@ Nháº­n xÃ©t tá»•ng quan vá» lá»›p:`
     const aiFeedback = response.text?.trim()
 
     if (!aiFeedback) {
-      throw new Error('KhÃ´ng thá»ƒ táº¡o pháº£n há»“i AI')
+      throw new Error('Không thể tạo pháº£n hồ“i AI')
     }
 
     // Add disclaimer
-    const feedbackWithDisclaimer = `${aiFeedback}\n\n---\n*Nháº­n xÃ©t nÃ y Ä‘Æ°á»£c táº¡o báº±ng AI chá»‰ mang tÃ­nh cháº¥t tham kháº£o. GiÃ¡o viÃªn cÃ³ thá»ƒ chá»‰nh sá»­a trÆ°á»›c khi gá»­i phá»¥ huynh.*`
+    const feedbackWithDisclaimer = `${aiFeedback}\n\n---\n*Nháº­n xÃ©t nÃ y Ä‘Æ°á»£c tạo báº±ng AI chồ‰ mang tÃ­nh cháº¥t tham kháº£o. Giáo viên có thể chồ‰nh sửa trước khi gá»­i phụ huynh.*`
 
     return {
       success: true,
@@ -1040,13 +1040,13 @@ Nháº­n xÃ©t tá»•ng quan vá» lá»›p:`
         class_stats: classStats,
         student_count: classStats.totalStudents
       },
-      message: 'Táº¡o pháº£n há»“i AI thÃ nh cÃ´ng'
+      message: 'Tạo pháº£n hồ“i AI thÃ nh công'
     }
   } catch (error) {
     console.error('generateAIFeedbackForGradesAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o pháº£n há»“i AI'
+      error: error instanceof Error ? error.message : 'Không thể tạo pháº£n hồ“i AI'
     }
   }
 }
@@ -1161,7 +1161,7 @@ export async function getHomeroomDetailedGradesAction(
     console.error('getHomeroomDetailedGradesAction error:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i Ä‘iá»ƒm sá»‘'
+      error: error instanceof Error ? error.message : 'Không thể tải Ä‘iá»ƒm sá»‘'
     }
   }
 }

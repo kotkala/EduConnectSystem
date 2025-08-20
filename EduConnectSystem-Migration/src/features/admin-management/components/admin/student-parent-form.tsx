@@ -107,8 +107,8 @@ function StudentInfoSection({
           <User className="h-6 w-6 text-blue-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-blue-700">ThÃ´ng tin há»c sinh</h3>
-          <p className="text-sm text-blue-600">Nháº­p thÃ´ng tin cÃ¡ nhÃ¢n cá»§a há»c sinh</p>
+          <h3 className="text-xl font-bold text-blue-700">Thông tin hồc sinh</h3>
+          <p className="text-sm text-blue-600">Nhập thông tin cá nhân của hồc sinh</p>
         </div>
       </div>
 
@@ -116,7 +116,7 @@ function StudentInfoSection({
         {/* Student ID */}
         <div className="space-y-3">
           <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
-            MÃ£ há»c sinh *
+            MÃ£ hồc sinh *
           </Label>
           <div className="flex gap-2">
             <Input
@@ -151,18 +151,18 @@ function StudentInfoSection({
           )}
           {!editMode && (
             <p className="text-xs text-gray-500">
-              MÃ£ há»c sinh sáº½ Ä‘Æ°á»£c tá»± Ä‘á»™ng táº¡o (SU001, SU002, ...)
+              MÃ£ hồc sinh sẽ Ä‘Æ°á»£c tá»± Ä‘á»™ng tạo (SU001, SU002, ...)
             </p>
           )}
         </div>
 
         {/* Student Full Name */}
         <div className="space-y-2">
-          <Label htmlFor="student_name">Há» vÃ  tÃªn *</Label>
+          <Label htmlFor="student_name">Hồ vÃ  tên *</Label>
           <Input
             id="student_name"
             {...form.register("student.full_name")}
-            placeholder="Nháº­p há» vÃ  tÃªn há»c sinh"
+            placeholder="Nhập hồ vÃ  tên hồc sinh"
             className={form.formState.errors.student?.full_name ? "border-red-500" : ""}
           />
           {form.formState.errors.student?.full_name && (
@@ -191,7 +191,7 @@ function StudentInfoSection({
           <Input
             id="student_phone"
             {...form.register("student.phone_number")}
-            placeholder="Nháº­p sá»‘ Ä‘iá»‡n thoáº¡i"
+            placeholder="Nhập sá»‘ Ä‘iá»‡n thoáº¡i"
             className={form.formState.errors.student?.phone_number ? "border-red-500" : ""}
           />
           {form.formState.errors.student?.phone_number && (
@@ -207,7 +207,7 @@ function StudentInfoSection({
             onValueChange={(value) => form.setValue("student.gender", value as "male" | "female")}
           >
             <SelectTrigger className={form.formState.errors.student?.gender ? "border-red-500" : ""}>
-              <SelectValue placeholder="Chá»n giá»›i tÃ­nh" />
+              <SelectValue placeholder="Chồn giá»›i tÃ­nh" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Nam</SelectItem>
@@ -236,11 +236,11 @@ function StudentInfoSection({
 
       {/* Student Address */}
       <div className="space-y-2">
-        <Label htmlFor="student_address">Äá»‹a chá»‰ *</Label>
+        <Label htmlFor="student_address">Äá»‹a chồ‰ *</Label>
         <Textarea
           id="student_address"
           {...form.register("student.address")}
-          placeholder="Nháº­p Ä‘á»‹a chá»‰ Ä‘áº§y Ä‘á»§ cá»§a há»c sinh"
+          placeholder="Nhập Ä‘á»‹a chồ‰ Ä‘áº§y Ä‘á»§ của hồc sinh"
           rows={3}
           className={form.formState.errors.student?.address ? "border-red-500" : ""}
         />
@@ -267,19 +267,19 @@ function ParentInfoSection({
           <Users className="h-6 w-6 text-green-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-green-700">ThÃ´ng tin phá»¥ huynh</h3>
-          <p className="text-sm text-green-600">Nháº­p thÃ´ng tin liÃªn há»‡ vÃ  má»‘i quan há»‡ cá»§a phá»¥ huynh</p>
+          <h3 className="text-xl font-bold text-green-700">Thông tin phụ huynh</h3>
+          <p className="text-sm text-green-600">Nhập thông tin liên hồ‡ vÃ  má»‘i quan hồ‡ của phụ huynh</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Parent Full Name */}
         <div className="space-y-2">
-          <Label htmlFor="parent_name">Há» vÃ  tÃªn *</Label>
+          <Label htmlFor="parent_name">Hồ vÃ  tên *</Label>
           <Input
             id="parent_name"
             {...form.register("parent.full_name")}
-            placeholder="Nháº­p há» vÃ  tÃªn phá»¥ huynh"
+            placeholder="Nhập hồ vÃ  tên phụ huynh"
             className={form.formState.errors.parent?.full_name ? "border-red-500" : ""}
           />
           {form.formState.errors.parent?.full_name && (
@@ -305,7 +305,7 @@ function ParentInfoSection({
           <Input
             id="parent_phone"
             {...form.register("parent.phone_number")}
-            placeholder="Nháº­p sá»‘ Ä‘iá»‡n thoáº¡i"
+            placeholder="Nhập sá»‘ Ä‘iá»‡n thoáº¡i"
             className={form.formState.errors.parent?.phone_number ? "border-red-500" : ""}
           />
           {form.formState.errors.parent?.phone_number && (
@@ -321,7 +321,7 @@ function ParentInfoSection({
             onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female")}
           >
             <SelectTrigger className={form.formState.errors.parent?.gender ? "border-red-500" : ""}>
-              <SelectValue placeholder="Chá»n giá»›i tÃ­nh" />
+              <SelectValue placeholder="Chồn giá»›i tÃ­nh" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Nam</SelectItem>
@@ -349,18 +349,18 @@ function ParentInfoSection({
 
         {/* Relationship Type */}
         <div className="space-y-2">
-          <Label htmlFor="relationship_type">Má»‘i quan há»‡ *</Label>
+          <Label htmlFor="relationship_type">Má»‘i quan hồ‡ *</Label>
           <Select
             value={form.watch("parent.relationship_type")}
             onValueChange={(value) => form.setValue("parent.relationship_type", value as "father" | "mother" | "guardian")}
           >
             <SelectTrigger className={form.formState.errors.parent?.relationship_type ? "border-red-500" : ""}>
-              <SelectValue placeholder="Chá»n má»‘i quan há»‡" />
+              <SelectValue placeholder="Chồn má»‘i quan hồ‡" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="father">Bá»‘</SelectItem>
               <SelectItem value="mother">Máº¹</SelectItem>
-              <SelectItem value="guardian">NgÆ°á»i giÃ¡m há»™</SelectItem>
+              <SelectItem value="guardian">NgÆ°á»i giám hồ™</SelectItem>
             </SelectContent>
           </Select>
           {form.formState.errors.parent?.relationship_type && (
@@ -371,11 +371,11 @@ function ParentInfoSection({
 
       {/* Parent Address */}
       <div className="space-y-2">
-        <Label htmlFor="parent_address">Äá»‹a chá»‰ *</Label>
+        <Label htmlFor="parent_address">Äá»‹a chồ‰ *</Label>
         <Textarea
           id="parent_address"
           {...form.register("parent.address")}
-          placeholder="Nháº­p Ä‘á»‹a chá»‰ Ä‘áº§y Ä‘á»§ cá»§a phá»¥ huynh"
+          placeholder="Nhập Ä‘á»‹a chồ‰ Ä‘áº§y Ä‘á»§ của phụ huynh"
           rows={3}
           className={form.formState.errors.parent?.address ? "border-red-500" : ""}
         />
@@ -392,7 +392,7 @@ function ParentInfoSection({
           onCheckedChange={(checked) => form.setValue("parent.is_primary_contact", !!checked)}
         />
         <Label htmlFor="is_primary_contact" className="text-sm">
-          Äáº·t lÃ m liÃªn há»‡ chÃ­nh cho há»c sinh
+          Äáº·t lÃ m liên hồ‡ chÃ­nh cho hồc sinh
         </Label>
       </div>
     </div>
@@ -476,7 +476,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
     return (
       <Alert variant="destructive" className="border-red-200 bg-red-50">
         <AlertDescription className="text-red-800 font-medium">
-          Thiáº¿u dá»¯ liá»‡u há»c sinh Ä‘á»ƒ chá»‰nh sá»­a. Vui lÃ²ng Ä‘Ã³ng vÃ  chá»n láº¡i há»c sinh.
+          Thiáº¿u dữ liệu hồc sinh Ä‘á»ƒ chồ‰nh sửa. Vui lòng Ä‘Ã³ng vÃ  chồn láº¡i hồc sinh.
         </AlertDescription>
       </Alert>
     )
@@ -487,12 +487,12 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
       <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 border-b">
         <CardTitle className="flex items-center gap-3 text-2xl font-bold">
           <Users className="h-6 w-6 text-blue-600" />
-          {editMode ? "Chá»‰nh sá»­a thÃ´ng tin Há»c sinh & Phá»¥ huynh" : "ThÃªm Há»c sinh & Phá»¥ huynh má»›i"}
+          {editMode ? "Chỉnh sửa thông tin Hồc sinh & Phụ huynh" : "Thêm Hồc sinh & Phụ huynh mới"}
         </CardTitle>
         <CardDescription className="text-base mt-2">
           {editMode
-            ? "Cáº­p nháº­t thÃ´ng tin há»c sinh vÃ  phá»¥ huynh. Thay Ä‘á»•i sáº½ Ä‘Æ°á»£c lÆ°u cho cáº£ hai tÃ i khoáº£n."
-            : "Táº¡o tÃ i khoáº£n há»c sinh má»›i vá»›i thÃ´ng tin phá»¥ huynh báº¯t buá»™c. Cáº£ hai tÃ i khoáº£n sáº½ Ä‘Æ°á»£c táº¡o cÃ¹ng nhau vá»›i xÃ¡c thá»±c an toÃ n."
+            ? "Cập nhật thông tin hồc sinh vÃ  phụ huynh. Thay Ä‘á»•i sẽ Ä‘Æ°á»£c lưu cho cả hai tÃ i khoản."
+            : "Tạo tÃ i khoản hồc sinh mới về›i thông tin phụ huynh bắt buá»™c. Cáº£ hai tÃ i khoản sẽ Ä‘Æ°á»£c tạo cÃ¹ng nhau về›i xác thực an toÃ n."
           }
         </CardDescription>
       </CardHeader>
@@ -543,12 +543,12 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                  {editMode ? "Äang cáº­p nháº­t Há»c sinh & Phá»¥ huynh..." : "Äang táº¡o Há»c sinh & Phá»¥ huynh..."}
+                  {editMode ? "Äang cập nhật Hồc sinh & Phụ huynh..." : "Äang tạo Hồc sinh & Phụ huynh..."}
                 </>
               ) : (
                 <>
                   <Save className="mr-3 h-5 w-5" />
-                  {editMode ? "Cáº­p nháº­t Há»c sinh & Phá»¥ huynh" : "Táº¡o Há»c sinh & Phá»¥ huynh"}
+                  {editMode ? "Cập nhật Hồc sinh & Phụ huynh" : "Tạo Hồc sinh & Phụ huynh"}
                 </>
               )}
             </Button>
@@ -562,7 +562,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
                 className="h-12 px-8 text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
                 <X className="mr-2 h-5 w-5" />
-                Há»§y
+                Hủy
               </Button>
             )}
           </div>

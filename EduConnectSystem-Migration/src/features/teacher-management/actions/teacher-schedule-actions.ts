@@ -54,7 +54,7 @@ export async function getTeacherScheduleAction(
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -65,7 +65,7 @@ export async function getTeacherScheduleAction(
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+      throw new Error("Từ chồ‘i truy cập. Yêu cầu vai trÃ² giáo viên.")
     }
 
     // Build parameters object following Context7 pattern - only include defined values
@@ -150,7 +150,7 @@ export async function getTeacherScheduleAction(
     console.error("Get teacher schedule error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y thá»i khÃ³a biá»ƒu cá»§a giÃ¡o viÃªn"
+      error: error instanceof Error ? error.message : "Không thể láº¥y thồi khóa biểu của giáo viên"
     }
   }
 }
@@ -166,7 +166,7 @@ export async function getTeacherScheduleFiltersAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get unique semester IDs where teacher has classes
@@ -231,7 +231,7 @@ export async function getTeacherScheduleFiltersAction(): Promise<{
     console.error("Get teacher schedule filters error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y tÃ¹y chá»n bá»™ lá»c"
+      error: error instanceof Error ? error.message : "Không thể láº¥y tÃ¹y chồn bộ lá»c"
     }
   }
 }
@@ -255,7 +255,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Check if teacher is enabled as homeroom teacher
@@ -319,7 +319,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
     console.error("Get teacher homeroom info error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y thÃ´ng tin giÃ¡o viÃªn chá»§ nhiá»‡m"
+      error: error instanceof Error ? error.message : "Không thể láº¥y thông tin giáo viên chủ nhiệm"
     }
   }
 }
@@ -344,7 +344,7 @@ export async function getTeacherSubjectAssignmentsAction(): Promise<{
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get teacher's subject assignments
@@ -403,7 +403,7 @@ export async function getTeacherSubjectAssignmentsAction(): Promise<{
     console.error("Get teacher subject assignments error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y phÃ¢n cÃ´ng mÃ´n há»c"
+      error: error instanceof Error ? error.message : "Không thể láº¥y phÃ¢n công mÃ´n hồc"
     }
   }
 }
@@ -424,7 +424,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -435,7 +435,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+      throw new Error("Từ chồ‘i truy cập. Yêu cầu vai trÃ² giáo viên.")
     }
 
     // Get unique semester IDs where teacher has timetable events
@@ -483,7 +483,7 @@ export async function getTeacherAcademicYearsAction(): Promise<{
     console.error("Get teacher academic years error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch niÃªn khÃ³a"
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách niÃªn khóa"
     }
   }
 }
@@ -505,7 +505,7 @@ export async function getTeacherSemestersAction(academicYearId: string): Promise
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get unique semester IDs where teacher has timetable events
@@ -540,7 +540,7 @@ export async function getTeacherSemestersAction(academicYearId: string): Promise
     console.error("Get teacher semesters error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c ká»³"
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách hồc kỳ"
     }
   }
 }

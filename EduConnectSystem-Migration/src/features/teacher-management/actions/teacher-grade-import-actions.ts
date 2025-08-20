@@ -28,10 +28,10 @@ export async function importValidatedGradesAction(
     if (userError || !user) {
       return {
         success: false,
-        message: 'KhÃ´ng thá»ƒ xÃ¡c thá»±c ngÆ°á»i dÃ¹ng',
+        message: 'Không thể xác thực ngÆ°á»i dùng',
         importedCount: 0,
         errorCount: 0,
-        errors: ['Lá»—i xÃ¡c thá»±c ngÆ°á»i dÃ¹ng']
+        errors: ['Lỗi xác thực ngÆ°á»i dùng']
       }
     }
 
@@ -51,13 +51,13 @@ export async function importValidatedGradesAction(
           .limit(1)
 
         if (studentError) {
-          errors.push(`Lá»—i tÃ¬m há»c sinh ${studentData.studentId}: ${studentError.message}`)
+          errors.push(`Lỗi tìm hồc sinh ${studentData.studentId}: ${studentError.message}`)
           errorCount++
           continue
         }
 
         if (!students || students.length === 0) {
-          errors.push(`KhÃ´ng tÃ¬m tháº¥y há»c sinh vá»›i mÃ£ ${studentData.studentId} trong lá»›p`)
+          errors.push(`Không tìm thấy hồc sinh về›i mÃ£ ${studentData.studentId} trong lớp`)
           errorCount++
           continue
         }
@@ -148,7 +148,7 @@ export async function importValidatedGradesAction(
               if (gradeRecord.component_type === 'midterm' || gradeRecord.component_type === 'final') {
                 // This is an override of midterm/final grade - use provided reason or default
                 const reasonKey = `${student.student_id}_${gradeRecord.component_type}`
-                const changeReason = overrideReasons?.[reasonKey] || 'Nháº­p láº¡i tá»« Excel - Cáº§n xÃ¡c nháº­n lÃ½ do'
+                const changeReason = overrideReasons?.[reasonKey] || 'Nhập láº¡i từ Excel - Cáº§n xác nhận lý do'
 
                 const auditRecord = {
                   grade_id: existingGrade.id,
@@ -175,7 +175,7 @@ export async function importValidatedGradesAction(
                 .eq('id', existingGrade.id)
 
               if (updateError) {
-                errors.push(`Lá»—i cáº­p nháº­t Ä‘iá»ƒm cho há»c sinh ${studentData.studentId}: ${updateError.message}`)
+                errors.push(`Lỗi cập nhật Ä‘iá»ƒm cho hồc sinh ${studentData.studentId}: ${updateError.message}`)
               }
             } else {
               // Insert new grade
@@ -184,7 +184,7 @@ export async function importValidatedGradesAction(
                 .insert(gradeRecord)
 
               if (insertError) {
-                errors.push(`Lá»—i lÆ°u Ä‘iá»ƒm cho há»c sinh ${studentData.studentId}: ${insertError.message}`)
+                errors.push(`Lỗi lưu Ä‘iá»ƒm cho hồc sinh ${studentData.studentId}: ${insertError.message}`)
                 errorCount++
               } else {
                 importedCount++
@@ -217,14 +217,14 @@ export async function importValidatedGradesAction(
               .eq('id', existingGrade[0].id)
 
             if (updateError) {
-              errors.push(`Lá»—i cáº­p nháº­t ghi chÃº cho há»c sinh ${studentData.studentId}: ${updateError.message}`)
+              errors.push(`Lỗi cập nhật ghi chÃº cho hồc sinh ${studentData.studentId}: ${updateError.message}`)
             }
           }
         }
 
       } catch (error) {
         console.error(`Error processing student ${studentData.studentId}:`, error)
-        errors.push(`Lá»—i xá»­ lÃ½ há»c sinh ${studentData.studentId}: ${error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'}`)
+        errors.push(`Lỗi xá»­ lý hồc sinh ${studentData.studentId}: ${error instanceof Error ? error.message : 'Lỗi không xác Ä‘á»‹nh'}`)
         errorCount++
       }
     }
@@ -236,8 +236,8 @@ export async function importValidatedGradesAction(
     return {
       success: errorCount === 0,
       message: errorCount === 0 
-        ? `Nháº­p Ä‘iá»ƒm thÃ nh cÃ´ng cho ${importedCount} há»c sinh`
-        : `Nháº­p Ä‘iá»ƒm hoÃ n táº¥t vá»›i ${importedCount} thÃ nh cÃ´ng, ${errorCount} lá»—i`,
+        ? `Nhập Ä‘iá»ƒm thÃ nh công cho ${importedCount} hồc sinh`
+        : `Nhập Ä‘iá»ƒm hoÃ n táº¥t về›i ${importedCount} thÃ nh công, ${errorCount} lỗi`,
       importedCount,
       errorCount,
       errors
@@ -247,10 +247,10 @@ export async function importValidatedGradesAction(
     console.error('Error importing grades:', error)
     return {
       success: false,
-      message: 'CÃ³ lá»—i xáº£y ra khi nháº­p Ä‘iá»ƒm',
+      message: 'Có lỗi xảy ra khi nháº­p Ä‘iá»ƒm',
       importedCount: 0,
       errorCount: 0,
-      errors: [error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh']
+      errors: [error instanceof Error ? error.message : 'Lỗi không xác Ä‘á»‹nh']
     }
   }
 }
@@ -271,10 +271,10 @@ export async function getGradeOverviewAction(
       .single()
 
     if (periodError) {
-      throw new Error(`Lá»—i táº£i thÃ´ng tin ká»³ bÃ¡o cÃ¡o: ${periodError.message}`)
+      throw new Error(`Lỗi tải thông tin kỳ báo cáo: ${periodError.message}`)
     }
 
-    const isSummaryPeriod = periodInfo.name.includes('Tá»•ng káº¿t')
+    const isSummaryPeriod = periodInfo.name.includes('Tổng káº¿t')
     let gradeData = null
     let gradeError = null
 
@@ -285,10 +285,10 @@ export async function getGradeOverviewAction(
         .select('id')
         .eq('academic_year_id', periodInfo.academic_year_id)
         .eq('semester_id', periodInfo.semester_id)
-        .not('name', 'like', '%Tá»•ng káº¿t%')
+        .not('name', 'like', '%Tổng káº¿t%')
 
       if (componentError) {
-        throw new Error(`Lá»—i táº£i ká»³ thÃ nh pháº§n: ${componentError.message}`)
+        throw new Error(`Lỗi tải kỳ thÃ nh pháº§n: ${componentError.message}`)
       }
 
       const componentPeriodIds = componentPeriods.map(p => p.id)
@@ -330,7 +330,7 @@ export async function getGradeOverviewAction(
     }
 
     if (gradeError) {
-      throw new Error(`Lá»—i táº£i dá»¯ liá»‡u Ä‘iá»ƒm: ${gradeError.message}`)
+      throw new Error(`Lỗi tải dữ liệu Ä‘iá»ƒm: ${gradeError.message}`)
     }
 
     // Get all students in class (including those without grades)
@@ -341,7 +341,7 @@ export async function getGradeOverviewAction(
       .order('student_name')
 
     if (studentsError) {
-      throw new Error(`Lá»—i táº£i danh sÃ¡ch há»c sinh: ${studentsError.message}`)
+      throw new Error(`Lỗi tải danh sách hồc sinh: ${studentsError.message}`)
     }
 
     // Group grades by student
@@ -407,7 +407,7 @@ export async function getGradeOverviewAction(
           const midtermGrade = studentGrades.midtermGrades.find((g: number | null) => g !== null) || null
           const finalGrade = studentGrades.finalGrades.find((g: number | null) => g !== null) || null
 
-          // Calculate summary using Vietnamese formula: (Tá»•ng Ä‘iá»ƒm thÆ°á»ng xuyÃªn + 2 Ã— Äiá»ƒm giá»¯a ká»³ + 3 Ã— Äiá»ƒm cuá»‘i ká»³) / (Sá»‘ bÃ i thÆ°á»ng xuyÃªn + 5)
+          // Calculate summary using Vietnamese formula: (Tổng Ä‘iá»ƒm thÆ°á»ng xuyÃªn + 2 Ã— Äiá»ƒm giá»¯a kỳ + 3 Ã— Äiá»ƒm cuá»‘i kỳ) / (Sá»‘ bÃ i thÆ°á»ng xuyÃªn + 5)
           if (regularGradeCount > 0 && midtermGrade !== null && finalGrade !== null) {
             const summaryGrade = (regularGradeSum + 2 * midtermGrade + 3 * finalGrade) / (regularGradeCount + 5)
             studentGrades.summaryGrade = Math.round(summaryGrade * 10) / 10 // Round to 1 decimal place
@@ -467,7 +467,7 @@ export async function getGradeOverviewAction(
     console.error('Error getting grade overview:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác Ä‘á»‹nh'
     }
   }
 }
@@ -483,7 +483,7 @@ export async function getClassStudentsAction(classId: string) {
       .order('student_name')
 
     if (error) {
-      throw new Error(`Lá»—i táº£i danh sÃ¡ch há»c sinh: ${error.message}`)
+      throw new Error(`Lỗi tải danh sách hồc sinh: ${error.message}`)
     }
 
     return {
@@ -499,7 +499,7 @@ export async function getClassStudentsAction(classId: string) {
     console.error('Error getting class students:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác Ä‘á»‹nh'
     }
   }
 }

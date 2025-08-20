@@ -284,14 +284,14 @@ export async function getStudentForReportAction(studentId: string, reportPeriodI
     if (studentError) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y há»c sinh hoáº·c báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p'
+        error: 'Không tìm thấy hồc sinh hoặc báº¡n không có quyá»n truy cập'
       }
     }
 
     if (!studentData || !studentData.student || !studentData.class) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin há»c sinh'
+        error: 'Không tìm thấy thông tin hồc sinh'
       }
     }
 
@@ -704,7 +704,7 @@ export async function sendStudentReportAction(reportId: string) {
     }
 
     revalidatePath('/dashboard/teacher/reports')
-    return { success: true, message: `ÄÃ£ gá»­i bÃ¡o cÃ¡o cho ${parents?.length || 0} phá»¥ huynh` }
+    return { success: true, message: `ÄÃ£ gá»­i báo cáo cho ${parents?.length || 0} phụ huynh` }
   } catch (error) {
     console.error('Error in sendStudentReportAction:', error)
     return {

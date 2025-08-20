@@ -43,10 +43,10 @@ export default function TeacherMeetingsPage() {
       if (result.success && result.data) {
         setMeetingSchedules(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i lá»‹ch há»p')
+        toast.error(result.error || 'Không thể tải lịch hồp')
       }
     } catch {
-      toast.error('Lá»—i khi táº£i lá»‹ch há»p')
+      toast.error('Lỗi khi tải lịch hồp')
     } finally {
       setIsLoading(false)
     }
@@ -89,10 +89,10 @@ export default function TeacherMeetingsPage() {
 
   const getMeetingTypeLabel = (type: string) => {
     switch (type) {
-      case 'parent_meeting': return 'Há»p Phá»¥ Huynh'
-      case 'class_meeting': return 'Há»p Lá»›p'
-      case 'individual_meeting': return 'Há»p CÃ¡ NhÃ¢n'
-      default: return 'Cuá»™c Há»p'
+      case 'parent_meeting': return 'Hồp Phụ Huynh'
+      case 'class_meeting': return 'Hồp Lớp'
+      case 'individual_meeting': return 'Hồp CÃ¡ NhÃ¢n'
+      default: return 'Cuá»™c Hồp'
     }
   }
 
@@ -105,7 +105,7 @@ export default function TeacherMeetingsPage() {
       return (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Äang táº£i lá»‹ch há»p...</span>
+          <span className="ml-2">Äang tải lịch hồp...</span>
         </div>
       )
     }
@@ -114,8 +114,8 @@ export default function TeacherMeetingsPage() {
       return (
         <div className="text-center py-8 text-muted-foreground">
           <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>ChÆ°a cÃ³ lá»‹ch há»p nÃ o Ä‘Æ°á»£c táº¡o</p>
-          <p className="text-sm">Nháº¥n &quot;Táº¡o Lá»‹ch Há»p&quot; Ä‘á»ƒ báº¯t Ä‘áº§u</p>
+          <p>Chưa có lịch hồp nÃ o Ä‘Æ°á»£c tạo</p>
+          <p className="text-sm">Nháº¥n &quot;Tạo Lịch Hồp&quot; Ä‘á»ƒ bắt Ä‘áº§u</p>
         </div>
       )
     }
@@ -149,7 +149,7 @@ export default function TeacherMeetingsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    {meeting.recipients_count} phá»¥ huynh
+                    {meeting.recipients_count} phụ huynh
                   </div>
                   {meeting.meeting_location && (
                     <div className="flex items-center gap-2">
@@ -180,9 +180,9 @@ export default function TeacherMeetingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Há»p Phá»¥ Huynh</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Hồp Phụ Huynh</h1>
           <p className="text-muted-foreground">
-            Quáº£n lÃ½ lá»‹ch há»p phá»¥ huynh cho lá»›p chá»§ nhiá»‡m cá»§a báº¡n
+            Quản lý lịch hồp phụ huynh cho lớp chủ nhiệm của báº¡n
           </p>
         </div>
         <Button 
@@ -190,7 +190,7 @@ export default function TeacherMeetingsPage() {
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
-          Táº¡o Lá»‹ch Há»p
+          Tạo Lịch Hồp
         </Button>
       </div>
 
@@ -198,19 +198,19 @@ export default function TeacherMeetingsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng Lá»‹ch Há»p</CardTitle>
+            <CardTitle className="text-sm font-medium min-w-0 flex-1 pr-2">Tổng Lịch Hồp</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{meetingSchedules.length}</div>
             <p className="text-xs text-muted-foreground">
-              Lá»‹ch há»p Ä‘Ã£ táº¡o
+              Lịch hồp Ä‘Ã£ tạo
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium min-w-0 flex-1 pr-2">Phá»¥ Huynh ÄÃ£ Nháº­n</CardTitle>
+            <CardTitle className="text-sm font-medium min-w-0 flex-1 pr-2">Phụ Huynh ÄÃ£ Nháº­n</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
@@ -218,7 +218,7 @@ export default function TeacherMeetingsPage() {
               {meetingSchedules.reduce((total, meeting) => total + meeting.recipients_count, 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Tá»•ng sá»‘ thÃ´ng bÃ¡o Ä‘Ã£ gá»­i
+              Tổng sá»‘ thông báo Ä‘Ã£ gá»­i
             </p>
           </CardContent>
         </Card>
@@ -232,7 +232,7 @@ export default function TeacherMeetingsPage() {
               {meetingSchedules.filter(meeting => isUpcoming(meeting.meeting_date)).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Cuá»™c há»p sáº¯p tá»›i
+              Cuá»™c hồp sáº¯p tá»›i
             </p>
           </CardContent>
         </Card>
@@ -250,7 +250,7 @@ export default function TeacherMeetingsPage() {
               }).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Lá»‹ch há»p thÃ¡ng nÃ y
+              Lịch hồp tháng nÃ y
             </p>
           </CardContent>
         </Card>
@@ -267,22 +267,22 @@ export default function TeacherMeetingsPage() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <h4 className="font-medium">Táº¡o Lá»‹ch Há»p Phá»¥ Huynh:</h4>
+              <h4 className="font-medium">Tạo Lịch Hồp Phụ Huynh:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>â€¢ Nháº¥n nÃºt &quot;Táº¡o Lá»‹ch Há»p&quot; á»Ÿ gÃ³c trÃªn bÃªn pháº£i</li>
-                <li>â€¢ Chá»n lá»›p chá»§ nhiá»‡m cá»§a báº¡n</li>
-                <li>â€¢ Äiá»n thÃ´ng tin cuá»™c há»p (tiÃªu Ä‘á», thá»i gian, Ä‘á»‹a Ä‘iá»ƒm)</li>
-                <li>â€¢ Chá»n há»c sinh cáº§n gá»­i thÃ´ng bÃ¡o cho phá»¥ huynh</li>
-                <li>â€¢ Nháº¥n &quot;Gá»­i Lá»‹ch Há»p&quot; Ä‘á»ƒ hoÃ n táº¥t</li>
+                <li>â€¢ Nháº¥n nÃºt &quot;Tạo Lịch Hồp&quot; á»Ÿ gÃ³c trÃªn bên pháº£i</li>
+                <li>â€¢ Chồn lớp chủ nhiệm của báº¡n</li>
+                <li>â€¢ Äiá»n thông tin cuá»™c hồp (tiÃªu Ä‘á», thồi gian, Ä‘á»‹a Ä‘iá»ƒm)</li>
+                <li>â€¢ Chồn hồc sinh cáº§n gá»­i thông báo cho phụ huynh</li>
+                <li>â€¢ Nháº¥n &quot;Gửi Lịch Hồp&quot; Ä‘á»ƒ hoÃ n táº¥t</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="font-medium">LÆ°u Ã Quan Trá»ng:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>â€¢ Chá»‰ giÃ¡o viÃªn chá»§ nhiá»‡m má»›i cÃ³ thá»ƒ gá»­i lá»‹ch há»p</li>
-                <li>â€¢ ThÃ´ng bÃ¡o sáº½ Ä‘Æ°á»£c gá»­i Ä‘áº¿n táº¥t cáº£ phá»¥ huynh cá»§a há»c sinh Ä‘Ã£ chá»n</li>
-                <li>â€¢ Phá»¥ huynh sáº½ nháº­n Ä‘Æ°á»£c thÃ´ng bÃ¡o trong má»¥c &quot;Lá»‹ch Há»p&quot;</li>
-                <li>â€¢ CÃ³ thá»ƒ chá»n nhiá»u há»c sinh cÃ¹ng lÃºc Ä‘á»ƒ gá»­i thÃ´ng bÃ¡o hÃ ng loáº¡t</li>
+                <li>â€¢ Chồ‰ giáo viên chủ nhiệm mới có thể gá»­i lịch hồp</li>
+                <li>â€¢ Thông báo sẽ Ä‘Æ°á»£c gá»­i Ä‘áº¿n táº¥t cả phụ huynh của hồc sinh Ä‘Ã£ chồn</li>
+                <li>â€¢ Phụ huynh sẽ nhận Ä‘Æ°á»£c thông báo trong mục &quot;Lịch Hồp&quot;</li>
+                <li>â€¢ Có thể chồn nhiá»u hồc sinh cÃ¹ng lúc Ä‘á»ƒ gá»­i thông báo hÃ ng loáº¡t</li>
               </ul>
             </div>
           </div>
@@ -292,10 +292,10 @@ export default function TeacherMeetingsPage() {
       {/* Meeting Schedules List */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Lá»‹ch Há»p ÄÃ£ Táº¡o</CardTitle>
+          <CardTitle>Lịch Hồp ÄÃ£ Tạo</CardTitle>
           <Button variant="outline" onClick={loadMeetingSchedules} disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            LÃ m má»›i
+            LÃ m mới
           </Button>
         </CardHeader>
         <CardContent>

@@ -32,14 +32,14 @@ import { SharedPaginationControls } from '@/shared/components/shared/shared-pagi
 
 // Helper function to get button text for category operations
 function getCategoryButtonText(loading: boolean, selectedCategory: unknown): string {
-  if (loading) return 'Äang lÆ°u...'
-  return selectedCategory ? 'Cáº­p nháº­t' : 'Táº¡o'
+  if (loading) return 'Äang lưu...'
+  return selectedCategory ? 'Cập nhật' : 'Tạo'
 }
 
 // Helper function to get button text for type operations
 function getTypeButtonText(loading: boolean, selectedType: unknown): string {
-  if (loading) return 'Äang lÆ°u...'
-  return selectedType ? 'Cáº­p nháº­t' : 'Táº¡o'
+  if (loading) return 'Äang lưu...'
+  return selectedType ? 'Cập nhật' : 'Tạo'
 }
 
 // Helper function to get points color based on severity
@@ -115,12 +115,12 @@ export default function ViolationCategoriesManager() {
       if (result.success && result.categories) {
         setCategories(result.categories)
       } else {
-        console.error('Lá»—i táº£i danh má»¥c:', result.error)
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh má»¥c vi pháº¡m')
+        console.error('Lỗi tải danh mục:', result.error)
+        toast.error(result.error || 'Không thể tải danh mục vi phạm')
       }
     } catch (error) {
-      console.error('Lá»—i táº£i danh má»¥c:', error)
-      toast.error('KhÃ´ng thá»ƒ táº£i danh má»¥c vi pháº¡m')
+      console.error('Lỗi tải danh mục:', error)
+      toast.error('Không thể tải danh mục vi phạm')
     }
   }, [])
 
@@ -153,12 +153,12 @@ export default function ViolationCategoriesManager() {
         setViolationTypes(result.data || [])
         setTypesTotal(result.total || 0)
       } else {
-        console.error('Lá»—i táº£i loáº¡i vi pháº¡m:', result.error)
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i loáº¡i vi pháº¡m')
+        console.error('Lỗi tải loại vi phạm:', result.error)
+        toast.error(result.error || 'Không thể tải loại vi phạm')
       }
     } catch (error) {
-      console.error('Lá»—i táº£i loáº¡i vi pháº¡m:', error)
-      toast.error('KhÃ´ng thá»ƒ táº£i loáº¡i vi pháº¡m')
+      console.error('Lỗi tải loại vi phạm:', error)
+      toast.error('Không thể tải loại vi phạm')
     } finally {
       setTypesLoading(false)
     }
@@ -178,16 +178,16 @@ export default function ViolationCategoriesManager() {
       const result = await createViolationCategoryAction(data)
 
       if (result.success && result.data) {
-        toast.success('Táº¡o danh má»¥c vi pháº¡m thÃ nh cÃ´ng')
+        toast.success('Tạo danh mục vi phạm thÃ nh công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
         // Optimistically update state instead of reloading all data
         setCategories(prev => [...prev, result.data])
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o danh má»¥c vi pháº¡m')
+        toast.error(result.error || 'Không thể tạo danh mục vi phạm')
       }
     } catch {
-      toast.error('ÄÃ£ xáº£y ra lá»—i khi táº¡o danh má»¥c')
+      toast.error('ÄÃ£ xảy ra lỗi khi tạo danh mục')
     } finally {
       setLoading(false)
     }
@@ -204,7 +204,7 @@ export default function ViolationCategoriesManager() {
       })
 
       if (result.success && result.data) {
-        toast.success('Cáº­p nháº­t danh má»¥c vi pháº¡m thÃ nh cÃ´ng')
+        toast.success('Cập nhật danh mục vi phạm thÃ nh công')
         categoryForm.reset()
         setCategoryDialogOpen(false)
         setSelectedCategory(null)
@@ -213,10 +213,10 @@ export default function ViolationCategoriesManager() {
           cat.id === selectedCategory.id ? result.data : cat
         ))
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ cáº­p nháº­t danh má»¥c vi pháº¡m')
+        toast.error(result.error || 'Không thể cập nhật danh mục vi phạm')
       }
     } catch {
-      toast.error('ÄÃ£ xáº£y ra lá»—i khi cáº­p nháº­t danh má»¥c')
+      toast.error('ÄÃ£ xảy ra lỗi khi cập nhật danh mục')
     } finally {
       setLoading(false)
     }
@@ -228,16 +228,16 @@ export default function ViolationCategoriesManager() {
       const result = await createViolationTypeAction(data)
 
       if (result.success && result.data) {
-        toast.success('Táº¡o loáº¡i vi pháº¡m thÃ nh cÃ´ng')
+        toast.success('Tạo loại vi phạm thÃ nh công')
         typeForm.reset()
         setTypeDialogOpen(false)
         // Reload types to get updated pagination
         loadViolationTypes()
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o loáº¡i vi pháº¡m')
+        toast.error(result.error || 'Không thể tạo loại vi phạm')
       }
     } catch {
-      toast.error('ÄÃ£ xáº£y ra lá»—i khi táº¡o loáº¡i vi pháº¡m')
+      toast.error('ÄÃ£ xảy ra lỗi khi tạo loại vi phạm')
     } finally {
       setLoading(false)
     }
@@ -248,7 +248,7 @@ export default function ViolationCategoriesManager() {
 
     try {
       setLoading(true)
-      // Báº£o Ä‘áº£m points luÃ´n cÃ³ sá»‘ trÆ°á»›c khi gá»i action
+      // Bảo Ä‘áº£m points luôn có sá»‘ trước khi gá»i action
       const result = await updateViolationTypeAction({
         id: selectedType.id,
         category_id: data.category_id,
@@ -259,17 +259,17 @@ export default function ViolationCategoriesManager() {
       })
 
       if (result.success && result.data) {
-        toast.success('Cáº­p nháº­t loáº¡i vi pháº¡m thÃ nh cÃ´ng')
+        toast.success('Cập nhật loại vi phạm thÃ nh công')
         typeForm.reset()
         setTypeDialogOpen(false)
         setSelectedType(null)
         // Reload types to get updated data
         loadViolationTypes()
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ cáº­p nháº­t loáº¡i vi pháº¡m')
+        toast.error(result.error || 'Không thể cập nhật loại vi phạm')
       }
     } catch {
-      toast.error('ÄÃ£ xáº£y ra lá»—i khi cáº­p nháº­t loáº¡i vi pháº¡m')
+      toast.error('ÄÃ£ xảy ra lỗi khi cập nhật loại vi phạm')
     } finally {
       setLoading(false)
     }
@@ -315,28 +315,28 @@ export default function ViolationCategoriesManager() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" />
-                Danh má»¥c vi pháº¡m
+                Danh mục vi phạm
               </CardTitle>
               <CardDescription>
-                Quáº£n lÃ½ danh má»¥c vi pháº¡m vÃ  cÃ¡c loáº¡i vi pháº¡m liÃªn quan
+                Quản lý danh mục vi phạm vÃ  các loại vi phạm liên quan
               </CardDescription>
             </div>
             <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => openCategoryDialog()}>
                   <Plus className="h-4 w-4 mr-2" />
-                  ThÃªm danh má»¥c
+                  Thêm danh mục
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedCategory ? 'Chá»‰nh sá»­a danh má»¥c' : 'Táº¡o danh má»¥c má»›i'}
+                    {selectedCategory ? 'Chỉnh sửa danh mục' : 'Tạo danh mục mới'}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedCategory
-                      ? 'Cáº­p nháº­t thÃ´ng tin danh má»¥c bÃªn dÆ°á»›i.'
-                      : 'Táº¡o danh má»¥c vi pháº¡m má»›i Ä‘á»ƒ tá»• chá»©c cÃ¡c loáº¡i vi pháº¡m.'
+                      ? 'Cập nhật thông tin danh mục bên dưới.'
+                      : 'Tạo danh mục vi phạm mới Ä‘á»ƒ tổ chức các loại vi phạm.'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -352,9 +352,9 @@ export default function ViolationCategoriesManager() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>TÃªn danh má»¥c</FormLabel>
+                          <FormLabel>Tên danh mục</FormLabel>
                           <FormControl>
-                            <Input placeholder="vd: Ká»· luáº­t, Há»c thuáº­t" {...field} />
+                            <Input placeholder="vd: Kỷ luật, Hồc thuật" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -365,10 +365,10 @@ export default function ViolationCategoriesManager() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>MÃ´ táº£</FormLabel>
+                          <FormLabel>Mô tả</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="MÃ´ táº£ ngáº¯n gá»n vá» danh má»¥c nÃ y..."
+                              placeholder="Mô tả ngắn gá»n về danh mục nÃ y..."
                               className="resize-none"
                               {...field}
                             />
@@ -384,7 +384,7 @@ export default function ViolationCategoriesManager() {
                         onClick={() => setCategoryDialogOpen(false)}
                         disabled={loading}
                       >
-                        Há»§y
+                        Hủy
                       </Button>
                       <Button type="submit" disabled={loading}>
                         {getCategoryButtonText(loading, selectedCategory)}
@@ -400,11 +400,11 @@ export default function ViolationCategoriesManager() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>TÃªn danh má»¥c</TableHead>
-                <TableHead>MÃ´ táº£</TableHead>
-                <TableHead>Sá»‘ loáº¡i vi pháº¡m</TableHead>
-                <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                <TableHead className="w-[100px]">Thao tÃ¡c</TableHead>
+                <TableHead>Tên danh mục</TableHead>
+                <TableHead>Mô tả</TableHead>
+                <TableHead>Sá»‘ loại vi phạm</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="w-[100px]">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -414,14 +414,14 @@ export default function ViolationCategoriesManager() {
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">{category.name}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {category.description || 'ChÆ°a cÃ³ mÃ´ táº£'}
+                      {category.description || 'Chưa có mô tả'}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">{typesCount} loáº¡i</Badge>
+                      <Badge variant="secondary">{typesCount} loại</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={category.is_active ? 'default' : 'secondary'}>
-                        {category.is_active ? 'Hoáº¡t Ä‘á»™ng' : 'KhÃ´ng hoáº¡t Ä‘á»™ng'}
+                        {category.is_active ? 'Hoạt Ä‘á»™ng' : 'Không hoạt Ä‘á»™ng'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -439,7 +439,7 @@ export default function ViolationCategoriesManager() {
               {categories.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    ChÆ°a cÃ³ danh má»¥c nÃ o. Táº¡o danh má»¥c Ä‘áº§u tiÃªn Ä‘á»ƒ báº¯t Ä‘áº§u.
+                    Chưa có danh mục nÃ o. Tạo danh mục Ä‘áº§u tiên Ä‘á»ƒ bắt Ä‘áº§u.
                   </TableCell>
                 </TableRow>
               )}
@@ -453,27 +453,27 @@ export default function ViolationCategoriesManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>CÃ¡c loáº¡i vi pháº¡m</CardTitle>
+              <CardTitle>Các loại vi phạm</CardTitle>
               <CardDescription>
-                Nhá»¯ng loáº¡i vi pháº¡m cá»¥ thá»ƒ trong tá»«ng danh má»¥c
+                Những loại vi phạm cụ thể trong từng danh mục
               </CardDescription>
             </div>
             <Dialog open={typeDialogOpen} onOpenChange={setTypeDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => openTypeDialog()} disabled={categories.length === 0}>
                   <Plus className="h-4 w-4 mr-2" />
-                  ThÃªm loáº¡i
+                  Thêm loại
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {selectedType ? 'Chá»‰nh sá»­a loáº¡i vi pháº¡m' : 'Táº¡o loáº¡i vi pháº¡m má»›i'}
+                    {selectedType ? 'Chỉnh sửa loại vi phạm' : 'Tạo loại vi phạm mới'}
                   </DialogTitle>
                   <DialogDescription>
                     {selectedType
-                      ? 'Cáº­p nháº­t thÃ´ng tin loáº¡i vi pháº¡m bÃªn dÆ°á»›i.'
-                      : 'Táº¡o loáº¡i vi pháº¡m má»›i trong má»™t danh má»¥c.'
+                      ? 'Cập nhật thông tin loại vi phạm bên dưới.'
+                      : 'Tạo loại vi phạm mới trong một danh mục.'
                     }
                   </DialogDescription>
                 </DialogHeader>
@@ -489,11 +489,11 @@ export default function ViolationCategoriesManager() {
                       name="category_id"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Danh má»¥c</FormLabel>
+                          <FormLabel>Danh mục</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Chá»n danh má»¥c" />
+                                <SelectValue placeholder="Chồn danh mục" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -513,9 +513,9 @@ export default function ViolationCategoriesManager() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>TÃªn loáº¡i vi pháº¡m</FormLabel>
+                          <FormLabel>Tên loại vi phạm</FormLabel>
                           <FormControl>
-                            <Input placeholder="vd: Äi há»c muá»™n, KhÃ´ng lÃ m bÃ i táº­p" {...field} />
+                            <Input placeholder="vd: Äi hồc muộn, Không lÃ m bÃ i tập" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -526,10 +526,10 @@ export default function ViolationCategoriesManager() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>MÃ´ táº£</FormLabel>
+                          <FormLabel>Mô tả</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="MÃ´ táº£ chi tiáº¿t vá» loáº¡i vi pháº¡m nÃ y..."
+                              placeholder="Mô tả chi tiết về loại vi phạm nÃ y..."
                               className="resize-none"
                               {...field}
                             />
@@ -543,11 +543,11 @@ export default function ViolationCategoriesManager() {
                       name="default_severity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Má»©c Ä‘á»™ máº·c Ä‘á»‹nh</FormLabel>
+                          <FormLabel>Mức Ä‘á»™ mặc Ä‘á»‹nh</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Chá»n má»©c Ä‘á»™ máº·c Ä‘á»‹nh" />
+                                <SelectValue placeholder="Chồn mức Ä‘á»™ mặc Ä‘á»‹nh" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -569,7 +569,7 @@ export default function ViolationCategoriesManager() {
                       name="points"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Äiá»ƒm trá»«</FormLabel>
+                          <FormLabel>Äiá»ƒm trừ</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -581,7 +581,7 @@ export default function ViolationCategoriesManager() {
                             />
                           </FormControl>
                           <p className="text-sm text-muted-foreground">
-                            Sá»‘ Ä‘iá»ƒm sáº½ bá»‹ trá»« khi há»c sinh vi pháº¡m loáº¡i nÃ y (0-100 Ä‘iá»ƒm)
+                            Sá»‘ Ä‘iá»ƒm sẽ bị trừ khi hồc sinh vi phạm loại nÃ y (0-100 Ä‘iá»ƒm)
                           </p>
                           <FormMessage />
                         </FormItem>
@@ -594,7 +594,7 @@ export default function ViolationCategoriesManager() {
                         onClick={() => setTypeDialogOpen(false)}
                         disabled={loading}
                       >
-                        Há»§y
+                        Hủy
                       </Button>
                       <Button type="submit" disabled={loading}>
                         {getTypeButtonText(loading, selectedType)}
@@ -612,7 +612,7 @@ export default function ViolationCategoriesManager() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="TÃ¬m kiáº¿m theo tÃªn hoáº·c mÃ´ táº£..."
+                  placeholder="Tìm kiếm theo tên hoặc mô tả..."
                   value={typesSearch}
                   onChange={(e) => {
                     setTypesSearch(e.target.value)
@@ -627,10 +627,10 @@ export default function ViolationCategoriesManager() {
                   setTypesPage(1)
                 }}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Lá»c theo danh má»¥c" />
+                    <SelectValue placeholder="Lá»c theo danh mục" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ danh má»¥c</SelectItem>
+                    <SelectItem value="all">Tất cả danh mục</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -643,10 +643,10 @@ export default function ViolationCategoriesManager() {
                   setTypesPage(1)
                 }}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Lá»c theo má»©c Ä‘á»™" />
+                    <SelectValue placeholder="Lá»c theo mức Ä‘á»™" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ má»©c Ä‘á»™</SelectItem>
+                    <SelectItem value="all">Tất cả mức Ä‘á»™</SelectItem>
                     {violationSeverityLevels.map((severity) => (
                       <SelectItem key={severity} value={severity}>
                         <Badge className={getSeverityColor(severity)}>
@@ -665,12 +665,12 @@ export default function ViolationCategoriesManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>TÃªn loáº¡i vi pháº¡m</TableHead>
-                  <TableHead>Danh má»¥c</TableHead>
-                  <TableHead>Má»©c Ä‘á»™ máº·c Ä‘á»‹nh</TableHead>
-                  <TableHead>Äiá»ƒm trá»«</TableHead>
-                  <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                  <TableHead className="w-[100px]">Thao tÃ¡c</TableHead>
+                  <TableHead>Tên loại vi phạm</TableHead>
+                  <TableHead>Danh mục</TableHead>
+                  <TableHead>Mức Ä‘á»™ mặc Ä‘á»‹nh</TableHead>
+                  <TableHead>Äiá»ƒm trừ</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="w-[100px]">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -679,7 +679,7 @@ export default function ViolationCategoriesManager() {
                     return (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8">
-                          Äang táº£i...
+                          Äang tải...
                         </TableCell>
                       </TableRow>
                     )
@@ -705,7 +705,7 @@ export default function ViolationCategoriesManager() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={type.is_active ? 'default' : 'secondary'}>
-                            {type.is_active ? 'Hoáº¡t Ä‘á»™ng' : 'KhÃ´ng hoáº¡t Ä‘á»™ng'}
+                            {type.is_active ? 'Hoạt Ä‘á»™ng' : 'Không hoạt Ä‘á»™ng'}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -726,8 +726,8 @@ export default function ViolationCategoriesManager() {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         {hasFilters
-                          ? 'KhÃ´ng tÃ¬m tháº¥y loáº¡i vi pháº¡m nÃ o phÃ¹ há»£p vá»›i bá»™ lá»c.'
-                          : 'ChÆ°a cÃ³ loáº¡i vi pháº¡m nÃ o. Táº¡o danh má»¥c trÆ°á»›c, sau Ä‘Ã³ thÃªm loáº¡i vi pháº¡m.'}
+                          ? 'Không tìm thấy loại vi phạm nÃ o phù hợp về›i bộ lá»c.'
+                          : 'Chưa có loại vi phạm nÃ o. Tạo danh mục trước, sau Ä‘Ã³ thêm loại vi phạm.'}
                       </TableCell>
                     </TableRow>
                   )
@@ -744,7 +744,7 @@ export default function ViolationCategoriesManager() {
                 totalPages={Math.ceil(typesTotal / TYPES_PER_PAGE)}
                 totalCount={typesTotal}
                 onPageChange={setTypesPage}
-                itemName="loáº¡i vi pháº¡m"
+                itemName="loại vi phạm"
               />
             </div>
           )}

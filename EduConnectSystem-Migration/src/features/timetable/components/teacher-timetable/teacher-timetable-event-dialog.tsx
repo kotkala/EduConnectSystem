@@ -69,8 +69,8 @@ export function TeacherTimetableEventDialog({
   if (!event) return null
 
   const getDayName = (dayOfWeek: number) => {
-    const days = ['Chá»§ nháº­t', 'Thá»© hai', 'Thá»© ba', 'Thá»© tÆ°', 'Thá»© nÄƒm', 'Thá»© sÃ¡u', 'Thá»© báº£y']
-    return days[dayOfWeek] || 'KhÃ´ng xÃ¡c Ä‘á»‹nh'
+    const days = ['Chồ§ nhật', 'Thồ© hai', 'Thồ© ba', 'Thồ© tÆ°', 'Thồ© năm', 'Thồ© sÃ¡u', 'Thồ© báº£y']
+    return days[dayOfWeek] || 'Không xác Ä‘á»‹nh'
   }
 
   const formatTime = (timeString: string) => {
@@ -101,10 +101,10 @@ export function TeacherTimetableEventDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Chi Tiáº¿t Lá»›p Há»c
+            Chi Tiáº¿t Lớp Hồc
           </DialogTitle>
           <DialogDescription>
-            Xem chi tiáº¿t buá»•i giáº£ng dáº¡y nÃ y
+            Xem chi tiết buá»•i giảng dạy nÃ y
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +113,7 @@ export function TeacherTimetableEventDialog({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
-                <div className="text-sm font-medium text-muted-foreground">MÃ´n Há»c</div>
+                <div className="text-sm font-medium text-muted-foreground">Môn Hồc</div>
                 <div className="flex items-center gap-2 mt-1">
                   <BookOpen className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">{event.subject_name}</span>
@@ -122,7 +122,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Lá»›p</div>
+                <div className="text-sm font-medium text-muted-foreground">Lớp</div>
                 <div className="flex items-center gap-2 mt-1">
                   <Users className="h-4 w-4 text-green-600" />
                   <span className="font-medium">{event.class_name}</span>
@@ -130,7 +130,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <div className="text-sm font-medium text-muted-foreground">GiÃ¡o ViÃªn</div>
+                <div className="text-sm font-medium text-muted-foreground">Giáo ViÃªn</div>
                 <div className="flex items-center gap-2 mt-1">
                   <User className="h-4 w-4 text-purple-600" />
                   <span className="font-medium">{event.teacher_name}</span>
@@ -151,7 +151,7 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <div className="text-sm font-medium text-muted-foreground">PhÃ²ng Há»c</div>
+                <div className="text-sm font-medium text-muted-foreground">Phòng Hồc</div>
                 <div className="flex items-center gap-2 mt-1">
                   <MapPin className="h-4 w-4 text-red-600" />
                   <span className="font-medium">
@@ -166,11 +166,11 @@ export function TeacherTimetableEventDialog({
               </div>
 
               <div>
-                <div className="text-sm font-medium text-muted-foreground">Thá»i Gian Há»c</div>
+                <div className="text-sm font-medium text-muted-foreground">Thồi Gian Hồc</div>
                 <div className="flex items-center gap-2 mt-1">
                   <Calendar className="h-4 w-4 text-indigo-600" />
                   <span className="font-medium">
-                    Tuáº§n {event.week_number}, {event.semester_name}
+                    Tuần {event.week_number}, {event.semester_name}
                   </span>
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
@@ -197,13 +197,13 @@ export function TeacherTimetableEventDialog({
           <div className="border-t pt-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">NgÃ y táº¡o:</span>
+                <span className="text-muted-foreground">NgÃ y tạo:</span>
                 <span className="ml-2 font-medium">
                   {new Date(event.created_at).toLocaleDateString('vi-VN')}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">Cáº­p nháº­t láº§n cuá»‘i:</span>
+                <span className="text-muted-foreground">Cập nhật láº§n cuá»‘i:</span>
                 <span className="ml-2 font-medium">
                   {new Date(event.updated_at).toLocaleDateString('vi-VN')}
                 </span>
@@ -215,10 +215,10 @@ export function TeacherTimetableEventDialog({
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <div className="flex items-center gap-2 text-blue-800">
               <BookOpen className="h-4 w-4" />
-              <span className="text-sm font-medium">Cháº¿ Äá»™ Xem GiÃ¡o ViÃªn</span>
+              <span className="text-sm font-medium">Cháº¿ Äá»™ Xem Giáo ViÃªn</span>
             </div>
             <p className="text-sm text-blue-700 mt-1">
-              ÄÃ¢y lÃ  cháº¿ Ä‘á»™ xem chá»‰ Ä‘á»c lá»‹ch giáº£ng dáº¡y cá»§a báº¡n. LiÃªn há»‡ quáº£n trá»‹ viÃªn Ä‘á»ƒ thay Ä‘á»•i thá»i khÃ³a biá»ƒu.
+              ÄÃ¢y lÃ  cháº¿ Ä‘á»™ xem chồ‰ Ä‘á»c lịch giảng dạy của báº¡n. LiÃªn hồ‡ quản trị viên Ä‘á»ƒ thay Ä‘á»•i thồi khóa biểu.
             </p>
           </div>
         </div>
@@ -230,7 +230,7 @@ export function TeacherTimetableEventDialog({
             className="flex items-center gap-2"
           >
             <MessageSquare className="h-4 w-4" />
-            Pháº£n Há»“i Há»c Sinh
+            Phản Hồ“i Hồc Sinh
           </Button>
           <Button variant="outline" onClick={onClose}>
             ÄÃ³ng

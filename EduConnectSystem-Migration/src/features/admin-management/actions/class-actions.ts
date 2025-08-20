@@ -22,7 +22,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -32,7 +32,7 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || profile?.role !== "admin") {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyá»n quản trị")
   }
 
   return { userId: user.id }
@@ -57,7 +57,7 @@ export async function createClassAction(formData: ClassFormData) {
     if (existingClass) {
       return {
         success: false,
-        error: "TÃªn lá»›p Ä‘Ã£ tá»“n táº¡i trong niÃªn khÃ³a vÃ  há»c ká»³ nÃ y"
+        error: "Tên lớp Ä‘Ã£ tá»“n táº¡i trong niÃªn khóa vÃ  hồc kỳ nÃ y"
       }
     }
 
@@ -73,14 +73,14 @@ export async function createClassAction(formData: ClassFormData) {
       if (!teacher) {
         return {
           success: false,
-          error: "KhÃ´ng tÃ¬m tháº¥y giÃ¡o viÃªn chá»§ nhiá»‡m Ä‘Ã£ chá»n"
+          error: "Không tìm thấy giáo viên chủ nhiệm Ä‘Ã£ chồn"
         }
       }
 
       if (!teacher.homeroom_enabled) {
         return {
           success: false,
-          error: "GiÃ¡o viÃªn Ä‘Ã£ chá»n chÆ°a Ä‘Æ°á»£c kÃ­ch hoáº¡t cho nhiá»‡m vá»¥ chá»§ nhiá»‡m"
+          error: "Giáo viên Ä‘Ã£ chồn chưa Ä‘Æ°á»£c kÃ­ch hoạt cho nhiệm về¥ chủ nhiệm"
         }
       }
 
@@ -95,7 +95,7 @@ export async function createClassAction(formData: ClassFormData) {
       if (existingAssignment) {
         return {
           success: false,
-          error: `GiÃ¡o viÃªn Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng lÃ m GVCN cho lá»›p "${existingAssignment.name}" trong há»c ká»³ nÃ y`
+          error: `Giáo viên Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n công lÃ m GVCN cho lớp "${existingAssignment.name}" trong hồc kỳ nÃ y`
         }
       }
     }
@@ -128,14 +128,14 @@ export async function createClassAction(formData: ClassFormData) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Táº¡o lá»›p thÃ nh cÃ´ng"
+      message: "Tạo lớp thÃ nh công"
     }
 
   } catch (error) {
     console.error("Create class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ táº¡o lá»›p"
+      error: error instanceof Error ? error.message : "Không thể tạo lớp"
     }
   }
 }
@@ -156,7 +156,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
     if (fetchError || !existingClass) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y lá»›p"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -176,7 +176,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (nameExists) {
         return {
           success: false,
-          error: "TÃªn lá»›p Ä‘Ã£ tá»“n táº¡i trong niÃªn khÃ³a vÃ  há»c ká»³ nÃ y"
+          error: "Tên lớp Ä‘Ã£ tá»“n táº¡i trong niÃªn khóa vÃ  hồc kỳ nÃ y"
         }
       }
     }
@@ -193,14 +193,14 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (!teacher) {
         return {
           success: false,
-          error: "KhÃ´ng tÃ¬m tháº¥y giÃ¡o viÃªn chá»§ nhiá»‡m Ä‘Ã£ chá»n"
+          error: "Không tìm thấy giáo viên chủ nhiệm Ä‘Ã£ chồn"
         }
       }
 
       if (!teacher.homeroom_enabled) {
         return {
           success: false,
-          error: "GiÃ¡o viÃªn Ä‘Ã£ chá»n chÆ°a Ä‘Æ°á»£c kÃ­ch hoáº¡t cho nhiá»‡m vá»¥ chá»§ nhiá»‡m"
+          error: "Giáo viên Ä‘Ã£ chồn chưa Ä‘Æ°á»£c kÃ­ch hoạt cho nhiệm về¥ chủ nhiệm"
         }
       }
 
@@ -216,7 +216,7 @@ export async function updateClassAction(formData: UpdateClassFormData) {
       if (existingAssignment) {
         return {
           success: false,
-          error: `GiÃ¡o viÃªn Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng lÃ m GVCN cho lá»›p "${existingAssignment.name}" trong há»c ká»³ nÃ y`
+          error: `Giáo viên Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n công lÃ m GVCN cho lớp "${existingAssignment.name}" trong hồc kỳ nÃ y`
         }
       }
     }
@@ -251,14 +251,14 @@ export async function updateClassAction(formData: UpdateClassFormData) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Cáº­p nháº­t lá»›p thÃ nh cÃ´ng"
+      message: "Cập nhật lớp thÃ nh công"
     }
 
   } catch (error) {
     console.error("Update class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ cáº­p nháº­t lá»›p"
+      error: error instanceof Error ? error.message : "Không thể cập nhật lớp"
     }
   }
 }
@@ -278,7 +278,7 @@ export async function deleteClassAction(classId: string) {
     if (fetchError || !classData) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y lá»›p"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -286,7 +286,7 @@ export async function deleteClassAction(classId: string) {
     if (classData.current_students > 0) {
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ xÃ³a lá»›p Ä‘ang cÃ³ há»c sinh. Vui lÃ²ng gá»¡ táº¥t cáº£ há»c sinh trÆ°á»›c."
+        error: "Không thể xÃ³a lớp Ä‘ang có hồc sinh. Vui lòng gá»¡ táº¥t cả hồc sinh trước."
       }
     }
 
@@ -306,14 +306,14 @@ export async function deleteClassAction(classId: string) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "XÃ³a lá»›p thÃ nh cÃ´ng"
+      message: "XÃ³a lớp thÃ nh công"
     }
 
   } catch (error) {
     console.error("Delete class error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ xÃ³a lá»›p"
+      error: error instanceof Error ? error.message : "Không thể xÃ³a lớp"
     }
   }
 }
@@ -333,7 +333,7 @@ export async function getClassesAction(filters?: ClassFilters) {
     if (tableCheckError?.message?.includes('relation "classes" does not exist')) {
       return {
         success: false,
-        error: "Báº£ng classes khÃ´ng tá»“n táº¡i. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn Ä‘á»ƒ thiáº¿t láº­p cÆ¡ sá»Ÿ dá»¯ liá»‡u.",
+        error: "Bảng classes không tá»“n táº¡i. Vui lòng liên hồ‡ quản trị viên Ä‘á»ƒ thiáº¿t láº­p cÆ¡ sá»Ÿ dữ liệu.",
         data: [],
         total: 0,
         page: validatedFilters.page
@@ -404,7 +404,7 @@ export async function getClassesAction(filters?: ClassFilters) {
     console.error("Get classes error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch lá»›p",
+      error: error instanceof Error ? error.message : "Không thể láº¥y danh sách lớp",
       data: [],
       total: 0,
       page: 1
@@ -430,7 +430,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (!student) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y há»c sinh"
+        error: "Không tìm thấy hồc sinh"
       }
     }
 
@@ -444,7 +444,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (!classData) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y lá»›p"
+        error: "Không tìm thấy lớp"
       }
     }
 
@@ -452,7 +452,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (classData.current_students >= classData.max_students) {
       return {
         success: false,
-        error: "Lá»›p Ä‘Ã£ Ä‘áº¡t sÄ© sá»‘ tá»‘i Ä‘a"
+        error: "Lớp Ä‘Ã£ Ä‘áº¡t sÄ© sá»‘ tá»‘i Ä‘a"
       }
     }
 
@@ -460,14 +460,14 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (validatedData.assignment_type === 'main' && classData.is_subject_combination) {
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ phÃ¢n há»c sinh vÃ o lá»›p tá»• há»£p lÃ m lá»›p chÃ­nh"
+        error: "Không thể phÃ¢n hồc sinh vÃ o lớp tá»• hợp lÃ m lớp chÃ­nh"
       }
     }
 
     if (validatedData.assignment_type === 'combined' && !classData.is_subject_combination) {
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ phÃ¢n há»c sinh vÃ o lá»›p thÆ°á»ng lÃ m lá»›p tá»• há»£p"
+        error: "Không thể phÃ¢n hồc sinh vÃ o lớp thÆ°á»ng lÃ m lớp tá»• hợp"
       }
     }
 
@@ -482,7 +482,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (existingAssignment) {
       return {
         success: false,
-        error: `Há»c sinh Ä‘Ã£ cÃ³ phÃ¢n cÃ´ng lá»›p dáº¡ng ${validatedData.assignment_type}`
+        error: `Hồc sinh Ä‘Ã£ có phÃ¢n công lớp dáº¡ng ${validatedData.assignment_type}`
       }
     }
 
@@ -518,7 +518,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: `PhÃ¢n cÃ´ng há»c sinh vÃ o lá»›p dáº¡ng ${validatedData.assignment_type} thÃ nh cÃ´ng`
+      message: `PhÃ¢n công hồc sinh vÃ o lớp dáº¡ng ${validatedData.assignment_type} thÃ nh công`
     }
 
   } catch (error) {
@@ -545,7 +545,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     if (fetchError || !assignment) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y phÃ¢n cÃ´ng"
+        error: "Không tìm thấy phÃ¢n công"
       }
     }
 
@@ -587,7 +587,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     revalidatePath("/dashboard/admin/classes")
     return {
       success: true,
-      message: "Gá»¡ há»c sinh khá»i lá»›p thÃ nh cÃ´ng"
+      message: "Gá»¡ hồc sinh khồi lớp thÃ nh công"
     }
 
   } catch (error) {

@@ -19,7 +19,7 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
   }
 
   const getGradeLabel = (grade: number | null) => {
-    if (grade === null) return 'ChÆ°a cÃ³ Ä‘iá»ƒm'
+    if (grade === null) return 'Chưa có Ä‘iá»ƒm'
     if (grade >= 8) return 'Giá»i'
     if (grade >= 6.5) return 'KhÃ¡'
     if (grade >= 5) return 'Trung bÃ¬nh'
@@ -48,12 +48,12 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BookOpen className="h-5 w-5" />
-          Báº£ng Ä‘iá»ƒm chi tiáº¿t theo mÃ´n há»c
+          Bảng Ä‘iá»ƒm chi tiết theo mÃ´n hồc
         </CardTitle>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Há»c sinh: <strong>{studentData.student_name}</strong></span>
+          <span>Hồc sinh: <strong>{studentData.student_name}</strong></span>
           <span>MÃ£ sá»‘: <strong>{studentData.student_number}</strong></span>
-          <span>Lá»›p: <strong>{studentData.class_name}</strong></span>
+          <span>Lớp: <strong>{studentData.class_name}</strong></span>
           {overallAverage && (
             <div className="flex items-center gap-2">
               <span>Äiá»ƒm TB chung:</span>
@@ -72,10 +72,10 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
           <table className="w-full border-collapse">
             <thead className="border-b bg-blue-600 text-white">
               <tr>
-                <th className="text-left p-3 font-medium border-r border-blue-500">MÃ´n há»c</th>
+                <th className="text-left p-3 font-medium border-r border-blue-500">Môn hồc</th>
                 <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm ÄG thÆ°á»ng xuyÃªn</th>
-                <th className="text-center p-3 font-medium border-r border-blue-500">Giá»¯a ká»³</th>
-                <th className="text-center p-3 font-medium border-r border-blue-500">Cuá»‘i ká»³</th>
+                <th className="text-center p-3 font-medium border-r border-blue-500">Giá»¯a kỳ</th>
+                <th className="text-center p-3 font-medium border-r border-blue-500">Cuá»‘i kỳ</th>
                 <th className="text-center p-3 font-medium">TBM</th>
               </tr>
             </thead>
@@ -137,7 +137,7 @@ export function AdminStudentGradeTable({ studentData }: AdminStudentGradeTablePr
         {studentData.subjects.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <BookOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <p>ChÆ°a cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘ cho há»c sinh nÃ y</p>
+            <p>Chưa có dữ liệu Ä‘iá»ƒm sá»‘ cho hồc sinh nÃ y</p>
           </div>
         )}
       </CardContent>

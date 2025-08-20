@@ -99,7 +99,7 @@ export async function getClassroomsAction(filters: Partial<ClassroomFilters> = {
     console.error('Error in getClassroomsAction:', error)
     return { 
       success: false, 
-      error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ²ng há»c',
+      error: 'Không thể láº¥y danh sách phÃ²ng hồc',
       data: [], 
       total: 0 
     }
@@ -126,7 +126,7 @@ export async function createClassroomAction(formData: ClassroomFormData) {
     return { success: true, data }
   } catch (error) {
     console.error('Error in createClassroomAction:', error)
-    return { success: false, error: 'KhÃ´ng thá»ƒ táº¡o phÃ²ng há»c' }
+    return { success: false, error: 'Không thể tạo phÃ²ng hồc' }
   }
 }
 
@@ -152,7 +152,7 @@ export async function updateClassroomAction(formData: UpdateClassroomFormData) {
     return { success: true, data }
   } catch (error) {
     console.error('Error in updateClassroomAction:', error)
-    return { success: false, error: 'KhÃ´ng thá»ƒ cáº­p nháº­t phÃ²ng há»c' }
+    return { success: false, error: 'Không thể cập nhật phÃ²ng hồc' }
   }
 }
 
@@ -174,7 +174,7 @@ export async function deleteClassroomAction(id: string) {
     return { success: true }
   } catch (error) {
     console.error('Error in deleteClassroomAction:', error)
-    return { success: false, error: 'KhÃ´ng thá»ƒ xÃ³a phÃ²ng há»c' }
+    return { success: false, error: 'Không thể xÃ³a phÃ²ng hồc' }
   }
 }
 
@@ -228,6 +228,6 @@ export async function getAvailableClassroomsAction(
     return { success: true, data: availableClassrooms }
   } catch (error) {
     console.error('Error in getAvailableClassroomsAction:', error)
-    return { success: false, error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ²ng há»c kháº£ dá»¥ng', data: [] }
+    return { success: false, error: 'Không thể láº¥y danh sách phÃ²ng hồc kháº£ dá»¥ng', data: [] }
   }
 }

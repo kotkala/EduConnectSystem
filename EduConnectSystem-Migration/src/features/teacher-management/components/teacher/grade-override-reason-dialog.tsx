@@ -73,9 +73,9 @@ export function GradeOverrideReasonDialog({
   const getComponentDisplayName = (componentType: string) => {
     switch (componentType) {
       case 'midterm':
-        return 'Giá»¯a ká»³'
+        return 'Giá»¯a kỳ'
       case 'final':
-        return 'Cuá»‘i ká»³'
+        return 'Cuá»‘i kỳ'
       default:
         return componentType
     }
@@ -87,7 +87,7 @@ export function GradeOverrideReasonDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            XÃ¡c nháº­n ghi Ä‘Ã¨ Ä‘iá»ƒm sá»‘
+            Xác nhận ghi Ä‘Ã¨ Ä‘iá»ƒm sá»‘
           </DialogTitle>
         </DialogHeader>
 
@@ -95,8 +95,8 @@ export function GradeOverrideReasonDialog({
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              PhÃ¡t hiá»‡n {overrides.length} thay Ä‘á»•i Ä‘iá»ƒm kiá»ƒm tra giá»¯a ká»³/cuá»‘i ká»³. 
-              Vui lÃ²ng nháº­p lÃ½ do cho má»—i thay Ä‘á»•i Ä‘á»ƒ tiáº¿p tá»¥c.
+              PhÃ¡t hiá»‡n {overrides.length} thay Ä‘á»•i Ä‘iá»ƒm kiá»ƒm tra giá»¯a kỳ/cuá»‘i kỳ. 
+              Vui lòng nháº­p lý do cho má»—i thay Ä‘á»•i Ä‘á»ƒ tiáº¿p tá»¥c.
             </AlertDescription>
           </Alert>
 
@@ -130,18 +130,18 @@ export function GradeOverrideReasonDialog({
 
                   <div className="space-y-2">
                     <Label htmlFor={`reason-${key}`}>
-                      LÃ½ do thay Ä‘á»•i Ä‘iá»ƒm <span className="text-red-500">*</span>
+                      Lý do thay Ä‘á»•i Ä‘iá»ƒm <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id={`reason-${key}`}
-                      placeholder="Nháº­p lÃ½ do thay Ä‘á»•i Ä‘iá»ƒm sá»‘ (vÃ­ dá»¥: Sá»­a lá»—i nháº­p liá»‡u, PhÃºc kháº£o, Äiá»u chá»‰nh theo quy Ä‘á»‹nh...)"
+                      placeholder="Nhập lý do thay Ä‘á»•i Ä‘iá»ƒm sá»‘ (vÃ­ dá»¥: Sá»­a lỗi nháº­p liệu, PhÃºc kháº£o, Äiá»u chồ‰nh theo quy Ä‘á»‹nh...)"
                       value={reason}
                       onChange={(e) => handleReasonChange(key, e.target.value)}
                       className={!hasReason ? 'border-red-300 focus:border-red-500' : ''}
                       rows={3}
                     />
                     {!hasReason && (
-                      <p className="text-sm text-red-600">Vui lÃ²ng nháº­p lÃ½ do thay Ä‘á»•i</p>
+                      <p className="text-sm text-red-600">Vui lòng nháº­p lý do thay Ä‘á»•i</p>
                     )}
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export function GradeOverrideReasonDialog({
             disabled={loading}
           >
             <X className="mr-2 h-4 w-4" />
-            Há»§y bá»
+            Hủy bá»
           </Button>
           <Button
             onClick={handleConfirm}
@@ -167,7 +167,7 @@ export function GradeOverrideReasonDialog({
             })}
           >
             <Save className="mr-2 h-4 w-4" />
-            {loading ? 'Äang xá»­ lÃ½...' : 'XÃ¡c nháº­n thay Ä‘á»•i'}
+            {loading ? 'Äang xá»­ lý...' : 'Xác nhận thay Ä‘á»•i'}
           </Button>
         </DialogFooter>
       </DialogContent>

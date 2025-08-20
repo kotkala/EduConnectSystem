@@ -99,7 +99,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
       const result = await response.json()
 
       if (result.success) {
-        toast.success("Đã xoá yêu cầu thành công")
+        toast.success("Đã xóa yêu cầu thành công")
         setRequests(prev => prev.filter(req => req.id !== requestToDelete))
         setDeleteDialogOpen(false)
         setRequestToDelete(null)
@@ -107,7 +107,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         toast.error(result.error)
       }
     } catch {
-      toast.error("Không thể xoá yêu cầu")
+      toast.error("Không thể xóa yêu cầu")
     } finally {
       setDeleting(false)
     }
@@ -276,7 +276,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
           <DialogHeader>
             <DialogTitle>Xoá yêu cầu đổi lịch</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn xoá yêu cầu đổi lịch này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa yêu cầu đổi lịch này? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -292,7 +292,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
               onClick={handleDeleteRequest}
               disabled={deleting}
             >
-              {deleting ? "Đang xoá..." : "Xoá"}
+              {deleting ? "Đang xóa..." : "Xoá"}
             </Button>
           </DialogFooter>
         </DialogContent>

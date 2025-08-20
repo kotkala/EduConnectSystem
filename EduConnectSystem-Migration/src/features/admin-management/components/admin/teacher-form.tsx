@@ -78,16 +78,16 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
   return (
     <Card className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto p-3 sm:p-4 md:p-6">
       <CardHeader className="space-y-2 sm:space-y-3">
-        <CardTitle className="text-lg sm:text-xl md:text-2xl">{isEditing ? "Chá»‰nh sá»­a giÃ¡o viÃªn" : "ThÃªm giÃ¡o viÃªn má»›i"}</CardTitle>
+        <CardTitle className="text-lg sm:text-xl md:text-2xl">{isEditing ? "Chỉnh sửa giáo viên" : "Thêm giáo viên mới"}</CardTitle>
         <CardDescription className="text-sm sm:text-base">
-          {isEditing ? "Cáº­p nháº­t thÃ´ng tin giÃ¡o viÃªn" : "Táº¡o tÃ i khoáº£n giÃ¡o viÃªn má»›i"}
+          {isEditing ? "Cập nhật thông tin giáo viên" : "Tạo tÃ i khoản giáo viên mới"}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
           {/* Employee ID */}
           <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="employee_id" className="text-sm sm:text-base">MÃ£ nhÃ¢n viÃªn *</Label>
+            <Label htmlFor="employee_id" className="text-sm sm:text-base">MÃ£ nhân viên *</Label>
             <Input
               id="employee_id"
               {...form.register("employee_id")}
@@ -101,11 +101,11 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Full Name */}
           <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="full_name" className="text-sm sm:text-base">Há» vÃ  tÃªn *</Label>
+            <Label htmlFor="full_name" className="text-sm sm:text-base">Hồ vÃ  tên *</Label>
             <Input
               id="full_name"
               {...form.register("full_name")}
-              placeholder="Nháº­p há» vÃ  tÃªn"
+              placeholder="Nhập hồ vÃ  tên"
               className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
             />
             {form.formState.errors.full_name && (
@@ -150,7 +150,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               onValueChange={(value) => form.setValue("gender", value as "male" | "female")}
             >
               <SelectTrigger className={form.formState.errors.gender ? "border-red-500" : ""}>
-                <SelectValue placeholder="Chá»n giá»›i tÃ­nh" />
+                <SelectValue placeholder="Chồn giá»›i tÃ­nh" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="male">Nam</SelectItem>
@@ -178,11 +178,11 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
           {/* Address */}
           <div className="space-y-2">
-            <Label htmlFor="address">Äá»‹a chá»‰ *</Label>
+            <Label htmlFor="address">Äá»‹a chồ‰ *</Label>
             <Textarea
               id="address"
               {...form.register("address")}
-              placeholder="Nháº­p Ä‘á»‹a chá»‰ Ä‘áº§y Ä‘á»§"
+              placeholder="Nhập Ä‘á»‹a chồ‰ Ä‘áº§y Ä‘á»§"
               rows={3}
               className={form.formState.errors.address ? "border-red-500" : ""}
             />
@@ -232,12 +232,12 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditing ? "Äang cáº­p nháº­t..." : "Äang táº¡o..."}
+                  {isEditing ? "Äang cập nhật..." : "Äang tạo..."}
                 </>
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {isEditing ? "Cáº­p nháº­t giÃ¡o viÃªn" : "Táº¡o giÃ¡o viÃªn"}
+                  {isEditing ? "Cập nhật giáo viên" : "Tạo giáo viên"}
                 </>
               )}
             </Button>
@@ -250,7 +250,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
                 disabled={isSubmitting}
               >
                 <X className="mr-2 h-4 w-4" />
-                Há»§y
+                Hủy
               </Button>
             )}
           </div>

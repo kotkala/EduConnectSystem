@@ -196,13 +196,13 @@ export function ReportPeriodForm({
       const sampleSemesters = [
         {
           academic_year_id: formData.academic_year_id,
-          name: 'Há»c ká»³ 1',
+          name: 'Hồc kỳ 1',
           start_date: `${currentYear}-09-01`,
           end_date: `${currentYear}-12-31`
         },
         {
           academic_year_id: formData.academic_year_id,
-          name: 'Há»c ká»³ 2',
+          name: 'Hồc kỳ 2',
           start_date: `${currentYear + 1}-01-01`,
           end_date: `${currentYear + 1}-05-31`
         }
@@ -267,7 +267,7 @@ export function ReportPeriodForm({
       const startDateFormatted = periodStart.toLocaleDateString('vi-VN')
       const endDateFormatted = periodEnd.toLocaleDateString('vi-VN')
 
-      const periodName = `BÃ¡o cÃ¡o Ä‘á»£t ${periodNumber}`
+      const periodName = `Báo cáo Ä‘á»£t ${periodNumber}`
       const displayName = `${periodName} (${startDateFormatted} - ${endDateFormatted})`
 
       periods.push({
@@ -442,10 +442,10 @@ export function ReportPeriodForm({
 
           {formData.name && formData.start_date && formData.end_date && (
             <div className="p-3 bg-muted rounded-lg mt-4">
-              <h4 className="font-medium text-sm mb-2">TÃ³m táº¯t ká»³ bÃ¡o cÃ¡o</h4>
+              <h4 className="font-medium text-sm mb-2">TÃ³m táº¯t kỳ báo cáo</h4>
               <div className="space-y-1 text-xs text-muted-foreground">
-                <p><strong>TÃªn:</strong> {formData.name}</p>
-                <p><strong>NgÃ y báº¯t Ä‘áº§u:</strong> {new Date(formData.start_date).toLocaleDateString('vi-VN')}</p>
+                <p><strong>Tên:</strong> {formData.name}</p>
+                <p><strong>NgÃ y bắt Ä‘áº§u:</strong> {new Date(formData.start_date).toLocaleDateString('vi-VN')}</p>
                 <p><strong>NgÃ y káº¿t thÃºc:</strong> {new Date(formData.end_date).toLocaleDateString('vi-VN')}</p>
               </div>
             </div>

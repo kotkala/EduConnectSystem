@@ -62,11 +62,11 @@ export function ChatHistorySidebar({
         setConversations(result.data)
         setHasLoaded(true)
       } else {
-        toast.error('KhÃ´ng thá»ƒ táº£i lá»‹ch sá»­ chat')
+        toast.error('Không thể tải lịch sá»­ chat')
       }
     } catch (error) {
       console.error('Error loading conversations:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº£i lá»‹ch sá»­')
+      toast.error('Có lỗi xảy ra khi tải lịch sá»­')
     } finally {
       setIsLoading(false)
     }
@@ -113,11 +113,11 @@ export function ChatHistorySidebar({
         }))
         setSearchResults(transformedResults)
       } else {
-        toast.error('KhÃ´ng thá»ƒ tÃ¬m kiáº¿m tin nháº¯n')
+        toast.error('Không thể tìm kiếm tin nhắn')
       }
     } catch (error) {
       console.error('Error searching messages:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi tÃ¬m kiáº¿m')
+      toast.error('Có lỗi xảy ra khi tìm kiếm')
     } finally {
       setIsSearching(false)
     }
@@ -128,13 +128,13 @@ export function ChatHistorySidebar({
       const result = await archiveConversation(conversationId)
       if (result.success) {
         setConversations(prev => prev.filter(c => c.id !== conversationId))
-        toast.success('ÄÃ£ lÆ°u trá»¯ cuá»™c trÃ² chuyá»‡n')
+        toast.success('ÄÃ£ lưu trá»¯ cuá»™c trÃ² chuyá»‡n')
       } else {
-        toast.error('KhÃ´ng thá»ƒ lÆ°u trá»¯ cuá»™c trÃ² chuyá»‡n')
+        toast.error('Không thể lưu trá»¯ cuá»™c trÃ² chuyá»‡n')
       }
     } catch (error) {
       console.error('Error archiving conversation:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra')
+      toast.error('Có lỗi xảy ra')
     }
   }
 
@@ -233,8 +233,8 @@ export function ChatHistorySidebar({
     return (
       <div className="text-center py-8 text-gray-500">
         <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">ChÆ°a cÃ³ cuá»™c trÃ² chuyá»‡n nÃ o</p>
-        <p className="text-xs mt-1">Báº¯t Ä‘áº§u chat Ä‘á»ƒ táº¡o lá»‹ch sá»­</p>
+        <p className="text-sm">Chưa có cuá»™c trÃ² chuyá»‡n nÃ o</p>
+        <p className="text-xs mt-1">Báº¯t Ä‘áº§u chat Ä‘á»ƒ tạo lịch sá»­</p>
       </div>
     )
   }
@@ -247,7 +247,7 @@ export function ChatHistorySidebar({
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <History className="h-5 w-5 text-blue-500" />
-          <h2 className="font-semibold">Lá»‹ch sá»­ chat</h2>
+          <h2 className="font-semibold">Lịch sá»­ chat</h2>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -258,7 +258,7 @@ export function ChatHistorySidebar({
       <div className="p-4 border-b">
         <div className="flex space-x-2">
           <Input
-            placeholder="TÃ¬m kiáº¿m tin nháº¯n..."
+            placeholder="Tìm kiếm tin nhắn..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -281,7 +281,7 @@ export function ChatHistorySidebar({
           className="w-full bg-blue-500 hover:bg-blue-600"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Cuá»™c trÃ² chuyá»‡n má»›i
+          Cuá»™c trÃ² chuyá»‡n mới
         </Button>
       </div>
 
@@ -291,7 +291,7 @@ export function ChatHistorySidebar({
           /* Search Results */
           <div className="p-4">
             <h3 className="text-sm font-medium text-gray-500 mb-3">
-              Káº¿t quáº£ tÃ¬m kiáº¿m ({searchResults.length})
+              Káº¿t quáº£ tìm kiếm ({searchResults.length})
             </h3>
             <div className="space-y-2">
               {searchResults.map((result) => (
@@ -330,7 +330,7 @@ export function ChatHistorySidebar({
       {/* Footer */}
       <div className="p-4 border-t bg-gray-50">
         <div className="text-xs text-gray-500 text-center">
-          Lá»‹ch sá»­ chat Ä‘Æ°á»£c lÆ°u trá»¯ an toÃ n
+          Lịch sá»­ chat Ä‘Æ°á»£c lưu trá»¯ an toÃ n
         </div>
       </div>
     </div>

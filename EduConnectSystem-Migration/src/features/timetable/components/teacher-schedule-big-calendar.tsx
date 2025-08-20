@@ -163,13 +163,13 @@ export default function TeacherScheduleBigCalendar() {
 
         setEvents(calendarEvents);
       } else {
-        toast.error("KhÃ´ng thá»ƒ táº£i lá»‹ch giáº£ng dáº¡y");
+        toast.error("Không thể tải lịch giảng dạy");
         setEvents([]);
         setTimetableEventsMap(new Map());
       }
     } catch (error) {
       console.error("Error loading timetable events:", error);
-      toast.error("KhÃ´ng thá»ƒ táº£i lá»‹ch giáº£ng dáº¡y");
+      toast.error("Không thể tải lịch giảng dạy");
       setEvents([]);
       setTimetableEventsMap(new Map());
     } finally {

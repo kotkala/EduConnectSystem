@@ -93,7 +93,7 @@ export default function DisciplinaryManagement() {
         }
       }
     } catch (error) {
-      console.error('Lá»—i táº£i há»c kÃ¬ hiá»‡n táº¡i:', error)
+      console.error('Lỗi tải hồc kì hiá»‡n táº¡i:', error)
     }
   }
 
@@ -112,9 +112,9 @@ export default function DisciplinaryManagement() {
       case 'draft': return 'NhÃ¡p'
       case 'sent_to_homeroom': return 'ÄÃ£ gá»­i GVCN'
       case 'acknowledged': return 'GVCN Ä‘Ã£ xem'
-      case 'meeting_scheduled': return 'ÄÃ£ lÃªn lá»‹ch há»p'
-      case 'resolved': return 'ÄÃ£ giáº£i quyáº¿t'
-      default: return 'KhÃ´ng xÃ¡c Ä‘á»‹nh'
+      case 'meeting_scheduled': return 'ÄÃ£ lÃªn lịch hồp'
+      case 'resolved': return 'ÄÃ£ giáº£i quyết'
+      default: return 'Không xác Ä‘á»‹nh'
     }
   }
 
@@ -125,7 +125,7 @@ export default function DisciplinaryManagement() {
         setBlocks(result.data)
       }
     } catch (error) {
-      console.error('Lá»—i táº£i khá»‘i lá»›p:', error)
+      console.error('Lỗi tải khồ‘i lớp:', error)
     }
   }
 
@@ -136,7 +136,7 @@ export default function DisciplinaryManagement() {
         setActionTypes(result.data)
       }
     } catch (error) {
-      console.error('Lá»—i táº£i hÃ¬nh thá»©c ká»· luáº­t:', error)
+      console.error('Lỗi tải hình thức kỷ luật:', error)
     }
   }
 
@@ -147,7 +147,7 @@ export default function DisciplinaryManagement() {
         setCases(result.data)
       }
     } catch (error) {
-      console.error('Lá»—i táº£i case ká»· luáº­t:', error)
+      console.error('Lỗi tải case kỷ luật:', error)
     }
   }
 
@@ -165,7 +165,7 @@ export default function DisciplinaryManagement() {
           setClasses(result.data)
         }
       } catch (error) {
-        console.error('Lá»—i táº£i lá»›p:', error)
+        console.error('Lỗi tải lớp:', error)
       }
     }
   }
@@ -182,7 +182,7 @@ export default function DisciplinaryManagement() {
           setStudents(result.data)
         }
       } catch (error) {
-        console.error('Lá»—i táº£i há»c sinh:', error)
+        console.error('Lỗi tải hồc sinh:', error)
       }
     }
   }
@@ -194,13 +194,13 @@ export default function DisciplinaryManagement() {
 
   const handleCreateCase = async () => {
     if (!selectedStudent || !selectedActionType || !selectedClass || !currentSemester) {
-      toast.error('Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin')
+      toast.error('Vui lòng chồn Ä‘áº§y Ä‘á»§ thông tin')
       return
     }
 
     setIsLoading(true)
     try {
-      // Láº¥y vi pháº¡m tuáº§n hiá»‡n táº¡i cá»§a há»c sinh Ä‘á»ƒ Ä‘Ã­nh kÃ¨m
+      // Lấy vi phạm tuần hiá»‡n táº¡i của hồc sinh Ä‘á»ƒ Ä‘Ã­nh kÃ¨m
       const currentWeek = Math.ceil((Date.now() - new Date('2024-01-01').getTime()) / (7 * 24 * 60 * 60 * 1000))
 
       const result = await createDisciplinaryCaseAction({
@@ -214,17 +214,17 @@ export default function DisciplinaryManagement() {
       })
 
       if (result.success) {
-        toast.success('Táº¡o case ká»· luáº­t thÃ nh cÃ´ng')
+        toast.success('Tạo case kỷ luật thÃ nh công')
         setSelectedStudent('')
         setSelectedActionType('')
         setNotes('')
         loadCases()
       } else {
-        toast.error(result.error || 'Táº¡o case ká»· luáº­t tháº¥t báº¡i')
+        toast.error(result.error || 'Tạo case kỷ luật tháº¥t báº¡i')
       }
     } catch (error: unknown) {
-      console.error('Lá»—i táº¡o case ká»· luáº­t:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº¡o case ká»· luáº­t')
+      console.error('Lỗi tạo case kỷ luật:', error)
+      toast.error('Có lỗi xảy ra khi tạo case kỷ luật')
     } finally {
       setIsLoading(false)
     }
@@ -232,7 +232,7 @@ export default function DisciplinaryManagement() {
 
   const handleCreateActionType = async () => {
     if (!newActionType.name.trim()) {
-      toast.error('Vui lÃ²ng nháº­p tÃªn hÃ¬nh thá»©c ká»· luáº­t')
+      toast.error('Vui lòng nháº­p tên hình thức kỷ luật')
       return
     }
 
@@ -243,39 +243,39 @@ export default function DisciplinaryManagement() {
       })
 
       if (result.success) {
-        toast.success('Táº¡o hÃ¬nh thá»©c ká»· luáº­t thÃ nh cÃ´ng')
+        toast.success('Tạo hình thức kỷ luật thÃ nh công')
         setNewActionType({ name: '', description: '' })
         setShowActionTypeDialog(false)
         loadActionTypes()
       } else {
-        toast.error(result.error || 'Táº¡o hÃ¬nh thá»©c ká»· luáº­t tháº¥t báº¡i')
+        toast.error(result.error || 'Tạo hình thức kỷ luật tháº¥t báº¡i')
       }
     } catch (error: unknown) {
-      console.error('Lá»—i táº¡o hÃ¬nh thá»©c ká»· luáº­t:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº¡o hÃ¬nh thá»©c ká»· luáº­t')
+      console.error('Lỗi tạo hình thức kỷ luật:', error)
+      toast.error('Có lỗi xảy ra khi tạo hình thức kỷ luật')
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* Form táº¡o case ká»· luáº­t */}
+      {/* Form tạo case kỷ luật */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            Táº¡o case ká»· luáº­t má»›i
+            Tạo case kỷ luật mới
           </CardTitle>
           <CardDescription>
-            Chá»n há»c sinh vÃ  hÃ¬nh thá»©c ká»· luáº­t Ä‘á»ƒ táº¡o case xá»­ lÃ½
+            Chồn hồc sinh vÃ  hình thức kỷ luật Ä‘á»ƒ tạo case xá»­ lý
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="block">Khá»‘i lá»›p</Label>
+              <Label htmlFor="block">Khồ‘i lớp</Label>
               <Select value={selectedBlock} onValueChange={handleBlockChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n khá»‘i" />
+                  <SelectValue placeholder="Chồn khồ‘i" />
                 </SelectTrigger>
                 <SelectContent>
                   {blocks.map((block) => (
@@ -288,10 +288,10 @@ export default function DisciplinaryManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="class">Lá»›p</Label>
+              <Label htmlFor="class">Lớp</Label>
               <Select value={selectedClass} onValueChange={handleClassChange} disabled={!selectedBlock}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n lá»›p" />
+                  <SelectValue placeholder="Chồn lớp" />
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map((cls) => (
@@ -304,10 +304,10 @@ export default function DisciplinaryManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="student-search">TÃ¬m há»c sinh</Label>
+              <Label htmlFor="student-search">Tìm hồc sinh</Label>
               <Input
                 id="student-search"
-                placeholder="Nháº­p tÃªn hoáº·c mÃ£ há»c sinh"
+                placeholder="Nhập tên hoặc mÃ£ hồc sinh"
                 value={studentSearch}
                 onChange={(e) => setStudentSearch(e.target.value)}
                 disabled={!selectedClass}
@@ -317,7 +317,7 @@ export default function DisciplinaryManagement() {
 
           {selectedClass && (
             <div className="space-y-2">
-              <Label>Chá»n há»c sinh</Label>
+              <Label>Chồn hồc sinh</Label>
               <div className="max-h-32 overflow-y-auto border rounded-md p-2">
                 {filteredStudents.length > 0 ? (
                   <div className="space-y-1">
@@ -337,7 +337,7 @@ export default function DisciplinaryManagement() {
                   </div>
                 ) : (
                   <div className="text-center text-muted-foreground py-4">
-                    KhÃ´ng tÃ¬m tháº¥y há»c sinh
+                    Không tìm thấy hồc sinh
                   </div>
                 )}
               </div>
@@ -347,46 +347,46 @@ export default function DisciplinaryManagement() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="action-type">HÃ¬nh thá»©c ká»· luáº­t</Label>
+                <Label htmlFor="action-type">Hình thức kỷ luật</Label>
                 <Dialog open={showActionTypeDialog} onOpenChange={setShowActionTypeDialog}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm">
                       <Settings className="h-4 w-4 mr-1" />
-                      Quáº£n lÃ½
+                      Quản lý
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>ThÃªm hÃ¬nh thá»©c ká»· luáº­t</DialogTitle>
+                      <DialogTitle>Thêm hình thức kỷ luật</DialogTitle>
                       <DialogDescription>
-                        Táº¡o hÃ¬nh thá»©c ká»· luáº­t má»›i cho há»‡ thá»‘ng
+                        Tạo hình thức kỷ luật mới cho hồ‡ thồ‘ng
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="new-action-name">TÃªn hÃ¬nh thá»©c</Label>
+                        <Label htmlFor="new-action-name">Tên hình thức</Label>
                         <Input
                           id="new-action-name"
                           value={newActionType.name}
                           onChange={(e) => setNewActionType(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="VD: Khiá»ƒn trÃ¡ch trÆ°á»›c lá»›p"
+                          placeholder="VD: Khiển trách trước lớp"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="new-action-desc">MÃ´ táº£</Label>
+                        <Label htmlFor="new-action-desc">Mô tả</Label>
                         <Textarea
                           id="new-action-desc"
                           value={newActionType.description}
                           onChange={(e) => setNewActionType(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="MÃ´ táº£ chi tiáº¿t hÃ¬nh thá»©c ká»· luáº­t"
+                          placeholder="Mô tả chi tiết hình thức kỷ luật"
                         />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setShowActionTypeDialog(false)}>
-                          Há»§y
+                          Hủy
                         </Button>
                         <Button onClick={handleCreateActionType}>
-                          Táº¡o
+                          Tạo
                         </Button>
                       </div>
                     </div>
@@ -395,7 +395,7 @@ export default function DisciplinaryManagement() {
               </div>
               <Select value={selectedActionType} onValueChange={setSelectedActionType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n hÃ¬nh thá»©c ká»· luáº­t" />
+                  <SelectValue placeholder="Chồn hình thức kỷ luật" />
                 </SelectTrigger>
                 <SelectContent>
                   {actionTypes.filter(type => type.is_active).map((type) => (
@@ -413,7 +413,7 @@ export default function DisciplinaryManagement() {
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Ná»™i dung cá»¥ thá»ƒ cá»§a vi pháº¡m vÃ  biá»‡n phÃ¡p xá»­ lÃ½"
+                placeholder="Ná»™i dung cụ thể của vi phạm vÃ  biá»‡n phÃ¡p xá»­ lý"
                 rows={3}
               />
             </div>
@@ -422,18 +422,18 @@ export default function DisciplinaryManagement() {
           <div className="flex justify-end">
             <Button onClick={handleCreateCase} disabled={isLoading || !selectedStudent || !selectedActionType}>
               <Plus className="h-4 w-4 mr-2" />
-              {isLoading ? 'Äang táº¡o...' : 'ThÃªm vÃ o danh sÃ¡ch xá»­ lÃ½'}
+              {isLoading ? 'Äang tạo...' : 'Thêm vÃ o danh sách xá»­ lý'}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Danh sÃ¡ch case ká»· luáº­t */}
+      {/* Danh sách case kỷ luật */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sÃ¡ch case ká»· luáº­t</CardTitle>
+          <CardTitle>Danh sách case kỷ luật</CardTitle>
           <CardDescription>
-            Quáº£n lÃ½ cÃ¡c case ká»· luáº­t Ä‘Ã£ táº¡o
+            Quản lý các case kỷ luật Ä‘Ã£ tạo
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -441,12 +441,12 @@ export default function DisciplinaryManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Há»c sinh</TableHead>
-                  <TableHead>Lá»›p</TableHead>
-                  <TableHead>HÃ¬nh thá»©c ká»· luáº­t</TableHead>
-                  <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                  <TableHead>NgÃ y táº¡o</TableHead>
-                  <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                  <TableHead>Hồc sinh</TableHead>
+                  <TableHead>Lớp</TableHead>
+                  <TableHead>Hình thức kỷ luật</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>NgÃ y tạo</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -487,7 +487,7 @@ export default function DisciplinaryManagement() {
             </Table>
           ) : (
             <div className="text-center text-muted-foreground py-8">
-              ChÆ°a cÃ³ case ká»· luáº­t nÃ o Ä‘Æ°á»£c táº¡o
+              Chưa có case kỷ luật nÃ o Ä‘Æ°á»£c tạo
             </div>
           )}
         </CardContent>

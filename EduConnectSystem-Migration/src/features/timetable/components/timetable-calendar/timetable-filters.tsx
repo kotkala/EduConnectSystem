@@ -179,9 +179,9 @@ export function TimetableFilters({
       try {
         // Use standard Vietnamese grade levels
         const gradeLevels: GradeLevel[] = [
-          { level: "10", display_name: "Lá»›p 10" },
-          { level: "11", display_name: "Lá»›p 11" },
-          { level: "12", display_name: "Lá»›p 12" },
+          { level: "10", display_name: "Lớp 10" },
+          { level: "11", display_name: "Lớp 11" },
+          { level: "12", display_name: "Lớp 12" },
         ];
         setGradeLevels(gradeLevels);
       } catch (error) {

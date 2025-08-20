@@ -76,15 +76,15 @@ export function TeacherTimetableFilters({
       onFiltersChange={handleSharedFiltersChange}
       onRefresh={onRefresh}
       loading={loading}
-      title="Bá»™ Lá»c Lá»‹ch Há»c"
+      title="Bộ Lá»c Lịch Hồc"
       showRefreshButton={true}
       loadAcademicYears={loadAcademicYears}
       loadSemesters={loadSemesters}
       weekCalculationMode="simple"
       maxWeeks={52}
       statusMessage={{
-        ready: "âœ“ Sáºµn sÃ ng xem lá»‹ch há»c",
-        instruction: "Vui lÃ²ng chá»n nÄƒm há»c, há»c ká»³ vÃ  tuáº§n Ä‘á»ƒ xem lá»‹ch giáº£ng dáº¡y cá»§a báº¡n"
+        ready: "âœ“ Sẵn sÃ ng xem lịch hồc",
+        instruction: "Vui lòng chồn năm hồc, hồc kỳ vÃ  tuần Ä‘á»ƒ xem lịch giảng dạy của báº¡n"
       }}
     />
   );

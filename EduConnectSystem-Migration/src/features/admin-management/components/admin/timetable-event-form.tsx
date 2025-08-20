@@ -46,9 +46,9 @@ function getFloorText(floor?: number | null): string {
 
 // Helper function to get button text
 function getButtonText(loading: boolean, isEditing: boolean): string {
-  if (loading) return 'Äang lÆ°u...'
-  if (isEditing) return 'Cáº­p nháº­t sá»± kiá»‡n'
-  return 'Táº¡o sá»± kiá»‡n'
+  if (loading) return 'Äang lưu...'
+  if (isEditing) return 'Cập nhật sá»± kiá»‡n'
+  return 'Tạo sá»± kiá»‡n'
 }
 
 interface TimetableEventFormProps {

@@ -60,7 +60,7 @@ function renderNotificationsContent(
             <Bell className="h-8 w-8 text-orange-400" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-foreground">ChÆ°a cÃ³ thÃ´ng bÃ¡o</h3>
+            <h3 className="text-lg font-semibold text-foreground">Chưa có thông báo</h3>
             <p className="text-sm text-muted-foreground max-w-md">
               {config.emptyStateMessage}
             </p>
@@ -101,7 +101,7 @@ function renderNotificationsContent(
                 <User className="h-3 w-3 text-orange-600" />
               </div>
               <span className="font-medium">
-                {notification.sender?.full_name || 'Há»‡ thá»‘ng'}
+                {notification.sender?.full_name || 'Hồ‡ thồ‘ng'}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -128,10 +128,10 @@ function renderNotificationsContent(
                 variant="outline"
                 className="text-xs px-2 py-1 rounded-lg border-gray-200 text-gray-600"
               >
-                {role === 'admin' ? 'Quáº£n trá»‹' :
-                 role === 'teacher' ? 'GiÃ¡o viÃªn' :
-                 role === 'parent' ? 'Phá»¥ huynh' :
-                 role === 'student' ? 'Há»c sinh' : role}
+                {role === 'admin' ? 'Quản trị' :
+                 role === 'teacher' ? 'Giáo viên' :
+                 role === 'parent' ? 'Phụ huynh' :
+                 role === 'student' ? 'Hồc sinh' : role}
               </Badge>
             ))}
           </div>
@@ -212,7 +212,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
           setTotalPages(Math.ceil(result.data.length / pageSize) || 1)
         }
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i thÃ´ng bÃ¡o')
+        setError(result.error || 'Không thể tải thông báo')
         setNotifications([])
         setTotalCount(0)
         setTotalPages(1)
@@ -266,8 +266,8 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   const accessDeniedContent = (
     <div className="flex flex-col items-center justify-center h-64 space-y-4">
       <AlertCircle className="h-16 w-16 text-red-500" />
-      <h2 className="text-2xl font-bold text-gray-900">Tá»« chá»‘i truy cáº­p</h2>
-      <p className="text-gray-600">Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p má»¥c thÃ´ng bÃ¡o.</p>
+      <h2 className="text-2xl font-bold text-gray-900">Từ chồ‘i truy cập</h2>
+      <p className="text-gray-600">Báº¡n không có quyá»n truy cập mục thông báo.</p>
       <Button onClick={() => router.push(config.dashboardPath)}>
         Quay láº¡i báº£ng Ä‘iá»u khiá»ƒn
       </Button>
@@ -278,7 +278,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   if (loading) {
     if (config.useSidebarLayout) {
       return (
-        <SidebarLayout role={config.role} title="ThÃ´ng bÃ¡o">
+        <SidebarLayout role={config.role} title="Thông báo">
           {loadingContent}
         </SidebarLayout>
       )
@@ -321,13 +321,13 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-orange-500"></div>
               <span className="text-muted-foreground">
-                Tá»•ng: <span className="font-medium text-foreground">{totalCount}</span>
+                Tổng: <span className="font-medium text-foreground">{totalCount}</span>
               </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-blue-500"></div>
               <span className="text-muted-foreground">
-                ChÆ°a Ä‘á»c: <span className="font-medium text-foreground">
+                Chưa Ä‘á»c: <span className="font-medium text-foreground">
                   {unreadCount}
                 </span>
               </span>
@@ -341,7 +341,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
             className="btn-modern bg-orange-brand hover:bg-orange-600 text-white shadow-soft w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Gá»­i thÃ´ng bÃ¡o
+            Gửi thông báo
           </Button>
         )}
       </div>
@@ -363,7 +363,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
         totalPages={totalPages}
         totalCount={totalCount}
         onPageChange={setCurrentPage}
-        itemName="thÃ´ng bÃ¡o"
+        itemName="thông báo"
       />
 
       {/* Create Notification Dialog */}
@@ -404,7 +404,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                           <User className="h-3 w-3 text-gray-600" />
                         </div>
                         <span className="font-medium">
-                          {selectedNotification.sender?.full_name || 'Há»‡ thá»‘ng'}
+                          {selectedNotification.sender?.full_name || 'Hồ‡ thồ‘ng'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -427,7 +427,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                 {/* Target Roles */}
                 {selectedNotification.target_roles && selectedNotification.target_roles.length > 0 && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground">Gá»­i tá»›i:</span>
+                    <span className="text-sm font-medium text-muted-foreground">Gửi tá»›i:</span>
                     <div className="flex gap-2">
                       {selectedNotification.target_roles.map(role => (
                         <Badge
@@ -435,10 +435,10 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                           variant="outline"
                           className="text-xs px-3 py-1 rounded-xl border-gray-200"
                         >
-                          {role === 'admin' ? 'Quáº£n trá»‹ viÃªn' :
-                           role === 'teacher' ? 'GiÃ¡o viÃªn' :
-                           role === 'parent' ? 'Phá»¥ huynh' :
-                           role === 'student' ? 'Há»c sinh' : role}
+                          {role === 'admin' ? 'Quản trị viên' :
+                           role === 'teacher' ? 'Giáo viên' :
+                           role === 'parent' ? 'Phụ huynh' :
+                           role === 'student' ? 'Hồc sinh' : role}
                         </Badge>
                       ))}
                     </div>
@@ -450,7 +450,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                   <div className="rounded-2xl overflow-hidden border border-gray-200">
                     <Image
                       src={selectedNotification.image_url}
-                      alt="Tá»‡p Ä‘Ã­nh kÃ¨m thÃ´ng bÃ¡o"
+                      alt="Tá»‡p Ä‘Ã­nh kÃ¨m thông báo"
                       width={800}
                       height={500}
                       className="w-full h-auto object-cover"
@@ -478,7 +478,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                       className="btn-modern bg-orange-brand hover:bg-orange-600 text-white"
                     >
                       <Eye className="mr-2 h-4 w-4" />
-                      ÄÃ¡nh dáº¥u Ä‘Ã£ Ä‘á»c
+                      ÄÃ¡nh dấu Ä‘Ã£ Ä‘á»c
                     </Button>
                   </div>
                 )}
@@ -492,7 +492,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
   if (config.useSidebarLayout) {
     return (
-      <SidebarLayout role={config.role} title="ThÃ´ng bÃ¡o">
+      <SidebarLayout role={config.role} title="Thông báo">
         {mainContent}
       </SidebarLayout>
     )

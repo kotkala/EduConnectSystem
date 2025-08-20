@@ -38,15 +38,15 @@ export function ClassroomDeleteDialog({
       const result = await deleteClassroomAction(classroom.id)
 
       if (result.success) {
-        toast.success("ÄÃ£ xÃ³a phÃ²ng há»c thÃ nh cÃ´ng")
+        toast.success("ÄÃ£ xÃ³a phÃ²ng hồc thÃ nh công")
         onSuccess()
         onOpenChange(false)
       } else {
         toast.error(result.error || "XÃ³a tháº¥t báº¡i")
       }
     } catch (error) {
-      console.error('Lá»—i xÃ³a:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi xÃ³a")
+      console.error('Lỗi xÃ³a:', error)
+      toast.error("Có lỗi xảy ra khi xÃ³a")
     } finally {
       setIsLoading(false)
     }
@@ -58,17 +58,17 @@ export function ClassroomDeleteDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            XÃ¡c nháº­n xÃ³a
+            Xác nhận xÃ³a
           </DialogTitle>
           <DialogDescription>
-            Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xÃ³a phÃ²ng há»c &quot;{classroom?.name}&quot;?
+            Báº¡n có cháº¯c cháº¯n muá»‘n xÃ³a phÃ²ng hồc &quot;{classroom?.name}&quot;?
           </DialogDescription>
         </DialogHeader>
         
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c. Táº¥t cáº£ dá»¯ liá»‡u liÃªn quan Ä‘áº¿n phÃ²ng há»c nÃ y sáº½ bá»‹ xÃ³a vÄ©nh viá»…n.
+            HÃ nh Ä‘á»™ng nÃ y không thể hoÃ n tác. Tất cả dữ liệu liên quan Ä‘áº¿n phÃ²ng hồc nÃ y sẽ bị xÃ³a vÄ©nh viá»…n.
           </AlertDescription>
         </Alert>
 
@@ -79,7 +79,7 @@ export function ClassroomDeleteDialog({
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Há»§y
+            Hủy
           </Button>
           <Button 
             variant="destructive" 

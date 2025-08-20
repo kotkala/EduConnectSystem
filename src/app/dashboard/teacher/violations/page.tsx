@@ -40,18 +40,18 @@ export default async function TeacherViolationsPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Vi pháº¡m há»c sinh</h1>
-                <p className="text-muted-foreground">Báº£ng Ä‘iá»u khiá»ƒn giÃ¡o viÃªn</p>
+                <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
+                <p className="text-muted-foreground">Bảng điều khiển giáo viên</p>
               </div>
             </div>
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">YÃªu cáº§u quyá»n GVCN</h2>
+                <h2 className="text-lg font-semibold mb-2">Yêu cầu quyền GVCN</h2>
                 <p className="text-muted-foreground mb-4">
-                  Chá»‰ giÃ¡o viÃªn chá»§ nhiá»‡m má»›i cÃ³ thá»ƒ xem vÃ  quáº£n lÃ½ vi pháº¡m há»c sinh.
+                  Chỉ giáo viên chủ nhiệm mới có thể xem và quản lý vi phạm học sinh.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Náº¿u báº¡n tin Ä‘Ã¢y lÃ  nháº§m láº«n, vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.
+                  Nếu bạn tin đây là nhầm lẫn, vui lòng liên hệ quản trị viên.
                 </p>
               </div>
             </div>
@@ -77,7 +77,7 @@ export default async function TeacherViolationsPage() {
 
     return (
       <div className="p-6">
-        <Suspense fallback={<div>Äang táº£i...</div>}>
+        <Suspense fallback={<div>Đang tải...</div>}>
           <TeacherViolationsPageClient
             homeroomClass={homeroomClass}
             isHomeroomTeacher={isHomeroomTeacher}
@@ -93,12 +93,12 @@ export default async function TeacherViolationsPage() {
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <h2 className="text-lg font-semibold mb-2">Lá»—i káº¿t ná»‘i</h2>
+            <h2 className="text-lg font-semibold mb-2">Lỗi kết nối</h2>
             <p className="text-muted-foreground mb-4">
-              KhÃ´ng thá»ƒ káº¿t ná»‘i cÆ¡ sá»Ÿ dá»¯ liá»‡u. Vui lÃ²ng kiá»ƒm tra Internet vÃ  thá»­ láº¡i.
+              Không thể kết nối cơ sở dữ liệu. Vui lòng kiểm tra Internet và thử lại.
             </p>
             <p className="text-sm text-muted-foreground">
-              Vui lÃ²ng táº£i láº¡i trang Ä‘á»ƒ thá»­ láº¡i.
+              Vui lòng tải lại trang để thử lại.
             </p>
           </div>
         </div>

@@ -49,7 +49,7 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -60,7 +60,7 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
     // Get homeroom classes where teacher is the homeroom teacher
@@ -91,7 +91,7 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
     console.error("Get teacher homeroom classes error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch lá»›p chá»§ nhiá»‡m"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách lớp chủ nhiệm"
     }
   }
 }
@@ -117,7 +117,7 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is the homeroom teacher for this class
@@ -128,7 +128,7 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
       .single()
 
     if (!classInfo || classInfo.homeroom_teacher_id !== user.id) {
-      throw new Error("Tá»« chá»‘i truy cáº­p. Báº¡n khÃ´ng pháº£i lÃ  giÃ¡o viÃªn chá»§ nhiá»‡m cá»§a lá»›p nÃ y.")
+      throw new Error("Từ chối truy cập. Bạn không phải là giáo viên chủ nhiệm của lớp này.")
     }
 
     // Get students with their parents - need to fix the relationship join
@@ -210,7 +210,7 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
     console.error("Get homeroom students with parents error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c sinh vÃ  phá»¥ huynh"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách học sinh và phụ huynh"
     }
   }
 }
@@ -226,7 +226,7 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is the homeroom teacher for this class
@@ -237,7 +237,7 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       .single()
 
     if (!classInfo || classInfo.homeroom_teacher_id !== user.id) {
-      throw new Error("Tá»« chá»‘i truy cáº­p. Báº¡n khÃ´ng pháº£i lÃ  giÃ¡o viÃªn chá»§ nhiá»‡m cá»§a lá»›p nÃ y.")
+      throw new Error("Từ chối truy cập. Bạn không phải là giáo viên chủ nhiệm của lớp này.")
     }
 
     // Create the meeting schedule
@@ -257,7 +257,7 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       .single()
 
     if (meetingError || !meetingSchedule) {
-      throw new Error(meetingError?.message || "KhÃ´ng thá»ƒ táº¡o lá»‹ch háº¹n")
+      throw new Error(meetingError?.message || "Không thể tạo lịch hẹn")
     }
 
     // Get parents for the selected students using student UUIDs directly
@@ -306,7 +306,7 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
     console.error("Create meeting schedule error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ táº¡o lá»‹ch háº¹n"
+      error: error instanceof Error ? error.message : "Không thể tạo lịch hẹn"
     }
   }
 }
@@ -322,7 +322,7 @@ export async function getParentMeetingSchedulesAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a parent
@@ -333,7 +333,7 @@ export async function getParentMeetingSchedulesAction(): Promise<{
       .single()
 
     if (!profile || profile.role !== 'parent') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² phá»¥ huynh.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò phụ huynh.")
     }
 
     // Get meeting schedules for this parent
@@ -401,7 +401,7 @@ export async function getParentMeetingSchedulesAction(): Promise<{
     console.error("Get parent meeting schedules error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch lá»‹ch háº¹n"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách lịch hẹn"
     }
   }
 }
@@ -416,7 +416,7 @@ export async function markMeetingScheduleAsReadAction(meetingScheduleId: string)
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Update the recipient record to mark as read
@@ -438,7 +438,7 @@ export async function markMeetingScheduleAsReadAction(meetingScheduleId: string)
     console.error("Mark meeting schedule as read error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ Ä‘Ã¡nh dáº¥u Ä‘Ã£ Ä‘á»c"
+      error: error instanceof Error ? error.message : "Không thể đánh dấu đã đọc"
     }
   }
 }
@@ -454,7 +454,7 @@ export async function getUnreadMeetingScheduleCountAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Count unread meeting schedules
@@ -473,7 +473,7 @@ export async function getUnreadMeetingScheduleCountAction(): Promise<{
     console.error("Get unread meeting schedule count error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y sá»‘ lÆ°á»£ng chÆ°a Ä‘á»c"
+      error: error instanceof Error ? error.message : "Không thể lấy số lượng chưa đọc"
     }
   }
 }
@@ -500,7 +500,7 @@ export async function getTeacherMeetingSchedulesAction(): Promise<{
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -511,7 +511,7 @@ export async function getTeacherMeetingSchedulesAction(): Promise<{
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
     // Get meeting schedules created by this teacher
@@ -562,7 +562,7 @@ export async function getTeacherMeetingSchedulesAction(): Promise<{
     console.error("Get teacher meeting schedules error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch lá»‹ch háº¹n"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách lịch hẹn"
     }
   }
 }

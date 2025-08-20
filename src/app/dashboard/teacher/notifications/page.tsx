@@ -2,9 +2,9 @@
 
 const teacherConfig: NotificationPageConfig = {
   role: 'teacher',
-  title: 'ThÃ´ng bÃ¡o',
-  description: 'Gá»­i thÃ´ng bÃ¡o cho há»c sinh vÃ  xem tin Ä‘Ã£ nháº­n',
-  emptyStateMessage: 'Gá»­i thÃ´ng bÃ¡o Ä‘áº§u tiÃªn Ä‘á»ƒ báº¯t Ä‘áº§u',
+  title: 'Thông báo',
+  description: 'Gửi thông báo cho học sinh và xem tin đã nhận',
+  emptyStateMessage: 'Gửi thông báo đầu tiên để bắt đầu',
   dashboardPath: '/dashboard/teacher',
   canSendNotifications: true,
   useSidebarLayout: false

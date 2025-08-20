@@ -150,18 +150,18 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* Academic Year Name */}
       <FormField
         id="name"
-        label="TÃªn nÄƒm há»c"
-        placeholder="VÃ­ dá»¥: 2024-2025"
+        label="Tên năm học"
+        placeholder="Ví dụ: 2024-2025"
         register={form.register("name")}
         error={form.formState.errors.name?.message}
         disabled={isSubmitting}
-        helpText="Äá»‹nh dáº¡ng: YYYY-YYYY (vÃ­ dá»¥: 2024-2025)"
+        helpText="Định dạng: YYYY-YYYY (ví dụ: 2024-2025)"
       />
 
       {/* Start Date */}
       <FormField
         id="start_date"
-        label="NgÃ y báº¯t Ä‘áº§u"
+        label="Ngày bắt đầu"
         type="date"
         register={form.register("start_date")}
         error={form.formState.errors.start_date?.message}
@@ -171,7 +171,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
       {/* End Date */}
       <FormField
         id="end_date"
-        label="NgÃ y káº¿t thÃºc"
+        label="Ngày kết thúc"
         type="date"
         register={form.register("end_date")}
         error={form.formState.errors.end_date?.message}
@@ -187,12 +187,12 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
           disabled={isSubmitting}
         />
         <Label htmlFor="is_current" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Äáº·t lÃ m nÄƒm há»c hiá»‡n táº¡i
+          Đặt làm năm học hiện tại
         </Label>
       </div>
       {form.watch("is_current") && (
         <p className="text-sm text-amber-600">
-          Äáº·t lÃ m nÄƒm há»c hiá»‡n táº¡i sáº½ tá»± Ä‘á»™ng bá» chá»n cÃ¡c nÄƒm há»c hiá»‡n táº¡i khÃ¡c vÃ  táº¡o há»c ká»³ máº·c Ä‘á»‹nh.
+          Đặt làm năm học hiện tại sẽ tự động bỏ chọn các năm học hiện tại khác và tạo học kỳ mặc định.
         </p>
       )}
 
@@ -221,7 +221,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           <span className="text-sm sm:text-base">
-            {isEditing ? "Cáº­p nháº­t niÃªn khÃ³a" : "Táº¡o niÃªn khÃ³a"}
+            {isEditing ? "Cập nhật niên khóa" : "Tạo niên khóa"}
           </span>
         </Button>
 
@@ -233,23 +233,23 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
             disabled={isSubmitting}
             className="h-10 sm:h-11 sm:w-auto"
           >
-            Há»§y
+            Hủy
           </Button>
         )}
       </div>
 
       {!isEditing && (
         <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Há»c ká»³ tá»± Ä‘á»™ng táº¡o</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">Học kỳ tự động tạo</h4>
           <p className="text-xs sm:text-sm text-blue-700">
-            Khi báº¡n táº¡o nÄƒm há»c má»›i, hai há»c ká»³ máº·c Ä‘á»‹nh sáº½ Ä‘Æ°á»£c tá»± Ä‘á»™ng táº¡o:
+            Khi bạn tạo năm học mới, hai học kỳ mặc định sẽ được tự động tạo:
           </p>
           <ul className="text-xs sm:text-sm text-blue-700 mt-2 space-y-1">
-            <li>â€¢ <strong>Há»c ká»³ 1:</strong> 18 tuáº§n (khoáº£ng 4 thÃ¡ng Ä‘áº§u)</li>
-            <li>â€¢ <strong>Há»c ká»³ 2:</strong> 17 tuáº§n (thá»i gian cÃ²n láº¡i)</li>
+            <li>â€¢ <strong>Học kỳ 1:</strong> 18 tuần (khoảng 4 tháng đầu)</li>
+            <li>â€¢ <strong>Học kỳ 2:</strong> 17 tuần (thời gian còn lại)</li>
           </ul>
           <p className="text-xs sm:text-sm text-blue-700 mt-2">
-            Báº¡n cÃ³ thá»ƒ chá»‰nh sá»­a cÃ¡c há»c ká»³ nÃ y sau khi táº¡o náº¿u cáº§n.
+            Bạn có thể chỉnh sửa các học kỳ này sau khi tạo nếu cần.
           </p>
         </div>
       )}

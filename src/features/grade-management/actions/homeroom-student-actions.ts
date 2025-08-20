@@ -8,7 +8,7 @@ async function checkHomeroomTeacherPermissions() {
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -18,15 +18,15 @@ async function checkHomeroomTeacherPermissions() {
     .single()
 
   if (profileError || !profile) {
-    throw new Error("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡")
+    throw new Error("Không tìm thấy hồ sơ")
   }
 
   if (profile.role !== "teacher") {
-    throw new Error("YÃªu cáº§u quyá»n giÃ¡o viÃªn")
+    throw new Error("Yêu cầu quyền giáo viên")
   }
 
   if (!profile.homeroom_enabled) {
-    throw new Error("YÃªu cáº§u quyá»n giÃ¡o viÃªn chá»§ nhiá»‡m")
+    throw new Error("Yêu cầu quyền giáo viên chủ nhiệm")
   }
 
   return { userId: user.id, profile }

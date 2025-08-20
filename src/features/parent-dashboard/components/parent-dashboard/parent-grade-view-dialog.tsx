@@ -85,7 +85,7 @@ export function ParentGradeViewDialog({
       if (detailResult.success && detailResult.data) {
         setDetailedSubmission(detailResult.data as GradeSubmission)
       } else {
-        toast.error(detailResult.error || "KhÃ´ng thá»ƒ táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm")
+        toast.error(detailResult.error || "Không thể tải chi tiết bảng điểm")
       }
 
       if (statsResult.success && statsResult.data) {
@@ -93,7 +93,7 @@ export function ParentGradeViewDialog({
       }
     } catch (error) {
       console.error('Error loading submission details:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm")
+      toast.error("Có lỗi xảy ra khi tải chi tiết bảng điểm")
     } finally {
       setLoading(false)
     }
@@ -114,11 +114,11 @@ export function ParentGradeViewDialog({
   }
 
   const getGradeLabel = (grade: number | null) => {
-    if (!grade) return 'ChÆ°a cÃ³'
-    if (grade >= 8.5) return 'Giá»i'
-    if (grade >= 6.5) return 'KhÃ¡'
-    if (grade >= 5.0) return 'Trung bÃ¬nh'
-    return 'Yáº¿u'
+    if (!grade) return 'Chưa có'
+    if (grade >= 8.5) return 'Giỏi'
+    if (grade >= 6.5) return 'Khá'
+    if (grade >= 5.0) return 'Trung bình'
+    return 'Yếu'
   }
 
   const formatGrade = (grade: number | null) => {
@@ -133,7 +133,7 @@ export function ParentGradeViewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Báº£ng Äiá»ƒm - {submission.student.full_name}
+            Bảng Điểm - {submission.student.full_name}
           </DialogTitle>
           <DialogDescription>
             {submission.class.name} â€¢ {submission.semester.name} - {submission.academic_year.name}
@@ -143,7 +143,7 @@ export function ParentGradeViewDialog({
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Äang táº£i chi tiáº¿t báº£ng Ä‘iá»ƒm...</span>
+            <span>Đang tải chi tiết bảng điểm...</span>
           </div>
         ) : (
           <div className="space-y-6">
@@ -154,7 +154,7 @@ export function ParentGradeViewDialog({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <BarChart3 className="h-4 w-4" />
-                      Äiá»ƒm TB
+                      Điểm TB
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -162,7 +162,7 @@ export function ParentGradeViewDialog({
                       {gradeStats.averageGrade ? gradeStats.averageGrade.toFixed(1) : 'N/A'}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {gradeStats.gradedSubjects}/{gradeStats.totalSubjects} mÃ´n
+                      {gradeStats.gradedSubjects}/{gradeStats.totalSubjects} môn
                     </p>
                   </CardContent>
                 </Card>
@@ -171,7 +171,7 @@ export function ParentGradeViewDialog({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" />
-                      Cao nháº¥t
+                      Cao nhất
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -185,7 +185,7 @@ export function ParentGradeViewDialog({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Award className="h-4 w-4" />
-                      Giá»i/KhÃ¡
+                      Giỏi/Khá
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -193,18 +193,18 @@ export function ParentGradeViewDialog({
                       {gradeStats.excellentCount + gradeStats.goodCount}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {gradeStats.excellentCount} giá»i, {gradeStats.goodCount} khÃ¡
+                      {gradeStats.excellentCount} giỏi, {gradeStats.goodCount} khá
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Xáº¿p loáº¡i</CardTitle>
+                    <CardTitle className="text-sm font-medium">Xếp loại</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Badge variant={gradeStats.averageGrade && gradeStats.averageGrade >= 8.5 ? "default" : "secondary"}>
-                      {gradeStats.averageGrade ? getGradeLabel(gradeStats.averageGrade) : 'ChÆ°a Ä‘á»§ dá»¯ liá»‡u'}
+                      {gradeStats.averageGrade ? getGradeLabel(gradeStats.averageGrade) : 'Chưa đủ dữ liệu'}
                     </Badge>
                   </CardContent>
                 </Card>
@@ -214,9 +214,9 @@ export function ParentGradeViewDialog({
             {/* Grades Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Chi Tiáº¿t Äiá»ƒm Sá»‘</CardTitle>
+                <CardTitle>Chi Tiết Điểm Số</CardTitle>
                 <CardDescription>
-                  Báº£ng Ä‘iá»ƒm chi tiáº¿t theo tá»«ng mÃ´n há»c
+                  Bảng điểm chi tiết theo từng môn học
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -224,12 +224,12 @@ export function ParentGradeViewDialog({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>MÃ´n há»c</TableHead>
-                        <TableHead className="text-center">MÃ£ mÃ´n</TableHead>
-                        <TableHead className="text-center">Äiá»ƒm giá»¯a ká»³</TableHead>
-                        <TableHead className="text-center">Äiá»ƒm cuá»‘i ká»³</TableHead>
-                        <TableHead className="text-center">Äiá»ƒm trung bÃ¬nh</TableHead>
-                        <TableHead className="text-center">Xáº¿p loáº¡i</TableHead>
+                        <TableHead>Môn học</TableHead>
+                        <TableHead className="text-center">Mã môn</TableHead>
+                        <TableHead className="text-center">Điểm giữa kỳ</TableHead>
+                        <TableHead className="text-center">Điểm cuối kỳ</TableHead>
+                        <TableHead className="text-center">Điểm trung bình</TableHead>
+                        <TableHead className="text-center">Xếp loại</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

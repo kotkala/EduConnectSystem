@@ -42,17 +42,17 @@ export default function TeacherDisciplinaryCases() {
   const loadCases = async () => {
     setIsLoading(true)
     try {
-      // Láº¥y cÃ¡c case Ä‘Æ°á»£c gá»­i Ä‘áº¿n GVCN (status = 'sent_to_homeroom')
+      // Lấy các case được gửi đến GVCN (status = 'sent_to_homeroom')
       const result = await getDisciplinaryCasesAction({
         status: 'sent_to_homeroom'
-        // TODO: Filter by homeroom classes cá»§a teacher hiá»‡n táº¡i
+        // TODO: Filter by homeroom classes của teacher hiện tại
       })
 
       if (result.success && result.data) {
         setCases(result.data)
       }
     } catch (error) {
-      console.error('Lá»—i táº£i case ká»· luáº­t:', error)
+      console.error('Lỗi tải case kỷ luật:', error)
     } finally {
       setIsLoading(false)
     }
@@ -66,14 +66,14 @@ export default function TeacherDisciplinaryCases() {
       })
 
       if (result.success) {
-        toast.success('ÄÃ£ xÃ¡c nháº­n nháº­n case ká»· luáº­t')
+        toast.success('Đã xác nhận nhận case kỷ luật')
         loadCases()
       } else {
-        toast.error(result.error || 'Cáº­p nháº­t tráº¡ng thÃ¡i tháº¥t báº¡i')
+        toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }
     } catch (error) {
-      console.error('Lá»—i cáº­p nháº­t tráº¡ng thÃ¡i:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t tráº¡ng thÃ¡i')
+      console.error('Lỗi cập nhật trạng thái:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
     }
   }
 
@@ -85,15 +85,15 @@ export default function TeacherDisciplinaryCases() {
       })
 
       if (result.success) {
-        toast.success('ÄÃ£ lÃªn lá»‹ch há»p vá»›i phá»¥ huynh')
+        toast.success('Đã lên lịch họp với phụ huynh')
         loadCases()
         setShowDetailDialog(false)
       } else {
-        toast.error(result.error || 'Cáº­p nháº­t tráº¡ng thÃ¡i tháº¥t báº¡i')
+        toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }
     } catch (error) {
-      console.error('Lá»—i lÃªn lá»‹ch há»p:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi lÃªn lá»‹ch há»p')
+      console.error('Lỗi lên lịch họp:', error)
+      toast.error('Có lỗi xảy ra khi lên lịch họp')
     }
   }
 
@@ -105,28 +105,28 @@ export default function TeacherDisciplinaryCases() {
       })
 
       if (result.success) {
-        toast.success('ÄÃ£ Ä‘Ã¡nh dáº¥u case Ä‘Ã£ giáº£i quyáº¿t')
+        toast.success('Đã đánh dấu case đã giải quyết')
         loadCases()
         setShowDetailDialog(false)
       } else {
-        toast.error(result.error || 'Cáº­p nháº­t tráº¡ng thÃ¡i tháº¥t báº¡i')
+        toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }
     } catch (error) {
-      console.error('Lá»—i giáº£i quyáº¿t case:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi giáº£i quyáº¿t case')
+      console.error('Lỗi giải quyết case:', error)
+      toast.error('Có lỗi xảy ra khi giải quyết case')
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent_to_homeroom':
-        return <Badge variant="default">Chá» xá»­ lÃ½</Badge>
+        return <Badge variant="default">Chờ xử lý</Badge>
       case 'acknowledged':
-        return <Badge variant="secondary">ÄÃ£ xem</Badge>
+        return <Badge variant="secondary">Đã xem</Badge>
       case 'meeting_scheduled':
-        return <Badge variant="outline">ÄÃ£ háº¹n há»p</Badge>
+        return <Badge variant="outline">Đã hẹn họp</Badge>
       case 'resolved':
-        return <Badge variant="default">ÄÃ£ giáº£i quyáº¿t</Badge>
+        return <Badge variant="default">Đã giải quyết</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -138,26 +138,26 @@ export default function TeacherDisciplinaryCases() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Case ká»· luáº­t cáº§n xá»­ lÃ½
+            Case kỷ luật cần xử lý
           </CardTitle>
           <CardDescription>
-            CÃ¡c case ká»· luáº­t Ä‘Æ°á»£c admin gá»­i Ä‘áº¿n Ä‘á»ƒ GVCN xá»­ lÃ½
+            Các case kỷ luật được admin gửi đến để GVCN xử lý
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Äang táº£i dá»¯ liá»‡u...</div>
+            <div className="text-center py-8">Đang tải dữ liệu...</div>
           ) : cases.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Há»c sinh</TableHead>
-                  <TableHead>Lá»›p</TableHead>
-                  <TableHead>HÃ¬nh thá»©c ká»· luáº­t</TableHead>
-                  <TableHead>Tuáº§n</TableHead>
-                  <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                  <TableHead>NgÃ y táº¡o</TableHead>
-                  <TableHead className="text-right">Thao tÃ¡c</TableHead>
+                  <TableHead>Học sinh</TableHead>
+                  <TableHead>Lớp</TableHead>
+                  <TableHead>Hình thức kỷ luật</TableHead>
+                  <TableHead>Tuần</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -172,7 +172,7 @@ export default function TeacherDisciplinaryCases() {
                     <TableCell>{caseItem.class.name}</TableCell>
                     <TableCell>{caseItem.action_type.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">Tuáº§n {caseItem.week_index}</Badge>
+                      <Badge variant="outline">Tuần {caseItem.week_index}</Badge>
                     </TableCell>
                     <TableCell>{getStatusBadge(caseItem.status)}</TableCell>
                     <TableCell>{new Date(caseItem.created_at).toLocaleDateString('vi-VN')}</TableCell>
@@ -189,50 +189,50 @@ export default function TeacherDisciplinaryCases() {
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl">
                             <DialogHeader>
-                              <DialogTitle>Chi tiáº¿t case ká»· luáº­t</DialogTitle>
+                              <DialogTitle>Chi tiết case kỷ luật</DialogTitle>
                               <DialogDescription>
-                                Xem chi tiáº¿t vÃ  xá»­ lÃ½ case ká»· luáº­t cho há»c sinh
+                                Xem chi tiết và xử lý case kỷ luật cho học sinh
                               </DialogDescription>
                             </DialogHeader>
                             {selectedCase && (
                               <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <Label className="text-sm font-medium">Há»c sinh</Label>
+                                    <Label className="text-sm font-medium">Học sinh</Label>
                                     <div className="mt-1">
                                       <div className="font-medium">{selectedCase.student.full_name}</div>
                                       <div className="text-sm text-muted-foreground">{selectedCase.student.student_id}</div>
                                     </div>
                                   </div>
                                   <div>
-                                    <Label className="text-sm font-medium">Lá»›p</Label>
+                                    <Label className="text-sm font-medium">Lớp</Label>
                                     <div className="mt-1 font-medium">{selectedCase.class.name}</div>
                                   </div>
                                   <div>
-                                    <Label className="text-sm font-medium">HÃ¬nh thá»©c ká»· luáº­t</Label>
+                                    <Label className="text-sm font-medium">Hình thức kỷ luật</Label>
                                     <div className="mt-1 font-medium">{selectedCase.action_type.name}</div>
                                   </div>
                                   <div>
-                                    <Label className="text-sm font-medium">Tuáº§n vi pháº¡m</Label>
+                                    <Label className="text-sm font-medium">Tuần vi phạm</Label>
                                     <div className="mt-1">
-                                      <Badge variant="outline">Tuáº§n {selectedCase.week_index}</Badge>
+                                      <Badge variant="outline">Tuần {selectedCase.week_index}</Badge>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <Label className="text-sm font-medium">Ghi chÃº tá»« admin</Label>
+                                  <Label className="text-sm font-medium">Ghi chú từ admin</Label>
                                   <div className="mt-1 p-3 bg-muted rounded-md">
-                                    {selectedCase.notes || 'KhÃ´ng cÃ³ ghi chÃº'}
+                                    {selectedCase.notes || 'Không có ghi chú'}
                                   </div>
                                 </div>
 
                                 <div>
-                                  <Label className="text-sm font-medium">Ghi chÃº há»p phá»¥ huynh</Label>
+                                  <Label className="text-sm font-medium">Ghi chú họp phụ huynh</Label>
                                   <Textarea
                                     value={meetingNotes}
                                     onChange={(e) => setMeetingNotes(e.target.value)}
-                                    placeholder="Nháº­p ghi chÃº vá» cuá»™c há»p vá»›i phá»¥ huynh..."
+                                    placeholder="Nhập ghi chú về cuộc họp với phụ huynh..."
                                     rows={3}
                                   />
                                 </div>
@@ -244,7 +244,7 @@ export default function TeacherDisciplinaryCases() {
                                       onClick={() => handleAcknowledge(selectedCase.id)}
                                     >
                                       <CheckCircle className="h-4 w-4 mr-2" />
-                                      XÃ¡c nháº­n Ä‘Ã£ xem
+                                      Xác nhận đã xem
                                     </Button>
                                   )}
                                   {(selectedCase.status === 'acknowledged' || selectedCase.status === 'sent_to_homeroom') && (
@@ -252,7 +252,7 @@ export default function TeacherDisciplinaryCases() {
                                       onClick={() => handleScheduleMeeting(selectedCase.id)}
                                     >
                                       <Calendar className="h-4 w-4 mr-2" />
-                                      LÃªn lá»‹ch há»p PH
+                                      Lên lịch họp PH
                                     </Button>
                                   )}
                                   {selectedCase.status === 'meeting_scheduled' && (
@@ -261,7 +261,7 @@ export default function TeacherDisciplinaryCases() {
                                       onClick={() => handleResolve(selectedCase.id)}
                                     >
                                       <CheckCircle className="h-4 w-4 mr-2" />
-                                      ÄÃ¡nh dáº¥u Ä‘Ã£ giáº£i quyáº¿t
+                                      Đánh dấu đã giải quyết
                                     </Button>
                                   )}
                                 </div>
@@ -287,7 +287,7 @@ export default function TeacherDisciplinaryCases() {
             </Table>
           ) : (
             <div className="text-center text-muted-foreground py-8">
-              KhÃ´ng cÃ³ case ká»· luáº­t nÃ o cáº§n xá»­ lÃ½
+              Không có case kỷ luật nào cần xử lý
             </div>
           )}
         </CardContent>

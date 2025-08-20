@@ -59,7 +59,7 @@ export default function ReportPeriodsPage() {
 
   const loadInitialData = useCallback(async () => {
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Äang táº£i thÃ´ng tin ká»³ bÃ¡o cÃ¡o...")
+    startPageTransition("Đang tải thông tin kỳ báo cáo...")
     try {
       setError(null)
 
@@ -161,12 +161,12 @@ export default function ReportPeriodsPage() {
 
   const handleSendNotifications = useCallback(async () => {
     if (incompleteClasses.length === 0) {
-      toast.info('KhÃ´ng cÃ³ lá»›p nÃ o chÆ°a hoÃ n thÃ nh bÃ¡o cÃ¡o')
+      toast.info('Không có lớp nào chưa hoàn thành báo cáo')
       return
     }
 
     if (!selectedPeriod) {
-      toast.error('Vui lÃ²ng chá»n ká»³ bÃ¡o cÃ¡o')
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
@@ -175,13 +175,13 @@ export default function ReportPeriodsPage() {
       const result = await sendTeacherRemindersAction(selectedPeriod, incompleteClasses)
 
       if (result.success) {
-        toast.success(result.data?.message || 'ÄÃ£ gá»­i thÃ´ng bÃ¡o thÃ nh cÃ´ng')
+        toast.success(result.data?.message || 'Đã gửi thông báo thành công')
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ gá»­i thÃ´ng bÃ¡o')
+        toast.error(result.error || 'Không thể gửi thông báo')
       }
     } catch (error) {
       console.error('Error sending notifications:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i thÃ´ng bÃ¡o')
+      toast.error('Có lỗi xảy ra khi gửi thông báo')
     } finally {
       setSendingNotifications(false)
     }
@@ -189,7 +189,7 @@ export default function ReportPeriodsPage() {
 
   const handleBulkSendReports = useCallback(async () => {
     if (!selectedPeriod) {
-      toast.error('Vui lÃ²ng chá»n ká»³ bÃ¡o cÃ¡o')
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
@@ -197,7 +197,7 @@ export default function ReportPeriodsPage() {
     if (!testModeEnabled) {
       const allComplete = stats.incomplete === 0 && stats.total > 0
       if (!allComplete) {
-        toast.error('Táº¥t cáº£ cÃ¡c lá»›p pháº£i hoÃ n thÃ nh 100% bÃ¡o cÃ¡o trÆ°á»›c khi gá»­i cho phá»¥ huynh')
+        toast.error('Tất cả các lớp phải hoàn thành 100% báo cáo trước khi gửi cho phụ huynh')
         return
       }
     }
@@ -207,14 +207,14 @@ export default function ReportPeriodsPage() {
       const result = await adminBulkSendReportsAction(selectedPeriod)
 
       if (result.success) {
-        toast.success(result.data?.message || 'ÄÃ£ gá»­i táº¥t cáº£ bÃ¡o cÃ¡o cho phá»¥ huynh thÃ nh cÃ´ng')
+        toast.success(result.data?.message || 'Đã gửi tất cả báo cáo cho phụ huynh thành công')
         loadClassProgress() // Reload to get updated data
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ gá»­i bÃ¡o cÃ¡o')
+        toast.error(result.error || 'Không thể gửi báo cáo')
       }
     } catch (error) {
       console.error('Error bulk sending reports:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i bÃ¡o cÃ¡o')
+      toast.error('Có lỗi xảy ra khi gửi báo cáo')
     } finally {
       setBulkSending(false)
     }
@@ -223,7 +223,7 @@ export default function ReportPeriodsPage() {
   // Generate student reports handler
   const handleGenerateReports = useCallback(async () => {
     if (!selectedPeriod) {
-      toast.error('Vui lÃ²ng chá»n ká»³ bÃ¡o cÃ¡o')
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
@@ -232,14 +232,14 @@ export default function ReportPeriodsPage() {
       const result = await generateStudentReportsAction(selectedPeriod)
 
       if (result.success) {
-        toast.success(result.data?.message || 'ÄÃ£ táº¡o bÃ¡o cÃ¡o há»c sinh thÃ nh cÃ´ng')
+        toast.success(result.data?.message || 'Đã tạo báo cáo học sinh thành công')
         loadClassProgress() // Reload to get updated data
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº¡o bÃ¡o cÃ¡o há»c sinh')
+        toast.error(result.error || 'Không thể tạo báo cáo học sinh')
       }
     } catch (error) {
       console.error('Error generating reports:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi táº¡o bÃ¡o cÃ¡o há»c sinh')
+      toast.error('Có lỗi xảy ra khi tạo báo cáo học sinh')
     } finally {
       setGeneratingReports(false)
     }
@@ -248,7 +248,7 @@ export default function ReportPeriodsPage() {
   // Reset reports to draft handler (for testing)
   const handleResetReports = useCallback(async () => {
     if (!selectedPeriod) {
-      toast.error('Vui lÃ²ng chá»n ká»³ bÃ¡o cÃ¡o')
+      toast.error('Vui lòng chọn kỳ báo cáo')
       return
     }
 
@@ -257,14 +257,14 @@ export default function ReportPeriodsPage() {
       const result = await resetReportsToDraftAction(selectedPeriod)
 
       if (result.success) {
-        toast.success(result.data?.message || 'ÄÃ£ reset bÃ¡o cÃ¡o vá» tráº¡ng thÃ¡i draft')
+        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
         loadClassProgress() // Reload to get updated data
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ reset bÃ¡o cÃ¡o')
+        toast.error(result.error || 'Không thể reset báo cáo')
       }
     } catch (error) {
       console.error('Error resetting reports:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi reset bÃ¡o cÃ¡o')
+      toast.error('Có lỗi xảy ra khi reset báo cáo')
     } finally {
       setResettingReports(false)
     }
@@ -325,19 +325,19 @@ export default function ReportPeriodsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Ká»³ bÃ¡o cÃ¡o</h1>
+            <h1 className="text-3xl font-bold">Kỳ báo cáo</h1>
             <p className="text-muted-foreground">
-              Quáº£n lÃ½ ká»³ bÃ¡o cÃ¡o hÃ ng thÃ¡ng vÃ  theo dÃµi tiáº¿n Ä‘á»™ hoÃ n thÃ nh theo lá»›p
+              Quản lý kỳ báo cáo hàng tháng và theo dõi tiến độ hoàn thành theo lớp
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              LÃ m má»›i
+              Làm mới
             </Button>
             <Button onClick={() => setShowCreateForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Táº¡o ká»³ bÃ¡o cÃ¡o
+              Tạo kỳ báo cáo
             </Button>
           </div>
         </div>
@@ -355,16 +355,16 @@ export default function ReportPeriodsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Chá»n ká»³ bÃ¡o cÃ¡o
+              Chọn kỳ báo cáo
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <div className="text-sm font-medium mb-2">Ká»³ bÃ¡o cÃ¡o</div>
+                <div className="text-sm font-medium mb-2">Kỳ báo cáo</div>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o" />
+                    <SelectValue placeholder="Chọn kỳ báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
                     {reportPeriods.map((period) => (
@@ -379,13 +379,13 @@ export default function ReportPeriodsPage() {
               {selectedPeriod && (
                 <>
                   <div>
-                    <div className="text-sm font-medium mb-2">Lá»c theo khá»‘i lá»›p</div>
+                    <div className="text-sm font-medium mb-2">Lọc theo khối lớp</div>
                     <Select value={selectedClassBlock} onValueChange={setSelectedClassBlock}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Táº¥t cáº£ khá»‘i lá»›p" />
+                        <SelectValue placeholder="Tất cả khối lớp" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all-blocks">Táº¥t cáº£ khá»‘i lá»›p</SelectItem>
+                        <SelectItem value="all-blocks">Tất cả khối lớp</SelectItem>
                         {classBlocks.map((block) => (
                           <SelectItem key={block.id} value={block.id}>
                             {block.name}
@@ -396,15 +396,15 @@ export default function ReportPeriodsPage() {
                   </div>
 
                   <div>
-                    <div className="text-sm font-medium mb-2">TÃ¬nh tráº¡ng hoÃ n thÃ nh</div>
+                    <div className="text-sm font-medium mb-2">Tình trạng hoàn thành</div>
                     <Select value={selectedCompletionStatus} onValueChange={setSelectedCompletionStatus}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Táº¥t cáº£" />
+                        <SelectValue placeholder="Tất cả" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Táº¥t cáº£</SelectItem>
-                        <SelectItem value="complete">ÄÃ£ hoÃ n thÃ nh</SelectItem>
-                        <SelectItem value="incomplete">ChÆ°a hoÃ n thÃ nh</SelectItem>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="complete">Đã hoàn thành</SelectItem>
+                        <SelectItem value="incomplete">Chưa hoàn thành</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -417,7 +417,7 @@ export default function ReportPeriodsPage() {
               <div className="mt-4 pt-4 border-t">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm text-muted-foreground">
-                    Test Mode: Cho phÃ©p gá»­i bÃ¡o cÃ¡o khi chÆ°a hoÃ n thÃ nh 100%
+                    Test Mode: Cho phép gửi báo cáo khi chưa hoàn thành 100%
                   </div>
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -434,7 +434,7 @@ export default function ReportPeriodsPage() {
                       }`} />
                     </div>
                     <span className="ml-2 text-sm font-medium">
-                      {testModeEnabled ? 'Báº­t' : 'Táº¯t'}
+                      {testModeEnabled ? 'Bật' : 'Tắt'}
                     </span>
                   </label>
                 </div>
@@ -449,10 +449,10 @@ export default function ReportPeriodsPage() {
                   <div className="text-sm text-muted-foreground">
                     {(() => {
                       if (stats.complete === stats.total && stats.total > 0) {
-                        return 'Táº¥t cáº£ lá»›p Ä‘Ã£ hoÃ n thÃ nh bÃ¡o cÃ¡o - cÃ³ thá»ƒ gá»­i cho phá»¥ huynh'
+                        return 'Tất cả lớp đã hoàn thành báo cáo - có thể gửi cho phụ huynh'
                       }
-                      const testModeText = testModeEnabled ? '(Test mode: cÃ³ thá»ƒ gá»­i)' : '(Cáº§n hoÃ n thÃ nh 100%)'
-                      return `${stats.incomplete} lá»›p chÆ°a hoÃ n thÃ nh bÃ¡o cÃ¡o ${testModeText}`
+                      const testModeText = testModeEnabled ? '(Test mode: có thể gửi)' : '(Cần hoàn thành 100%)'
+                      return `${stats.incomplete} lớp chưa hoàn thành báo cáo ${testModeText}`
                     })()}
                   </div>
                   <Button
@@ -463,12 +463,12 @@ export default function ReportPeriodsPage() {
                     {bulkSending ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Äang gá»­i...
+                        Đang gửi...
                       </>
                     ) : (
                       <>
                         <Bell className="h-4 w-4 mr-2" />
-                        Gá»­i táº¥t cáº£ bÃ¡o cÃ¡o cho phá»¥ huynh
+                        Gửi tất cả báo cáo cho phụ huynh
                       </>
                     )}
                   </Button>
@@ -478,7 +478,7 @@ export default function ReportPeriodsPage() {
                 {selectedPeriod && (
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-muted-foreground">
-                      Táº¡o bÃ¡o cÃ¡o há»c sinh cho táº¥t cáº£ lá»›p chÃ­nh
+                      Tạo báo cáo học sinh cho tất cả lớp chính
                     </div>
                     <Button
                       onClick={handleGenerateReports}
@@ -488,12 +488,12 @@ export default function ReportPeriodsPage() {
                       {generatingReports ? (
                         <>
                           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Äang táº¡o...
+                          Đang tạo...
                         </>
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-2" />
-                          Táº¡o bÃ¡o cÃ¡o há»c sinh
+                          Tạo báo cáo học sinh
                         </>
                       )}
                     </Button>
@@ -504,7 +504,7 @@ export default function ReportPeriodsPage() {
                 {selectedPeriod && (
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-sm text-muted-foreground">
-                      Reset bÃ¡o cÃ¡o Ä‘Ã£ gá»­i vá» tráº¡ng thÃ¡i draft (Ä‘á»ƒ test gá»­i láº¡i)
+                      Reset báo cáo đã gửi về trạng thái draft (để test gửi lại)
                     </div>
                     <Button
                       onClick={handleResetReports}
@@ -514,12 +514,12 @@ export default function ReportPeriodsPage() {
                       {resettingReports ? (
                         <>
                           <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Äang reset...
+                          Đang reset...
                         </>
                       ) : (
                         <>
                           <RefreshCw className="h-4 w-4 mr-2" />
-                          Reset Ä‘á»ƒ test láº¡i
+                          Reset để test lại
                         </>
                       )}
                     </Button>
@@ -530,7 +530,7 @@ export default function ReportPeriodsPage() {
                 {incompleteClasses.length > 0 && (
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                      Nháº¯c nhá»Ÿ {incompleteClasses.length} giÃ¡o viÃªn chÆ°a hoÃ n thÃ nh
+                      Nhắc nhở {incompleteClasses.length} giáo viên chưa hoàn thành
                     </div>
                     <Button
                       onClick={handleSendNotifications}
@@ -541,12 +541,12 @@ export default function ReportPeriodsPage() {
                       {sendingNotifications ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
-                          Äang gá»­i...
+                          Đang gửi...
                         </>
                       ) : (
                         <>
                           <Bell className="h-4 w-4 mr-2" />
-                          Gá»­i thÃ´ng bÃ¡o nháº¯c nhá»Ÿ
+                          Gửi thông báo nhắc nhở
                         </>
                       )}
                     </Button>
@@ -564,7 +564,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Tá»•ng sá»‘ lá»›p</p>
+                    <p className="text-sm font-medium text-muted-foreground">Tổng số lớp</p>
                     <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
                   <Users className="h-8 w-8 text-blue-500" />
@@ -576,7 +576,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">HoÃ n thÃ nh</p>
+                    <p className="text-sm font-medium text-muted-foreground">Hoàn thành</p>
                     <p className="text-2xl font-bold text-green-600">{stats.complete}</p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-500" />
@@ -588,7 +588,7 @@ export default function ReportPeriodsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">ChÆ°a hoÃ n thÃ nh</p>
+                    <p className="text-sm font-medium text-muted-foreground">Chưa hoàn thành</p>
                     <p className="text-2xl font-bold text-red-600">{stats.incomplete}</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-red-500" />
@@ -602,7 +602,7 @@ export default function ReportPeriodsPage() {
         {selectedPeriod && (
           <Card>
             <CardHeader>
-              <CardTitle>Tiáº¿n Ä‘á»™ theo lá»›p</CardTitle>
+              <CardTitle>Tiến độ theo lớp</CardTitle>
             </CardHeader>
             <CardContent>
               <ClassProgressTable

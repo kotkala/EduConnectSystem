@@ -54,7 +54,7 @@ export default function TeacherLeaveRequestsPage() {
   const fetchLeaveApplications = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startPageTransition("Äang táº£i danh sÃ¡ch Ä‘Æ¡n xin nghá»‰...")
+      startPageTransition("Đang tải danh sách đơn xin nghỉ...")
       setError(null)
 
       const result = await getTeacherLeaveApplicationsAction()
@@ -72,10 +72,10 @@ export default function TeacherLeaveRequestsPage() {
         const endIndex = startIndex + pageSize
         setPaginatedApplications(allApplications.slice(startIndex, endIndex))
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n xin nghá»‰')
+        setError(result.error || 'Không thể tải danh sách đơn xin nghỉ')
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i')
+      setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       stopLoading()
     }
@@ -111,7 +111,7 @@ export default function TeacherLeaveRequestsPage() {
         setError(result.error || 'Failed to update leave application')
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'ÄÃ£ xáº£y ra lá»—i')
+      setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
       setProcessingId(null)
     }
@@ -120,11 +120,11 @@ export default function TeacherLeaveRequestsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="w-3 h-3 mr-1" />Äang chá»</Badge>
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="w-3 h-3 mr-1" />Đang chờ</Badge>
       case 'approved':
-        return <Badge variant="outline" className="text-green-600 border-green-600"><Check className="w-3 h-3 mr-1" />ÄÃ£ duyá»‡t</Badge>
+        return <Badge variant="outline" className="text-green-600 border-green-600"><Check className="w-3 h-3 mr-1" />Đã duyệt</Badge>
       case 'rejected':
-        return <Badge variant="outline" className="text-red-600 border-red-600"><X className="w-3 h-3 mr-1" />Tá»« chá»‘i</Badge>
+        return <Badge variant="outline" className="text-red-600 border-red-600"><X className="w-3 h-3 mr-1" />Từ chối</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -156,10 +156,10 @@ export default function TeacherLeaveRequestsPage() {
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Tá»« chá»‘i truy cáº­p</h2>
-          <p className="text-gray-600">Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p trang nÃ y.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/teacher')}>
-            Quay láº¡i báº£ng Ä‘iá»u khiá»ƒn
+            Quay lại bảng điều khiển
           </Button>
         </div>
       </div>
@@ -178,12 +178,12 @@ export default function TeacherLeaveRequestsPage() {
             className="w-fit"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Quay láº¡i báº£ng Ä‘iá»u khiá»ƒn
+            Quay lại bảng điều khiển
           </Button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">ÄÆ¡n xin nghá»‰</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Đơn xin nghỉ</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Xem xÃ©t vÃ  quáº£n lÃ½ Ä‘Æ¡n xin nghá»‰ cá»§a há»c sinh lá»›p chá»§ nhiá»‡m
+              Xem xét và quản lý đơn xin nghỉ của học sinh lớp chủ nhiệm
             </p>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function TeacherLeaveRequestsPage() {
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»‘ Ä‘Æ¡n</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Tổng số đơn</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -207,7 +207,7 @@ export default function TeacherLeaveRequestsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Äang chá»</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Đang chờ</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -218,7 +218,7 @@ export default function TeacherLeaveRequestsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ÄÃ£ xá»­ lÃ½</CardTitle>
+              <CardTitle className="text-sm font-medium">Đã xử lý</CardTitle>
               <Check className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -235,9 +235,9 @@ export default function TeacherLeaveRequestsPage() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">ChÆ°a cÃ³ Ä‘Æ¡n xin nghá»‰</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ</h3>
                 <p className="text-gray-600 text-center">
-                  Hiá»‡n chÆ°a cÃ³ Ä‘Æ¡n xin nghá»‰ nÃ o tá»« há»c sinh lá»›p chá»§ nhiá»‡m.
+                  Hiện chưa có đơn xin nghỉ nào từ học sinh lớp chủ nhiệm.
                 </p>
               </CardContent>
             </Card>
@@ -259,32 +259,32 @@ export default function TeacherLeaveRequestsPage() {
                           <Calendar className="h-3 w-3" />
                           {formatDate(application.start_date)} - {formatDate(application.end_date)}
                         </div>
-                        <span>({getDaysDifference(application.start_date, application.end_date)} ngÃ y)</span>
+                        <span>({getDaysDifference(application.start_date, application.end_date)} ngày)</span>
                         <Badge variant="secondary">{application.leave_type}</Badge>
                       </div>
                     </div>
                     <div className="text-right text-sm text-muted-foreground">
-                      <div>Gá»­i: {formatDate(application.created_at)}</div>
+                      <div>Gửi: {formatDate(application.created_at)}</div>
                       {application.responded_at && (
-                        <div>Pháº£n há»“i: {formatDate(application.responded_at)}</div>
+                        <div>Phản hồi: {formatDate(application.responded_at)}</div>
                       )}
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium">LÃ½ do</Label>
+                    <Label className="text-sm font-medium">Lý do</Label>
                     <p className="text-sm text-muted-foreground mt-1">{application.reason}</p>
                   </div>
 
                   {application.attachment_url && (
                     <div>
-                      <Label className="text-sm font-medium">Tá»‡p Ä‘Ã­nh kÃ¨m</Label>
+                      <Label className="text-sm font-medium">Tệp đính kèm</Label>
                       <div className="mt-1">
                         <Button variant="outline" size="sm" asChild>
                           <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
                             <Download className="h-3 w-3 mr-1" />
-                            Xem tá»‡p Ä‘Ã­nh kÃ¨m
+                            Xem tệp đính kèm
                           </a>
                         </Button>
                       </div>
@@ -293,7 +293,7 @@ export default function TeacherLeaveRequestsPage() {
 
                   {application.teacher_response && (
                     <div>
-                      <Label className="text-sm font-medium">Pháº£n há»“i cá»§a giÃ¡o viÃªn</Label>
+                      <Label className="text-sm font-medium">Phản hồi của giáo viên</Label>
                       <p className="text-sm text-muted-foreground mt-1">{application.teacher_response}</p>
                     </div>
                   )}
@@ -302,11 +302,11 @@ export default function TeacherLeaveRequestsPage() {
                     <div className="space-y-3 pt-4 border-t">
                       <div>
                         <Label htmlFor={`response-${application.id}`} className="text-sm font-medium">
-                          Pháº£n há»“i (khÃ´ng báº¯t buá»™c)
+                          Phản hồi (không bắt buộc)
                         </Label>
                         <Textarea
                           id={`response-${application.id}`}
-                          placeholder="ThÃªm ná»™i dung pháº£n há»“i..."
+                          placeholder="Thêm nội dung phản hồi..."
                           value={responseText[application.id] || ''}
                           onChange={(e) => setResponseText(prev => ({
                             ...prev,
@@ -322,7 +322,7 @@ export default function TeacherLeaveRequestsPage() {
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Check className="w-4 h-4 mr-2" />
-                          Duyá»‡t
+                          Duyệt
                         </Button>
                         <Button
                           variant="destructive"
@@ -330,7 +330,7 @@ export default function TeacherLeaveRequestsPage() {
                           disabled={processingId === application.id}
                         >
                           <X className="w-4 h-4 mr-2" />
-                          Tá»« chá»‘i
+                          Từ chối
                         </Button>
                       </div>
                     </div>
@@ -347,7 +347,7 @@ export default function TeacherLeaveRequestsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
-                  Trang {currentPage} / {totalPages} - Tá»•ng {totalCount} Ä‘Æ¡n xin nghá»‰
+                  Trang {currentPage} / {totalPages} - Tổng {totalCount} đơn xin nghỉ
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
@@ -357,7 +357,7 @@ export default function TeacherLeaveRequestsPage() {
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    TrÆ°á»›c
+                    Trước
                   </Button>
 
                   {/* Page Numbers */}

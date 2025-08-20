@@ -3,8 +3,8 @@ import { CalendarProvider } from "@/features/timetable/components/event-calendar
 import TimetableBigCalendar from "@/features/timetable/components/timetable-big-calendar";
 
 export const metadata: Metadata = {
-  title: "Quáº£n lÃ½ thá»i khÃ³a biá»ƒu",
-  description: "Quáº£n lÃ½ lá»‹ch há»c, giÃ¡o viÃªn vÃ  thá»i khÃ³a biá»ƒu theo tuáº§n",
+  title: "Quản lý thời khóa biểu",
+  description: "Quản lý lịch học, giáo viên và thời khóa biểu theo tuần",
 };
 
 export default function TimetablePage() {

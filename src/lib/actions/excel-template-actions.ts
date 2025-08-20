@@ -29,7 +29,7 @@ export async function generateGradeTemplateAction(params: {
     if (classError || !classInfo) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin lá»›p há»c'
+        error: 'Không tìm thấy thông tin lớp học'
       }
     }
 
@@ -43,7 +43,7 @@ export async function generateGradeTemplateAction(params: {
     if (subjectError || !subjectInfo) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin mÃ´n há»c'
+        error: 'Không tìm thấy thông tin môn học'
       }
     }
 
@@ -66,7 +66,7 @@ export async function generateGradeTemplateAction(params: {
     if (studentsError) {
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c sinh'
+        error: 'Không thể tải danh sách học sinh'
       }
     }
 
@@ -79,15 +79,15 @@ export async function generateGradeTemplateAction(params: {
     if (validStudents.length === 0) {
       return {
         success: false,
-        error: 'Lá»›p há»c nÃ y chÆ°a cÃ³ há»c sinh nÃ o'
+        error: 'Lớp học này chưa có học sinh nào'
       }
     }
 
     // Map grade type to Vietnamese - Updated for VNedu compatibility
     const gradeTypeMap: Record<string, string> = {
-      'semester1': 'Cuá»‘i há»c ká»³ 1',
-      'semester2': 'Cuá»‘i há»c ká»³ 2',
-      'yearly': 'Cáº£ nÄƒm há»c'
+      'semester1': 'Cuối học kỳ 1',
+      'semester2': 'Cuối học kỳ 2',
+      'yearly': 'Cả năm học'
     }
 
     // Prepare data for template generation
@@ -122,14 +122,14 @@ export async function generateGradeTemplateAction(params: {
         content: base64,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       },
-      message: 'Táº¡o template Excel thÃ nh cÃ´ng'
+      message: 'Tạo template Excel thành công'
     }
 
   } catch (error) {
     console.error('Error generating Excel template:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o template Excel'
+      error: error instanceof Error ? error.message : 'Không thể tạo template Excel'
     }
   }
 }
@@ -167,21 +167,21 @@ export async function getTemplateInfoAction(params: {
     if (classResult.error || !classResult.data) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin lá»›p há»c'
+        error: 'Không tìm thấy thông tin lớp học'
       }
     }
 
     if (subjectResult.error || !subjectResult.data) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin mÃ´n há»c'
+        error: 'Không tìm thấy thông tin môn học'
       }
     }
 
     if (studentsResult.error) {
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ Ä‘áº¿m sá»‘ lÆ°á»£ng há»c sinh'
+        error: 'Không thể đếm số lượng học sinh'
       }
     }
 
@@ -199,7 +199,7 @@ export async function getTemplateInfoAction(params: {
     console.error('Error getting template info:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y thÃ´ng tin template'
+      error: error instanceof Error ? error.message : 'Không thể lấy thông tin template'
     }
   }
 }
@@ -223,9 +223,9 @@ export async function validateTemplateRequirementsAction(params: {
       .single()
 
     if (classError || !classData) {
-      errors.push('Lá»›p há»c khÃ´ng tá»“n táº¡i')
+      errors.push('Lớp học không tồn tại')
     } else if (!classData.is_active) {
-      errors.push('Lá»›p há»c Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a')
+      errors.push('Lớp học đã bị vô hiệu hóa')
     }
 
     // Check if subject exists and is active
@@ -236,9 +236,9 @@ export async function validateTemplateRequirementsAction(params: {
       .single()
 
     if (subjectError || !subjectData) {
-      errors.push('MÃ´n há»c khÃ´ng tá»“n táº¡i')
+      errors.push('Môn học không tồn tại')
     } else if (!subjectData.is_active) {
-      errors.push('MÃ´n há»c Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a')
+      errors.push('Môn học đã bị vô hiệu hóa')
     }
 
     // Check if class has students
@@ -250,9 +250,9 @@ export async function validateTemplateRequirementsAction(params: {
       .limit(1)
 
     if (studentsError) {
-      errors.push('KhÃ´ng thá»ƒ kiá»ƒm tra danh sÃ¡ch há»c sinh')
+      errors.push('Không thể kiểm tra danh sách học sinh')
     } else if (!students || students.length === 0) {
-      errors.push('Lá»›p há»c chÆ°a cÃ³ há»c sinh nÃ o')
+      errors.push('Lớp học chưa có học sinh nào')
     }
 
     return {
@@ -268,7 +268,7 @@ export async function validateTemplateRequirementsAction(params: {
     console.error('Error validating template requirements:', error)
     return {
       success: false,
-      errors: [error instanceof Error ? error.message : 'Lá»—i kiá»ƒm tra yÃªu cáº§u template']
+      errors: [error instanceof Error ? error.message : 'Lỗi kiểm tra yêu cầu template']
     }
   }
 }

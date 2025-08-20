@@ -59,11 +59,11 @@ export default function HomeroomGradesPage() {
           setSelectedPeriod(result.data[0].id)
         }
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o')
+        setError(result.error || 'Không thể tải danh sách kỳ báo cáo')
       }
     } catch (error) {
       console.error('Error loading periods:', error)
-      setError('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o')
+      setError('Không thể tải danh sách kỳ báo cáo')
     }
   }, [])
 
@@ -79,11 +79,11 @@ export default function HomeroomGradesPage() {
       if (result.success) {
         setGradeData(result.data || [])
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘')
+        setError(result.error || 'Không thể tải dữ liệu điểm số')
       }
     } catch (error) {
       console.error('Error loading grade data:', error)
-      setError('KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘')
+      setError('Không thể tải dữ liệu điểm số')
     } finally {
       setLoading(false)
     }
@@ -102,7 +102,7 @@ export default function HomeroomGradesPage() {
   // Generate AI feedback for selected students
   const generateFeedback = async () => {
     if (selectedStudents.size === 0) {
-      toast.error('Vui lÃ²ng chá»n Ã­t nháº¥t má»™t há»c sinh')
+      toast.error('Vui lòng chọn ít nhất một học sinh')
       return
     }
 
@@ -121,16 +121,16 @@ export default function HomeroomGradesPage() {
           if (result.success && result.feedback) {
             newFeedbacks[studentId] = result.feedback
           } else {
-            toast.error(`Lá»—i táº¡o pháº£n há»“i cho ${studentData.student_name}`)
+            toast.error(`Lỗi tạo phản hồi cho ${studentData.student_name}`)
           }
         }
       }
 
       setGeneratedFeedbacks(prev => ({ ...prev, ...newFeedbacks }))
-      toast.success(`ÄÃ£ táº¡o pháº£n há»“i cho ${Object.keys(newFeedbacks).length} há»c sinh`)
+      toast.success(`Đã tạo phản hồi cho ${Object.keys(newFeedbacks).length} học sinh`)
     } catch (error) {
       console.error('Error generating feedback:', error)
-      toast.error('Lá»—i táº¡o pháº£n há»“i AI')
+      toast.error('Lỗi tạo phản hồi AI')
     } finally {
       setGeneratingFeedback(false)
     }
@@ -141,7 +141,7 @@ export default function HomeroomGradesPage() {
     const studentsWithFeedback = Array.from(selectedStudents).filter(id => generatedFeedbacks[id])
     
     if (studentsWithFeedback.length === 0) {
-      toast.error('Vui lÃ²ng táº¡o pháº£n há»“i AI cho cÃ¡c há»c sinh Ä‘Ã£ chá»n')
+      toast.error('Vui lòng tạo phản hồi AI cho các học sinh đã chọn')
       return
     }
 
@@ -169,11 +169,11 @@ export default function HomeroomGradesPage() {
         setFeedbackDialogOpen(false)
         loadGradeData() // Reload to show updated submission status
       } else {
-        toast.error(result.error || 'Lá»—i gá»­i báº£ng Ä‘iá»ƒm')
+        toast.error(result.error || 'Lỗi gửi bảng điểm')
       }
     } catch (error) {
       console.error('Error submitting to parents:', error)
-      toast.error('Lá»—i gá»­i báº£ng Ä‘iá»ƒm cho phá»¥ huynh')
+      toast.error('Lỗi gửi bảng điểm cho phụ huynh')
     } finally {
       setSubmitting(false)
     }
@@ -216,19 +216,19 @@ export default function HomeroomGradesPage() {
 
   const getFeedbackStyleLabel = (style: string) => {
     switch (style) {
-      case 'friendly': return 'Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n'
-      case 'serious': return 'Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t'
-      case 'encouraging': return 'Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn'
-      case 'understanding': return 'Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu'
+      case 'friendly': return 'Phong cách gần gũi, thân thiện'
+      case 'serious': return 'Phong cách nghiêm túc, kỷ luật'
+      case 'encouraging': return 'Phong cách khích lệ, động viên'
+      case 'understanding': return 'Phong cách lắng nghe, thấu hiểu'
       default: return style
     }
   }
 
   const getFeedbackLengthLabel = (length: string) => {
     switch (length) {
-      case 'short': return 'VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)'
-      case 'medium': return 'VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)'
-      case 'long': return 'VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)'
+      case 'short': return 'Văn bản ngắn gọn (1-2 câu)'
+      case 'medium': return 'Văn bản trung bình (3-5 câu)'
+      case 'long': return 'Văn bản dài (6 câu trở lên)'
       default: return length
     }
   }
@@ -237,22 +237,22 @@ export default function HomeroomGradesPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Quáº£n lÃ½ Ä‘iá»ƒm lá»›p chá»§ nhiá»‡m</h1>
+          <h1 className="text-3xl font-bold">Quản lý điểm lớp chủ nhiệm</h1>
           <p className="text-muted-foreground">
-            Táº¡o pháº£n há»“i AI vÃ  gá»­i báº£ng Ä‘iá»ƒm cho phá»¥ huynh
+            Tạo phản hồi AI và gửi bảng điểm cho phụ huynh
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadGradeData} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            LÃ m má»›i
+            Làm mới
           </Button>
           <Button 
             onClick={() => setFeedbackDialogOpen(true)}
             disabled={selectedStudents.size === 0}
           >
             <Bot className="mr-2 h-4 w-4" />
-            Táº¡o pháº£n há»“i AI ({selectedStudents.size})
+            Tạo phản hồi AI ({selectedStudents.size})
           </Button>
         </div>
       </div>
@@ -260,12 +260,12 @@ export default function HomeroomGradesPage() {
       {/* Period Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Chá»n ká»³ bÃ¡o cÃ¡o</CardTitle>
+          <CardTitle>Chọn kỳ báo cáo</CardTitle>
         </CardHeader>
         <CardContent>
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o" />
+              <SelectValue placeholder="Chọn kỳ báo cáo" />
             </SelectTrigger>
             <SelectContent>
               {periods.map((period) => (
@@ -273,7 +273,7 @@ export default function HomeroomGradesPage() {
                   <div className="flex items-center gap-2">
                     <span>{period.name}</span>
                     {period.is_active && (
-                      <Badge variant="outline" className="text-xs">Äang hoáº¡t Ä‘á»™ng</Badge>
+                      <Badge variant="outline" className="text-xs">Đang hoạt động</Badge>
                     )}
                   </div>
                 </SelectItem>
@@ -296,7 +296,7 @@ export default function HomeroomGradesPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-lg">Äang táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘...</p>
+            <p className="text-lg">Đang tải dữ liệu điểm số...</p>
           </div>
         </div>
       )}
@@ -306,7 +306,7 @@ export default function HomeroomGradesPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tá»•ng há»c sinh</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng học sinh</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -316,7 +316,7 @@ export default function HomeroomGradesPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ÄÃ£ chá»n</CardTitle>
+              <CardTitle className="text-sm font-medium">Đã chọn</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -326,7 +326,7 @@ export default function HomeroomGradesPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">ÄÃ£ táº¡o pháº£n há»“i</CardTitle>
+              <CardTitle className="text-sm font-medium">Đã tạo phản hồi</CardTitle>
               <Bot className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -341,13 +341,13 @@ export default function HomeroomGradesPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              <span>Báº£ng Ä‘iá»ƒm há»c sinh</span>
+              <span>Bảng điểm học sinh</span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={selectAllStudents}>
-                  Chá»n táº¥t cáº£
+                  Chọn tất cả
                 </Button>
                 <Button variant="outline" size="sm" onClick={clearSelection}>
-                  Bá» chá»n
+                  Bỏ chọn
                 </Button>
               </div>
             </CardTitle>
@@ -369,12 +369,12 @@ export default function HomeroomGradesPage() {
                         }}
                       />
                     </th>
-                    <th className="text-left p-3 font-medium">Há»c sinh</th>
-                    <th className="text-left p-3 font-medium">Sá»‘ bÃ¡o danh</th>
-                    <th className="text-left p-3 font-medium">Äiá»ƒm TB chung</th>
-                    <th className="text-left p-3 font-medium">Sá»‘ mÃ´n há»c</th>
-                    <th className="text-left p-3 font-medium">Pháº£n há»“i AI</th>
-                    <th className="text-left p-3 font-medium">Thao tÃ¡c</th>
+                    <th className="text-left p-3 font-medium">Học sinh</th>
+                    <th className="text-left p-3 font-medium">Số báo danh</th>
+                    <th className="text-left p-3 font-medium">Điểm TB chung</th>
+                    <th className="text-left p-3 font-medium">Số môn học</th>
+                    <th className="text-left p-3 font-medium">Phản hồi AI</th>
+                    <th className="text-left p-3 font-medium">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -402,18 +402,18 @@ export default function HomeroomGradesPage() {
                         <td className="p-3">
                           {hasFeedback ? (
                             <Badge variant="default" className="text-xs">
-                              ÄÃ£ táº¡o
+                              Đã tạo
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs">
-                              ChÆ°a táº¡o
+                              Chưa tạo
                             </Badge>
                           )}
                         </td>
                         <td className="p-3">
                           <Button variant="outline" size="sm">
                             <Eye className="mr-1 h-4 w-4" />
-                            Chi tiáº¿t
+                            Chi tiết
                           </Button>
                         </td>
                       </tr>
@@ -431,13 +431,13 @@ export default function HomeroomGradesPage() {
         <Card>
           <CardContent className="text-center py-12">
             <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">ChÆ°a cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm</h3>
+            <h3 className="text-lg font-medium mb-2">Chưa có dữ liệu điểm</h3>
             <p className="text-muted-foreground mb-4">
-              ChÆ°a cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘ cho ká»³ bÃ¡o cÃ¡o Ä‘Ã£ chá»n
+              Chưa có dữ liệu điểm số cho kỳ báo cáo đã chọn
             </p>
             <Button variant="outline" onClick={loadGradeData}>
               <RefreshCw className="mr-2 h-4 w-4" />
-              Thá»­ láº¡i
+              Thử lại
             </Button>
           </CardContent>
         </Card>
@@ -447,36 +447,36 @@ export default function HomeroomGradesPage() {
       <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Táº¡o pháº£n há»“i AI cho há»c sinh</DialogTitle>
+            <DialogTitle>Tạo phản hồi AI cho học sinh</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Phong cÃ¡ch pháº£n há»“i</Label>
+                <Label>Phong cách phản hồi</Label>
                 <Select value={feedbackStyle} onValueChange={(value: 'friendly' | 'serious' | 'encouraging' | 'understanding') => setFeedbackStyle(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="friendly">Phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n</SelectItem>
-                    <SelectItem value="serious">Phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t</SelectItem>
-                    <SelectItem value="encouraging">Phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn</SelectItem>
-                    <SelectItem value="understanding">Phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu</SelectItem>
+                    <SelectItem value="friendly">Phong cách gần gũi, thân thiện</SelectItem>
+                    <SelectItem value="serious">Phong cách nghiêm túc, kỷ luật</SelectItem>
+                    <SelectItem value="encouraging">Phong cách khích lệ, động viên</SelectItem>
+                    <SelectItem value="understanding">Phong cách lắng nghe, thấu hiểu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Äá»™ dÃ i vÄƒn báº£n</Label>
+                <Label>Độ dài văn bản</Label>
                 <Select value={feedbackLength} onValueChange={(value: 'short' | 'medium' | 'long') => setFeedbackLength(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="short">VÄƒn báº£n ngáº¯n gá»n (1-2 cÃ¢u)</SelectItem>
-                    <SelectItem value="medium">VÄƒn báº£n trung bÃ¬nh (3-5 cÃ¢u)</SelectItem>
-                    <SelectItem value="long">VÄƒn báº£n dÃ i (6 cÃ¢u trá»Ÿ lÃªn)</SelectItem>
+                    <SelectItem value="short">Văn bản ngắn gọn (1-2 câu)</SelectItem>
+                    <SelectItem value="medium">Văn bản trung bình (3-5 câu)</SelectItem>
+                    <SelectItem value="long">Văn bản dài (6 câu trở lên)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -484,18 +484,18 @@ export default function HomeroomGradesPage() {
 
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                ÄÃ£ chá»n {selectedStudents.size} há»c sinh
+                Đã chọn {selectedStudents.size} học sinh
               </p>
               <Button onClick={generateFeedback} disabled={generatingFeedback || selectedStudents.size === 0}>
                 <Bot className="mr-2 h-4 w-4" />
-                {generatingFeedback ? 'Äang táº¡o...' : 'Táº¡o pháº£n há»“i AI'}
+                {generatingFeedback ? 'Đang tạo...' : 'Tạo phản hồi AI'}
               </Button>
             </div>
 
             {/* Generated Feedbacks */}
             {Object.keys(generatedFeedbacks).length > 0 && (
               <div className="space-y-4">
-                <h4 className="font-medium">Pháº£n há»“i Ä‘Ã£ táº¡o:</h4>
+                <h4 className="font-medium">Phản hồi đã tạo:</h4>
                 <div className="max-h-64 overflow-y-auto space-y-3">
                   {Object.entries(generatedFeedbacks).map(([studentId, feedback]) => {
                     const student = gradeData.find(s => s.student_id === studentId)
@@ -519,11 +519,11 @@ export default function HomeroomGradesPage() {
             {Object.keys(generatedFeedbacks).length > 0 && (
               <div className="space-y-2">
                 <Label htmlFor="submission-reason">
-                  LÃ½ do gá»­i (náº¿u gá»­i láº¡i)
+                  Lý do gửi (nếu gửi lại)
                 </Label>
                 <Textarea
                   id="submission-reason"
-                  placeholder="Nháº­p lÃ½ do gá»­i láº¡i báº£ng Ä‘iá»ƒm (tÃ¹y chá»n)"
+                  placeholder="Nhập lý do gửi lại bảng điểm (tùy chọn)"
                   value={submissionReason}
                   onChange={(e) => setSubmissionReason(e.target.value)}
                   rows={2}
@@ -538,14 +538,14 @@ export default function HomeroomGradesPage() {
               onClick={() => setFeedbackDialogOpen(false)}
               disabled={submitting}
             >
-              ÄÃ³ng
+              Đóng
             </Button>
             <Button
               onClick={handleSubmitToParents}
               disabled={submitting || Object.keys(generatedFeedbacks).length === 0}
             >
               <Send className="mr-2 h-4 w-4" />
-              {submitting ? 'Äang gá»­i...' : `Gá»­i cho phá»¥ huynh (${Object.keys(generatedFeedbacks).length})`}
+              {submitting ? 'Đang gửi...' : `Gửi cho phụ huynh (${Object.keys(generatedFeedbacks).length})`}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -9,7 +9,7 @@ async function checkTeacherPermissions() {
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile } = await supabase
@@ -19,7 +19,7 @@ async function checkTeacherPermissions() {
     .single()
 
   if (!profile || profile.role !== 'teacher') {
-    throw new Error("YÃªu cáº§u quyá»n giÃ¡o viÃªn")
+    throw new Error("Yêu cầu quyền giáo viên")
   }
 
   return { user, profile }
@@ -62,7 +62,7 @@ export async function getClassGradeSummariesAction() {
     console.error('Error fetching class grade summaries:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch báº£ng Ä‘iá»ƒm"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách bảng điểm"
     }
   }
 }
@@ -86,14 +86,14 @@ export async function getClassGradeDetailsAction(summaryId: string) {
     if (summaryError || !summary) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y báº£ng Ä‘iá»ƒm"
+        error: "Không tìm thấy bảng điểm"
       }
     }
 
     if (summary.class?.homeroom_teacher_id !== user.id) {
       return {
         success: false,
-        error: "Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p báº£ng Ä‘iá»ƒm nÃ y"
+        error: "Bạn không có quyền truy cập bảng điểm này"
       }
     }
 
@@ -141,7 +141,7 @@ export async function getClassGradeDetailsAction(summaryId: string) {
     console.error('Error fetching class grade details:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y chi tiáº¿t báº£ng Ä‘iá»ƒm"
+      error: error instanceof Error ? error.message : "Không thể lấy chi tiết bảng điểm"
     }
   }
 }
@@ -175,7 +175,7 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
     if (submissionError || !submission) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y báº£ng Ä‘iá»ƒm há»c sinh"
+        error: "Không tìm thấy bảng điểm học sinh"
       }
     }
 
@@ -183,7 +183,7 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
     if (submission.class?.homeroom_teacher_id !== user.id) {
       return {
         success: false,
-        error: "Báº¡n khÃ´ng cÃ³ quyá»n gá»­i báº£ng Ä‘iá»ƒm nÃ y"
+        error: "Bạn không có quyền gửi bảng điểm này"
       }
     }
 
@@ -205,15 +205,15 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
     }
 
     // Create notifications for parents
-    const baseMessage = `Báº£ng Ä‘iá»ƒm ${submission.semester?.name} cá»§a con báº¡n ${submission.student?.full_name} (${submission.student?.student_id}) Ä‘Ã£ sáºµn sÃ ng. Vui lÃ²ng kiá»ƒm tra chi tiáº¿t.`
+    const baseMessage = `Bảng điểm ${submission.semester?.name} của con bạn ${submission.student?.full_name} (${submission.student?.student_id}) đã sẵn sàng. Vui lòng kiểm tra chi tiết.`
     const fullMessage = aiFeedbackText
-      ? `${baseMessage}\n\nNháº­n xÃ©t cá»§a giÃ¡o viÃªn chá»§ nhiá»‡m:\n${aiFeedbackText}`
+      ? `${baseMessage}\n\nNhận xét của giáo viên chủ nhiệm:\n${aiFeedbackText}`
       : baseMessage
 
     const notifications = parentIds.map(parentId => ({
       recipient_id: parentId,
       sender_id: user.id,
-      title: `Báº£ng Ä‘iá»ƒm ${submission.semester?.name} cá»§a ${submission.student?.full_name}`,
+      title: `Bảng điểm ${submission.semester?.name} của ${submission.student?.full_name}`,
       content: fullMessage,
       message: fullMessage,
       type: 'student_grade',
@@ -242,13 +242,13 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
     revalidatePath('/dashboard/teacher/grade-reports')
     return {
       success: true,
-      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cá»§a ${submission.student?.full_name} cho ${parentIds.length} phá»¥ huynh`
+      message: `Đã gửi bảng điểm của ${submission.student?.full_name} cho ${parentIds.length} phụ huynh`
     }
   } catch (error) {
     console.error('Error sending grades to parent:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ gá»­i báº£ng Ä‘iá»ƒm cho phá»¥ huynh"
+      error: error instanceof Error ? error.message : "Không thể gửi bảng điểm cho phụ huynh"
     }
   }
 }
@@ -286,7 +286,7 @@ export async function getStudentParentsAction(studentId: string) {
     console.error('Error fetching student parents:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phá»¥ huynh cá»§a há»c sinh"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách phụ huynh của học sinh"
     }
   }
 }
@@ -334,7 +334,7 @@ export async function sendAllGradesToParentsAction(summaryId: string) {
     if (!detailsResult.success || !detailsResult.data) {
       return {
         success: false,
-        error: detailsResult.error || "KhÃ´ng thá»ƒ láº¥y thÃ´ng tin báº£ng Ä‘iá»ƒm"
+        error: detailsResult.error || "Không thể lấy thông tin bảng điểm"
       }
     }
 
@@ -342,10 +342,10 @@ export async function sendAllGradesToParentsAction(summaryId: string) {
     const { successCount, errorCount } = await processAllSubmissions(submissions)
 
     revalidatePath('/dashboard/teacher/grade-reports')
-    const errorMessage = errorCount > 0 ? ` ${errorCount} báº£ng Ä‘iá»ƒm gáº·p lá»—i.` : ''
+    const errorMessage = errorCount > 0 ? ` ${errorCount} bảng điểm gặp lỗi.` : ''
     return {
       success: true,
-      message: `ÄÃ£ gá»­i thÃ nh cÃ´ng ${successCount} báº£ng Ä‘iá»ƒm.${errorMessage}`
+      message: `Đã gửi thành công ${successCount} bảng điểm.${errorMessage}`
     }
   } catch (error) {
     console.error('Error sending all grades to parents:', error)

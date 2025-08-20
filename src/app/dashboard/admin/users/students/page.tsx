@@ -25,15 +25,15 @@ export default async function StudentsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ Há»c sinh & Phá»¥ huynh</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý Học sinh & Phụ huynh</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ tÃ i khoáº£n há»c sinh kÃ¨m má»‘i quan há»‡ phá»¥ huynh báº¯t buá»™c
+            Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc
           </p>
         </div>
-        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay vá» Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</a>
+        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay về Quản lý người dùng</a>
       </div>
 
-      <Suspense fallback={<div>Äang táº£i...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <StudentsPageClient />
       </Suspense>
     </div>

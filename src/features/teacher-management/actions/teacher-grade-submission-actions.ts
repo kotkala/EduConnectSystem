@@ -43,14 +43,14 @@ export async function submitTeacherGradesToAdminAction(
     if (!data.periodId || !data.classId || !data.subjectId) {
       return {
         success: false,
-        error: 'Thiáº¿u thÃ´ng tin ká»³ bÃ¡o cÃ¡o, lá»›p há»c hoáº·c mÃ´n há»c'
+        error: 'Thiếu thông tin kỳ báo cáo, lớp học hoặc môn học'
       }
     }
 
     if (!data.gradeData || data.gradeData.length === 0) {
       return {
         success: false,
-        error: 'KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm Ä‘á»ƒ gá»­i'
+        error: 'Không có dữ liệu điểm để gửi'
       }
     }
 
@@ -68,7 +68,7 @@ export async function submitTeacherGradesToAdminAction(
       console.error('Error checking existing submission:', checkError)
       return {
         success: false,
-        error: 'Lá»—i kiá»ƒm tra báº£ng Ä‘iá»ƒm Ä‘Ã£ gá»­i'
+        error: 'Lỗi kiểm tra bảng điểm đã gửi'
       }
     }
 
@@ -78,7 +78,7 @@ export async function submitTeacherGradesToAdminAction(
       class_id: data.classId,
       subject_id: data.subjectId,
       teacher_id: userId,
-      submission_name: `Báº£ng Ä‘iá»ƒm ${data.subjectName} - ${data.className}`,
+      submission_name: `Bảng điểm ${data.subjectName} - ${data.className}`,
       grade_data: JSON.stringify(data.gradeData),
       status: 'submitted',
       submission_count: existingSubmission ? (existingSubmission.submission_count || 0) + 1 : 1,
@@ -102,7 +102,7 @@ export async function submitTeacherGradesToAdminAction(
         console.error('Error updating submission:', updateError)
         return {
           success: false,
-          error: 'Lá»—i cáº­p nháº­t báº£ng Ä‘iá»ƒm Ä‘Ã£ gá»­i'
+          error: 'Lỗi cập nhật bảng điểm đã gửi'
         }
       }
       result = updatedSubmission
@@ -118,7 +118,7 @@ export async function submitTeacherGradesToAdminAction(
         console.error('Error creating submission:', createError)
         return {
           success: false,
-          error: 'Lá»—i táº¡o báº£ng Ä‘iá»ƒm gá»­i admin'
+          error: 'Lỗi tạo bảng điểm gửi admin'
         }
       }
       result = newSubmission
@@ -131,8 +131,8 @@ export async function submitTeacherGradesToAdminAction(
     return {
       success: true,
       message: existingSubmission 
-        ? 'Cáº­p nháº­t vÃ  gá»­i láº¡i báº£ng Ä‘iá»ƒm cho admin thÃ nh cÃ´ng!'
-        : 'Gá»­i báº£ng Ä‘iá»ƒm cho admin thÃ nh cÃ´ng!',
+        ? 'Cập nhật và gửi lại bảng điểm cho admin thành công!'
+        : 'Gửi bảng điểm cho admin thành công!',
       submissionId: result.id
     }
 
@@ -140,7 +140,7 @@ export async function submitTeacherGradesToAdminAction(
     console.error('Error in submitTeacherGradesToAdminAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác định'
     }
   }
 }
@@ -199,7 +199,7 @@ export async function getTeacherGradeSubmissionsAction(
       console.error('Error fetching teacher submissions:', error)
       return {
         success: false,
-        error: 'Lá»—i táº£i danh sÃ¡ch báº£ng Ä‘iá»ƒm Ä‘Ã£ gá»­i'
+        error: 'Lỗi tải danh sách bảng điểm đã gửi'
       }
     }
 
@@ -212,7 +212,7 @@ export async function getTeacherGradeSubmissionsAction(
     console.error('Error in getTeacherGradeSubmissionsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác định'
     }
   }
 }

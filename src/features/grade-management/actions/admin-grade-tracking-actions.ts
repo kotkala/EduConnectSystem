@@ -166,16 +166,16 @@ export async function getGradePeriodsAction(): Promise<{
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     console.error('=====================================')
 
-    let errorMessage = 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh khi táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o'
+    let errorMessage = 'Lỗi không xác định khi tải danh sách kỳ báo cáo'
     if (error instanceof Error) {
-      errorMessage = `Lá»—i táº£i ká»³ bÃ¡o cÃ¡o: ${error.message}`
+      errorMessage = `Lỗi tải kỳ báo cáo: ${error.message}`
       if (error.message.includes('permission')) {
-        errorMessage = 'KhÃ´ng cÃ³ quyá»n truy cáº­p danh sÃ¡ch ká»³ bÃ¡o cÃ¡o'
+        errorMessage = 'Không có quyền truy cập danh sách kỳ báo cáo'
       } else if (error.message.includes('network')) {
-        errorMessage = 'Lá»—i káº¿t ná»‘i máº¡ng khi táº£i ká»³ bÃ¡o cÃ¡o'
+        errorMessage = 'Lỗi kết nối mạng khi tải kỳ báo cáo'
       }
     } else {
-      errorMessage = `Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh: ${JSON.stringify(error)}`
+      errorMessage = `Lỗi không xác định: ${JSON.stringify(error)}`
     }
 
     return {
@@ -197,7 +197,7 @@ export async function getStudentGradeTrackingDataAction(periodId: string): Promi
     if (!periodId || typeof periodId !== 'string') {
       return {
         success: false,
-        error: 'ID ká»³ bÃ¡o cÃ¡o khÃ´ng há»£p lá»‡'
+        error: 'ID kỳ báo cáo không hợp lệ'
       }
     }
 
@@ -206,7 +206,7 @@ export async function getStudentGradeTrackingDataAction(periodId: string): Promi
     if (!uuidRegex.test(periodId)) {
       return {
         success: false,
-        error: 'Äá»‹nh dáº¡ng ID ká»³ bÃ¡o cÃ¡o khÃ´ng há»£p lá»‡'
+        error: 'Định dạng ID kỳ báo cáo không hợp lệ'
       }
     }
 
@@ -451,26 +451,26 @@ export async function getStudentGradeTrackingDataAction(periodId: string): Promi
     console.error('==========================================')
 
     // Provide detailed error messages based on error type
-    let errorMessage = 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh khi táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘'
+    let errorMessage = 'Lỗi không xác định khi tải dữ liệu điểm số'
 
     if (error instanceof Error) {
       if (error.message.includes('permission')) {
-        errorMessage = 'KhÃ´ng cÃ³ quyá»n truy cáº­p dá»¯ liá»‡u Ä‘iá»ƒm sá»‘'
+        errorMessage = 'Không có quyền truy cập dữ liệu điểm số'
       } else if (error.message.includes('Database query failed')) {
-        errorMessage = `Lá»—i truy váº¥n cÆ¡ sá»Ÿ dá»¯ liá»‡u: ${error.message.replace('Database query failed: ', '')}`
+        errorMessage = `Lỗi truy vấn cơ sở dữ liệu: ${error.message.replace('Database query failed: ', '')}`
       } else if (error.message.includes('invalid')) {
-        errorMessage = 'Dá»¯ liá»‡u khÃ´ng há»£p lá»‡'
+        errorMessage = 'Dữ liệu không hợp lệ'
       } else if (error.message.includes('PGRST')) {
-        errorMessage = `Lá»—i PostgREST: ${error.message}`
+        errorMessage = `Lỗi PostgREST: ${error.message}`
       } else if (error.message.includes('JWT')) {
-        errorMessage = 'Lá»—i xÃ¡c thá»±c - vui lÃ²ng Ä‘Äƒng nháº­p láº¡i'
+        errorMessage = 'Lỗi xác thực - vui lòng đăng nhập lại'
       } else if (error.message.includes('network')) {
-        errorMessage = 'Lá»—i káº¿t ná»‘i máº¡ng'
+        errorMessage = 'Lỗi kết nối mạng'
       } else {
-        errorMessage = `Lá»—i há»‡ thá»‘ng: ${error.message}`
+        errorMessage = `Lỗi hệ thống: ${error.message}`
       }
     } else {
-      errorMessage = `Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh: ${JSON.stringify(error)}`
+      errorMessage = `Lỗi không xác định: ${JSON.stringify(error)}`
     }
 
     return {
@@ -494,7 +494,7 @@ export async function getStudentDetailedGradesAction(
     if (!periodId || !studentId) {
       return {
         success: false,
-        error: 'Thiáº¿u thÃ´ng tin ká»³ bÃ¡o cÃ¡o hoáº·c há»c sinh'
+        error: 'Thiếu thông tin kỳ báo cáo hoặc học sinh'
       }
     }
 
@@ -503,7 +503,7 @@ export async function getStudentDetailedGradesAction(
     if (!uuidRegex.test(periodId) || !uuidRegex.test(studentId)) {
       return {
         success: false,
-        error: 'Äá»‹nh dáº¡ng ID khÃ´ng há»£p lá»‡'
+        error: 'Định dạng ID không hợp lệ'
       }
     }
 
@@ -631,7 +631,7 @@ export async function getStudentDetailedGradesAction(
           const midterm = midterm_grade || 0
           const final = final_grade || 0
 
-          // Vietnamese grading formula: ÄTBmhk = (Tá»•ng Ä‘iá»ƒm thÆ°á»ng xuyÃªn + 2 Ã— Äiá»ƒm giá»¯a ká»³ + 3 Ã— Äiá»ƒm cuá»‘i ká»³) / (Sá»‘ bÃ i thÆ°á»ng xuyÃªn + 5)
+          // Vietnamese grading formula: ĐTBmhk = (Tổng điểm thường xuyên + 2 Ý— Điểm giữa kỳ + 3 Ý— Điểm cuối kỳ) / (Số bài thường xuyên + 5)
           average_grade = (regularSum + (2 * midterm) + (3 * final)) / (regularCount + 5)
         }
       }
@@ -681,21 +681,21 @@ export async function getStudentDetailedGradesAction(
     console.error('===============================================')
 
     // Provide detailed error messages
-    let errorMessage = 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh khi táº£i chi tiáº¿t Ä‘iá»ƒm há»c sinh'
+    let errorMessage = 'Lỗi không xác định khi tải chi tiết điểm học sinh'
     if (error instanceof Error) {
       if (error.message.includes('permission')) {
-        errorMessage = 'KhÃ´ng cÃ³ quyá»n truy cáº­p dá»¯ liá»‡u há»c sinh'
+        errorMessage = 'Không có quyền truy cập dữ liệu học sinh'
       } else if (error.message.includes('not found')) {
-        errorMessage = 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin há»c sinh'
+        errorMessage = 'Không tìm thấy thông tin học sinh'
       } else if (error.message.includes('invalid')) {
-        errorMessage = 'ID há»c sinh khÃ´ng há»£p lá»‡'
+        errorMessage = 'ID học sinh không hợp lệ'
       } else if (error.message.includes('PGRST')) {
-        errorMessage = `Lá»—i PostgREST: ${error.message}`
+        errorMessage = `Lỗi PostgREST: ${error.message}`
       } else {
-        errorMessage = `Lá»—i há»‡ thá»‘ng: ${error.message}`
+        errorMessage = `Lỗi hệ thống: ${error.message}`
       }
     } else {
-      errorMessage = `Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh: ${JSON.stringify(error)}`
+      errorMessage = `Lỗi không xác định: ${JSON.stringify(error)}`
     }
 
     return {
@@ -759,7 +759,7 @@ export async function submitStudentGradesToHomeroomAction(
     for (const studentId of studentIds) {
       const classInfo = classesByStudent.get(studentId)
       if (!classInfo?.homeroomTeacherId) {
-        throw new Error(`KhÃ´ng tÃ¬m tháº¥y giÃ¡o viÃªn chá»§ nhiá»‡m cho há»c sinh ${studentId}`)
+        throw new Error(`Không tìm thấy giáo viên chủ nhiệm cho học sinh ${studentId}`)
       }
 
       // Check if submission already exists
@@ -795,7 +795,7 @@ export async function submitStudentGradesToHomeroomAction(
 
     return {
       success: true,
-      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cho ${studentIds.length} há»c sinh thÃ nh cÃ´ng`
+      message: `Đã gửi bảng điểm cho ${studentIds.length} học sinh thành công`
     }
 
   } catch (error) {
@@ -810,24 +810,24 @@ export async function submitStudentGradesToHomeroomAction(
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     console.error('===========================================')
 
-    let errorMessage = 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh khi gá»­i báº£ng Ä‘iá»ƒm'
+    let errorMessage = 'Lỗi không xác định khi gửi bảng điểm'
     if (error instanceof Error) {
       if (error.message.includes('permission')) {
-        errorMessage = 'KhÃ´ng cÃ³ quyá»n gá»­i báº£ng Ä‘iá»ƒm'
+        errorMessage = 'Không có quyền gửi bảng điểm'
       } else if (error.message.includes('not found')) {
-        errorMessage = 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin há»c sinh hoáº·c giÃ¡o viÃªn'
+        errorMessage = 'Không tìm thấy thông tin học sinh hoặc giáo viên'
       } else if (error.message.includes('PGRST')) {
-        errorMessage = `Lá»—i PostgREST: ${error.message}`
+        errorMessage = `Lỗi PostgREST: ${error.message}`
       } else {
-        errorMessage = `Lá»—i há»‡ thá»‘ng: ${error.message}`
+        errorMessage = `Lỗi hệ thống: ${error.message}`
       }
     } else {
-      errorMessage = `Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh: ${JSON.stringify(error)}`
+      errorMessage = `Lỗi không xác định: ${JSON.stringify(error)}`
     }
 
     return {
       success: false,
-      message: 'Lá»—i gá»­i báº£ng Ä‘iá»ƒm',
+      message: 'Lỗi gửi bảng điểm',
       error: errorMessage
     }
   }

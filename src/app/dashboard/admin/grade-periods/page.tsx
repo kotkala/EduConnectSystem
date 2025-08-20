@@ -17,14 +17,14 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { GradePeriodTable } from "@/features/admin-management/components/admin/grade-period-table"
-import { GradePeriodForm } from "@/features/admin-management/components/admin/grade-period-form"
-import { GradePeriodStatusDialog } from "@/features/admin-management/components/admin/grade-period-status-dialog"
+import { GradePeriodTable } from "@/shared/components/admin/grade-period-table"
+import { GradePeriodForm } from "@/shared/components/admin/grade-period-form"
+import { GradePeriodStatusDialog } from "@/shared/components/admin/grade-period-status-dialog"
 
 import { 
   getEnhancedGradeReportingPeriodsAction,
   updateGradeReportingPeriodStatusAction
-} from "@/features/grade-management/actions/enhanced-grade-actions"
+} from "@/lib/actions/enhanced-grade-actions"
 import {
   type EnhancedGradeReportingPeriod,
   type GradePeriodFiltersFormData
@@ -58,10 +58,10 @@ export default function GradePeriodsPage() {
         setPeriods(result.data || [])
         setTotal(result.total || 0)
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+        setError(result.error || 'Không thể tải danh sách kỳ báo cáo điểm')
       }
     } catch {
-      setError('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+      setError('Không thể tải danh sách kỳ báo cáo điểm')
     } finally {
       setLoading(false)
     }
@@ -71,9 +71,7 @@ export default function GradePeriodsPage() {
     loadPeriods()
   }, [loadPeriods])
 
-  const handleFiltersChange = (newFilters: Partial<GradePeriodFiltersFormData>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }))
-  }
+
 
   const handlePageChange = (page: number) => {
     setFilters(prev => ({ ...prev, page }))
@@ -98,7 +96,7 @@ export default function GradePeriodsPage() {
     setFormDialogOpen(false)
     setEditingPeriod(undefined)
     loadPeriods()
-    toast.success(editingPeriod ? 'Cáº­p nháº­t ká»³ bÃ¡o cÃ¡o thÃ nh cÃ´ng!' : 'Táº¡o ká»³ bÃ¡o cÃ¡o thÃ nh cÃ´ng!')
+    toast.success(editingPeriod ? 'Cập nhật kỳ báo cáo thành công!' : 'Tạo kỳ báo cáo thành công!')
   }
 
   const handleFormCancel = () => {
@@ -117,13 +115,13 @@ export default function GradePeriodsPage() {
         setStatusDialogOpen(false)
         setSelectedPeriod(undefined)
         loadPeriods()
-        toast.success('Cáº­p nháº­t tráº¡ng thÃ¡i thÃ nh cÃ´ng!')
+        toast.success('Cập nhật trạng thái thành công!')
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ cáº­p nháº­t tráº¡ng thÃ¡i')
+        toast.error(result.error || 'Không thể cập nhật trạng thái')
       }
     } catch (error) {
       console.error('Error updating status:', error)
-      toast.error('Lá»—i khi cáº­p nháº­t tráº¡ng thÃ¡i')
+      toast.error('Lỗi khi cập nhật trạng thái')
     }
   }
 
@@ -153,13 +151,13 @@ export default function GradePeriodsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'open':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Äang má»Ÿ</Badge>
+        return <Badge variant="default" className="bg-green-100 text-green-800">Đang mở</Badge>
       case 'closed':
-        return <Badge variant="destructive">ÄÃ£ Ä‘Ã³ng</Badge>
+        return <Badge variant="destructive">Đã đóng</Badge>
       case 'reopened':
-        return <Badge variant="secondary" className="bg-orange-100 text-orange-800">Má»Ÿ láº¡i</Badge>
+        return <Badge variant="secondary" className="bg-orange-100 text-orange-800">Mở lại</Badge>
       default:
-        return <Badge variant="outline">KhÃ´ng xÃ¡c Ä‘á»‹nh</Badge>
+        return <Badge variant="outline">Không xác định</Badge>
     }
   }
 
@@ -169,19 +167,19 @@ export default function GradePeriodsPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ ká»³ nháº­p Ä‘iá»ƒm</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý kỳ nhập điểm</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Quáº£n lÃ½ 7 ká»³ nháº­p Ä‘iá»ƒm trong nÄƒm há»c vÃ  theo dÃµi tráº¡ng thÃ¡i
+              Quản lý 7 kỳ nhập điểm trong năm học và theo dõi trạng thái
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
             <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              Làm mới
             </Button>
             <Button onClick={handleCreatePeriod} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              Táº¡o ká»³ nháº­p Ä‘iá»ƒm
+              Tạo kỳ nhập điểm
             </Button>
           </div>
         </div>
@@ -190,52 +188,52 @@ export default function GradePeriodsPage() {
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»‘ ká»³</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Tổng số kỳ</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{total}</div>
               <p className="text-xs text-muted-foreground">
-                {activePeriods} Ä‘ang hoáº¡t Ä‘á»™ng
+                {activePeriods} đang hoạt động
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Äang má»Ÿ</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Đang mở</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold text-green-600">{openPeriods}</div>
               <p className="text-xs text-muted-foreground">
-                ká»³ Ä‘ang nháº­n Ä‘iá»ƒm
+                kỳ đang nhận điểm
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">ÄÃ£ Ä‘Ã³ng</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Đã đóng</CardTitle>
               <XCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold text-red-600">{closedPeriods}</div>
               <p className="text-xs text-muted-foreground">
-                ká»³ Ä‘Ã£ káº¿t thÃºc
+                kỳ đã kết thúc
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Má»Ÿ láº¡i</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">Mở lại</CardTitle>
               <RotateCcw className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold text-orange-600">{reopenedPeriods}</div>
               <p className="text-xs text-muted-foreground">
-                ká»³ Ä‘Æ°á»£c má»Ÿ láº¡i
+                kỳ được mở lại
               </p>
             </CardContent>
           </Card>
@@ -251,7 +249,7 @@ export default function GradePeriodsPage() {
         {/* Grade Periods Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Danh sÃ¡ch ká»³ nháº­p Ä‘iá»ƒm</CardTitle>
+            <CardTitle>Danh sách kỳ nhập điểm</CardTitle>
           </CardHeader>
           <CardContent>
             <GradePeriodTable
@@ -260,10 +258,8 @@ export default function GradePeriodsPage() {
               currentPage={filters.page || 1}
               limit={filters.limit || 20}
               onPageChange={handlePageChange}
-              onFiltersChange={handleFiltersChange}
               onEdit={handleEditPeriod}
               onStatusChange={handleStatusChange}
-              onRefresh={handleRefresh}
               getStatusIcon={getStatusIcon}
               getStatusBadge={getStatusBadge}
             />
@@ -275,7 +271,7 @@ export default function GradePeriodsPage() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingPeriod ? 'Chá»‰nh sá»­a ká»³ nháº­p Ä‘iá»ƒm' : 'Táº¡o ká»³ nháº­p Ä‘iá»ƒm má»›i'}
+                {editingPeriod ? 'Chỉnh sửa kỳ nhập điểm' : 'Tạo kỳ nhập điểm mới'}
               </DialogTitle>
             </DialogHeader>
             <GradePeriodForm

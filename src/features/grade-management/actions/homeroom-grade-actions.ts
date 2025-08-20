@@ -238,7 +238,7 @@ export async function generateAIFeedbackAction(
     if (validGrades.length === 0) {
       return {
         success: false,
-        error: 'KhÃ´ng cÃ³ Ä‘iá»ƒm sá»‘ Ä‘á»ƒ táº¡o pháº£n há»“i'
+        error: 'Không có điểm số để tạo phản hồi'
       }
     }
 
@@ -252,16 +252,16 @@ export async function generateAIFeedbackAction(
     // Style-based opening
     switch (style.style) {
       case 'friendly':
-        feedback += `ChÃ o báº¡n ${studentData.student_name}! `
+        feedback += `Chào bạn ${studentData.student_name}! `
         break
       case 'serious':
-        feedback += `Há»c sinh ${studentData.student_name}, `
+        feedback += `Học sinh ${studentData.student_name}, `
         break
       case 'encouraging':
-        feedback += `${studentData.student_name} thÃ¢n máº¿n, `
+        feedback += `${studentData.student_name} thân mến, `
         break
       case 'understanding':
-        feedback += `CÃ´/tháº§y hiá»ƒu ráº±ng ${studentData.student_name} `
+        feedback += `Cô/thầy hiểu rằng ${studentData.student_name} `
         break
     }
 
@@ -269,61 +269,61 @@ export async function generateAIFeedbackAction(
     if (overallAverage >= 8) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n Ä‘Ã£ cÃ³ má»™t káº¿t quáº£ há»c táº­p xuáº¥t sáº¯c vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `Bạn đã có một kết quả học tập xuất sắc với điểm trung bình ${overallAverage.toFixed(1)}! `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em Ä‘áº¡t má»©c xuáº¥t sáº¯c vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `kết quả học tập của em đạt mức xuất sắc với điểm trung bình ${overallAverage.toFixed(1)}. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ thá»ƒ hiá»‡n nÄƒng lá»±c há»c táº­p tuyá»‡t vá»i vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `em đã thể hiện năng lực học tập tuyệt vời với điểm trung bình ${overallAverage.toFixed(1)}! `
           break
         case 'understanding':
-          feedback += `Ä‘Ã£ ná»— lá»±c ráº¥t nhiá»u vÃ  Ä‘áº¡t Ä‘Æ°á»£c káº¿t quáº£ xuáº¥t sáº¯c ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `đã nỗ lực rất nhiều và đạt được kết quả xuất sắc ${overallAverage.toFixed(1)} điểm. `
           break
       }
     } else if (overallAverage >= 6.5) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n Ä‘Ã£ cÃ³ káº¿t quáº£ há»c táº­p khÃ¡ tá»‘t vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `Bạn đã có kết quả học tập khá tốt với điểm trung bình ${overallAverage.toFixed(1)}. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em á»Ÿ má»©c khÃ¡ vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}. `
+          feedback += `kết quả học tập của em ở mức khá với điểm trung bình ${overallAverage.toFixed(1)}. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ cÃ³ nhá»¯ng tiáº¿n bá»™ Ä‘Ã¡ng khen vá»›i Ä‘iá»ƒm trung bÃ¬nh ${overallAverage.toFixed(1)}! `
+          feedback += `em đã có những tiến bộ đáng khen với điểm trung bình ${overallAverage.toFixed(1)}! `
           break
         case 'understanding':
-          feedback += `Ä‘Ã£ cá»‘ gáº¯ng vÃ  Ä‘áº¡t Ä‘Æ°á»£c káº¿t quáº£ khÃ¡ tá»‘t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `đã cố gắng và đạt được kết quả khá tốt ${overallAverage.toFixed(1)} điểm. `
           break
       }
     } else if (overallAverage >= 5) {
       switch (style.style) {
         case 'friendly':
-          feedback += `Káº¿t quáº£ há»c táº­p cá»§a báº¡n á»Ÿ má»©c trung bÃ¬nh vá»›i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Kết quả học tập của bạn ở mức trung bình với ${overallAverage.toFixed(1)} điểm. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em cáº§n Ä‘Æ°á»£c cáº£i thiá»‡n, hiá»‡n táº¡i Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `kết quả học tập của em cần được cải thiện, hiện tại đạt ${overallAverage.toFixed(1)} điểm. `
           break
         case 'encouraging':
-          feedback += `em Ä‘Ã£ cá»‘ gáº¯ng vÃ  Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm, Ä‘Ã¢y lÃ  ná»n táº£ng Ä‘á»ƒ em tiáº¿n bá»™ hÆ¡n! `
+          feedback += `em đã cố gắng và đạt ${overallAverage.toFixed(1)} điểm, đây là nền tảng để em tiến bộ hơn! `
           break
         case 'understanding':
-          feedback += `Ä‘ang gáº·p má»™t sá»‘ khÃ³ khÄƒn trong há»c táº­p vá»›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `đang gặp một số khó khăn trong học tập với kết quả ${overallAverage.toFixed(1)} điểm. `
           break
       }
     } else {
       switch (style.style) {
         case 'friendly':
-          feedback += `Báº¡n cáº§n ná»— lá»±c hÆ¡n ná»¯a Ä‘á»ƒ cáº£i thiá»‡n káº¿t quáº£ há»c táº­p hiá»‡n táº¡i ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `Bạn cần nỗ lực hơn nữa để cải thiện kết quả học tập hiện tại ${overallAverage.toFixed(1)} điểm. `
           break
         case 'serious':
-          feedback += `káº¿t quáº£ há»c táº­p cá»§a em cáº§n Ä‘Æ°á»£c cáº£i thiá»‡n nghiÃªm tÃºc, hiá»‡n táº¡i chá»‰ Ä‘áº¡t ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `kết quả học tập của em cần được cải thiện nghiêm túc, hiện tại chỉ đạt ${overallAverage.toFixed(1)} điểm. `
           break
         case 'encouraging':
-          feedback += `máº·c dÃ¹ káº¿t quáº£ hiá»‡n táº¡i lÃ  ${overallAverage.toFixed(1)} Ä‘iá»ƒm nhÆ°ng cÃ´/tháº§y tin em cÃ³ thá»ƒ lÃ m tá»‘t hÆ¡n! `
+          feedback += `mặc dù kết quả hiện tại là ${overallAverage.toFixed(1)} điểm nhưng cô/thầy tin em có thể làm tốt hơn! `
           break
         case 'understanding':
-          feedback += `Ä‘ang gáº·p nhiá»u khÃ³ khÄƒn trong há»c táº­p vá»›i káº¿t quáº£ ${overallAverage.toFixed(1)} Ä‘iá»ƒm. `
+          feedback += `đang gặp nhiều khó khăn trong học tập với kết quả ${overallAverage.toFixed(1)} điểm. `
           break
       }
     }
@@ -331,22 +331,22 @@ export async function generateAIFeedbackAction(
     // Add detailed analysis for medium and long feedback
     if (style.length !== 'short') {
       if (excellentSubjects > 0) {
-        feedback += `Em Ä‘Ã£ xuáº¥t sáº¯c á»Ÿ ${excellentSubjects} mÃ´n há»c. `
+        feedback += `Em đã xuất sắc ở ${excellentSubjects} môn học. `
       }
       if (poorSubjects > 0) {
-        feedback += `Cáº§n táº­p trung cáº£i thiá»‡n ${poorSubjects} mÃ´n há»c cÃ²n yáº¿u. `
+        feedback += `Cần tập trung cải thiện ${poorSubjects} môn học còn yếu. `
       }
 
       if (style.length === 'long') {
         // Add specific subject recommendations
         const weakSubjects = studentData.subjects.filter(s => s.average_grade && s.average_grade < 5)
         if (weakSubjects.length > 0) {
-          feedback += `Äáº·c biá»‡t cáº§n chÃº Ã½ cÃ¡c mÃ´n: ${weakSubjects.map(s => s.subject_name).join(', ')}. `
+          feedback += `Đặc biệt cần chú ý các môn: ${weakSubjects.map(s => s.subject_name).join(', ')}. `
         }
 
         const strongSubjects = studentData.subjects.filter(s => s.average_grade && s.average_grade >= 8)
         if (strongSubjects.length > 0) {
-          feedback += `Tiáº¿p tá»¥c phÃ¡t huy tháº¿ máº¡nh á»Ÿ cÃ¡c mÃ´n: ${strongSubjects.map(s => s.subject_name).join(', ')}. `
+          feedback += `Tiếp tục phát huy thế mạnh ở các môn: ${strongSubjects.map(s => s.subject_name).join(', ')}. `
         }
       }
     }
@@ -354,16 +354,16 @@ export async function generateAIFeedbackAction(
     // Style-based closing
     switch (style.style) {
       case 'friendly':
-        feedback += style.length === 'short' ? 'ChÃºc báº¡n há»c tá»‘t!' : 'HÃ£y tiáº¿p tá»¥c cá»‘ gáº¯ng nhÃ©!'
+        feedback += style.length === 'short' ? 'Chúc bạn học tốt!' : 'Hãy tiếp tục cố gắng nhé!'
         break
       case 'serious':
-        feedback += style.length === 'short' ? 'Cáº§n ná»— lá»±c hÆ¡n ná»¯a.' : 'Hy vá»ng em sáº½ cÃ³ káº¿ hoáº¡ch há»c táº­p cá»¥ thá»ƒ Ä‘á»ƒ cáº£i thiá»‡n.'
+        feedback += style.length === 'short' ? 'Cần nỗ lực hơn nữa.' : 'Hy vọng em sẽ có kế hoạch học tập cụ thể để cải thiện.'
         break
       case 'encouraging':
-        feedback += style.length === 'short' ? 'Em lÃ m Ä‘Æ°á»£c!' : 'CÃ´/tháº§y tin tÆ°á»Ÿng em sáº½ Ä‘áº¡t Ä‘Æ°á»£c nhiá»u thÃ nh cÃ´ng hÆ¡n ná»¯a!'
+        feedback += style.length === 'short' ? 'Em làm được!' : 'Cô/thầy tin tưởng em sẽ đạt được nhiều thành công hơn nữa!'
         break
       case 'understanding':
-        feedback += style.length === 'short' ? 'CÃ´/tháº§y luÃ´n á»§ng há»™ em.' : 'HÃ£y nhá»› ráº±ng cÃ´/tháº§y luÃ´n sáºµn sÃ ng há»— trá»£ em khi cáº§n thiáº¿t.'
+        feedback += style.length === 'short' ? 'Cô/thầy luôn ủng hộ em.' : 'Hãy nhớ rằng cô/thầy luôn sẵn sàng hỗ trợ em khi cần thiết.'
         break
     }
 
@@ -443,14 +443,14 @@ export async function submitGradesToParentsAction(
 
     return {
       success: true,
-      message: `ÄÃ£ gá»­i báº£ng Ä‘iá»ƒm cho ${studentSubmissions.length} há»c sinh thÃ nh cÃ´ng`
+      message: `Đã gửi bảng điểm cho ${studentSubmissions.length} học sinh thành công`
     }
 
   } catch (error) {
     console.error('Error submitting grades to parents:', error)
     return {
       success: false,
-      message: 'Lá»—i gá»­i báº£ng Ä‘iá»ƒm cho phá»¥ huynh',
+      message: 'Lỗi gửi bảng điểm cho phụ huynh',
       error: error instanceof Error ? error.message : 'Unknown error'
     }
   }

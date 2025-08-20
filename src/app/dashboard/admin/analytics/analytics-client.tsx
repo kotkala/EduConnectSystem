@@ -147,27 +147,27 @@ function getBadgeVariant(averageGrade: number): 'default' | 'secondary' | 'outli
 function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats | null }) {
   const statsData = [
     {
-      title: "Tá»•ng báº£ng Ä‘iá»ƒm",
+      title: "Tổng bảng điểm",
       value: overallStats?.totalSubmissions || 0,
-      description: "Báº£ng Ä‘iá»ƒm Ä‘Ã£ hoÃ n thÃ nh",
+      description: "Bảng điểm đã hoàn thành",
       icon: GraduationCap
     },
     {
-      title: "Há»c sinh",
+      title: "Học sinh",
       value: overallStats?.totalStudents || 0,
-      description: "Há»c sinh cÃ³ Ä‘iá»ƒm",
+      description: "Học sinh có điểm",
       icon: Users
     },
     {
-      title: "Lá»›p há»c",
+      title: "Lớp học",
       value: overallStats?.totalClasses || 0,
-      description: "Lá»›p cÃ³ báº£ng Ä‘iá»ƒm",
+      description: "Lớp có bảng điểm",
       icon: BookOpen
     },
     {
-      title: "MÃ´n há»c",
+      title: "Môn học",
       value: overallStats?.totalSubjects || 0,
-      description: "MÃ´n há»c cÃ³ Ä‘iá»ƒm",
+      description: "Môn học có điểm",
       icon: BarChart3
     }
   ];
@@ -219,7 +219,7 @@ export default function AnalyticsClient() {
     }
 
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Äang táº£i phÃ¢n tÃ­ch dá»¯ liá»‡u há»c táº­p...")
+    startPageTransition("Đang tải phân tích dữ liệu học tập...")
     
     try {
       // ðŸš€ PERFORMANCE: Load critical data first
@@ -246,14 +246,14 @@ export default function AnalyticsClient() {
           if (trendResult.success && trendResult.data) setTrendData(trendResult.data)
         } catch (error) {
           console.error('Secondary data loading failed:', error)
-          toast.error("Má»™t sá»‘ dá»¯ liá»‡u phá»¥ khÃ´ng táº£i Ä‘Æ°á»£c")
+          toast.error("Một số dữ liệu phụ không tải được")
         }
       }, 100)
 
       setLastFetch(now)
     } catch (error) {
       console.error('Analytics loading failed:', error)
-      toast.error("KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u phÃ¢n tÃ­ch")
+      toast.error("Không thể tải dữ liệu phân tích")
     } finally {
       stopLoading()
     }
@@ -264,7 +264,7 @@ export default function AnalyticsClient() {
   }, [loadAllAnalytics])
 
   const handleExportReport = async () => {
-    toast.info("Chá»©c nÄƒng xuáº¥t bÃ¡o cÃ¡o Ä‘ang Ä‘Æ°á»£c phÃ¡t triá»ƒn")
+    toast.info("Chức năng xuất báo cáo đang được phát triển")
   }
 
   // Memoize chart data to prevent unnecessary re-renders
@@ -280,8 +280,8 @@ export default function AnalyticsClient() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">PhÃ¢n TÃ­ch Äiá»ƒm Sá»‘</h1>
-          <p className="text-gray-500">Dashboard thá»‘ng kÃª vÃ  phÃ¢n tÃ­ch Ä‘iá»ƒm sá»‘ toÃ n trÆ°á»ng</p>
+          <h1 className="text-2xl font-bold">Phân Tích Điểm Số</h1>
+          <p className="text-gray-500">Dashboard thống kê và phân tích điểm số toàn trường</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -291,7 +291,7 @@ export default function AnalyticsClient() {
             className="flex items-center gap-2"
           >
             <TrendingUp className="h-4 w-4" />
-            LÃ m má»›i
+            Làm mới
           </Button>
           <Button
             onClick={handleExportReport}
@@ -299,7 +299,7 @@ export default function AnalyticsClient() {
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
-            Xuáº¥t bÃ¡o cÃ¡o
+            Xuất báo cáo
           </Button>
         </div>
       </div>
@@ -312,12 +312,12 @@ export default function AnalyticsClient() {
         {/* Grade Distribution - Bar Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>PhÃ¢n Bá»‘ Äiá»ƒm Sá»‘</CardTitle>
-            <CardDescription>Tá»· lá»‡ há»c sinh theo tá»«ng má»©c Ä‘iá»ƒm</CardDescription>
+            <CardTitle>Phân Bố Điểm Số</CardTitle>
+            <CardDescription>Tỷ lệ học sinh theo từng mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
             {!gradeDistribution.length && coordinatedLoading.isLoading ? (
-              <div className="h-80 flex items-center justify-center">Äang táº£i...</div>
+              <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.gradeDistribution} />
             )}
@@ -327,12 +327,12 @@ export default function AnalyticsClient() {
         {/* Grade Distribution - Pie Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Tá»· Lá»‡ PhÃ¢n Bá»‘</CardTitle>
-            <CardDescription>Pháº§n trÄƒm há»c sinh theo má»©c Ä‘iá»ƒm</CardDescription>
+            <CardTitle>Tỷ Lệ Phân Bố</CardTitle>
+            <CardDescription>Phần trăm học sinh theo mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
             {!gradeDistribution.length && coordinatedLoading.isLoading ? (
-              <div className="h-80 flex items-center justify-center">Äang táº£i...</div>
+              <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <PieChartComponent data={chartData.gradeDistribution} colors={COLORS} />
             )}
@@ -342,12 +342,12 @@ export default function AnalyticsClient() {
         {/* Class Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Hiá»‡u Suáº¥t Lá»›p Há»c</CardTitle>
-            <CardDescription>Äiá»ƒm trung bÃ¬nh cá»§a cÃ¡c lá»›p</CardDescription>
+            <CardTitle>Hiệu Suất Lớp Học</CardTitle>
+            <CardDescription>Điểm trung bình của các lớp</CardDescription>
           </CardHeader>
           <CardContent>
             {!classPerformance.length && coordinatedLoading.isLoading ? (
-              <div className="h-80 flex items-center justify-center">Äang táº£i...</div>
+              <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.classPerformance} />
             )}
@@ -357,12 +357,12 @@ export default function AnalyticsClient() {
         {/* Trend Analysis */}
         <Card>
           <CardHeader>
-            <CardTitle>Xu HÆ°á»›ng Äiá»ƒm Sá»‘</CardTitle>
-            <CardDescription>Äiá»ƒm trung bÃ¬nh qua cÃ¡c ká»³ há»c</CardDescription>
+            <CardTitle>Xu Hướng Điểm Số</CardTitle>
+            <CardDescription>Điểm trung bình qua các kỳ học</CardDescription>
           </CardHeader>
           <CardContent>
             {!trendData.length && coordinatedLoading.isLoading ? (
-              <div className="h-80 flex items-center justify-center">Äang táº£i...</div>
+              <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ComposedChartComponent data={chartData.trendData} />
             )}
@@ -373,12 +373,12 @@ export default function AnalyticsClient() {
       {/* Subject Analysis Table */}
       <Card>
         <CardHeader>
-          <CardTitle>PhÃ¢n TÃ­ch MÃ´n Há»c</CardTitle>
-          <CardDescription>Hiá»‡u suáº¥t chi tiáº¿t theo tá»«ng mÃ´n há»c</CardDescription>
+          <CardTitle>Phân Tích Môn Học</CardTitle>
+          <CardDescription>Hiệu suất chi tiết theo từng môn học</CardDescription>
         </CardHeader>
         <CardContent>
           {!subjectAnalysis.length && coordinatedLoading.isLoading ? (
-            <div className="text-center py-8">Äang táº£i...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <div className="space-y-3">
               {chartData.subjectAnalysis.map((subject) => (
@@ -389,22 +389,22 @@ export default function AnalyticsClient() {
                   <div>
                     <h4 className="font-medium">{subject.subjectName}</h4>
                     <p className="text-sm text-gray-500">
-                      Danh má»¥c: {subject.category} â€¢ {subject.totalGrades} Ä‘iá»ƒm
+                      Danh mục: {subject.category} â€¢ {subject.totalGrades} điểm
                     </p>
                   </div>
                   <div className="flex items-center gap-4 text-right">
                     <div>
-                      <div className="text-sm text-gray-500">Trung bÃ¬nh</div>
+                      <div className="text-sm text-gray-500">Trung bình</div>
                       <Badge variant={getBadgeVariant(subject.averageGrade)}>
                         {subject.averageGrade.toFixed(1)}
                       </Badge>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Cao nháº¥t</div>
+                      <div className="text-sm text-gray-500">Cao nhất</div>
                       <div className="font-medium text-green-600">{subject.highestGrade.toFixed(1)}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-500">Tháº¥p nháº¥t</div>
+                      <div className="text-sm text-gray-500">Thấp nhất</div>
                       <div className="font-medium text-red-600">{subject.lowestGrade.toFixed(1)}</div>
                     </div>
                   </div>

@@ -45,7 +45,7 @@ export async function validateGradeOverwriteAction(
     if (periodError) {
       return {
         success: false,
-        error: `Lá»—i táº£i thÃ´ng tin ká»³ bÃ¡o cÃ¡o: ${periodError.message}`
+        error: `Lỗi tải thông tin kỳ báo cáo: ${periodError.message}`
       }
     }
 
@@ -63,7 +63,7 @@ export async function validateGradeOverwriteAction(
     if (gradeError && gradeError.code !== 'PGRST116') {
       return {
         success: false,
-        error: `Lá»—i kiá»ƒm tra Ä‘iá»ƒm hiá»‡n táº¡i: ${gradeError.message}`
+        error: `Lỗi kiểm tra điểm hiện tại: ${gradeError.message}`
       }
     }
 
@@ -71,7 +71,7 @@ export async function validateGradeOverwriteAction(
     if (!existingGrade) {
       return {
         success: true,
-        message: 'Äiá»ƒm má»›i, khÃ´ng cáº§n ghi chÃº'
+        message: 'Điểm mới, không cần ghi chú'
       }
     }
 
@@ -79,7 +79,7 @@ export async function validateGradeOverwriteAction(
     if (existingGrade.grade_value === data.newGradeValue) {
       return {
         success: true,
-        message: 'Äiá»ƒm khÃ´ng thay Ä‘á»•i'
+        message: 'Điểm không thay đổi'
       }
     }
 
@@ -93,7 +93,7 @@ export async function validateGradeOverwriteAction(
     if (existingPeriodError) {
       return {
         success: false,
-        error: `Lá»—i kiá»ƒm tra ká»³ hiá»‡n táº¡i: ${existingPeriodError.message}`
+        error: `Lỗi kiểm tra kỳ hiện tại: ${existingPeriodError.message}`
       }
     }
 
@@ -101,7 +101,7 @@ export async function validateGradeOverwriteAction(
     if (existingPeriodInfo.semester_id !== periodInfo.semester_id) {
       return {
         success: false,
-        error: `KhÃ´ng thá»ƒ ghi Ä‘Ã¨ Ä‘iá»ƒm tá»« há»c ká»³ khÃ¡c. Äiá»ƒm hiá»‡n táº¡i thuá»™c há»c ká»³ khÃ¡c`
+        error: `Không thể ghi đè điểm từ học kỳ khác. Điểm hiện tại thuộc học kỳ khác`
       }
     }
 
@@ -112,20 +112,20 @@ export async function validateGradeOverwriteAction(
       return {
         success: false,
         requiresComment: true,
-        error: 'Ghi Ä‘Ã¨ Ä‘iá»ƒm giá»¯a ká»³/cuá»‘i ká»³ báº¯t buá»™c pháº£i cÃ³ ghi chÃº'
+        error: 'Ghi đè điểm giữa kỳ/cuối kỳ bắt buộc phải có ghi chú'
       }
     }
 
     return {
       success: true,
-      message: requiresComment ? 'Ghi Ä‘Ã¨ há»£p lá»‡ vá»›i ghi chÃº' : 'Ghi Ä‘Ã¨ há»£p lá»‡'
+      message: requiresComment ? 'Ghi đè hợp lệ với ghi chú' : 'Ghi đè hợp lệ'
     }
 
   } catch (error) {
     console.error('Error validating grade overwrite:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác định'
     }
   }
 }
@@ -179,7 +179,7 @@ export async function executeGradeOverwriteAction(
     if (updateError) {
       return {
         success: false,
-        error: `Lá»—i cáº­p nháº­t Ä‘iá»ƒm: ${updateError.message}`
+        error: `Lỗi cập nhật điểm: ${updateError.message}`
       }
     }
 
@@ -203,14 +203,14 @@ export async function executeGradeOverwriteAction(
 
     return {
       success: true,
-      message: existingGrade ? 'Ghi Ä‘Ã¨ Ä‘iá»ƒm thÃ nh cÃ´ng' : 'Nháº­p Ä‘iá»ƒm thÃ nh cÃ´ng'
+      message: existingGrade ? 'Ghi đè điểm thành công' : 'Nhập điểm thành công'
     }
 
   } catch (error) {
     console.error('Error executing grade overwrite:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh'
+      error: error instanceof Error ? error.message : 'Lỗi không xác định'
     }
   }
 }

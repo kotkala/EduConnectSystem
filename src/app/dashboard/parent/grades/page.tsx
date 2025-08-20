@@ -1,5 +1,5 @@
 ﻿import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server"
 import { redirect } from 'next/navigation'
 
 import ParentGradesClient from './parent-grades-client'
@@ -24,7 +24,7 @@ export default async function ParentGradesPage() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Äang táº£i...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <ParentGradesClient />
       </Suspense>
     </div>

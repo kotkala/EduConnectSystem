@@ -61,7 +61,7 @@ export async function createGradeReportingPeriodAction(formData: GradeReportingP
       if (hasOverlap) {
         return {
           success: false,
-          error: "Ká»³ bÃ¡o cÃ¡o bá»‹ trÃ¹ng thá»i gian vá»›i ká»³ bÃ¡o cÃ¡o khÃ¡c trong cÃ¹ng há»c ká»³"
+          error: "Kỳ báo cáo bị trùng thời gian với kỳ báo cáo khác trong cùng học kỳ"
         }
       }
     }
@@ -88,13 +88,13 @@ export async function createGradeReportingPeriodAction(formData: GradeReportingP
     return { 
       success: true, 
       data: period,
-      message: "Táº¡o ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng"
+      message: "Tạo kỳ báo cáo điểm số thành công"
     }
   } catch (error) {
     console.error('Error creating grade reporting period:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº¡o ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘' 
+      error: error instanceof Error ? error.message : 'Không thể tạo kỳ báo cáo điểm số' 
     }
   }
 }
@@ -148,7 +148,7 @@ export async function getGradeReportingPeriodsAction(filters?: Partial<GradeFilt
     console.error('Error fetching grade reporting periods:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch ká»³ bÃ¡o cÃ¡o' 
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách kỳ báo cáo' 
     }
   }
 }
@@ -180,7 +180,7 @@ export async function getGradeReportingPeriodAction(id: string) {
     console.error('Error fetching grade reporting period:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y thÃ´ng tin ká»³ bÃ¡o cÃ¡o' 
+      error: error instanceof Error ? error.message : 'Không thể lấy thông tin kỳ báo cáo' 
     }
   }
 }
@@ -205,7 +205,7 @@ export async function updateGradeReportingPeriodAction(formData: UpdateGradeRepo
     if (fetchError || !currentPeriod) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘"
+        error: "Không tìm thấy kỳ báo cáo điểm số"
       }
     }
 
@@ -223,7 +223,7 @@ export async function updateGradeReportingPeriodAction(formData: UpdateGradeRepo
         if (newDeadline < currentDeadline) {
           return {
             success: false,
-            error: "KhÃ´ng thá»ƒ rÃºt ngáº¯n háº¡n chÃ³t sá»­a Ä‘iá»ƒm khi Ä‘Ã£ cÃ³ Ä‘iá»ƒm sá»‘ Ä‘Æ°á»£c nháº­p"
+            error: "Không thể rút ngắn hạn chót sửa điểm khi đã có điểm số được nhập"
           }
         }
       }
@@ -249,13 +249,13 @@ export async function updateGradeReportingPeriodAction(formData: UpdateGradeRepo
     return { 
       success: true, 
       data: period,
-      message: "Cáº­p nháº­t ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng"
+      message: "Cập nhật kỳ báo cáo điểm số thành công"
     }
   } catch (error) {
     console.error('Error updating grade reporting period:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ cáº­p nháº­t ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘' 
+      error: error instanceof Error ? error.message : 'Không thể cập nhật kỳ báo cáo điểm số' 
     }
   }
 }
@@ -276,7 +276,7 @@ export async function deleteGradeReportingPeriodAction(id: string) {
     if (existingGrades && existingGrades.length > 0) {
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ xÃ³a ká»³ bÃ¡o cÃ¡o Ä‘Ã£ cÃ³ Ä‘iá»ƒm sá»‘. Vui lÃ²ng vÃ´ hiá»‡u hÃ³a thay vÃ¬ xÃ³a."
+        error: "Không thể xóa kỳ báo cáo đã có điểm số. Vui lòng vô hiệu hóa thay vì xóa."
       }
     }
 
@@ -292,13 +292,13 @@ export async function deleteGradeReportingPeriodAction(id: string) {
     revalidatePath('/dashboard/admin/grade-periods')
     return { 
       success: true,
-      message: "XÃ³a ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘ thÃ nh cÃ´ng"
+      message: "Xóa kỳ báo cáo điểm số thành công"
     }
   } catch (error) {
     console.error('Error deleting grade reporting period:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ xÃ³a ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘' 
+      error: error instanceof Error ? error.message : 'Không thể xóa kỳ báo cáo điểm số' 
     }
   }
 }
@@ -319,7 +319,7 @@ export async function checkPeriodPermissionsAction(periodId: string, operation: 
     if (error || !period) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm sá»‘"
+        error: "Không tìm thấy kỳ báo cáo điểm số"
       }
     }
 
@@ -328,12 +328,12 @@ export async function checkPeriodPermissionsAction(periodId: string, operation: 
       : canEditGrades(period)
 
     if (!canPerformOperation) {
-      const deadlineType = operation === 'import' ? 'nháº­p Ä‘iá»ƒm' : 'sá»­a Ä‘iá»ƒm'
+      const deadlineType = operation === 'import' ? 'nhập điểm' : 'sửa điểm'
       const deadline = operation === 'import' ? period.import_deadline : period.edit_deadline
       
       return {
         success: false,
-        error: `ÄÃ£ háº¿t háº¡n ${deadlineType}. Háº¡n chÃ³t: ${new Date(deadline).toLocaleString('vi-VN')}`
+        error: `Đã hết hạn ${deadlineType}. Hạn chót: ${new Date(deadline).toLocaleString('vi-VN')}`
       }
     }
 
@@ -342,7 +342,7 @@ export async function checkPeriodPermissionsAction(periodId: string, operation: 
     console.error('Error checking period permissions:', error)
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ kiá»ƒm tra quyá»n thao tÃ¡c' 
+      error: error instanceof Error ? error.message : 'Không thể kiểm tra quyền thao tác' 
     }
   }
 }
@@ -431,7 +431,7 @@ export async function getStudentsForGradeInputAction(options?: {
     console.error('Error getting students:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c sinh'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách học sinh'
     }
   }
 }
@@ -466,7 +466,7 @@ export async function getSubjectsForGradeInputAction() {
     console.error('Error getting subjects:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch mÃ´n há»c'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách môn học'
     }
   }
 }
@@ -535,7 +535,7 @@ export async function getGradeReportingPeriodsForTeachersAction(filters?: Partia
     console.error('Error fetching grade reporting periods for teachers:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch ká»³ bÃ¡o cÃ¡o'
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách kỳ báo cáo'
     }
   }
 }
@@ -577,7 +577,7 @@ export async function getClassesForGradeInputAction(academicYearId?: string) {
     console.error('Error getting classes:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách lớp học'
     }
   }
 }
@@ -623,7 +623,7 @@ export async function getClassesAction() {
     console.error('Error fetching classes:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách lớp học'
     }
   }
 }
@@ -660,7 +660,7 @@ export async function getSubjectsAction() {
     console.error('Error fetching subjects:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch mÃ´n há»c'
+      error: error instanceof Error ? error.message : 'Không thể tải danh sách môn học'
     }
   }
 }

@@ -5,11 +5,11 @@ import Image from 'next/image'
 import { ThemeToggle } from '@/shared/components/theme-toggle'
 
 const nav = [
-  { href: '#features', label: 'Chá»©c nÄƒng' },
-  { href: '#roles', label: 'Vai trÃ²' },
-  { href: '#docs', label: 'HÆ°á»›ng dáº«n' },
-  { href: '#about', label: 'Vá» há»‡ thá»‘ng' },
-  { href: '#contact', label: 'LiÃªn há»‡' },
+  { href: '#features', label: 'Chức năng' },
+  { href: '#roles', label: 'Vai trò' },
+  { href: '#docs', label: 'Hướng dẫn' },
+  { href: '#about', label: 'Về hệ thống' },
+  { href: '#contact', label: 'Liên hệ' },
 ]
 
 export function SiteHeader() {

@@ -128,11 +128,11 @@ export function AdminGradeImprovementClient() {
       if (result.success && result.data) {
         setPeriods(result.data)
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+        toast.error(result.error || 'Không thể tải danh sách kỳ cải thiện điểm')
       }
     } catch (error) {
       console.error('Error loading periods:', error)
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+      toast.error('Lỗi khi tải danh sách kỳ cải thiện điểm')
     }
   }, [])
 
@@ -153,7 +153,7 @@ export function AdminGradeImprovementClient() {
       const isInitialLoad = requests.length === 0 && filters.page === 1
       
       if (isInitialLoad) {
-        startPageTransition("Äang táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm...")
+        startPageTransition("Đang tải danh sách đơn cải thiện điểm...")
       }
 
       const result = await getGradeImprovementRequestsAction(filters)
@@ -164,11 +164,11 @@ export function AdminGradeImprovementClient() {
           totalPages: result.data.totalPages
         })
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm')
+        toast.error(result.error || 'Không thể tải danh sách đơn cải thiện điểm')
       }
     } catch (error) {
       console.error('Error loading requests:', error)
-      toast.error('Lá»—i khi táº£i danh sÃ¡ch Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm')
+      toast.error('Lỗi khi tải danh sách đơn cải thiện điểm')
     } finally {
       stopLoading()
     }
@@ -188,9 +188,9 @@ export function AdminGradeImprovementClient() {
   const StatusBadge = useMemo(() => {
     const StatusBadgeComponent = ({ status }: { status: string }) => {
       const statusConfig = {
-        pending: { label: 'Chá» duyá»‡t', variant: 'secondary' as const, icon: Clock },
-        approved: { label: 'ÄÃ£ duyá»‡t', variant: 'default' as const, icon: CheckCircle },
-        rejected: { label: 'Tá»« chá»‘i', variant: 'destructive' as const, icon: XCircle }
+        pending: { label: 'Chờ duyệt', variant: 'secondary' as const, icon: Clock },
+        approved: { label: 'Đã duyệt', variant: 'default' as const, icon: CheckCircle },
+        rejected: { label: 'Từ chối', variant: 'destructive' as const, icon: XCircle }
       }
       
       const config = statusConfig[status as keyof typeof statusConfig]
@@ -216,10 +216,10 @@ export function AdminGradeImprovementClient() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
-            Quáº£n lÃ½ cáº£i thiá»‡n Ä‘iá»ƒm sá»‘
+            Quản lý cải thiện điểm số
           </h1>
           <p className="text-muted-foreground">
-            Quáº£n lÃ½ cÃ¡c ká»³ cáº£i thiá»‡n Ä‘iá»ƒm vÃ  xá»­ lÃ½ Ä‘Æ¡n yÃªu cáº§u cá»§a há»c sinh
+            Quản lý các kỳ cải thiện điểm và xử lý đơn yêu cầu của học sinh
           </p>
         </div>
         
@@ -227,47 +227,47 @@ export function AdminGradeImprovementClient() {
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm
+              Tạo kỳ cải thiện điểm
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm má»›i</DialogTitle>
+              <DialogTitle>Tạo kỳ cải thiện điểm mới</DialogTitle>
               <DialogDescription>
-                Táº¡o ká»³ thá»i gian cho phÃ©p há»c sinh ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+                Tạo kỳ thời gian cho phép học sinh nộp đơn cải thiện điểm
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="period-name">TÃªn ká»³ cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                <Label htmlFor="period-name">Tên kỳ cải thiện điểm</Label>
                 <Input
                   id="period-name"
                   value={periodForm.name}
                   onChange={(e) => setPeriodForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="VD: Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm HK1 2024-2025"
+                  placeholder="VD: Kỳ cải thiện điểm HK1 2024-2025"
                 />
               </div>
               
               <div>
-                <Label htmlFor="period-description">MÃ´ táº£ (tÃ¹y chá»n)</Label>
+                <Label htmlFor="period-description">Mô tả (tùy chọn)</Label>
                 <Textarea
                   id="period-description"
                   value={periodForm.description}
                   onChange={(e) => setPeriodForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="MÃ´ táº£ vá» ká»³ cáº£i thiá»‡n Ä‘iá»ƒm..."
+                  placeholder="Mô tả về kỳ cải thiện điểm..."
                   rows={3}
                 />
               </div>
               
               <div>
-                <Label htmlFor="grade-reporting-period">Ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm</Label>
+                <Label htmlFor="grade-reporting-period">Kỳ báo cáo điểm</Label>
                 <Select
                   value={periodForm.grade_reporting_period_id}
                   onValueChange={(value) => setPeriodForm(prev => ({ ...prev, grade_reporting_period_id: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm" />
+                    <SelectValue placeholder="Chọn kỳ báo cáo điểm" />
                   </SelectTrigger>
                   <SelectContent>
                     {gradeReportingPeriods.map((period) => (
@@ -281,7 +281,7 @@ export function AdminGradeImprovementClient() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="start-date">NgÃ y báº¯t Ä‘áº§u</Label>
+                  <Label htmlFor="start-date">Ngày bắt đầu</Label>
                   <Input
                     id="start-date"
                     type="datetime-local"
@@ -291,7 +291,7 @@ export function AdminGradeImprovementClient() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="end-date">NgÃ y káº¿t thÃºc</Label>
+                  <Label htmlFor="end-date">Ngày kết thúc</Label>
                   <Input
                     id="end-date"
                     type="datetime-local"
@@ -307,7 +307,7 @@ export function AdminGradeImprovementClient() {
                   onClick={() => setShowCreatePeriodDialog(false)}
                   disabled={sectionLoading.creatingPeriod}
                 >
-                  Há»§y
+                  Hủy
                 </Button>
                 <Button
                   onClick={async () => {
@@ -333,14 +333,14 @@ export function AdminGradeImprovementClient() {
                       }
                     } catch (error) {
                       console.error('Error creating period:', error)
-                      toast.error('Lá»—i khi táº¡o ká»³ cáº£i thiá»‡n Ä‘iá»ƒm')
+                      toast.error('Lỗi khi tạo kỳ cải thiện điểm')
                     } finally {
                       setSectionLoading(prev => ({ ...prev, creatingPeriod: false }))
                     }
                   }}
                   disabled={sectionLoading.creatingPeriod || !periodForm.name || !periodForm.start_date || !periodForm.end_date || !periodForm.grade_reporting_period_id}
                 >
-                  {sectionLoading.creatingPeriod ? 'Äang táº¡o...' : 'Táº¡o ká»³'}
+                  {sectionLoading.creatingPeriod ? 'Đang tạo...' : 'Tạo kỳ'}
                 </Button>
               </div>
             </div>
@@ -353,10 +353,10 @@ export function AdminGradeImprovementClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            CÃ¡c ká»³ cáº£i thiá»‡n Ä‘iá»ƒm
+            Các kỳ cải thiện điểm
           </CardTitle>
           <CardDescription>
-            Danh sÃ¡ch cÃ¡c ká»³ thá»i gian cho phÃ©p há»c sinh ná»™p Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm
+            Danh sách các kỳ thời gian cho phép học sinh nộp đơn cải thiện điểm
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -364,13 +364,13 @@ export function AdminGradeImprovementClient() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-muted-foreground">Äang táº£i...</p>
+                <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : periods.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">ChÆ°a cÃ³ ká»³ cáº£i thiá»‡n Ä‘iá»ƒm nÃ o</p>
+              <p className="text-muted-foreground">Chưa có kỳ cải thiện điểm nào</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -384,15 +384,15 @@ export function AdminGradeImprovementClient() {
                       )}
                       <div className="text-xs text-muted-foreground space-y-1">
                         <div>
-                          Tá»«: {format(new Date(period.start_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                          Từ: {format(new Date(period.start_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
                         </div>
                         <div>
-                          Äáº¿n: {format(new Date(period.end_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                          Đến: {format(new Date(period.end_date), 'dd/MM/yyyy HH:mm', { locale: vi })}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <Badge variant={period.is_active ? 'default' : 'secondary'}>
-                          {period.is_active ? 'Äang hoáº¡t Ä‘á»™ng' : 'KhÃ´ng hoáº¡t Ä‘á»™ng'}
+                          {period.is_active ? 'Đang hoạt động' : 'Không hoạt động'}
                         </Badge>
                       </div>
                     </div>
@@ -409,22 +409,22 @@ export function AdminGradeImprovementClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            ÄÆ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm
+            Đơn yêu cầu cải thiện điểm
           </CardTitle>
           <CardDescription>
-            Xem vÃ  xá»­ lÃ½ cÃ¡c Ä‘Æ¡n yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm tá»« há»c sinh
+            Xem và xử lý các đơn yêu cầu cải thiện điểm từ học sinh
           </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Filters */}
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="search-student">TÃ¬m kiáº¿m há»c sinh</Label>
+              <Label htmlFor="search-student">Tìm kiếm học sinh</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search-student"
-                  placeholder="TÃªn hoáº·c mÃ£ há»c sinh..."
+                  placeholder="Tên hoặc mã học sinh..."
                   value={filters.student_search || ''}
                   onChange={(e) => setFilters(prev => ({ ...prev, student_search: e.target.value || undefined, page: 1 }))}
                   className="pl-10"
@@ -433,7 +433,7 @@ export function AdminGradeImprovementClient() {
             </div>
             
             <div>
-              <Label htmlFor="filter-status">Tráº¡ng thÃ¡i</Label>
+              <Label htmlFor="filter-status">Trạng thái</Label>
               <Select
                 value={filters.status || 'all'}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value as 'pending' | 'approved' | 'rejected', page: 1 }))}
@@ -442,16 +442,16 @@ export function AdminGradeImprovementClient() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£</SelectItem>
-                  <SelectItem value="pending">Chá» duyá»‡t</SelectItem>
-                  <SelectItem value="approved">ÄÃ£ duyá»‡t</SelectItem>
-                  <SelectItem value="rejected">Tá»« chá»‘i</SelectItem>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="pending">Chờ duyệt</SelectItem>
+                  <SelectItem value="approved">Đã duyệt</SelectItem>
+                  <SelectItem value="rejected">Từ chối</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <Label htmlFor="filter-period">Ká»³ cáº£i thiá»‡n</Label>
+              <Label htmlFor="filter-period">Kỳ cải thiện</Label>
               <Select
                 value={filters.improvement_period_id || 'all'}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, improvement_period_id: value === 'all' ? undefined : value, page: 1 }))}
@@ -460,7 +460,7 @@ export function AdminGradeImprovementClient() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ ká»³</SelectItem>
+                  <SelectItem value="all">Tất cả kỳ</SelectItem>
                   {periods.map((period) => (
                     <SelectItem key={period.id} value={period.id}>
                       {period.name}
@@ -476,25 +476,25 @@ export function AdminGradeImprovementClient() {
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-muted-foreground">Äang táº£i danh sÃ¡ch Ä‘Æ¡n...</p>
+                <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : requests.length === 0 ? (
             <div className="text-center py-8">
               <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">KhÃ´ng cÃ³ Ä‘Æ¡n yÃªu cáº§u nÃ o</p>
+              <p className="text-muted-foreground">Không có đơn yêu cầu nào</p>
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Há»c sinh</TableHead>
-                    <TableHead>MÃ´n há»c</TableHead>
-                    <TableHead>Ká»³ cáº£i thiá»‡n</TableHead>
-                    <TableHead>Tráº¡ng thÃ¡i</TableHead>
-                    <TableHead>NgÃ y táº¡o</TableHead>
-                    <TableHead>Thao tÃ¡c</TableHead>
+                    <TableHead>Học sinh</TableHead>
+                    <TableHead>Môn học</TableHead>
+                    <TableHead>Kỳ cải thiện</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>Ngày tạo</TableHead>
+                    <TableHead>Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -558,7 +558,7 @@ export function AdminGradeImprovementClient() {
               {pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
-                    Trang {filters.page} / {pagination.totalPages} (Tá»•ng: {pagination.total} Ä‘Æ¡n)
+                    Trang {filters.page} / {pagination.totalPages} (Tổng: {pagination.total} đơn)
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -568,7 +568,7 @@ export function AdminGradeImprovementClient() {
                       disabled={filters.page <= 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      TrÆ°á»›c
+                      Trước
                     </Button>
                     <Button
                       variant="outline"
@@ -591,9 +591,9 @@ export function AdminGradeImprovementClient() {
       <Dialog open={showRequestDetailDialog} onOpenChange={setShowRequestDetailDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chi tiáº¿t Ä‘Æ¡n cáº£i thiá»‡n Ä‘iá»ƒm</DialogTitle>
+            <DialogTitle>Chi tiết đơn cải thiện điểm</DialogTitle>
             <DialogDescription>
-              Xem thÃ´ng tin chi tiáº¿t vÃ  pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u
+              Xem thông tin chi tiết và phản hồi đơn yêu cầu
             </DialogDescription>
           </DialogHeader>
           
@@ -602,7 +602,7 @@ export function AdminGradeImprovementClient() {
               {/* Request Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Há»c sinh</Label>
+                  <Label className="text-sm font-medium">Học sinh</Label>
                   <div className="mt-1">
                     <div className="font-medium">{selectedRequest.student?.full_name}</div>
                     <div className="text-sm text-muted-foreground">{selectedRequest.student?.student_id}</div>
@@ -610,7 +610,7 @@ export function AdminGradeImprovementClient() {
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium">MÃ´n há»c</Label>
+                  <Label className="text-sm font-medium">Môn học</Label>
                   <div className="mt-1">
                     <div className="font-medium">{selectedRequest.subject?.name_vietnamese}</div>
                     <div className="text-sm text-muted-foreground">{selectedRequest.subject?.code}</div>
@@ -618,12 +618,12 @@ export function AdminGradeImprovementClient() {
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium">Ká»³ cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                  <Label className="text-sm font-medium">Kỳ cải thiện điểm</Label>
                   <div className="mt-1 font-medium">{selectedRequest.improvement_period?.name}</div>
                 </div>
                 
                 <div>
-                  <Label className="text-sm font-medium">Tráº¡ng thÃ¡i hiá»‡n táº¡i</Label>
+                  <Label className="text-sm font-medium">Trạng thái hiện tại</Label>
                   <div className="mt-1">
                     <StatusBadge status={selectedRequest.status} />
                   </div>
@@ -631,21 +631,21 @@ export function AdminGradeImprovementClient() {
                 
                 {selectedRequest.current_grade !== null && (
                   <div>
-                    <Label className="text-sm font-medium">Äiá»ƒm hiá»‡n táº¡i</Label>
+                    <Label className="text-sm font-medium">Điểm hiện tại</Label>
                     <div className="mt-1 font-medium">{selectedRequest.current_grade}</div>
                   </div>
                 )}
                 
                 {selectedRequest.target_grade !== null && (
                   <div>
-                    <Label className="text-sm font-medium">Äiá»ƒm má»¥c tiÃªu</Label>
+                    <Label className="text-sm font-medium">Điểm mục tiêu</Label>
                     <div className="mt-1 font-medium">{selectedRequest.target_grade}</div>
                   </div>
                 )}
               </div>
               
               <div>
-                <Label className="text-sm font-medium">LÃ½ do yÃªu cáº§u cáº£i thiá»‡n Ä‘iá»ƒm</Label>
+                <Label className="text-sm font-medium">Lý do yêu cầu cải thiện điểm</Label>
                 <div className="mt-1 p-3 bg-muted rounded-md">
                   {selectedRequest.reason}
                 </div>
@@ -653,13 +653,13 @@ export function AdminGradeImprovementClient() {
               
               {selectedRequest.status !== 'pending' && (
                 <div>
-                  <Label className="text-sm font-medium">Pháº£n há»“i cá»§a admin</Label>
+                  <Label className="text-sm font-medium">Phản hồi của admin</Label>
                   <div className="mt-1 p-3 bg-muted rounded-md">
-                    {selectedRequest.admin_comment || 'KhÃ´ng cÃ³ nháº­n xÃ©t'}
+                    {selectedRequest.admin_comment || 'Không có nhận xét'}
                   </div>
                   {selectedRequest.reviewed_by_profile && selectedRequest.reviewed_at && (
                     <div className="text-xs text-muted-foreground mt-1">
-                      Pháº£n há»“i bá»Ÿi {selectedRequest.reviewed_by_profile.full_name} vÃ o {format(new Date(selectedRequest.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
+                      Phản hồi bởi {selectedRequest.reviewed_by_profile.full_name} vào {format(new Date(selectedRequest.reviewed_at), 'dd/MM/yyyy HH:mm', { locale: vi })}
                     </div>
                   )}
                 </div>
@@ -668,31 +668,31 @@ export function AdminGradeImprovementClient() {
               {/* Response Form */}
               {selectedRequest.status === 'pending' && (
                 <div className="space-y-4 border-t pt-4">
-                  <h4 className="font-medium">Pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u</h4>
+                  <h4 className="font-medium">Phản hồi đơn yêu cầu</h4>
                   
                   <div>
-                    <Label htmlFor="response-status">Quyáº¿t Ä‘á»‹nh</Label>
+                    <Label htmlFor="response-status">Quyết định</Label>
                     <Select
                       value={responseForm.status}
                       onValueChange={(value) => setResponseForm(prev => ({ ...prev, status: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Chá»n quyáº¿t Ä‘á»‹nh" />
+                        <SelectValue placeholder="Chọn quyết định" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="approved">PhÃª duyá»‡t</SelectItem>
-                        <SelectItem value="rejected">Tá»« chá»‘i</SelectItem>
+                        <SelectItem value="approved">Phê duyệt</SelectItem>
+                        <SelectItem value="rejected">Từ chối</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div>
-                    <Label htmlFor="admin-comment">Nháº­n xÃ©t cá»§a admin</Label>
+                    <Label htmlFor="admin-comment">Nhận xét của admin</Label>
                     <Textarea
                       id="admin-comment"
                       value={responseForm.admin_comment}
                       onChange={(e) => setResponseForm(prev => ({ ...prev, admin_comment: e.target.value }))}
-                      placeholder="Nháº­p nháº­n xÃ©t vá» Ä‘Æ¡n yÃªu cáº§u..."
+                      placeholder="Nhập nhận xét về đơn yêu cầu..."
                       rows={4}
                     />
                   </div>
@@ -703,12 +703,12 @@ export function AdminGradeImprovementClient() {
                       onClick={() => setShowRequestDetailDialog(false)}
                       disabled={sectionLoading.respondingToRequest}
                     >
-                      Há»§y
+                      Hủy
                     </Button>
                     <Button
                       onClick={async () => {
                         if (!responseForm.status || !responseForm.admin_comment.trim()) {
-                          toast.error('Vui lÃ²ng chá»n quyáº¿t Ä‘á»‹nh vÃ  nháº­p nháº­n xÃ©t')
+                          toast.error('Vui lòng chọn quyết định và nhập nhận xét')
                           return
                         }
                         
@@ -729,14 +729,14 @@ export function AdminGradeImprovementClient() {
                           }
                         } catch (error) {
                           console.error('Error responding to request:', error)
-                          toast.error('Lá»—i khi pháº£n há»“i Ä‘Æ¡n yÃªu cáº§u')
+                          toast.error('Lỗi khi phản hồi đơn yêu cầu')
                         } finally {
                           setSectionLoading(prev => ({ ...prev, respondingToRequest: false }))
                         }
                       }}
                       disabled={sectionLoading.respondingToRequest || !responseForm.status || !responseForm.admin_comment.trim()}
                     >
-                      {sectionLoading.respondingToRequest ? 'Äang xá»­ lÃ½...' : 'Gá»­i pháº£n há»“i'}
+                      {sectionLoading.respondingToRequest ? 'Đang xử lý...' : 'Gửi phản hồi'}
                     </Button>
                   </div>
                 </div>

@@ -197,22 +197,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Create system instruction for the chatbot
-    const systemInstruction = `Báº¡n lÃ  trá»£ lÃ½ AI thÃ´ng minh cho phá»¥ huynh há»c sinh táº¡i trÆ°á»ng há»c. Nhiá»‡m vá»¥ cá»§a báº¡n lÃ :
+    const systemInstruction = `Bạn là trợ lý AI thông minh cho phụ huynh học sinh tại trường học. Nhiệm vụ của bạn là:
 
-1. Tráº£ lá»i cÃ¡c cÃ¢u há»i vá» tÃ¬nh hÃ¬nh há»c táº­p vÃ  hÃ nh vi cá»§a con em há»
-2. Cung cáº¥p thÃ´ng tin dá»±a trÃªn dá»¯ liá»‡u pháº£n há»“i, Ä‘iá»ƒm sá»‘ vÃ  báº£ng Ä‘iá»ƒm chÃ­nh thá»©c
-3. PhÃ¢n tÃ­ch xu hÆ°á»›ng há»c táº­p qua cÃ¡c há»c ká»³ vÃ  Ä‘Æ°a ra nháº­n xÃ©t chi tiáº¿t
-4. Cung cáº¥p thÃ´ng tin vá» giÃ¡o viÃªn chá»§ nhiá»‡m vÃ  giÃ¡o viÃªn bá»™ mÃ´n
-5. Tráº£ lá»i vá» thÃ´ng bÃ¡o, lá»‹ch thi, sá»± kiá»‡n vÃ  hoáº¡t Ä‘á»™ng cá»§a trÆ°á»ng
-6. Cung cáº¥p thÃ´ng tin vá» nÄƒm há»c, há»c ká»³ vÃ  lá»‹ch há»c
-7. HÆ°á»›ng dáº«n sá»­ dá»¥ng cÃ¡c tÃ­nh nÄƒng cá»§a cá»•ng thÃ´ng tin phá»¥ huynh
-8. ÄÆ°a ra lá»i khuyÃªn giÃ¡o dá»¥c tÃ­ch cá»±c vÃ  xÃ¢y dá»±ng
-9. LuÃ´n lá»‹ch sá»±, thÃ¢n thiá»‡n vÃ  há»— trá»£
+1. Trả lời các câu hỏi về tình hình học tập và hành vi của con em họ
+2. Cung cấp thông tin dựa trên dữ liệu phản hồi, điểm số và bảng điểm chính thức
+3. Phân tích xu hướng học tập qua các học kỳ và đưa ra nhận xét chi tiết
+4. Cung cấp thông tin về giáo viên chủ nhiệm và giáo viên bộ môn
+5. Trả lời về thông báo, lịch thi, sự kiện và hoạt động của trường
+6. Cung cấp thông tin về năm học, học kỳ và lịch học
+7. Hướng dẫn sử dụng các tính năng của cổng thông tin phụ huynh
+8. Đưa ra lời khuyên giáo dục tích cực và xây dựng
+9. Luôn lịch sự, thân thiện và hỗ trợ
 
-THÃ”NG TIN Vá»€ CON EM:
-- TÃªn há»c sinh: ${studentNames.join(', ')}
+THÔNG TIN VỀ CON EM:
+- Tên học sinh: ${studentNames.join(', ')}
 
-Dá»® LIá»†U PHáº¢N Há»’I Gáº¦N ÄÃ‚Y (30 ngÃ y):
+DỮ LIỆU PHẢN HỒI GẦN ĐÂY (30 ngày):
 ${contextData.recentFeedback.map((f: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const student = contextData.studentMap.get(f.student_id)
   const teacher = contextData.teacherMap.get(f.teacher_id)
@@ -222,25 +222,25 @@ ${contextData.recentFeedback.map((f: any) => { // eslint-disable-line @typescrip
   const subjectName = subject?.name_vietnamese || 'Unknown Subject'
   const teacherName = teacher?.full_name || 'Unknown Teacher'
   const rating = f.rating || 'N/A'
-  const comment = f.feedback_text || 'KhÃ´ng cÃ³ nháº­n xÃ©t'
+  const comment = f.feedback_text || 'Không có nhận xét'
   const date = new Date(f.created_at).toLocaleDateString('vi-VN')
   return `- ${studentName} - ${subjectName}: ${rating}/5 sao, "${comment}" (${teacherName}, ${date})`
 }).join('\n')}
 
-THÃ”NG BÃO Gáº¦N ÄÃ‚Y (7 ngÃ y):
+THÔNG BÁO GẦN ĐÂY (7 ngày):
 ${contextData.notifications.map((notif: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const title = notif.title || 'ThÃ´ng bÃ¡o'
-  const content = notif.content || 'KhÃ´ng cÃ³ ná»™i dung'
-  const sender = notif.sender?.full_name || 'NhÃ  trÆ°á»ng'
+  const title = notif.title || 'Thông báo'
+  const content = notif.content || 'Không có nội dung'
+  const sender = notif.sender?.full_name || 'Nhà trường'
   const date = new Date(notif.created_at).toLocaleDateString('vi-VN')
   return `- ${title}: ${content.substring(0, 100)}... (${sender}, ${date})`
 }).join('\n')}
 
-THÃ”NG TIN NÄ‚M Há»ŒC VÃ€ Há»ŒC Ká»²:
-- NÄƒm há»c hiá»‡n táº¡i: ${contextData.currentAcademicYear?.name || 'ChÆ°a xÃ¡c Ä‘á»‹nh'} (${contextData.currentAcademicYear ? new Date(contextData.currentAcademicYear.start_date).toLocaleDateString('vi-VN') + ' - ' + new Date(contextData.currentAcademicYear.end_date).toLocaleDateString('vi-VN') : 'N/A'})
-- Há»c ká»³ hiá»‡n táº¡i: ${contextData.currentSemester?.name || 'ChÆ°a xÃ¡c Ä‘á»‹nh'} (Há»c ká»³ ${contextData.currentSemester?.semester_number || 'N/A'})
+THÔNG TIN NĂM HỌC VÀ HỌC KỲ:
+- Năm học hiện tại: ${contextData.currentAcademicYear?.name || 'Chưa xác định'} (${contextData.currentAcademicYear ? new Date(contextData.currentAcademicYear.start_date).toLocaleDateString('vi-VN') + ' - ' + new Date(contextData.currentAcademicYear.end_date).toLocaleDateString('vi-VN') : 'N/A'})
+- Học kỳ hiện tại: ${contextData.currentSemester?.name || 'Chưa xác định'} (Học kỳ ${contextData.currentSemester?.semester_number || 'N/A'})
 
-Dá»® LIá»†U ÄIá»‚M Sá» Gáº¦N ÄÃ‚Y (30 ngÃ y):
+DỮ LIỆU ĐIỂM SỐ GẦN ĐÂY (30 ngày):
 ${contextData.recentGrades.map((g: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const student = contextData.studentMap.get(g.student_id)
   const subject = contextData.subjectMap.get(g.subject_id)
@@ -249,28 +249,28 @@ ${contextData.recentGrades.map((g: any) => { // eslint-disable-line @typescript-
   const subjectName = subject?.name_vietnamese || 'Unknown Subject'
   const grade = g.grade || 'N/A'
   const date = new Date(g.submission_date || '').toLocaleDateString('vi-VN')
-  return `- ${studentName} - ${subjectName}: ${grade} Ä‘iá»ƒm (${date})`
+  return `- ${studentName} - ${subjectName}: ${grade} điểm (${date})`
 }).join('\n')}
 
-Báº¢NG ÄIá»‚M CHÃNH THá»¨C (Há»c ká»³):
+BẢNG ĐIỂM CHÍNH THỨC (Học kỳ):
 ${contextData.gradeSubmissions.map((submission: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const student = contextData.studentMap.get(submission.student_id)
   const studentName = student?.full_name || 'Unknown Student'
   const academicYear = submission.academic_year?.name || 'N/A'
   const semester = submission.semester?.name || 'N/A'
-  const submissionName = submission.submission_name || 'Báº£ng Ä‘iá»ƒm'
+  const submissionName = submission.submission_name || 'Bảng điểm'
   const date = new Date(submission.created_at).toLocaleDateString('vi-VN')
 
   const gradesSummary = submission.grades?.map((grade: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const subject = contextData.subjectMap.get(grade.subject_id)
     const subjectName = subject?.name_vietnamese || 'Unknown Subject'
     return `${subjectName}: TB=${grade.average_grade || 'N/A'} (GK=${grade.midterm_grade || 'N/A'}, CK=${grade.final_grade || 'N/A'})`
-  }).join(', ') || 'ChÆ°a cÃ³ Ä‘iá»ƒm'
+  }).join(', ') || 'Chưa có điểm'
 
   return `- ${studentName} - ${submissionName} (${semester} ${academicYear}, ${date}): ${gradesSummary}`
 }).join('\n')}
 
-Dá»® LIá»†U VI PHáº M Gáº¦N ÄÃ‚Y (60 ngÃ y):
+DỮ LIỆU VI PHẠM GẦN ĐÂY (60 ngày):
 ${contextData.recentViolations.map(v => {
   const violation = v as {
     student?: { full_name?: string; student_id?: string };
@@ -281,22 +281,22 @@ ${contextData.recentViolations.map(v => {
     recorded_by?: { full_name?: string };
   };
   const severityLabels: Record<string, string> = {
-    minor: 'Nháº¹',
-    moderate: 'Trung bÃ¬nh', 
-    serious: 'NghiÃªm trá»ng',
-    severe: 'Ráº¥t nghiÃªm trá»ng'
+    minor: 'Nhẹ',
+    moderate: 'Trung bình', 
+    serious: 'Nghiêm trọng',
+    severe: 'Rất nghiêm trọng'
   };
   const description = violation.description ? `"${violation.description}"` : '';
-  return `- ${violation.student?.full_name} (${violation.student?.student_id}): ${violation.violation_type?.violation_categories?.name} - ${violation.violation_type?.name} [${severityLabels[violation.severity || ''] || violation.severity}] ${description} (${new Date(violation.recorded_at || '').toLocaleDateString('vi-VN')}, ghi nháº­n bá»Ÿi ${violation.recorded_by?.full_name})`;
+  return `- ${violation.student?.full_name} (${violation.student?.student_id}): ${violation.violation_type?.violation_categories?.name} - ${violation.violation_type?.name} [${severityLabels[violation.severity || ''] || violation.severity}] ${description} (${new Date(violation.recorded_at || '').toLocaleDateString('vi-VN')}, ghi nhận bởi ${violation.recorded_by?.full_name})`;
 }).join('\n')}
 
-HÆ¯á»šNG DáºªN PHÃ‚N TÃCH:
-- Khi Ä‘Æ°á»£c há»i vá» tÃ¬nh hÃ¬nh há»c táº­p, hÃ£y phÃ¢n tÃ­ch cáº£ Ä‘iá»ƒm sá»‘, pháº£n há»“i vÃ  vi pháº¡m
-- ÄÆ°a ra nháº­n xÃ©t tá»•ng quan vá» xu hÆ°á»›ng tiáº¿n bá»™ hoáº·c cáº§n cáº£i thiá»‡n
-- Náº¿u cÃ³ vi pháº¡m, hÃ£y phÃ¢n tÃ­ch má»©c Ä‘á»™ nghiÃªm trá»ng vÃ  Ä‘Æ°a ra lá»i khuyÃªn
-- LuÃ´n káº¿t thÃºc báº±ng gá»£i Ã½ cá»¥ thá»ƒ Ä‘á»ƒ phá»¥ huynh há»— trá»£ con em
+HƯỚNG DẪN PHÂN TÍCH:
+- Khi được hỏi về tình hình học tập, hãy phân tích cả điểm số, phản hồi và vi phạm
+- Đưa ra nhận xét tổng quan về xu hướng tiến bộ hoặc cần cải thiện
+- Nếu có vi phạm, hãy phân tích mức độ nghiêm trọng và đưa ra lời khuyên
+- Luôn kết thúc bằng gợi ý cụ thể để phụ huynh hỗ trợ con em
 
-HÃ£y tráº£ lá»i báº±ng tiáº¿ng Viá»‡t, ngáº¯n gá»n nhÆ°ng Ä‘áº§y Ä‘á»§ thÃ´ng tin. Náº¿u khÃ´ng cÃ³ dá»¯ liá»‡u vá» cÃ¢u há»i cá»¥ thá»ƒ, hÃ£y thÃ´ng bÃ¡o vÃ  Ä‘á» xuáº¥t cÃ¡ch khÃ¡c Ä‘á»ƒ phá»¥ huynh cÃ³ thá»ƒ theo dÃµi.`
+Hãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông tin. Nếu không có dữ liệu về câu hỏi cụ thể, hãy thông báo và đề xuất cách khác để phụ huynh có thể theo dõi.`
 
     // Convert history format for Google GenAI (assistant -> model)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

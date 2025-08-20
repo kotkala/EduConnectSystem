@@ -121,7 +121,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         number: weekNumber,
         startDate: weekStartDate,
         endDate: weekEndDate,
-        label: `Tuáº§n ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
+        label: `Tuần ${weekNumber} (${format(weekStartDate, "dd/MM")} - ${format(weekEndDate, "dd/MM")})`,
       })
       weekNumber++
     }
@@ -195,7 +195,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
       if (error) {
         console.error('Error loading violations:', error)
-        toast.error('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch vi pháº¡m')
+        toast.error('Không thể tải danh sách vi phạm')
         return
       }
 
@@ -203,7 +203,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       setFilteredViolations(data || [])
     } catch (error) {
       console.error('Error:', error)
-      toast.error('ÄÃ£ xáº£y ra lá»—i khi táº£i danh sÃ¡ch vi pháº¡m')
+      toast.error('Đã xảy ra lỗi khi tải danh sách vi phạm')
     } finally {
       setLoading(false)
     }
@@ -213,7 +213,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
   const handleSendAllToParents = async () => {
     if (filteredViolations.length === 0) {
-      toast.error('KhÃ´ng cÃ³ vi pháº¡m nÃ o Ä‘á»ƒ gá»­i')
+      toast.error('Không có vi phạm nào để gửi')
       return
     }
 
@@ -256,13 +256,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
           `â€¢ ${v.violation_type?.name} (${getSeverityLabel(v.severity)})`
         ).join('\n')
 
-        const weekInfo = selectedWeek ? ` trong tuáº§n ${selectedWeek}` : ''
-        const content = `Tá»•ng há»£p vi pháº¡m cá»§a há»c sinh ${student?.full_name} (${student?.student_id})${weekInfo}:\n\n${violationSummary}\n\nVui lÃ²ng liÃªn há»‡ vá»›i giÃ¡o viÃªn chá»§ nhiá»‡m Ä‘á»ƒ biáº¿t thÃªm chi tiáº¿t.`
+        const weekInfo = selectedWeek ? ` trong tuần ${selectedWeek}` : ''
+        const content = `Tổng hợp vi phạm của học sinh ${student?.full_name} (${student?.student_id})${weekInfo}:\n\n${violationSummary}\n\nVui lòng liên hệ với giáo viên chủ nhiệm để biết thêm chi tiết.`
 
         // Send notification to all parents of the student
         const notifications = parentStudentRelations.map(relation => ({
           recipient_id: relation.parent_id,
-          title: `Tá»•ng há»£p vi pháº¡m - ${student?.full_name}${weekInfo}`,
+          title: `Tổng hợp vi phạm - ${student?.full_name}${weekInfo}`,
           content: content,
           type: 'violation_summary' as const,
           sender_id: user.id,
@@ -282,13 +282,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       }
 
       if (totalNotificationsSent > 0) {
-        toast.success(`ÄÃ£ gá»­i thÃ nh cÃ´ng ${totalNotificationsSent} thÃ´ng bÃ¡o tá»›i phá»¥ huynh`)
+        toast.success(`Đã gửi thành công ${totalNotificationsSent} thông báo tới phụ huynh`)
       } else {
-        toast.error('KhÃ´ng thá»ƒ gá»­i thÃ´ng bÃ¡o nÃ o. Vui lÃ²ng kiá»ƒm tra láº¡i.')
+        toast.error('Không thể gửi thông báo nào. Vui lòng kiểm tra lại.')
       }
     } catch (error) {
       console.error('Error sending bulk notifications:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i thÃ´ng bÃ¡o')
+      toast.error('Có lỗi xảy ra khi gửi thông báo')
     }
   }
 
@@ -303,13 +303,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vi pháº¡m há»c sinh</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
             <p className="text-muted-foreground">
-              {homeroomClass ? `Lá»›p: ${homeroomClass.name}` : 'Báº£ng Ä‘iá»u khiá»ƒn giÃ¡o viÃªn'}
+              {homeroomClass ? `Lớp: ${homeroomClass.name}` : 'Bảng điều khiển giáo viên'}
             </p>
           </div>
         </div>
-        <div className="text-center py-8">Äang táº£i danh sÃ¡ch vi pháº¡m...</div>
+        <div className="text-center py-8">Đang tải danh sách vi phạm...</div>
       </div>
     )
   }
@@ -320,8 +320,8 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vi pháº¡m há»c sinh</h1>
-            <p className="text-muted-foreground">Báº£ng Ä‘iá»u khiá»ƒn giÃ¡o viÃªn</p>
+            <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
+            <p className="text-muted-foreground">Bảng điều khiển giáo viên</p>
           </div>
         </div>
 
@@ -347,30 +347,30 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vi pháº¡m lá»›p há»c</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Vi phạm lớp học</h1>
           <p className="text-muted-foreground">
             {isHomeroomTeacher && homeroomClass
-              ? `Quáº£n lÃ½ vi pháº¡m cho lá»›p chá»§ nhiá»‡m: ${homeroomClass.name}`
-              : "Xem vi pháº¡m cho cÃ¡c lá»›p cá»§a báº¡n"}
+              ? `Quản lý vi phạm cho lớp chủ nhiệm: ${homeroomClass.name}`
+              : "Xem vi phạm cho các lớp của bạn"}
           </p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="violations">Vi pháº¡m lá»›p</TabsTrigger>
-          <TabsTrigger value="discipline">Xá»­ lÃ½ ká»· luáº­t</TabsTrigger>
+          <TabsTrigger value="violations">Vi phạm lớp</TabsTrigger>
+          <TabsTrigger value="discipline">Xử lý kỷ luật</TabsTrigger>
         </TabsList>
 
         <TabsContent value="violations" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold">Vi pháº¡m há»c sinh</h2>
+              <h2 className="text-xl font-semibold">Vi phạm học sinh</h2>
               <p className="text-muted-foreground">
-                Lá»›p: {homeroomClass?.name} â€¢ {violations.length} vi pháº¡m
+                Lớp: {homeroomClass?.name} â€¢ {violations.length} vi phạm
                 {selectedWeek && (
                   <span className="text-primary ml-2">
-                    â€¢ Tuáº§n {selectedWeek}
+                    â€¢ Tuần {selectedWeek}
                   </span>
                 )}
               </p>
@@ -383,7 +383,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
                   variant="default"
                 >
                   <Send className="h-4 w-4" />
-                  Gá»­i táº¥t cáº£ cho phá»¥ huynh ({filteredViolations.length})
+                  Gửi tất cả cho phụ huynh ({filteredViolations.length})
                 </Button>
               )}
             </div>
@@ -394,17 +394,17 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Bá»™ Lá»c Vi Pháº¡m
+            Bộ Lọc Vi Phạm
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Semester Selection */}
             <div className="space-y-2">
-              <label htmlFor="semester-select" className="text-sm font-medium">Há»c Ká»³</label>
+              <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
                 <SelectTrigger id="semester-select">
-                  <SelectValue placeholder="Chá»n há»c ká»³" />
+                  <SelectValue placeholder="Chọn học kỳ" />
                 </SelectTrigger>
                 <SelectContent>
                   {semesters.map((semester) => (
@@ -418,17 +418,17 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Week Selection */}
             <div className="space-y-2">
-              <label htmlFor="week-select" className="text-sm font-medium">Tuáº§n Há»c</label>
+              <label htmlFor="week-select" className="text-sm font-medium">Tuần Học</label>
               <Select
                 value={selectedWeek?.toString() || "all"}
                 onValueChange={(value) => setSelectedWeek(value === "all" ? null : parseInt(value))}
                 disabled={!selectedSemester}
               >
                 <SelectTrigger id="week-select">
-                  <SelectValue placeholder="Táº¥t cáº£ tuáº§n" />
+                  <SelectValue placeholder="Tất cả tuần" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ tuáº§n</SelectItem>
+                  <SelectItem value="all">Tất cả tuần</SelectItem>
                   {weekOptions.map((week) => (
                     <SelectItem key={week.number} value={week.number.toString()}>
                       {week.label}
@@ -440,12 +440,12 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Search */}
             <div className="relative space-y-2">
-              <label htmlFor="search-input" className="text-sm font-medium">TÃ¬m Kiáº¿m</label>
+              <label htmlFor="search-input" className="text-sm font-medium">Tìm Kiếm</label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search-input"
-                  placeholder="TÃªn hoáº·c mÃ£ há»c sinh..."
+                  placeholder="Tên hoặc mã học sinh..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -455,13 +455,13 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
 
             {/* Severity Filter */}
             <div className="space-y-2">
-              <label htmlFor="severity-select" className="text-sm font-medium">Má»©c Äá»™</label>
+              <label htmlFor="severity-select" className="text-sm font-medium">Mức Độ</label>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
                 <SelectTrigger id="severity-select">
-                  <SelectValue placeholder="Táº¥t cáº£ má»©c Ä‘á»™" />
+                  <SelectValue placeholder="Tất cả mức độ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ má»©c Ä‘á»™</SelectItem>
+                  <SelectItem value="all">Tất cả mức độ</SelectItem>
                   {violationSeverityLevels.map((severity) => (
                     <SelectItem key={severity} value={severity}>
                       <Badge className={getSeverityColor(severity)}>
@@ -477,17 +477,17 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
             <div className="space-y-2">
               <div className="text-sm font-medium" aria-hidden="true">&nbsp;</div>
               <Button variant="outline" onClick={clearFilters} className="w-full">
-                XÃ³a Bá»™ Lá»c
+                Xóa Bộ Lọc
               </Button>
             </div>
           </div>
 
           <div className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Hiá»ƒn thá»‹ {filteredViolations.length} trong tá»•ng sá»‘ {violations.length} vi pháº¡m
+            Hiển thị {filteredViolations.length} trong tổng số {violations.length} vi phạm
             {selectedWeek && (
               <span className="text-primary">
-                â€¢ Tuáº§n {selectedWeek}
+                â€¢ Tuần {selectedWeek}
               </span>
             )}
           </div>

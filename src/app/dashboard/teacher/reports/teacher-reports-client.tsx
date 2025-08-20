@@ -77,7 +77,7 @@ const StudentItem = memo(function StudentItem({
       <div className="flex-1">
         <h4 className="font-medium">{student.full_name}</h4>
         <p className="text-sm text-gray-500">
-          MÃ£ HS: {student.student_id} â€¢ Lá»›p: {student.class_name}
+          Mã HS: {student.student_id} â€¢ Lớp: {student.class_name}
         </p>
       </div>
       <div className="flex items-center gap-3">
@@ -123,10 +123,10 @@ const StudentsList = memo(function StudentsList({
       <div className="text-center py-8">
         <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          KhÃ´ng cÃ³ há»c sinh
+          Không có học sinh
         </h3>
         <p className="text-gray-600">
-          KhÃ´ng tÃ¬m tháº¥y há»c sinh nÃ o trong lá»›p chá»§ nhiá»‡m cá»§a báº¡n.
+          Không tìm thấy học sinh nào trong lớp chủ nhiệm của bạn.
         </p>
       </div>
     )
@@ -234,7 +234,7 @@ function TeacherReportsClient() {
   const loadReportPeriods = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startPageTransition("Äang táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o...")
+      startPageTransition("Đang tải danh sách kỳ báo cáo...")
       setError(null)
 
       const result = await getReportPeriodsAction()
@@ -277,7 +277,7 @@ function TeacherReportsClient() {
     const reportsToSend = students.filter(s => s.report?.status === 'draft')
 
     if (reportsToSend.length === 0) {
-      toast.error('KhÃ´ng cÃ³ bÃ¡o cÃ¡o nÃ o Ä‘á»ƒ gá»­i')
+      toast.error('Không có báo cáo nào để gửi')
       return
     }
 
@@ -289,14 +289,14 @@ function TeacherReportsClient() {
       const result = await bulkSendReportsAction(selectedPeriod, reportsToSend.map(s => s.report!.id))
 
       if (result.success) {
-        toast.success(`ÄÃ£ gá»­i ${reportsToSend.length} bÃ¡o cÃ¡o thÃ nh cÃ´ng`)
+        toast.success(`Đã gửi ${reportsToSend.length} báo cáo thành công`)
         loadStudents() // Reload to get updated statuses
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ gá»­i bÃ¡o cÃ¡o')
+        toast.error(result.error || 'Không thể gửi báo cáo')
       }
     } catch (error) {
       console.error('Error bulk sending reports:', error)
-      toast.error('KhÃ´ng thá»ƒ gá»­i bÃ¡o cÃ¡o')
+      toast.error('Không thể gửi báo cáo')
     } finally {
       setBulkSending(false)
     }
@@ -317,14 +317,14 @@ function TeacherReportsClient() {
 
   const getStatusBadge = useCallback((student: StudentForReport) => {
     if (!student.report) {
-      return <Badge variant="secondary">ChÆ°a táº¡o</Badge>
+      return <Badge variant="secondary">Chưa tạo</Badge>
     }
 
     if (student.report.status === 'sent') {
-      return <Badge className="bg-green-100 text-green-800">ÄÃ£ gá»­i</Badge>
+      return <Badge className="bg-green-100 text-green-800">Đã gửi</Badge>
     }
 
-    return <Badge variant="outline">Báº£n nhÃ¡p</Badge>
+    return <Badge variant="outline">Bản nháp</Badge>
   }, [])
 
   useEffect(() => {
@@ -368,7 +368,7 @@ function TeacherReportsClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Calendar className="h-5 w-5" />
-            Chá»n ká»³ bÃ¡o cÃ¡o
+            Chọn kỳ báo cáo
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -376,7 +376,7 @@ function TeacherReportsClient() {
             <div className="w-full md:flex-1">
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger className="h-11 text-base">
-                  <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o" />
+                  <SelectValue placeholder="Chọn kỳ báo cáo" />
                 </SelectTrigger>
                 <SelectContent className="max-h-80 text-base">
                   {reportPeriods.map((period) => (
@@ -389,7 +389,7 @@ function TeacherReportsClient() {
             </div>
             <Button variant="outline" onClick={handleRefresh} className="h-11 text-base">
               <RefreshCw className="h-4 w-4 mr-2" />
-              LÃ m má»›i
+              Làm mới
             </Button>
           </div>
         </CardContent>
@@ -402,7 +402,7 @@ function TeacherReportsClient() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tá»•ng há»c sinh</p>
+                  <p className="text-sm font-medium text-muted-foreground">Tổng học sinh</p>
                   <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500" />
@@ -414,7 +414,7 @@ function TeacherReportsClient() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">ÄÃ£ gá»­i</p>
+                  <p className="text-sm font-medium text-muted-foreground">Đã gửi</p>
                   <p className="text-2xl font-bold text-green-600">{stats.sentReports}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-500" />
@@ -426,7 +426,7 @@ function TeacherReportsClient() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Báº£n nhÃ¡p</p>
+                  <p className="text-sm font-medium text-muted-foreground">Bản nháp</p>
                   <p className="text-2xl font-bold text-yellow-600">{stats.draftReports}</p>
                 </div>
                 <Edit className="h-8 w-8 text-yellow-500" />
@@ -438,7 +438,7 @@ function TeacherReportsClient() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">ChÆ°a táº¡o</p>
+                  <p className="text-sm font-medium text-muted-foreground">Chưa tạo</p>
                   <p className="text-2xl font-bold text-red-600">{stats.noReports}</p>
                 </div>
                 <AlertCircle className="h-8 w-8 text-red-500" />
@@ -452,14 +452,14 @@ function TeacherReportsClient() {
       {selectedPeriod && (
         <Card>
           <CardHeader>
-            <CardTitle>Danh sÃ¡ch há»c sinh</CardTitle>
+            <CardTitle>Danh sách học sinh</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <Input
-                  placeholder="TÃ¬m kiáº¿m theo tÃªn hoáº·c mÃ£ há»c sinh..."
+                  placeholder="Tìm kiếm theo tên hoặc mã học sinh..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -468,25 +468,25 @@ function TeacherReportsClient() {
               <div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Lá»c theo tráº¡ng thÃ¡i bÃ¡o cÃ¡o" />
+                    <SelectValue placeholder="Lọc theo trạng thái báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ tráº¡ng thÃ¡i</SelectItem>
-                    <SelectItem value="sent">ÄÃ£ gá»­i</SelectItem>
-                    <SelectItem value="draft">Báº£n nhÃ¡p</SelectItem>
-                    <SelectItem value="not_created">ChÆ°a táº¡o</SelectItem>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="sent">Đã gửi</SelectItem>
+                    <SelectItem value="draft">Bản nháp</SelectItem>
+                    <SelectItem value="not_created">Chưa tạo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Select value={parentFeedbackFilter} onValueChange={setParentFeedbackFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Lá»c theo Ã½ kiáº¿n phá»¥ huynh" />
+                    <SelectValue placeholder="Lọc theo ý kiến phụ huynh" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Táº¥t cáº£ Ã½ kiáº¿n</SelectItem>
-                    <SelectItem value="agree">Phá»¥ huynh Ä‘á»“ng Ã½</SelectItem>
-                    <SelectItem value="disagree">Phá»¥ huynh khÃ´ng Ä‘á»“ng Ã½</SelectItem>
+                    <SelectItem value="all">Tất cả ý kiến</SelectItem>
+                    <SelectItem value="agree">Phụ huynh đồng ý</SelectItem>
+                    <SelectItem value="disagree">Phụ huynh không đồng ý</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -502,17 +502,17 @@ function TeacherReportsClient() {
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
-                    {bulkSending ? 'Äang ná»™p...' : `Ná»™p táº¥t cáº£ cho Admin (${stats.draftReports})`}
+                    {bulkSending ? 'Đang nộp...' : `Nộp tất cả cho Admin (${stats.draftReports})`}
                   </Button>
                   <span className="text-sm text-gray-600">
-                    Ná»™p táº¥t cáº£ bÃ¡o cÃ¡o báº£n nhÃ¡p cho Admin Ä‘á»ƒ duyá»‡t
+                    Nộp tất cả báo cáo bản nháp cho Admin để duyệt
                   </span>
                 </div>
 
                 {/* Pagination Info */}
                 {totalPages > 1 && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    Trang {currentPage} / {totalPages} ({filteredStudents.length} há»c sinh)
+                    Trang {currentPage} / {totalPages} ({filteredStudents.length} học sinh)
                   </div>
                 )}
               </div>
@@ -534,7 +534,7 @@ function TeacherReportsClient() {
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    TrÆ°á»›c
+                    Trước
                   </Button>
 
                   <div className="flex items-center gap-1">

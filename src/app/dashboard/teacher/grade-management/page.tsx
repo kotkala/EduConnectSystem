@@ -17,9 +17,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { TeacherGradeImportDialog } from "@/features/teacher-management/components/teacher/teacher-grade-import-dialog"
-import { TeacherGradeTrackingDialog } from "@/features/teacher-management/components/teacher/teacher-grade-tracking-dialog"
-import { TeacherGradeOverview } from "@/features/teacher-management/components/teacher/teacher-grade-overview"
+import { TeacherGradeImportDialog } from "@/shared/components/teacher/teacher-grade-import-dialog"
+import { TeacherGradeTrackingDialog } from "@/shared/components/teacher/teacher-grade-tracking-dialog"
+import { TeacherGradeOverview } from "@/shared/components/teacher/teacher-grade-overview"
 import { downloadGradePDF, type GradeExportData, type GradeExportOptions } from "@/lib/utils/pdf-grade-export"
 
 // Import StudentGrade type from the overview component
@@ -39,7 +39,7 @@ import {
   getEnhancedGradeReportingPeriodsAction,
   getTeacherClassesAction,
   getTeacherSubjectsAction
-} from "@/features/grade-management/actions/enhanced-grade-actions"
+} from "@/lib/actions/enhanced-grade-actions"
 import {
   type TeacherClass,
   type TeacherSubject
@@ -93,10 +93,10 @@ export default function TeacherGradeManagementPage() {
           setSelectedPeriod(result.data[0].id)
         }
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+        setError(result.error || 'Không thể tải danh sách kỳ báo cáo điểm')
       }
     } catch {
-      setError('KhÃ´ng thá»ƒ táº£i danh sÃ¡ch ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm')
+      setError('Không thể tải danh sách kỳ báo cáo điểm')
     } finally {
       setLoading(false)
     }
@@ -146,12 +146,12 @@ export default function TeacherGradeManagementPage() {
 
   const handleDownloadTemplate = async () => {
     if (!selectedPeriod || !selectedClass || !selectedSubject) {
-      toast.error('Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ ká»³ bÃ¡o cÃ¡o, lá»›p há»c vÃ  mÃ´n há»c')
+      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
       return
     }
 
     // Show loading state
-    const loadingToast = toast.loading('Äang táº¡o template Excel...')
+    const loadingToast = toast.loading('Đang tạo template Excel...')
 
     try {
       const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
@@ -159,24 +159,24 @@ export default function TeacherGradeManagementPage() {
       const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
 
       if (!selectedPeriodData || !selectedClassData || !selectedSubjectData) {
-        toast.error('KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin ká»³ bÃ¡o cÃ¡o, lá»›p há»c hoáº·c mÃ´n há»c')
+        toast.error('Không tìm thấy thông tin kỳ báo cáo, lớp học hoặc môn học')
         return
       }
 
       // Get real student data for the selected class
-      const { getClassStudentsAction } = await import('@/features/teacher-management/actions/teacher-feedback-actions')
+      const { getClassStudentsAction } = await import('@/lib/actions/teacher-feedback-actions')
       const studentsResult = await getClassStudentsAction(selectedClass)
 
       if (!studentsResult.success) {
         toast.dismiss(loadingToast)
-        toast.error(studentsResult.error || 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch há»c sinh')
+        toast.error(studentsResult.error || 'Không thể lấy danh sách học sinh')
         return
       }
 
       const students = studentsResult.data || []
       if (students.length === 0) {
         toast.dismiss(loadingToast)
-        toast.error('Lá»›p há»c nÃ y chÆ°a cÃ³ há»c sinh nÃ o')
+        toast.error('Lớp học này chưa có học sinh nào')
         return
       }
 
@@ -203,17 +203,17 @@ export default function TeacherGradeManagementPage() {
 
       // Dismiss loading and show success
       toast.dismiss(loadingToast)
-      toast.success(`Táº£i template thÃ nh cÃ´ng! (${students.length} há»c sinh)`)
+      toast.success(`Tải template thành công! (${students.length} học sinh)`)
     } catch (error) {
       console.error('Error downloading template:', error)
       toast.dismiss(loadingToast)
-      toast.error(error instanceof Error ? error.message : 'Lá»—i khi táº£i template')
+      toast.error(error instanceof Error ? error.message : 'Lỗi khi tải template')
     }
   }
 
   const handleImportGrades = () => {
     if (!selectedPeriod) {
-      toast.error('Vui lÃ²ng chá»n ká»³ nháº­p Ä‘iá»ƒm')
+      toast.error('Vui lòng chọn kỳ nhập điểm')
       return
     }
     setImportDialogOpen(true)
@@ -221,7 +221,7 @@ export default function TeacherGradeManagementPage() {
 
   const handleTrackGrades = () => {
     if (!selectedPeriod || !selectedClass || !selectedSubject) {
-      toast.error('Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ ká»³ bÃ¡o cÃ¡o, lá»›p há»c vÃ  mÃ´n há»c')
+      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
       return
     }
     setTrackingDialogOpen(true)
@@ -229,23 +229,23 @@ export default function TeacherGradeManagementPage() {
 
   const handleImportSuccess = () => {
     setImportDialogOpen(false)
-    toast.success('Nháº­p Ä‘iá»ƒm thÃ nh cÃ´ng!')
+    toast.success('Nhập điểm thành công!')
   }
 
   const handleSubmitGradesToAdmin = async () => {
     if (!selectedPeriod || !selectedClass || !selectedSubject) {
-      toast.error('Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ ká»³ bÃ¡o cÃ¡o, lá»›p há»c vÃ  mÃ´n há»c')
+      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
       return
     }
 
     // Allow submission for any valid period type selection
     // The validation will be done on the server side
 
-    const loadingToast = toast.loading('Äang gá»­i báº£ng Ä‘iá»ƒm cho admin...')
+    const loadingToast = toast.loading('Đang gửi bảng điểm cho admin...')
 
     try {
       // Import the submission action
-      const { submitTeacherGradesToAdminAction } = await import('@/features/teacher-management/actions/teacher-grade-submission-actions')
+      const { submitTeacherGradesToAdminAction } = await import('@/lib/actions/teacher-grade-submission-actions')
 
       const selectedClassData = classes.find(c => c.id === selectedClass)
       const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
@@ -269,20 +269,20 @@ export default function TeacherGradeManagementPage() {
         subjectName: selectedSubjectData?.name_vietnamese || 'Unknown Subject',
         periodName: selectedPeriodData?.name || 'Unknown Period',
         gradeData: gradeDataToSubmit,
-        submissionReason: `Gá»­i báº£ng Ä‘iá»ƒm ${getPeriodTypeDisplayName(selectedPeriodType)} mÃ´n ${selectedSubjectData?.name_vietnamese} lá»›p ${selectedClassData?.name}`
+        submissionReason: `Gửi bảng điểm ${getPeriodTypeDisplayName(selectedPeriodType)} môn ${selectedSubjectData?.name_vietnamese} lớp ${selectedClassData?.name}`
       })
 
       toast.dismiss(loadingToast)
 
       if (result.success) {
-        toast.success('Gá»­i báº£ng Ä‘iá»ƒm cho admin thÃ nh cÃ´ng!')
+        toast.success('Gửi bảng điểm cho admin thành công!')
       } else {
-        toast.error(result.error || 'Lá»—i khi gá»­i báº£ng Ä‘iá»ƒm')
+        toast.error(result.error || 'Lỗi khi gửi bảng điểm')
       }
     } catch (error) {
       console.error('Error submitting grades:', error)
       toast.dismiss(loadingToast)
-      toast.error('Lá»—i khi gá»­i báº£ng Ä‘iá»ƒm')
+      toast.error('Lỗi khi gửi bảng điểm')
     }
   }
 
@@ -303,17 +303,17 @@ export default function TeacherGradeManagementPage() {
 
   const handleExportPDF = async () => {
     if (!selectedPeriod || !selectedClass || !selectedSubject) {
-      toast.error('Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ ká»³ bÃ¡o cÃ¡o, lá»›p há»c vÃ  mÃ´n há»c')
+      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
       return
     }
 
     if (currentGradeData.length === 0) {
-      toast.error('KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm Ä‘á»ƒ xuáº¥t. Vui lÃ²ng chá»n lá»›p vÃ  mÃ´n há»c cÃ³ Ä‘iá»ƒm.')
+      toast.error('Không có dữ liệu điểm để xuất. Vui lòng chọn lớp và môn học có điểm.')
       return
     }
 
     try {
-      toast.info('Äang táº¡o file PDF...')
+      toast.info('Đang tạo file PDF...')
 
       const selectedClassData = classes.find(c => c.id === selectedClass)
       const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
@@ -326,17 +326,17 @@ export default function TeacherGradeManagementPage() {
         periodName: selectedPeriodData?.name || 'Unknown Period',
         academicYear: '2024-2025',
         semester: 'HK1',
-        teacherName: 'GiÃ¡o viÃªn', // TODO: Get from user profile
-        schoolName: 'TRÆ¯á»œNG TRUNG Há»ŒC PHá»” THÃ”NG',
+        teacherName: 'Giáo viên', // TODO: Get from user profile
+        schoolName: 'TRƯỜNG TRUNG HỌC PHỔ THÔNG',
         exportDate: new Date(),
         includeFormula: true
       }
 
       downloadGradePDF(currentGradeData, exportOptions)
-      toast.success('Xuáº¥t file PDF thÃ nh cÃ´ng!')
+      toast.success('Xuất file PDF thành công!')
     } catch (error) {
       console.error('Error exporting PDF:', error)
-      toast.error('Lá»—i khi xuáº¥t file PDF')
+      toast.error('Lỗi khi xuất file PDF')
     }
   }
 
@@ -348,15 +348,15 @@ export default function TeacherGradeManagementPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ Ä‘iá»ƒm sá»‘</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý điểm số</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Nháº­p vÃ  quáº£n lÃ½ Ä‘iá»ƒm sá»‘ há»c sinh theo tá»«ng ká»³ bÃ¡o cÃ¡o
+              Nhập và quản lý điểm số học sinh theo từng kỳ báo cáo
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
             <Button variant="outline" onClick={loadPeriods} disabled={loading} className="w-full sm:w-auto">
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              Làm mới
             </Button>
           </div>
         </div>
@@ -364,15 +364,15 @@ export default function TeacherGradeManagementPage() {
         {/* Period Selection */}
         <Card>
           <CardHeader>
-            <CardTitle>Chá»n ká»³ nháº­p Ä‘iá»ƒm</CardTitle>
+            <CardTitle>Chọn kỳ nhập điểm</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="period-select" className="text-sm font-medium">Ká»³ bÃ¡o cÃ¡o</label>
+                <label htmlFor="period-select" className="text-sm font-medium">Kỳ báo cáo</label>
                 <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
                   <SelectTrigger id="period-select">
-                    <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o" />
+                    <SelectValue placeholder="Chọn kỳ báo cáo" />
                   </SelectTrigger>
                   <SelectContent>
                     {periods.map((period) => (
@@ -386,17 +386,17 @@ export default function TeacherGradeManagementPage() {
               
               {selectedPeriodData && (
                 <div className="space-y-2">
-                  <span className="text-sm font-medium">ThÃ´ng tin ká»³</span>
+                  <span className="text-sm font-medium">Thông tin kỳ</span>
                   <div className="p-3 bg-muted rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium">{selectedPeriodData.name}</span>
                       <Badge variant={selectedPeriodData.status === 'open' ? 'default' : 'secondary'}>
-                        {selectedPeriodData.status === 'open' ? 'Äang má»Ÿ' : 'ÄÃ£ Ä‘Ã³ng'}
+                        {selectedPeriodData.status === 'open' ? 'Đang mở' : 'Đã đóng'}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <p>Háº¡n nháº­p: {new Date(selectedPeriodData.import_deadline).toLocaleDateString('vi-VN')}</p>
-                      <p>Háº¡n sá»­a: {new Date(selectedPeriodData.edit_deadline).toLocaleDateString('vi-VN')}</p>
+                      <p>Hạn nhập: {new Date(selectedPeriodData.import_deadline).toLocaleDateString('vi-VN')}</p>
+                      <p>Hạn sửa: {new Date(selectedPeriodData.edit_deadline).toLocaleDateString('vi-VN')}</p>
                     </div>
                   </div>
                 </div>
@@ -409,20 +409,20 @@ export default function TeacherGradeManagementPage() {
         {selectedPeriod && (
           <Card>
             <CardHeader>
-              <CardTitle>Chá»n lá»›p há»c vÃ  mÃ´n há»c</CardTitle>
+              <CardTitle>Chọn lớp học và môn học</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="class-select" className="text-sm font-medium">Lá»›p há»c</label>
+                  <label htmlFor="class-select" className="text-sm font-medium">Lớp học</label>
                   <Select value={selectedClass} onValueChange={setSelectedClass}>
                     <SelectTrigger id="class-select">
-                      <SelectValue placeholder="Chá»n lá»›p há»c" />
+                      <SelectValue placeholder="Chọn lớp học" />
                     </SelectTrigger>
                     <SelectContent>
                       {classes.map((classItem) => (
                         <SelectItem key={classItem.id} value={classItem.id}>
-                          {classItem.name} (Khá»‘i {classItem.grade_level})
+                          {classItem.name} (Khối {classItem.grade_level})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -430,10 +430,10 @@ export default function TeacherGradeManagementPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="subject-select" className="text-sm font-medium">MÃ´n há»c</label>
+                  <label htmlFor="subject-select" className="text-sm font-medium">Môn học</label>
                   <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                     <SelectTrigger id="subject-select">
-                      <SelectValue placeholder="Chá»n mÃ´n há»c" />
+                      <SelectValue placeholder="Chọn môn học" />
                     </SelectTrigger>
                     <SelectContent>
                       {subjects.map((subject) => (
@@ -446,20 +446,20 @@ export default function TeacherGradeManagementPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="period-type-select" className="text-sm font-medium">Loáº¡i Ä‘iá»ƒm</label>
+                  <label htmlFor="period-type-select" className="text-sm font-medium">Loại điểm</label>
                   <Select value={selectedPeriodType} onValueChange={(value) => setSelectedPeriodType(value as GradePeriodType)}>
                     <SelectTrigger id="period-type-select">
-                      <SelectValue placeholder="Chá»n loáº¡i Ä‘iá»ƒm" />
+                      <SelectValue placeholder="Chọn loại điểm" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="regular_1">Äiá»ƒm thÆ°á»ng xuyÃªn HK1</SelectItem>
-                      <SelectItem value="regular_2">Äiá»ƒm thÆ°á»ng xuyÃªn HK2</SelectItem>
-                      <SelectItem value="midterm_1">Äiá»ƒm giá»¯a kÃ¬ 1</SelectItem>
-                      <SelectItem value="midterm_2">Äiá»ƒm giá»¯a kÃ¬ 2</SelectItem>
-                      <SelectItem value="final_1">Äiá»ƒm cuá»‘i kÃ¬ 1</SelectItem>
-                      <SelectItem value="final_2">Äiá»ƒm cuá»‘i kÃ¬ 2</SelectItem>
-                      <SelectItem value="summary_1">Äiá»ƒm tá»•ng káº¿t HK1</SelectItem>
-                      <SelectItem value="summary_2">Äiá»ƒm tá»•ng káº¿t HK2</SelectItem>
+                      <SelectItem value="regular_1">Điểm thường xuyên HK1</SelectItem>
+                      <SelectItem value="regular_2">Điểm thường xuyên HK2</SelectItem>
+                      <SelectItem value="midterm_1">Điểm giữa kì 1</SelectItem>
+                      <SelectItem value="midterm_2">Điểm giữa kì 2</SelectItem>
+                      <SelectItem value="final_1">Điểm cuối kì 1</SelectItem>
+                      <SelectItem value="final_2">Điểm cuối kì 2</SelectItem>
+                      <SelectItem value="summary_1">Điểm tổng kết HK1</SelectItem>
+                      <SelectItem value="summary_2">Điểm tổng kết HK2</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -473,10 +473,10 @@ export default function TeacherGradeManagementPage() {
                         {classes.find(c => c.id === selectedClass)?.name} - {subjects.find(s => s.id === selectedSubject)?.name_vietnamese}
                       </p>
                       <p className="text-sm text-blue-700">
-                        Loáº¡i Ä‘iá»ƒm: {getPeriodTypeDisplayName(selectedPeriodType)}
+                        Loại điểm: {getPeriodTypeDisplayName(selectedPeriodType)}
                       </p>
                       <p className="text-sm text-blue-700">
-                        Sá»‘ cá»™t Ä‘iá»ƒm thÆ°á»ng xuyÃªn: {subjects.find(s => s.id === selectedSubject)?.regular_grade_count || 3}
+                        Số cột điểm thường xuyên: {subjects.find(s => s.id === selectedSubject)?.regular_grade_count || 3}
                       </p>
                     </div>
                   </div>
@@ -490,29 +490,29 @@ export default function TeacherGradeManagementPage() {
         {selectedPeriod && selectedClass && selectedSubject && (
           <Card>
             <CardHeader>
-              <CardTitle>Thao tÃ¡c nháº­p Ä‘iá»ƒm</CardTitle>
+              <CardTitle>Thao tác nhập điểm</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                 <Button onClick={handleDownloadTemplate} variant="outline">
                   <Download className="mr-2 h-4 w-4" />
-                  Táº£i template Excel
+                  Tải template Excel
                 </Button>
                 <Button onClick={handleImportGrades}>
                   <Upload className="mr-2 h-4 w-4" />
-                  Nháº­p Ä‘iá»ƒm tá»« Excel
+                  Nhập điểm từ Excel
                 </Button>
                 <Button onClick={handleTrackGrades} variant="secondary">
                   <Eye className="mr-2 h-4 w-4" />
-                  Theo dÃµi Ä‘iá»ƒm sá»‘
+                  Theo dõi điểm số
                 </Button>
                 <Button onClick={handleExportPDF} className="bg-red-600 hover:bg-red-700">
                   <FileText className="mr-2 h-4 w-4" />
-                  Xuáº¥t PDF
+                  Xuất PDF
                 </Button>
                 <Button onClick={handleSubmitGradesToAdmin} className="bg-green-600 hover:bg-green-700">
                   <Send className="mr-2 h-4 w-4" />
-                  Gá»­i cho Admin
+                  Gửi cho Admin
                 </Button>
               </div>
             </CardContent>
@@ -533,10 +533,6 @@ export default function TeacherGradeManagementPage() {
           periodId={selectedPeriod}
           classId={selectedClass}
           subjectId={selectedSubject}
-          className={classes.find(c => c.id === selectedClass)?.name || ''}
-          subjectName={subjects.find(s => s.id === selectedSubject)?.name_vietnamese || ''}
-          periodName={selectedPeriodData?.name || ''}
-          onTrackingClick={handleTrackGrades}
           onImportClick={handleImportGrades}
           onGradeDataChange={handleGradeDataChange}
         />

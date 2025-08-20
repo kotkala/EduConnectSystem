@@ -2,8 +2,8 @@
 import { HomeroomFeedbackDashboard } from "@/features/grade-management/components/homeroom-feedback/homeroom-feedback-dashboard";
 
 export const metadata: Metadata = {
-  title: "Pháº£n Há»“i Há»c Sinh",
-  description: "Xem pháº£n há»“i há»c táº­p cá»§a há»c sinh trong lá»›p chá»§ nhiá»‡m",
+  title: "Phản Hồi Học Sinh",
+  description: "Xem phản hồi học tập của học sinh trong lớp chủ nhiệm",
 };
 
 export default function HomeroomFeedbackPage() {

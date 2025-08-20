@@ -19,7 +19,7 @@ async function checkAdminPermissions() {
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+    throw new Error("Yêu cầu xác thực")
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -29,11 +29,11 @@ async function checkAdminPermissions() {
     .single()
 
   if (profileError || !profile) {
-    throw new Error("KhÃ´ng tÃ¬m tháº¥y há»“ sÆ¡")
+    throw new Error("Không tìm thấy hồ sơ")
   }
 
   if (profile.role !== "admin") {
-    throw new Error("YÃªu cáº§u quyá»n quáº£n trá»‹")
+    throw new Error("Yêu cầu quyền quản trị")
   }
 
   return { user, profile }
@@ -97,7 +97,7 @@ export async function getClassBlocksAction(filters?: ClassBlockFilters) {
       console.error("Error fetching class blocks:", error)
       return {
         success: false,
-        error: "KhÃ´ng thá»ƒ láº¥y khá»‘i lá»›p",
+        error: "Không thể lấy khối lớp",
         data: [],
         total: 0,
         page: validatedFilters.page

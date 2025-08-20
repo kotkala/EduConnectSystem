@@ -276,7 +276,7 @@ export async function getChildrenGradeReportsAction() {
 
         const enrichedSubmission = {
           id: studentSubmission.id,
-          submission_name: `${period?.name || 'Ká»³ bÃ¡o cÃ¡o'} - ${academicYear?.name || 'NÄƒm há»c'}`,
+          submission_name: `${period?.name || 'Kỳ báo cáo'} - ${academicYear?.name || 'Năm học'}`,
           student_id: studentSubmission.student_id,
           created_at: studentSubmission.created_at,
           student: {
@@ -321,7 +321,7 @@ export async function getChildrenGradeReportsAction() {
     console.error('âŒ [PARENT GRADES] Error fetching children grade reports:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch báº£ng Ä‘iá»ƒm"
+      error: error instanceof Error ? error.message : "Không thể lấy danh sách bảng điểm"
     }
   }
 }
@@ -349,7 +349,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     if (submissionError || !submission) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y báº£ng Ä‘iá»ƒm"
+        error: "Không tìm thấy bảng điểm"
       }
     }
 
@@ -359,7 +359,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     } catch {
       return {
         success: false,
-        error: "Báº¡n khÃ´ng cÃ³ quyá»n xem báº£ng Ä‘iá»ƒm nÃ y"
+        error: "Bạn không có quyền xem bảng điểm này"
       }
     }
 
@@ -385,7 +385,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     if (!gradeSubmission) {
       return {
         success: false,
-        error: "Báº£ng Ä‘iá»ƒm nÃ y chÆ°a Ä‘Æ°á»£c giÃ¡o viÃªn gá»­i cho phá»¥ huynh"
+        error: "Bảng điểm này chưa được giáo viên gửi cho phụ huynh"
       }
     }
 
@@ -395,7 +395,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     if (!periodId) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin ká»³ bÃ¡o cÃ¡o"
+        error: "Không tìm thấy thông tin kỳ báo cáo"
       }
     }
 
@@ -471,7 +471,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
 
     const responseData = {
       ...detailedSubmission,
-      submission_name: `${period?.name || 'Ká»³ bÃ¡o cÃ¡o'} - ${academicYear?.name || 'NÄƒm há»c'}`,
+      submission_name: `${period?.name || 'Kỳ báo cáo'} - ${academicYear?.name || 'Năm học'}`,
       academic_year: academicYear,
       semester: semester,
       grades: processedGrades, // Replace detailed_grades with processed grades
@@ -495,7 +495,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     console.error('Error fetching student grade detail:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y chi tiáº¿t báº£ng Ä‘iá»ƒm"
+      error: error instanceof Error ? error.message : "Không thể lấy chi tiết bảng điểm"
     }
   }
 }
@@ -563,7 +563,7 @@ export async function getStudentGradeStatsAction(submissionId: string) {
     console.error('Error calculating grade statistics:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ tÃ­nh toÃ¡n thá»‘ng kÃª Ä‘iá»ƒm"
+      error: error instanceof Error ? error.message : "Không thể tính toán thống kê điểm"
     }
   }
 }

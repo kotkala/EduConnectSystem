@@ -21,7 +21,7 @@ export default async function TeacherDashboard() {
 
   return (
     <div className="p-6">
-      <Suspense fallback={<div>Äang táº£i...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <TeacherWeeklyDashboard profile={profile} />
       </Suspense>
     </div>

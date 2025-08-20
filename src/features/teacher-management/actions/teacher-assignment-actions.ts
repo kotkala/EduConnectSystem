@@ -52,7 +52,7 @@ export async function getAvailableSubjectsForClassAction(classId: string) {
       console.error('Error fetching available subjects:', error)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch mÃ´n há»c kháº£ dá»¥ng',
+        error: 'Không thể lấy danh sách môn học khả dụng',
         data: []
       }
     }
@@ -65,7 +65,7 @@ export async function getAvailableSubjectsForClassAction(classId: string) {
     console.error('Error in getAvailableSubjectsForClassAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch mÃ´n há»c kháº£ dá»¥ng',
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách môn học khả dụng',
       data: []
     }
   }
@@ -86,7 +86,7 @@ export async function getAvailableTeachersForSubjectAction(subjectId: string) {
       console.error('Error fetching available teachers:', error)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch giÃ¡o viÃªn kháº£ dá»¥ng',
+        error: 'Không thể lấy danh sách giáo viên khả dụng',
         data: []
       }
     }
@@ -99,7 +99,7 @@ export async function getAvailableTeachersForSubjectAction(subjectId: string) {
     console.error('Error in getAvailableTeachersForSubjectAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch giÃ¡o viÃªn kháº£ dá»¥ng',
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách giáo viên khả dụng',
       data: []
     }
   }
@@ -119,7 +119,7 @@ export async function assignTeacherToClassSubjectAction(
     if (!teacherId || !classId || !subjectId || !assignedBy) {
       return {
         success: false,
-        error: 'Thiáº¿u tham sá»‘ báº¯t buá»™c cho viá»‡c phÃ¢n cÃ´ng giÃ¡o viÃªn'
+        error: 'Thiếu tham số bắt buộc cho việc phân công giáo viên'
       }
     }
 
@@ -136,14 +136,14 @@ export async function assignTeacherToClassSubjectAction(
       console.error('Error fetching class data:', classError)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ láº¥y thÃ´ng tin lá»›p'
+        error: 'Không thể lấy thông tin lớp'
       }
     }
 
     if (!classData) {
       return {
         success: false,
-        error: 'KhÃ´ng tÃ¬m tháº¥y lá»›p'
+        error: 'Không tìm thấy lớp'
       }
     }
 
@@ -161,7 +161,7 @@ export async function assignTeacherToClassSubjectAction(
     if (existingAssignment) {
       return {
         success: false,
-        error: 'MÃ´n há»c nÃ y Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng cho má»™t giÃ¡o viÃªn trong lá»›p nÃ y'
+        error: 'Môn học này đã được phân công cho một giáo viên trong lớp này'
       }
     }
 
@@ -186,7 +186,7 @@ export async function assignTeacherToClassSubjectAction(
       if (error.code === '23505') {
         return {
           success: false,
-          error: 'MÃ´n há»c nÃ y Ä‘Ã£ Ä‘Æ°á»£c phÃ¢n cÃ´ng cho má»™t giÃ¡o viÃªn trong lá»›p nÃ y'
+          error: 'Môn học này đã được phân công cho một giáo viên trong lớp này'
         }
       }
 
@@ -194,7 +194,7 @@ export async function assignTeacherToClassSubjectAction(
       if (error.code === '23503') {
         return {
           success: false,
-          error: 'Tham chiáº¿u giÃ¡o viÃªn, lá»›p, hoáº·c mÃ´n há»c khÃ´ng há»£p lá»‡'
+          error: 'Tham chiếu giáo viên, lớp, hoặc môn học không hợp lệ'
         }
       }
 
@@ -215,7 +215,7 @@ export async function assignTeacherToClassSubjectAction(
     console.error('Exception in assignTeacherToClassSubjectAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ phÃ¢n cÃ´ng giÃ¡o viÃªn cho mÃ´n há»c cá»§a lá»›p'
+      error: error instanceof Error ? error.message : 'Không thể phân công giáo viên cho môn học của lớp'
     }
   }
 }
@@ -235,7 +235,7 @@ export async function getClassTeacherAssignmentsAction(classId: string) {
       console.error('Error fetching class teacher assignments:', error)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng giÃ¡o viÃªn cá»§a lá»›p',
+        error: 'Không thể lấy danh sách phân công giáo viên của lớp',
         data: []
       }
     }
@@ -248,7 +248,7 @@ export async function getClassTeacherAssignmentsAction(classId: string) {
     console.error('Error in getClassTeacherAssignmentsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng giÃ¡o viÃªn cá»§a lá»›p',
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách phân công giáo viên của lớp',
       data: []
     }
   }
@@ -268,7 +268,7 @@ export async function removeTeacherAssignmentAction(assignmentId: string) {
       console.error('Error removing teacher assignment:', error)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ gá»¡ phÃ¢n cÃ´ng giÃ¡o viÃªn'
+        error: 'Không thể gỡ phân công giáo viên'
       }
     }
 
@@ -281,7 +281,7 @@ export async function removeTeacherAssignmentAction(assignmentId: string) {
     console.error('Error in removeTeacherAssignmentAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ gá»¡ phÃ¢n cÃ´ng giÃ¡o viÃªn'
+      error: error instanceof Error ? error.message : 'Không thể gỡ phân công giáo viên'
     }
   }
 }
@@ -307,7 +307,7 @@ export async function getAllTeacherAssignmentsAction(academicYearId?: string) {
       console.error('Error fetching all teacher assignments:', error)
       return {
         success: false,
-        error: 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng giÃ¡o viÃªn',
+        error: 'Không thể lấy danh sách phân công giáo viên',
         data: []
       }
     }
@@ -320,7 +320,7 @@ export async function getAllTeacherAssignmentsAction(academicYearId?: string) {
     console.error('Error in getAllTeacherAssignmentsAction:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'KhÃ´ng thá»ƒ láº¥y danh sÃ¡ch phÃ¢n cÃ´ng giÃ¡o viÃªn',
+      error: error instanceof Error ? error.message : 'Không thể lấy danh sách phân công giáo viên',
       data: []
     }
   }

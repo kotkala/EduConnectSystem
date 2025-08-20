@@ -102,7 +102,7 @@ export function HomeroomFeedbackDashboard() {
 
   // Get day name in Vietnamese
   const getDayName = (dayOfWeek: number): string => {
-    const days = ['', 'Thá»© Hai', 'Thá»© Ba', 'Thá»© TÆ°', 'Thá»© NÄƒm', 'Thá»© SÃ¡u', 'Thá»© Báº£y', 'Chá»§ Nháº­t']
+    const days = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
     return days[dayOfWeek] || ''
   }
 
@@ -126,15 +126,15 @@ export function HomeroomFeedbackDashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Pháº£n Há»“i Há»c Sinh
+            Phản Hồi Học Sinh
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Xem pháº£n há»“i há»c táº­p cá»§a há»c sinh trong lá»›p chá»§ nhiá»‡m
+            Xem phản hồi học tập của học sinh trong lớp chủ nhiệm
           </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto" disabled={loading || !hasValidFilters(filters)}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          LÃ m má»›i
+          Làm mới
         </Button>
       </div>
 
@@ -149,39 +149,39 @@ export function HomeroomFeedbackDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tá»•ng Há»c Sinh</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng Học Sinh</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStudents}</div>
               <p className="text-xs text-muted-foreground">
-                Há»c sinh trong lá»›p chá»§ nhiá»‡m
+                Học sinh trong lớp chủ nhiệm
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tiáº¿t Há»c Tuáº§n NÃ y</CardTitle>
+              <CardTitle className="text-sm font-medium">Tiết Học Tuần Này</CardTitle>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalLessonsThisWeek}</div>
               <p className="text-xs text-muted-foreground">
-                Tá»•ng sá»‘ tiáº¿t há»c trong tuáº§n
+                Tổng số tiết học trong tuần
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pháº£n Há»“i Nháº­n ÄÆ°á»£c</CardTitle>
+              <CardTitle className="text-sm font-medium">Phản Hồi Nhận Được</CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalFeedbackReceived}</div>
               <p className="text-xs text-muted-foreground">
-                Sá»‘ pháº£n há»“i Ä‘Ã£ nháº­n Ä‘Æ°á»£c
+                Số phản hồi đã nhận được
               </p>
             </CardContent>
           </Card>
@@ -209,9 +209,9 @@ export function HomeroomFeedbackDashboard() {
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">KhÃ´ng CÃ³ Dá»¯ Liá»‡u</h3>
+            <h3 className="text-lg font-semibold mb-2">Không Có Dữ Liệu</h3>
             <p className="text-muted-foreground">
-              KhÃ´ng cÃ³ dá»¯ liá»‡u há»c sinh cho tuáº§n Ä‘Ã£ chá»n.
+              Không có dữ liệu học sinh cho tuần đã chọn.
             </p>
           </CardContent>
         </Card>
@@ -222,9 +222,9 @@ export function HomeroomFeedbackDashboard() {
         <Card>
           <CardContent className="py-12 text-center">
             <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Chá»n Bá»™ Lá»c</h3>
+            <h3 className="text-lg font-semibold mb-2">Chọn Bộ Lọc</h3>
             <p className="text-muted-foreground">
-              Vui lÃ²ng chá»n nÄƒm há»c, há»c ká»³ vÃ  tuáº§n Ä‘á»ƒ xem pháº£n há»“i há»c sinh.
+              Vui lòng chọn năm học, học kỳ và tuần để xem phản hồi học sinh.
             </p>
           </CardContent>
         </Card>

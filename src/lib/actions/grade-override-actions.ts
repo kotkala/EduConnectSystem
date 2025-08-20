@@ -67,7 +67,7 @@ export async function processGradeOverridesAction(
     if (overrides.length === 0) {
       return {
         success: false,
-        message: 'KhÃ´ng cÃ³ thay Ä‘á»•i nÃ o Ä‘á»ƒ xá»­ lÃ½'
+        message: 'Không có thay đổi nào để xử lý'
       }
     }
 
@@ -83,7 +83,7 @@ export async function processGradeOverridesAction(
         .eq('id', override.gradeId)
 
       if (updateError) {
-        throw new Error(`Lá»—i cáº­p nháº­t Ä‘iá»ƒm cho ${override.studentName}: ${updateError.message}`)
+        throw new Error(`Lỗi cập nhật điểm cho ${override.studentName}: ${updateError.message}`)
       }
 
       // Create audit log
@@ -93,19 +93,19 @@ export async function processGradeOverridesAction(
           grade_id: override.gradeId,
           old_value: override.oldValue,
           new_value: override.newValue,
-          change_reason: override.reason || 'KhÃ´ng cÃ³ lÃ½ do',
+          change_reason: override.reason || 'Không có lý do',
           changed_by: user.id,
           changed_at: new Date().toISOString()
         })
 
       if (auditError) {
-        throw new Error(`Lá»—i ghi log cho ${override.studentName}: ${auditError.message}`)
+        throw new Error(`Lỗi ghi log cho ${override.studentName}: ${auditError.message}`)
       }
     }
 
     return {
       success: true,
-      message: `ÄÃ£ xá»­ lÃ½ thÃ nh cÃ´ng ${overrides.length} thay Ä‘á»•i Ä‘iá»ƒm`,
+      message: `Đã xử lý thành công ${overrides.length} thay đổi điểm`,
       overrideCount: overrides.length
     }
 
@@ -113,7 +113,7 @@ export async function processGradeOverridesAction(
     console.error('Error processing grade overrides:', error)
     return {
       success: false,
-      message: 'Lá»—i xá»­ lÃ½ thay Ä‘á»•i Ä‘iá»ƒm',
+      message: 'Lỗi xử lý thay đổi điểm',
       error: error instanceof Error ? error.message : 'Unknown error'
     }
   }

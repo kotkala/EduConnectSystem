@@ -16,13 +16,13 @@ import {
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 
 const links = [
-  { href: '/student', icon: Home, label: 'Tá»•ng quan' },
-  { href: '/student/notifications', icon: Bell, label: 'ThÃ´ng bÃ¡o' },
-  { href: '/student/courses', icon: BookOpen, label: 'KhoÃ¡ há»c' },
-  { href: '/student/assignments', icon: FileText, label: 'BÃ i táº­p' },
-  { href: '/student/grades', icon: Award, label: 'Äiá»ƒm sá»‘' },
-  { href: '/student/timetable', icon: Calendar, label: 'Thá»i khÃ³a biá»ƒu' },
-  { href: '/student/grade-improvement', icon: TrendingUp, label: 'Cáº£i thiá»‡n Ä‘iá»ƒm' },
+  { href: '/student', icon: Home, label: 'Tổng quan' },
+  { href: '/student/notifications', icon: Bell, label: 'Thông báo' },
+  { href: '/student/courses', icon: BookOpen, label: 'Khoá học' },
+  { href: '/student/assignments', icon: FileText, label: 'Bài tập' },
+  { href: '/student/grades', icon: Award, label: 'Điểm số' },
+  { href: '/student/timetable', icon: Calendar, label: 'Thời khóa biểu' },
+  { href: '/student/grade-improvement', icon: TrendingUp, label: 'Cải thiện điểm' },
 ]
 
 export function StudentNav() {
@@ -78,13 +78,13 @@ export function StudentNav() {
               <DropdownMenuItem asChild>
                 <Link href="/profile" className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
-                  <span>Há»“ sÆ¡</span>
+                  <span>Hồ sơ</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/profile?tab=settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>CÃ i Ä‘áº·t</span>
+                  <span>Cài đặt</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -93,7 +93,7 @@ export function StudentNav() {
                 onClick={signOut}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>ÄÄƒng xuáº¥t</span>
+                <span>Đăng xuất</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

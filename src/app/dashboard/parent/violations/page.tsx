@@ -27,7 +27,7 @@ export default async function ParentViolationsPage() {
         <Suspense fallback={
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600 font-medium">Äang táº£i thÃ´ng tin vi pháº¡m...</p>
+            <p className="text-gray-600 font-medium">Đang tải thông tin vi phạm...</p>
           </div>
         }>
           <ParentViolationsPageClient />

@@ -195,7 +195,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
           activities.push({
             id: request.id,
             type: 'leave_request',
-            title: `ÄÆ¡n xin nghá»‰ tá»« há»c sinh`,
+            title: `Đơn xin nghỉ từ học sinh`,
             description: request.reason.substring(0, 100) + '...',
             created_at: request.created_at,
             urgent: true
@@ -213,7 +213,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
 
   const loadDashboardData = useCallback(async () => {
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Äang táº£i báº£ng Ä‘iá»u khiá»ƒn giÃ¡o viÃªn...")
+    startPageTransition("Đang tải bảng điều khiển giáo viên...")
     try {
       await Promise.all([
         loadWeeklyStats(),
@@ -222,7 +222,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       ])
     } catch (error) {
       console.error('Error loading dashboard data:', error)
-      toast.error('KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u dashboard')
+      toast.error('Không thể tải dữ liệu dashboard')
     } finally {
       stopLoading()
     }
@@ -233,7 +233,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   }, [loadDashboardData]) // âœ… Include loadDashboardData dependency
 
   const getDayName = (dayOfWeek: number) => {
-    const days = ['Chá»§ nháº­t', 'Thá»© 2', 'Thá»© 3', 'Thá»© 4', 'Thá»© 5', 'Thá»© 6', 'Thá»© 7']
+    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7']
     return days[dayOfWeek]
   }
 
@@ -260,10 +260,10 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          ChÃ o má»«ng trá»Ÿ láº¡i, {profile.full_name}!
+          Chào mừng trở lại, {profile.full_name}!
         </h1>
         <p className="text-muted-foreground">
-          {isInitialLoading ? 'Äang táº£i dá»¯ liá»‡u...' : 'Tá»•ng quan hoáº¡t Ä‘á»™ng giáº£ng dáº¡y trong tuáº§n'}
+          {isInitialLoading ? 'Đang tải dữ liệu...' : 'Tổng quan hoạt động giảng dạy trong tuần'}
         </p>
       </div>
 
@@ -271,36 +271,36 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lá»›p chá»§ nhiá»‡m</CardTitle>
+            <CardTitle className="text-sm font-medium">Lớp chủ nhiệm</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.homeroomStudents}</div>
-            <p className="text-xs text-muted-foreground">há»c sinh</p>
+            <p className="text-xs text-muted-foreground">học sinh</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lá»‹ch dáº¡y tuáº§n nÃ y</CardTitle>
+            <CardTitle className="text-sm font-medium">Lịch dạy tuần này</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.upcomingClasses}</div>
-            <p className="text-xs text-muted-foreground">tiáº¿t há»c sáº¯p tá»›i</p>
+            <p className="text-xs text-muted-foreground">tiết học sắp tới</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cáº§n xá»­ lÃ½</CardTitle>
+            <CardTitle className="text-sm font-medium">Cần xử lý</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
               {stats.pendingViolations + stats.pendingLeaveRequests + stats.unreadNotifications}
             </div>
-            <p className="text-xs text-muted-foreground">thÃ´ng bÃ¡o & Ä‘Æ¡n tá»«</p>
+            <p className="text-xs text-muted-foreground">thông báo & đơn từ</p>
           </CardContent>
         </Card>
       </div>
@@ -314,15 +314,15 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Lá»‹ch dáº¡y sáº¯p tá»›i
+                  Lịch dạy sắp tới
                 </CardTitle>
                 <CardDescription>
-                  CÃ¡c tiáº¿t há»c trong tuáº§n nÃ y
+                  Các tiết học trong tuần này
                 </CardDescription>
               </div>
               <Link href="/dashboard/teacher/schedule">
                 <Button variant="outline" size="sm">
-                  Xem táº¥t cáº£
+                  Xem tất cả
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -332,8 +332,8 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
             {upcomingClasses.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">KhÃ´ng cÃ³ lá»‹ch dáº¡y</h3>
-                <p className="text-gray-500">ChÆ°a cÃ³ lá»‹ch dáº¡y nÃ o Ä‘Æ°á»£c xáº¿p cho tuáº§n nÃ y.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Không có lịch dạy</h3>
+                <p className="text-gray-500">Chưa có lịch dạy nào được xếp cho tuần này.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -367,10 +367,10 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5" />
-                  Hoáº¡t Ä‘á»™ng gáº§n Ä‘Ã¢y
+                  Hoạt động gần đây
                 </CardTitle>
                 <CardDescription>
-                  ThÃ´ng bÃ¡o vÃ  cÃ´ng viá»‡c cáº§n xá»­ lÃ½
+                  Thông báo và công việc cần xử lý
                 </CardDescription>
               </div>
             </div>
@@ -379,8 +379,8 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
             {recentActivities.length === 0 ? (
               <div className="text-center py-8">
                 <Bell className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">KhÃ´ng cÃ³ hoáº¡t Ä‘á»™ng</h3>
-                <p className="text-gray-500">ChÆ°a cÃ³ hoáº¡t Ä‘á»™ng nÃ o gáº§n Ä‘Ã¢y.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Không có hoạt động</h3>
+                <p className="text-gray-500">Chưa có hoạt động nào gần đây.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -395,7 +395,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
                         <p className="text-sm font-medium">{activity.title}</p>
                         {activity.urgent && (
                           <Badge variant="destructive" className="text-xs">
-                            Kháº©n cáº¥p
+                            Khẩn cấp
                           </Badge>
                         )}
                       </div>
@@ -417,9 +417,9 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Thao tÃ¡c nhanh</CardTitle>
+          <CardTitle>Thao tác nhanh</CardTitle>
           <CardDescription>
-            CÃ¡c chá»©c nÄƒng thÆ°á»ng dÃ¹ng trong cÃ´ng viá»‡c giáº£ng dáº¡y
+            Các chức năng thường dùng trong công việc giảng dạy
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -427,28 +427,28 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
             <Link href="/dashboard/teacher/homeroom-students">
               <Button variant="outline" className="h-20 flex flex-col gap-2 w-full">
                 <GraduationCap className="h-6 w-6" />
-                <span className="text-sm">Há»c sinh lá»›p</span>
+                <span className="text-sm">Học sinh lớp</span>
               </Button>
             </Link>
 
             <Link href="/dashboard/teacher/violations">
               <Button variant="outline" className="h-20 flex flex-col gap-2 w-full">
                 <AlertTriangle className="h-6 w-6" />
-                <span className="text-sm">Vi pháº¡m</span>
+                <span className="text-sm">Vi phạm</span>
               </Button>
             </Link>
 
             <Link href="/dashboard/teacher/leave-requests">
               <Button variant="outline" className="h-20 flex flex-col gap-2 w-full">
                 <FileText className="h-6 w-6" />
-                <span className="text-sm">ÄÆ¡n xin nghá»‰</span>
+                <span className="text-sm">Đơn xin nghỉ</span>
               </Button>
             </Link>
 
             <Link href="/dashboard/teacher/grade-reports">
               <Button variant="outline" className="h-20 flex flex-col gap-2 w-full">
                 <BookOpen className="h-6 w-6" />
-                <span className="text-sm">Báº£ng Ä‘iá»ƒm</span>
+                <span className="text-sm">Bảng điểm</span>
               </Button>
             </Link>
           </div>

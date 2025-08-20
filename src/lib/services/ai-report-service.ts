@@ -10,15 +10,15 @@ const genAI = new GoogleGenAI({
 function getStyleInstructions(style: string): string {
   switch (style) {
     case 'friendly':
-      return 'Sá»­ dá»¥ng phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n, áº¥m Ã¡p nhÆ° má»™t ngÆ°á»i tháº§y quan tÃ¢m Ä‘áº¿n há»c sinh.'
+      return 'Sử dụng phong cách gần gũi, thân thiện, ấm áp như một người thầy quan tâm đến học sinh.'
     case 'serious':
-      return 'Sá»­ dá»¥ng phong cÃ¡ch nghiÃªm tÃºc, ká»· luáº­t, trang trá»ng phÃ¹ há»£p vá»›i mÃ´i trÆ°á»ng giÃ¡o dá»¥c.'
+      return 'Sử dụng phong cách nghiêm túc, kỷ luật, trang trọng phù hợp với môi trường giáo dục.'
     case 'encouraging':
-      return 'Sá»­ dá»¥ng phong cÃ¡ch khÃ­ch lá»‡, Ä‘á»™ng viÃªn, tÃ­ch cá»±c Ä‘á»ƒ táº¡o Ä‘á»™ng lá»±c cho há»c sinh.'
+      return 'Sử dụng phong cách khích lệ, động viên, tích cực để tạo động lực cho học sinh.'
     case 'understanding':
-      return 'Sá»­ dá»¥ng phong cÃ¡ch láº¯ng nghe, tháº¥u hiá»ƒu, Ä‘á»“ng cáº£m vá»›i hoÃ n cáº£nh cá»§a há»c sinh.'
+      return 'Sử dụng phong cách lắng nghe, thấu hiểu, đồng cảm với hoàn cảnh của học sinh.'
     default:
-      return 'Sá»­ dá»¥ng phong cÃ¡ch gáº§n gÅ©i, thÃ¢n thiá»‡n, áº¥m Ã¡p nhÆ° má»™t ngÆ°á»i tháº§y quan tÃ¢m Ä‘áº¿n há»c sinh.'
+      return 'Sử dụng phong cách gần gũi, thân thiện, ấm áp như một người thầy quan tâm đến học sinh.'
   }
 }
 
@@ -26,13 +26,13 @@ function getStyleInstructions(style: string): string {
 function getLengthInstructions(length: string): string {
   switch (length) {
     case 'short':
-      return 'Viáº¿t ngáº¯n gá»n trong 1-2 cÃ¢u (20-40 tá»«), táº­p trung vÃ o Ä‘iá»ƒm chÃ­nh nháº¥t.'
+      return 'Viết ngắn gọn trong 1-2 câu (20-40 từ), tập trung vào điểm chính nhất.'
     case 'medium':
-      return 'Viáº¿t trung bÃ¬nh trong 3-5 cÃ¢u (60-100 tá»«), cung cáº¥p thÃ´ng tin cáº§n thiáº¿t.'
+      return 'Viết trung bình trong 3-5 câu (60-100 từ), cung cấp thông tin cần thiết.'
     case 'long':
-      return 'Viáº¿t chi tiáº¿t trong 6 cÃ¢u trá»Ÿ lÃªn (120-200 tá»«), phÃ¢n tÃ­ch sÃ¢u vÃ  Ä‘áº§y Ä‘á»§.'
+      return 'Viết chi tiết trong 6 câu trở lên (120-200 từ), phân tích sâu và đầy đủ.'
     default:
-      return 'Viáº¿t trung bÃ¬nh trong 3-5 cÃ¢u (60-100 tá»«), cung cáº¥p thÃ´ng tin cáº§n thiáº¿t.'
+      return 'Viết trung bình trong 3-5 câu (60-100 từ), cung cấp thông tin cần thiết.'
   }
 }
 
@@ -76,7 +76,7 @@ export async function generateAIAcademicSummary(
       .single()
 
     if (!reportPeriod) {
-      return 'KhÃ´ng cÃ³ dá»¯ liá»‡u pháº£n há»“i trong ká»³ bÃ¡o cÃ¡o nÃ y.'
+      return 'Không có dữ liệu phản hồi trong kỳ báo cáo này.'
     }
 
     // Get feedback within the report period with optimized query
@@ -95,7 +95,7 @@ export async function generateAIAcademicSummary(
       .order('created_at', { ascending: false })
 
     if (!feedback || feedback.length === 0) {
-      return 'ChÆ°a cÃ³ pháº£n há»“i tá»« giÃ¡o viÃªn trong ká»³ bÃ¡o cÃ¡o nÃ y.'
+      return 'Chưa có phản hồi từ giáo viên trong kỳ báo cáo này.'
     }
 
     // Prepare data for AI analysis with comprehensive processing
@@ -107,8 +107,8 @@ export async function generateAIAcademicSummary(
       const cleanFeedback = item.feedback_text?.replace(/^\[AI_GENERATED:[^\]]+\]\s*/, '') || ''
 
       return {
-        subject: subject?.name_vietnamese || 'MÃ´n há»c',
-        teacher: teacher?.full_name || 'GiÃ¡o viÃªn',
+        subject: subject?.name_vietnamese || 'Môn học',
+        teacher: teacher?.full_name || 'Giáo viên',
         rating: item.rating,
         comment: cleanFeedback,
         date: item.created_at
@@ -167,38 +167,38 @@ export async function generateAIAcademicSummary(
 
     // Create comprehensive AI prompt for academic performance analysis
     const subjectBreakdown = subjectStats.map(stat => {
-      const ratingText = stat.avgRating !== null ? `${stat.avgRating.toFixed(1)}/5` : 'chÆ°a cÃ³ Ä‘iá»ƒm'
+      const ratingText = stat.avgRating !== null ? `${stat.avgRating.toFixed(1)}/5` : 'chưa có điểm'
       const commentsText = stat.sampleComments.length > 0 ? ` (${stat.sampleComments.join('; ')})` : ''
-      return `- ${stat.subject}: ${ratingText} Ä‘iá»ƒm tá»« ${stat.ratingCount}/${stat.feedbackCount} pháº£n há»“i${commentsText}`
+      return `- ${stat.subject}: ${ratingText} điểm từ ${stat.ratingCount}/${stat.feedbackCount} phản hồi${commentsText}`
     }).join('\n')
 
     const prompt = `
-Báº¡n lÃ  má»™t giÃ¡o viÃªn chá»§ nhiá»‡m cÃ³ kinh nghiá»‡m. HÃ£y phÃ¢n tÃ­ch chi tiáº¿t vÃ  tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p cá»§a há»c sinh trong ${reportPeriod.name} (${reportPeriod.start_date} Ä‘áº¿n ${reportPeriod.end_date}).
+Bạn là một giáo viên chủ nhiệm có kinh nghiệm. Hãy phân tích chi tiết và tóm tắt tình hình học tập của học sinh trong ${reportPeriod.name} (${reportPeriod.start_date} đến ${reportPeriod.end_date}).
 
-THÃ”NG TIN Ká»² BÃO CÃO:
-- Ká»³ bÃ¡o cÃ¡o: ${reportPeriod.name}
-- Thá»i gian: ${reportPeriod.start_date} Ä‘áº¿n ${reportPeriod.end_date}
-- Tá»•ng sá»‘ pháº£n há»“i: ${totalFeedback}
-- Pháº£n há»“i cÃ³ Ä‘iá»ƒm: ${ratedFeedback.length}
-- Äiá»ƒm trung bÃ¬nh chung: ${overallAverage.toFixed(1)}/5
-- Sá»‘ mÃ´n há»c: ${Object.keys(subjectAnalysis).length}
+THÔNG TIN KỲ BÁO CÁO:
+- Kỳ báo cáo: ${reportPeriod.name}
+- Thời gian: ${reportPeriod.start_date} đến ${reportPeriod.end_date}
+- Tổng số phản hồi: ${totalFeedback}
+- Phản hồi có điểm: ${ratedFeedback.length}
+- Điểm trung bình chung: ${overallAverage.toFixed(1)}/5
+- Số môn học: ${Object.keys(subjectAnalysis).length}
 
-PHÃ‚N TÃCH THEO MÃ”N Há»ŒC:
+PHÂN TÍCH THEO MÔN HỌC:
 ${subjectBreakdown}
 
-YÃŠU Cáº¦U PHÃ‚N TÃCH CHI TIáº¾T:
-1. Viáº¿t báº±ng tiáº¿ng Viá»‡t, ${getStyleInstructions(style)}
+YÊU CẦU PHÂN TÍCH CHI TIẾT:
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
 2. ${getLengthInstructions(length)}
-3. Báº¯t Ä‘áº§u báº±ng viá»‡c nÃªu rÃµ ká»³ bÃ¡o cÃ¡o vÃ  thá»i gian cá»¥ thá»ƒ
-4. TÃ³m táº¯t Táº¤T Cáº¢ feedback tá»« giÃ¡o viÃªn trong ká»³ bÃ¡o cÃ¡o nÃ y
-5. PhÃ¢n tÃ­ch cá»¥ thá»ƒ tá»«ng mÃ´n há»c vá»›i Ä‘iá»ƒm máº¡nh vÃ  Ä‘iá»ƒm yáº¿u
-6. So sÃ¡nh káº¿t quáº£ giá»¯a cÃ¡c mÃ´n há»c, xÃ¡c Ä‘á»‹nh mÃ´n máº¡nh vÃ  mÃ´n cáº§n cáº£i thiá»‡n
-7. ÄÆ°a ra nháº­n xÃ©t vá» xu hÆ°á»›ng há»c táº­p vÃ  thÃ¡i Ä‘á»™ há»c táº­p trong ká»³ nÃ y
-8. Äá» xuáº¥t ngáº¯n gá»n cÃ¡c biá»‡n phÃ¡p cáº£i thiá»‡n chÃ­nh
-9. Äáº£m báº£o chÃ­nh xÃ¡c 100% dá»±a trÃªn dá»¯ liá»‡u thá»‘ng kÃª Ä‘Ã£ cung cáº¥p
-10. Táº­p trung vÃ o nhá»¯ng Ä‘iá»ƒm chÃ­nh, khÃ´ng cáº§n chi tiáº¿t quÃ¡ má»©c
+3. Bắt đầu bằng việc nêu rõ kỳ báo cáo và thời gian cụ thể
+4. Tóm tắt TẤT CẢ feedback từ giáo viên trong kỳ báo cáo này
+5. Phân tích cụ thể từng môn học với điểm mạnh và điểm yếu
+6. So sánh kết quả giữa các môn học, xác định môn mạnh và môn cần cải thiện
+7. Đưa ra nhận xét về xu hướng học tập và thái độ học tập trong kỳ này
+8. Đề xuất ngắn gọn các biện pháp cải thiện chính
+9. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
+10. Tập trung vào những điểm chính, không cần chi tiết quá mức
 
-TÃ³m táº¯t chi tiáº¿t tÃ¬nh hÃ¬nh há»c táº­p:
+Tóm tắt chi tiết tình hình học tập:
 `
 
     // Generate content using Google Generative AI
@@ -236,13 +236,13 @@ TÃ³m táº¯t chi tiáº¿t tÃ¬nh hÃ¬nh há»c táº­p:
 
       if (feedback && feedback.length > 0) {
         const avgRating = feedback.reduce((sum, item) => sum + (item.rating || 0), 0) / feedback.length
-        return `TÃ¬nh hÃ¬nh há»c táº­p: Äiá»ƒm trung bÃ¬nh ${avgRating.toFixed(1)}/5 tá»« ${feedback.length} pháº£n há»“i cá»§a giÃ¡o viÃªn.`
+        return `Tình hình học tập: Điểm trung bình ${avgRating.toFixed(1)}/5 từ ${feedback.length} phản hồi của giáo viên.`
       }
     } catch (fallbackError) {
       console.error('Fallback summary also failed:', fallbackError)
     }
     
-    return 'KhÃ´ng thá»ƒ táº¡o tÃ³m táº¯t tÃ¬nh hÃ¬nh há»c táº­p. Vui lÃ²ng thá»­ láº¡i sau.'
+    return 'Không thể tạo tóm tắt tình hình học tập. Vui lòng thử lại sau.'
   }
 }
 
@@ -267,7 +267,7 @@ export async function generateAIDisciplineSummary(
       .single()
 
     if (!reportPeriod) {
-      return 'KhÃ´ng cÃ³ dá»¯ liá»‡u vi pháº¡m trong ká»³ bÃ¡o cÃ¡o nÃ y.'
+      return 'Không có dữ liệu vi phạm trong kỳ báo cáo này.'
     }
 
     // Get violations within the report period with optimized query
@@ -286,7 +286,7 @@ export async function generateAIDisciplineSummary(
       .order('violation_date', { ascending: false })
 
     if (!violations || violations.length === 0) {
-      return 'Há»c sinh tuÃ¢n thá»§ tá»‘t ná»™i quy nhÃ  trÆ°á»ng trong ká»³ bÃ¡o cÃ¡o nÃ y. KhÃ´ng cÃ³ vi pháº¡m nÃ o Ä‘Æ°á»£c ghi nháº­n.'
+      return 'Học sinh tuân thủ tốt nội quy nhà trường trong kỳ báo cáo này. Không có vi phạm nào được ghi nhận.'
     }
 
     // Comprehensive violations data analysis
@@ -295,7 +295,7 @@ export async function generateAIDisciplineSummary(
 
       return {
         index: index + 1,
-        type: violationType?.name || 'Vi pháº¡m',
+        type: violationType?.name || 'Vi phạm',
         date: item.violation_date,
         description: item.description || '',
         points: item.points || 0
@@ -341,37 +341,37 @@ export async function generateAIDisciplineSummary(
     // Create comprehensive AI prompt for discipline analysis
     const typeBreakdown = typeStats.map(stat => {
       const descriptions = stat.sampleDescriptions.length > 0 ? ` (${stat.sampleDescriptions.join('; ')})` : ''
-      return `- ${stat.type}: ${stat.count} láº§n, ${stat.totalPoints} Ä‘iá»ƒm trá»«${descriptions}`
+      return `- ${stat.type}: ${stat.count} lần, ${stat.totalPoints} điểm trừ${descriptions}`
     }).join('\n')
 
     const prompt = `
-Báº¡n lÃ  má»™t giÃ¡o viÃªn chá»§ nhiá»‡m cÃ³ kinh nghiá»‡m. HÃ£y phÃ¢n tÃ­ch chi tiáº¿t tÃ¬nh hÃ¬nh tuÃ¢n thá»§ ná»™i quy cá»§a há»c sinh trong ${reportPeriod.name} (${reportPeriod.start_date} Ä‘áº¿n ${reportPeriod.end_date}).
+Bạn là một giáo viên chủ nhiệm có kinh nghiệm. Hãy phân tích chi tiết tình hình tuân thủ nội quy của học sinh trong ${reportPeriod.name} (${reportPeriod.start_date} đến ${reportPeriod.end_date}).
 
-THÃ”NG TIN Ká»² BÃO CÃO:
-- Ká»³ bÃ¡o cÃ¡o: ${reportPeriod.name}
-- Thá»i gian: ${reportPeriod.start_date} Ä‘áº¿n ${reportPeriod.end_date}
-- Tá»•ng sá»‘ vi pháº¡m: ${violations.length}
-- Tá»•ng Ä‘iá»ƒm trá»«: ${totalPoints} Ä‘iá»ƒm
+THÔNG TIN KỲ BÁO CÁO:
+- Kỳ báo cáo: ${reportPeriod.name}
+- Thời gian: ${reportPeriod.start_date} đến ${reportPeriod.end_date}
+- Tổng số vi phạm: ${violations.length}
+- Tổng điểm trừ: ${totalPoints} điểm
 
-PHÃ‚N TÃCH THEO LOáº I VI PHáº M:
+PHÂN TÍCH THEO LOẠI VI PHẠM:
 ${typeBreakdown}
 
-CHI TIáº¾T CÃC VI PHáº M:
-${violationSummary.map(v => `- ${v.date}: ${v.type} - ${v.description} (${v.points} Ä‘iá»ƒm)`).join('\n')}
+CHI TIẾT CÁC VI PHẠM:
+${violationSummary.map(v => `- ${v.date}: ${v.type} - ${v.description} (${v.points} điểm)`).join('\n')}
 
-YÃŠU Cáº¦U Báº®T BUá»˜C:
-1. CHá»ˆ viáº¿t báº±ng tiáº¿ng Viá»‡t, TUYá»†T Äá»I KHÃ”NG dÃ¹ng tá»« tiáº¿ng Anh
+YÊU CẦU BẮT BUỘC:
+1. CHỈ viết bằng tiếng Việt, TUYỆT ĐỐI KHÔNG dùng từ tiếng Anh
 2. ${getStyleInstructions(style)}
 3. ${getLengthInstructions(length)}
-4. Liá»‡t kÃª cá»¥ thá»ƒ tá»«ng loáº¡i vi pháº¡m vÃ  sá»‘ láº§n vi pháº¡m
-5. PhÃ¢n tÃ­ch xu hÆ°á»›ng vÃ  má»©c Ä‘á»™ nghiÃªm trá»ng
-6. ÄÆ°a ra nháº­n Ä‘á»‹nh vá» Ã½ thá»©c ká»· luáº­t cá»§a há»c sinh
-7. Äáº£m báº£o chÃ­nh xÃ¡c 100% dá»±a trÃªn dá»¯ liá»‡u thá»‘ng kÃª Ä‘Ã£ cung cáº¥p
-8. KhÃ´ng sá»­ dá»¥ng cÃ¡c tá»« nhÆ°: "performance", "behavior", "discipline" - thay báº±ng "thÃ nh tÃ­ch", "hÃ nh vi", "ká»· luáº­t"
+4. Liệt kê cụ thể từng loại vi phạm và số lần vi phạm
+5. Phân tích xu hướng và mức độ nghiêm trọng
+6. Đưa ra nhận định về ý thức kỷ luật của học sinh
+7. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
+8. Không sử dụng các từ như: "performance", "behavior", "discipline" - thay bằng "thành tích", "hành vi", "kỷ luật"
 
-VÃ­ dá»¥ máº«u: "Trong ká»³ bÃ¡o cÃ¡o nÃ y, há»c sinh cÃ³ 3 vi pháº¡m gá»“m: Ä‘i muá»™n (2 láº§n, 4 Ä‘iá»ƒm), khÃ´ng lÃ m bÃ i táº­p (1 láº§n, 2 Ä‘iá»ƒm). Tá»•ng cá»™ng 6 Ä‘iá»ƒm trá»«. Há»c sinh cáº§n cáº£i thiá»‡n Ã½ thá»©c thá»i gian vÃ  trÃ¡ch nhiá»‡m há»c táº­p."
+Ví dụ mẫu: "Trong kỳ báo cáo này, học sinh có 3 vi phạm gồm: đi muộn (2 lần, 4 điểm), không làm bài tập (1 lần, 2 điểm). Tổng cộng 6 điểm trừ. Học sinh cần cải thiện ý thức thời gian và trách nhiệm học tập."
 
-TÃ³m táº¯t chi tiáº¿t tÃ¬nh hÃ¬nh rÃ¨n luyá»‡n:
+Tóm tắt chi tiết tình hình rèn luyện:
 `
 
     // Generate content using Google Generative AI with Vietnamese optimization
@@ -420,16 +420,16 @@ TÃ³m táº¯t chi tiáº¿t tÃ¬nh hÃ¬nh rÃ¨n luyá»‡n:
 
         if (violations && violations.length > 0) {
           const totalPoints = violations.reduce((sum, item) => sum + (item.points || 0), 0)
-          return `Trong ${reportPeriod.name}, há»c sinh cÃ³ ${violations.length} vi pháº¡m vá»›i tá»•ng ${totalPoints} Ä‘iá»ƒm trá»«.`
+          return `Trong ${reportPeriod.name}, học sinh có ${violations.length} vi phạm với tổng ${totalPoints} điểm trừ.`
         } else {
-          return `Trong ${reportPeriod.name}, há»c sinh tuÃ¢n thá»§ tá»‘t ná»™i quy nhÃ  trÆ°á»ng. KhÃ´ng cÃ³ vi pháº¡m nÃ o Ä‘Æ°á»£c ghi nháº­n.`
+          return `Trong ${reportPeriod.name}, học sinh tuân thủ tốt nội quy nhà trường. Không có vi phạm nào được ghi nhận.`
         }
       }
     } catch (fallbackError) {
       console.error('Fallback discipline summary also failed:', fallbackError)
     }
     
-    return 'KhÃ´ng thá»ƒ táº¡o tÃ³m táº¯t tÃ¬nh hÃ¬nh ká»· luáº­t. Vui lÃ²ng thá»­ láº¡i sau.'
+    return 'Không thể tạo tóm tắt tình hình kỷ luật. Vui lòng thử lại sau.'
   }
 }
 
@@ -441,7 +441,7 @@ function generateBasicAcademicSummary(feedbackData: Array<{ subject: string; rat
     return acc
   }, {})
 
-  const summary = 'TÃ¬nh hÃ¬nh há»c táº­p: '
+  const summary = 'Tình hình học tập: '
   const subjectSummaries = Object.entries(subjects).map(([subject, ratings]) => {
     const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length
     return `${subject} ${avg.toFixed(1)}/5`
@@ -458,10 +458,10 @@ function generateBasicDisciplineSummary(violations: Array<{ type: string; index:
   }, {})
 
   const typeList = Object.entries(violationTypes)
-    .map(([type, count]) => `${type} (${count} láº§n)`)
+    .map(([type, count]) => `${type} (${count} lần)`)
     .join(', ')
 
-  return `CÃ³ ${violations.length} vi pháº¡m trong ká»³ bÃ¡o cÃ¡o: ${typeList}. Tá»•ng Ä‘iá»ƒm trá»«: ${totalPoints} Ä‘iá»ƒm.`
+  return `Có ${violations.length} vi phạm trong kỳ báo cáo: ${typeList}. Tổng điểm trừ: ${totalPoints} điểm.`
 }
 
 /**
@@ -484,7 +484,7 @@ export async function generateAIStrengthsSummary(
       .single()
 
     if (!reportPeriod) {
-      return 'KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘á»ƒ táº¡o Æ°u Ä‘iá»ƒm trong ká»³ bÃ¡o cÃ¡o nÃ y.'
+      return 'Không có dữ liệu để tạo ưu điểm trong kỳ báo cáo này.'
     }
 
     // Get positive feedback (rating >= 4)
@@ -504,7 +504,7 @@ export async function generateAIStrengthsSummary(
       .order('created_at', { ascending: false })
 
     if (!feedback || feedback.length === 0) {
-      return 'Há»c sinh cáº§n cá»‘ gáº¯ng hÆ¡n Ä‘á»ƒ cÃ³ nhá»¯ng Ä‘iá»ƒm tÃ­ch cá»±c trong há»c táº­p.'
+      return 'Học sinh cần cố gắng hơn để có những điểm tích cực trong học tập.'
     }
 
     // Prepare positive feedback data
@@ -514,27 +514,27 @@ export async function generateAIStrengthsSummary(
       const cleanFeedback = item.feedback_text?.replace(/^\[AI_GENERATED:[^\]]+\]\s*/, '') || ''
 
       return {
-        subject: subject?.name_vietnamese || 'MÃ´n há»c',
-        teacher: teacher?.full_name || 'GiÃ¡o viÃªn',
+        subject: subject?.name_vietnamese || 'Môn học',
+        teacher: teacher?.full_name || 'Giáo viên',
         rating: item.rating,
         comment: cleanFeedback
       }
     })
 
     const prompt = `
-Báº¡n lÃ  má»™t giÃ¡o viÃªn chá»§ nhiá»‡m cÃ³ kinh nghiá»‡m. HÃ£y tÃ³m táº¯t Æ°u Ä‘iá»ƒm cá»§a há»c sinh dá»±a trÃªn pháº£n há»“i tÃ­ch cá»±c tá»« giÃ¡o viÃªn trong ${reportPeriod.name}.
+Bạn là một giáo viên chủ nhiệm có kinh nghiệm. Hãy tóm tắt ưu điểm của học sinh dựa trên phản hồi tích cực từ giáo viên trong ${reportPeriod.name}.
 
-PHáº¢N Há»’I TÃCH Cá»°C:
-${positiveFeedback.map(f => `- ${f.subject}: ${f.rating}/5 Ä‘iá»ƒm - ${f.comment}`).join('\n')}
+PHẢN HỒI TÍCH CỰC:
+${positiveFeedback.map(f => `- ${f.subject}: ${f.rating}/5 điểm - ${f.comment}`).join('\n')}
 
-YÃŠU Cáº¦U:
-1. Viáº¿t báº±ng tiáº¿ng Viá»‡t, ${getStyleInstructions(style)}
+YÊU CẦU:
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
 2. ${getLengthInstructions(length)}
-3. Táº­p trung vÃ o nhá»¯ng Æ°u Ä‘iá»ƒm ná»•i báº­t nháº¥t
-4. Viáº¿t theo cÃ¡ch tÃ­ch cá»±c, khuyáº¿n khÃ­ch
-5. Äáº£m báº£o chÃ­nh xÃ¡c dá»±a trÃªn dá»¯ liá»‡u
+3. Tập trung vào những ưu điểm nổi bật nhất
+4. Viết theo cách tích cực, khuyến khích
+5. Đảm bảo chính xác dựa trên dữ liệu
 
-Æ¯u Ä‘iá»ƒm cá»§a há»c sinh:
+Ưu điểm của học sinh:
 `
 
     const response = await genAI.models.generateContent({
@@ -549,11 +549,11 @@ YÃŠU Cáº¦U:
     })
 
     const aiSummary = response.text?.trim()
-    return aiSummary || 'Há»c sinh cÃ³ nhá»¯ng Ä‘iá»ƒm tÃ­ch cá»±c trong há»c táº­p cáº§n Ä‘Æ°á»£c ghi nháº­n.'
+    return aiSummary || 'Học sinh có những điểm tích cực trong học tập cần được ghi nhận.'
 
   } catch (error) {
     console.error('Error generating AI strengths summary:', error)
-    return 'KhÃ´ng thá»ƒ táº¡o tÃ³m táº¯t Æ°u Ä‘iá»ƒm. Vui lÃ²ng thá»­ láº¡i sau.'
+    return 'Không thể tạo tóm tắt ưu điểm. Vui lòng thử lại sau.'
   }
 }
 
@@ -577,7 +577,7 @@ export async function generateAIWeaknessesSummary(
       .single()
 
     if (!reportPeriod) {
-      return 'KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘á»ƒ táº¡o khuyáº¿t Ä‘iá»ƒm trong ká»³ bÃ¡o cÃ¡o nÃ y.'
+      return 'Không có dữ liệu để tạo khuyết điểm trong kỳ báo cáo này.'
     }
 
     // Get negative feedback (rating <= 3) and violations
@@ -615,7 +615,7 @@ export async function generateAIWeaknessesSummary(
     const violations = violationsResult.data || []
 
     if (negativeFeedback.length === 0 && violations.length === 0) {
-      return 'Há»c sinh cáº§n duy trÃ¬ vÃ  phÃ¡t huy nhá»¯ng Ä‘iá»ƒm tá»‘t hiá»‡n táº¡i.'
+      return 'Học sinh cần duy trì và phát huy những điểm tốt hiện tại.'
     }
 
     // Prepare negative feedback data
@@ -624,7 +624,7 @@ export async function generateAIWeaknessesSummary(
       const cleanFeedback = item.feedback_text?.replace(/^\[AI_GENERATED:[^\]]+\]\s*/, '') || ''
 
       return {
-        subject: subject?.name_vietnamese || 'MÃ´n há»c',
+        subject: subject?.name_vietnamese || 'Môn học',
         rating: item.rating,
         comment: cleanFeedback
       }
@@ -633,29 +633,29 @@ export async function generateAIWeaknessesSummary(
     const violationData = violations.map((item: ViolationData) => {
       const violationType = Array.isArray(item.violation_type) ? item.violation_type[0] : item.violation_type
       return {
-        type: violationType?.name || 'Vi pháº¡m',
+        type: violationType?.name || 'Vi phạm',
         description: item.description || '',
         points: item.points || 0
       }
     })
 
     const prompt = `
-Báº¡n lÃ  má»™t giÃ¡o viÃªn chá»§ nhiá»‡m cÃ³ kinh nghiá»‡m. HÃ£y tÃ³m táº¯t khuyáº¿t Ä‘iá»ƒm cáº§n cáº£i thiá»‡n cá»§a há»c sinh dá»±a trÃªn pháº£n há»“i vÃ  vi pháº¡m trong ${reportPeriod.name}.
+Bạn là một giáo viên chủ nhiệm có kinh nghiệm. Hãy tóm tắt khuyết điểm cần cải thiện của học sinh dựa trên phản hồi và vi phạm trong ${reportPeriod.name}.
 
-PHáº¢N Há»’I Cáº¦N Cáº¢I THIá»†N:
-${negativeData.map(f => `- ${f.subject}: ${f.rating}/5 Ä‘iá»ƒm - ${f.comment}`).join('\n')}
+PHẢN HỒI CẦN CẢI THIỆN:
+${negativeData.map(f => `- ${f.subject}: ${f.rating}/5 điểm - ${f.comment}`).join('\n')}
 
-VI PHáº M:
-${violationData.map(v => `- ${v.type}: ${v.description} (${v.points} Ä‘iá»ƒm)`).join('\n')}
+VI PHẠM:
+${violationData.map(v => `- ${v.type}: ${v.description} (${v.points} điểm)`).join('\n')}
 
-YÃŠU Cáº¦U:
-1. Viáº¿t báº±ng tiáº¿ng Viá»‡t, ${getStyleInstructions(style)}
+YÊU CẦU:
+1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
 2. ${getLengthInstructions(length)}
-3. Táº­p trung vÃ o nhá»¯ng khuyáº¿t Ä‘iá»ƒm cáº§n cáº£i thiá»‡n nháº¥t
-4. Viáº¿t theo cÃ¡ch xÃ¢y dá»±ng, khuyáº¿n khÃ­ch cáº£i thiá»‡n
-5. Äáº£m báº£o chÃ­nh xÃ¡c dá»±a trÃªn dá»¯ liá»‡u
+3. Tập trung vào những khuyết điểm cần cải thiện nhất
+4. Viết theo cách xây dựng, khuyến khích cải thiện
+5. Đảm bảo chính xác dựa trên dữ liệu
 
-Khuyáº¿t Ä‘iá»ƒm cáº§n cáº£i thiá»‡n:
+Khuyết điểm cần cải thiện:
 `
 
     const response = await genAI.models.generateContent({
@@ -670,10 +670,10 @@ Khuyáº¿t Ä‘iá»ƒm cáº§n cáº£i thiá»‡n:
     })
 
     const aiSummary = response.text?.trim()
-    return aiSummary || 'Há»c sinh cáº§n cá»‘ gáº¯ng cáº£i thiá»‡n má»™t sá»‘ khÃ­a cáº¡nh trong há»c táº­p vÃ  rÃ¨n luyá»‡n.'
+    return aiSummary || 'Học sinh cần cố gắng cải thiện một số khía cạnh trong học tập và rèn luyện.'
 
   } catch (error) {
     console.error('Error generating AI weaknesses summary:', error)
-    return 'KhÃ´ng thá»ƒ táº¡o tÃ³m táº¯t khuyáº¿t Ä‘iá»ƒm. Vui lÃ²ng thá»­ láº¡i sau.'
+    return 'Không thể tạo tóm tắt khuyết điểm. Vui lòng thử lại sau.'
   }
 }

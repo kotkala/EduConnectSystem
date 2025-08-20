@@ -73,11 +73,11 @@ function validateRequestBody(body: SummarizeFeedbackRequest) {
 // Helper function to generate rating text
 function getRatingText(rating: number): string {
   switch (rating) {
-    case 5: return 'Xuáº¥t sáº¯c'
-    case 4: return 'Tá»‘t'
-    case 3: return 'Trung bÃ¬nh'
-    case 2: return 'Cáº§n cáº£i thiá»‡n'
-    default: return 'KÃ©m'
+    case 5: return 'Xuất sắc'
+    case 4: return 'Tốt'
+    case 3: return 'Trung bình'
+    case 2: return 'Cần cải thiện'
+    default: return 'Kém'
   }
 }
 
@@ -85,31 +85,31 @@ function getRatingText(rating: number): string {
 function prepareFeedbackText(feedbacks: FeedbackItem[]): string {
   return feedbacks.map(feedback => {
     const ratingText = getRatingText(feedback.rating)
-    return `MÃ´n ${feedback.subject_name} (GV: ${feedback.teacher_name}):
-- ÄÃ¡nh giÃ¡: ${ratingText} (${feedback.rating}/5)
-- Nháº­n xÃ©t: ${feedback.comment || 'KhÃ´ng cÃ³ nháº­n xÃ©t'}`
+    return `Môn ${feedback.subject_name} (GV: ${feedback.teacher_name}):
+- Đánh giá: ${ratingText} (${feedback.rating}/5)
+- Nhận xét: ${feedback.comment || 'Không có nhận xét'}`
   }).join('\n\n')
 }
 
 // Helper function to create AI prompt
 function createAIPrompt(studentName: string, date: string, feedbackText: string, progressContext: string): string {
-  return `TÃ³m táº¯t feedback há»c táº­p cá»§a ${studentName} ngÃ y ${date} cho phá»¥ huynh:
+  return `Tóm tắt feedback học tập của ${studentName} ngày ${date} cho phụ huynh:
 
 ${feedbackText}${progressContext}
 
-YÃŠU Cáº¦U NGHIÃŠM NGáº¶T:
-- Chá»‰ 1-2 cÃ¢u ngáº¯n gá»n (tá»‘i Ä‘a 50 tá»«)
-- Æ¯u tiÃªn thÃ´ng tin tiáº¿n bá»™ náº¿u cÃ³
-- Táº­p trung vÃ o Ä‘iá»ƒm ná»•i báº­t nháº¥t trong ngÃ y
-- Náº¿u cÃ³ váº¥n Ä‘á», Ä‘Æ°a ra 1 gá»£i Ã½ cá»¥ thá»ƒ cho phá»¥ huynh
-- Giá»ng Ä‘iá»‡u tÃ­ch cá»±c, khuyáº¿n khÃ­ch
+YÊU CẦU NGHIÊM NGẶT:
+- Chỉ 1-2 câu ngắn gọn (tối đa 50 từ)
+- Ưu tiên thông tin tiến bộ nếu có
+- Tập trung vào điểm nổi bật nhất trong ngày
+- Nếu có vấn đề, đưa ra 1 gợi ý cụ thể cho phụ huynh
+- Giọng điệu tích cực, khuyến khích
 
-VÃ­ dá»¥ format:
-- CÃ³ tiáº¿n bá»™: "Con tiáº¿n bá»™ rÃµ rá»‡t tuáº§n nÃ y! Äiá»ƒm ToÃ¡n tÄƒng tá»« 3 lÃªn 5. Tiáº¿p tá»¥c duy trÃ¬."
-- BÃ¬nh thÆ°á»ng: "HÃ´m nay con há»c táº­p tÃ­ch cá»±c, Ä‘áº·c biá»‡t xuáº¥t sáº¯c á»Ÿ mÃ´n ToÃ¡n (5/5)."
-- Cáº§n chÃº Ã½: "Con cáº§n táº­p trung hÆ¡n á»Ÿ mÃ´n VÄƒn. Phá»¥ huynh há»— trá»£ Ã´n bÃ i á»Ÿ nhÃ ."
+Ví dụ format:
+- Có tiến bộ: "Con tiến bộ rõ rệt tuần này! Điểm Toán tăng từ 3 lên 5. Tiếp tục duy trì."
+- Bình thường: "Hôm nay con học tập tích cực, đặc biệt xuất sắc ở môn Toán (5/5)."
+- Cần chú ý: "Con cần tập trung hơn ở môn Văn. Phụ huynh hỗ trợ ôn bài ở nhà."
 
-TÃ³m táº¯t:`
+Tóm tắt:`
 }
 
 // Helper function to generate AI summary
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     let progressContext = ""
     if (includeProgressTracking && studentId && weekNumber && weekNumber > 1) {
       // Simplified progress tracking to reduce complexity
-      progressContext = "\n\nTiáº¿p tá»¥c theo dÃµi tiáº¿n bá»™ cá»§a con."
+      progressContext = "\n\nTiếp tục theo dõi tiến bộ của con."
     }
 
     // Generate AI summary

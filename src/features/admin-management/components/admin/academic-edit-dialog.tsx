@@ -67,15 +67,15 @@ export function AcademicEditDialog({
           })
 
       if (result.success) {
-        toast.success(`ÄÃ£ cáº­p nháº­t ${type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"} thÃ nh cÃ´ng`)
+        toast.success(`Đã cập nhật ${type === "academic-years" ? "năm học" : "học kỳ"} thành công`)
         onSuccess()
         onOpenChange(false)
       } else {
-        toast.error(result.error || "Cáº­p nháº­t tháº¥t báº¡i")
+        toast.error(result.error || "Cập nhật thất bại")
       }
     } catch (error) {
-      console.error('Lá»—i cáº­p nháº­t:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t")
+      console.error('Lỗi cập nhật:', error)
+      toast.error("Có lỗi xảy ra khi cập nhật")
     } finally {
       setIsLoading(false)
     }
@@ -93,26 +93,26 @@ export function AcademicEditDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            Chá»‰nh sá»­a {type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"}
+            Chỉnh sửa {type === "academic-years" ? "năm học" : "học kỳ"}
           </DialogTitle>
           <DialogDescription>
-            Cáº­p nháº­t thÃ´ng tin {type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"}
+            Cập nhật thông tin {type === "academic-years" ? "năm học" : "học kỳ"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">TÃªn {type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"}</Label>
+            <Label htmlFor="name">Tên {type === "academic-years" ? "năm học" : "học kỳ"}</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder={`Nháº­p tÃªn ${type === "academic-years" ? "nÄƒm há»c" : "há»c ká»³"}`}
+              placeholder={`Nhập tên ${type === "academic-years" ? "năm học" : "học kỳ"}`}
               required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="start_date">NgÃ y báº¯t Ä‘áº§u</Label>
+              <Label htmlFor="start_date">Ngày bắt đầu</Label>
               <Input
                 id="start_date"
                 type="date"
@@ -122,7 +122,7 @@ export function AcademicEditDialog({
               />
             </div>
             <div>
-              <Label htmlFor="end_date">NgÃ y káº¿t thÃºc</Label>
+              <Label htmlFor="end_date">Ngày kết thúc</Label>
               <Input
                 id="end_date"
                 type="date"
@@ -135,7 +135,7 @@ export function AcademicEditDialog({
           {type === "semesters" && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="semester_number">Há»c ká»³ sá»‘</Label>
+                <Label htmlFor="semester_number">Học kỳ số</Label>
                 <Input
                   id="semester_number"
                   type="number"
@@ -147,7 +147,7 @@ export function AcademicEditDialog({
                 />
               </div>
               <div>
-                <Label htmlFor="weeks_count">Sá»‘ tuáº§n</Label>
+                <Label htmlFor="weeks_count">Số tuần</Label>
                 <Input
                   id="weeks_count"
                   type="number"
@@ -162,15 +162,15 @@ export function AcademicEditDialog({
           )}
           <div className="flex items-center gap-2">
             <Badge variant={item?.is_current ? "default" : "secondary"}>
-              {item?.is_current ? "Hiá»‡n táº¡i" : "KhÃ´ng hoáº¡t Ä‘á»™ng"}
+              {item?.is_current ? "Hiện tại" : "Không hoạt động"}
             </Badge>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Äang cáº­p nháº­t..." : "Cáº­p nháº­t"}
+              {isLoading ? "Đang cập nhật..." : "Cập nhật"}
             </Button>
           </DialogFooter>
         </form>

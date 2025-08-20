@@ -42,13 +42,13 @@ export function GradePeriodStatusDialog({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'open':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Äang má»Ÿ</Badge>
+        return <Badge variant="default" className="bg-green-100 text-green-800">Đang mở</Badge>
       case 'closed':
-        return <Badge variant="destructive">ÄÃ£ Ä‘Ã³ng</Badge>
+        return <Badge variant="destructive">Đã đóng</Badge>
       case 'reopened':
-        return <Badge variant="secondary" className="bg-orange-100 text-orange-800">Má»Ÿ láº¡i</Badge>
+        return <Badge variant="secondary" className="bg-orange-100 text-orange-800">Mở lại</Badge>
       default:
-        return <Badge variant="outline">KhÃ´ng xÃ¡c Ä‘á»‹nh</Badge>
+        return <Badge variant="outline">Không xác định</Badge>
     }
   }
 
@@ -58,29 +58,29 @@ export function GradePeriodStatusDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Thay Ä‘á»•i tráº¡ng thÃ¡i ká»³ bÃ¡o cÃ¡o</DialogTitle>
+          <DialogTitle>Thay đổi trạng thái kỳ báo cáo</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="p-4 bg-muted rounded-lg">
             <h4 className="font-medium mb-2">{period.name}</h4>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Tráº¡ng thÃ¡i hiá»‡n táº¡i:</span>
+              <span className="text-sm text-muted-foreground">Trạng thái hiện tại:</span>
               {getStatusBadge(period.status)}
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="status">Tráº¡ng thÃ¡i má»›i *</Label>
+              <Label htmlFor="status">Trạng thái mới *</Label>
               <Select value={selectedStatus} onValueChange={(value: 'open' | 'closed' | 'reopened') => setSelectedStatus(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n tráº¡ng thÃ¡i" />
+                  <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Má»Ÿ</SelectItem>
-                  <SelectItem value="closed">ÄÃ³ng</SelectItem>
-                  <SelectItem value="reopened">Má»Ÿ láº¡i</SelectItem>
+                  <SelectItem value="open">Mở</SelectItem>
+                  <SelectItem value="closed">Đóng</SelectItem>
+                  <SelectItem value="reopened">Mở lại</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -88,12 +88,12 @@ export function GradePeriodStatusDialog({
             {(selectedStatus === 'reopened' || selectedStatus === 'closed') && (
               <div className="space-y-2">
                 <Label htmlFor="reason">
-                  LÃ½ do {selectedStatus === 'reopened' ? 'má»Ÿ láº¡i' : 'Ä‘Ã³ng'} 
+                  Lý do {selectedStatus === 'reopened' ? 'mở lại' : 'đóng'} 
                   {selectedStatus === 'reopened' && ' *'}
                 </Label>
                 <Textarea
                   id="reason"
-                  placeholder={`Nháº­p lÃ½ do ${selectedStatus === 'reopened' ? 'má»Ÿ láº¡i' : 'Ä‘Ã³ng'} ká»³ bÃ¡o cÃ¡o`}
+                  placeholder={`Nhập lý do ${selectedStatus === 'reopened' ? 'mở lại' : 'đóng'} kỳ báo cáo`}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   rows={3}
@@ -105,18 +105,18 @@ export function GradePeriodStatusDialog({
             {selectedStatus === 'reopened' && (
               <Alert>
                 <AlertDescription>
-                  <strong>LÆ°u Ã½:</strong> Khi má»Ÿ láº¡i ká»³ bÃ¡o cÃ¡o, giÃ¡o viÃªn sáº½ cÃ³ thá»ƒ chá»‰nh sá»­a Ä‘iá»ƒm sá»‘. 
-                  Há»‡ thá»‘ng sáº½ ghi láº¡i táº¥t cáº£ cÃ¡c thay Ä‘á»•i.
+                  <strong>Lưu ý:</strong> Khi mở lại kỳ báo cáo, giáo viên sẽ có thể chỉnh sửa điểm số. 
+                  Hệ thống sẽ ghi lại tất cả các thay đổi.
                 </AlertDescription>
               </Alert>
             )}
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                Há»§y
+                Hủy
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? 'Äang cáº­p nháº­t...' : 'Cáº­p nháº­t tráº¡ng thÃ¡i'}
+                {loading ? 'Đang cập nhật...' : 'Cập nhật trạng thái'}
               </Button>
             </div>
           </form>

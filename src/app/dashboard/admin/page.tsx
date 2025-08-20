@@ -189,21 +189,21 @@ export default async function AdminDashboard() {
     },
     {
       role: 'teacher',
-      label: 'GiÃ¡o viÃªn',
+      label: 'Giáo viên',
       icon: GraduationCap,
       gradient: 'from-blue-500 to-blue-600',
       trend: { value: 12, isPositive: true }
     },
     {
       role: 'student',
-      label: 'Há»c sinh',
+      label: 'Học sinh',
       icon: BookOpen,
       gradient: 'from-emerald-500 to-emerald-600',
       trend: { value: 8, isPositive: true }
     },
     {
       role: 'parent',
-      label: 'Phá»¥ huynh',
+      label: 'Phụ huynh',
       icon: Heart,
       gradient: 'from-purple-500 to-purple-600',
       trend: { value: 3, isPositive: false }
@@ -212,19 +212,19 @@ export default async function AdminDashboard() {
 
   // Quick actions configuration
   const quickActions = [
-    { icon: Plus, title: 'ThÃªm ngÆ°á»i dÃ¹ng', description: 'Táº¡o tÃ i khoáº£n má»›i' },
-    { icon: Bell, title: 'Gá»­i thÃ´ng bÃ¡o', description: 'Gá»­i thÃ´ng Ä‘iá»‡p Ä‘áº¿n má»i ngÆ°á»i' },
-    { icon: FileText, title: 'Táº¡o bÃ¡o cÃ¡o', description: 'Xuáº¥t dá»¯ liá»‡u phÃ¢n tÃ­ch' },
-    { icon: Settings, title: 'CÃ i Ä‘áº·t há»‡ thá»‘ng', description: 'Cáº¥u hÃ¬nh ná»n táº£ng' },
+    { icon: Plus, title: 'Thêm người dùng', description: 'Tạo tài khoản mới' },
+    { icon: Bell, title: 'Gửi thông báo', description: 'Gửi thông điệp đến mọi người' },
+    { icon: FileText, title: 'Tạo báo cáo', description: 'Xuất dữ liệu phân tích' },
+    { icon: Settings, title: 'Cài đặt hệ thống', description: 'Cấu hình nền tảng' },
   ]
 
   // Get current time for greeting
   const currentHour = new Date().getHours()
-  let greeting = 'ChÃ o buá»•i tá»‘i'
+  let greeting = 'Chào buổi tối'
   if (currentHour < 12) {
-    greeting = 'ChÃ o buá»•i sÃ¡ng'
+    greeting = 'Chào buổi sáng'
   } else if (currentHour < 18) {
-    greeting = 'ChÃ o buá»•i chiá»u'
+    greeting = 'Chào buổi chiều'
   }
 
   return (
@@ -232,10 +232,10 @@ export default async function AdminDashboard() {
         {/* Enhanced Header */}
         <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-            {greeting}, Quáº£n trá»‹ viÃªn!
+            {greeting}, Quản trị viên!
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Tá»•ng quan toÃ n diá»‡n vá» ná»n táº£ng EduConnect dÃ nh cho báº¡n.
+            Tổng quan toàn diện về nền tảng EduConnect dành cho bạn.
           </p>
         </div>
 
@@ -261,7 +261,7 @@ export default async function AdminDashboard() {
                         <AnimatedCounter end={stats[role] || 0} />
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Tá»•ng sá»‘ {label.toLowerCase()}
+                        Tổng số {label.toLowerCase()}
                       </p>
                     </div>
                     <TrendIndicator value={trend.value} isPositive={trend.isPositive} />
@@ -274,7 +274,7 @@ export default async function AdminDashboard() {
 
         {/* Quick Actions */}
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h3 className="text-lg font-semibold text-gray-900">Thao tÃ¡c nhanh</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Thao tác nhanh</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action) => (
               <QuickActionCard
@@ -293,16 +293,16 @@ export default async function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-blue-600" />
-                PhÃ¢n tÃ­ch ná»n táº£ng
+                Phân tích nền tảng
               </CardTitle>
               <CardDescription>
-                TÆ°Æ¡ng tÃ¡c ngÆ°á»i dÃ¹ng vÃ  thá»‘ng kÃª sá»­ dá»¥ng ná»n táº£ng
+                Tương tác người dùng và thống kê sử dụng nền tảng
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Tá»· lá»‡ láº¥p Ä‘áº§y lá»›p há»c</span>
+                  <span className="text-sm font-medium">Tỷ lệ lấp đầy lớp học</span>
                   <span className="text-sm text-muted-foreground">{occupancyRate}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -310,7 +310,7 @@ export default async function AdminDashboard() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Lá»›p Ä‘ang hoáº¡t Ä‘á»™ng</span>
+                  <span className="text-sm font-medium">Lớp đang hoạt động</span>
                   <span className="text-sm text-muted-foreground">{totalClasses > 0 ? Math.round((activeClasses / totalClasses) * 100) : 0}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">

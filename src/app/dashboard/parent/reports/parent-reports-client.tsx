@@ -131,7 +131,7 @@ export default function ParentReportsClient() {
   // Load notifications with pagination and error handling
   const loadNotifications = useCallback(async (page: number = 1) => {
     try {
-      startPageTransition("Äang táº£i bÃ¡o cÃ¡o...")
+      startPageTransition("Đang tải báo cáo...")
       setError(null)
 
       const result = await getParentReportNotificationsAction(page, pagination.limit)
@@ -142,11 +142,11 @@ export default function ParentReportsClient() {
           setPagination(result.pagination)
         }
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i bÃ¡o cÃ¡o')
+        setError(result.error || 'Không thể tải báo cáo')
       }
     } catch (error) {
       console.error('Error loading notifications:', error)
-      setError('CÃ³ lá»—i xáº£y ra khi táº£i bÃ¡o cÃ¡o')
+      setError('Có lỗi xảy ra khi tải báo cáo')
     } finally {
       stopLoading()
     }
@@ -187,7 +187,7 @@ export default function ParentReportsClient() {
   // Handle response submission
   const handleSubmitResponse = useCallback(async () => {
     if (!selectedReport || !responseForm.agreement_status) {
-      toast.error('Vui lÃ²ng chá»n má»©c Ä‘á»™ Ä‘á»“ng Ã½')
+      toast.error('Vui lòng chọn mức độ đồng ý')
       return
     }
 
@@ -201,7 +201,7 @@ export default function ParentReportsClient() {
       })
 
       if (result.success) {
-        toast.success('Pháº£n há»“i Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng')
+        toast.success('Phản hồi đã được gửi thành công')
         setShowResponseDialog(false)
         setResponseForm({ agreement_status: '', comments: '' })
         
@@ -222,11 +222,11 @@ export default function ParentReportsClient() {
           )
         )
       } else {
-        toast.error(result.error || 'KhÃ´ng thá»ƒ gá»­i pháº£n há»“i')
+        toast.error(result.error || 'Không thể gửi phản hồi')
       }
     } catch (error) {
       console.error('Error submitting response:', error)
-      toast.error('CÃ³ lá»—i xáº£y ra khi gá»­i pháº£n há»“i')
+      toast.error('Có lỗi xảy ra khi gửi phản hồi')
     } finally {
       setSectionLoading(prev => ({ ...prev, submitting: false }))
     }
@@ -252,7 +252,7 @@ export default function ParentReportsClient() {
             <span>{error}</span>
           </div>
           <div className="flex justify-center mt-4">
-            <Button onClick={() => loadNotifications(1)}>Thá»­ láº¡i</Button>
+            <Button onClick={() => loadNotifications(1)}>Thử lại</Button>
           </div>
         </CardContent>
       </Card>
@@ -266,10 +266,10 @@ export default function ParentReportsClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            Lá»c bÃ¡o cÃ¡o
+            Lọc báo cáo
           </CardTitle>
           <CardDescription>
-            Chá»n há»c sinh vÃ  ká»³ bÃ¡o cÃ¡o Ä‘á»ƒ xem chi tiáº¿t
+            Chọn học sinh và kỳ báo cáo để xem chi tiết
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -278,10 +278,10 @@ export default function ParentReportsClient() {
               <Label htmlFor="student-select">Con em</Label>
               <Select value={selectedStudent} onValueChange={setSelectedStudent}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n con em" />
+                  <SelectValue placeholder="Chọn con em" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ con em</SelectItem>
+                  <SelectItem value="all">Tất cả con em</SelectItem>
                   {studentOptions.map(student => (
                     <SelectItem key={student.id} value={student.id}>
                       {student.name} ({student.student_id})
@@ -292,17 +292,17 @@ export default function ParentReportsClient() {
             </div>
             
             <div>
-              <Label htmlFor="period-select">Ká»³ bÃ¡o cÃ¡o</Label>
+              <Label htmlFor="period-select">Kỳ báo cáo</Label>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o">
-                    {selectedPeriod === 'all' ? 'Táº¥t cáº£ ká»³ bÃ¡o cÃ¡o' :
-                      reportPeriodOptions.find(p => p.id === selectedPeriod)?.name || 'Chá»n ká»³ bÃ¡o cÃ¡o'
+                  <SelectValue placeholder="Chọn kỳ báo cáo">
+                    {selectedPeriod === 'all' ? 'Tất cả kỳ báo cáo' :
+                      reportPeriodOptions.find(p => p.id === selectedPeriod)?.name || 'Chọn kỳ báo cáo'
                     }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ ká»³ bÃ¡o cÃ¡o</SelectItem>
+                  <SelectItem value="all">Tất cả kỳ báo cáo</SelectItem>
                   {reportPeriodOptions.map(period => (
                     <SelectItem key={period.id} value={period.id}>
                       {period.name} ({formatDate(period.start_date)} - {formatDate(period.end_date)})
@@ -321,7 +321,7 @@ export default function ParentReportsClient() {
           <CardContent className="p-6">
             <div className="flex items-center justify-center h-32 text-gray-500">
               <BookOpen className="h-8 w-8 mr-2" />
-              <span>ChÆ°a cÃ³ bÃ¡o cÃ¡o nÃ o</span>
+              <span>Chưa có báo cáo nào</span>
             </div>
           </CardContent>
         </Card>
@@ -350,7 +350,7 @@ export default function ParentReportsClient() {
                 disabled={pagination.page === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                TrÆ°á»›c
+                Trước
               </Button>
 
               <div className="flex items-center gap-1">
@@ -390,8 +390,8 @@ export default function ParentReportsClient() {
           {/* Pagination Info */}
           {pagination.total > 0 && (
             <div className="text-center text-sm text-gray-600 pt-2">
-              Hiá»ƒn thá»‹ {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
-              trong tá»•ng sá»‘ {pagination.total} bÃ¡o cÃ¡o
+              Hiển thị {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)}
+              trong tổng số {pagination.total} báo cáo
             </div>
           )}
         </div>
@@ -461,7 +461,7 @@ const ReportCard = React.memo(({
             }
           }}
           aria-expanded={isExpanded}
-          aria-label={`BÃ¡o cÃ¡o cá»§a ${report.student?.full_name}. ${isExpanded ? 'Thu gá»n' : 'Má»Ÿ rá»™ng'} Ä‘á»ƒ xem chi tiáº¿t`}
+          aria-label={`Báo cáo của ${report.student?.full_name}. ${isExpanded ? 'Thu gọn' : 'Mở rộng'} để xem chi tiết`}
         >
           <div className="flex items-start justify-between">
             <div className="flex-1 space-y-3">
@@ -473,7 +473,7 @@ const ReportCard = React.memo(({
                   <Badge variant="outline">{report.student?.student_id}</Badge>
                 </div>
                 {!notification.is_read && (
-                  <Badge className="bg-blue-600">Má»›i</Badge>
+                  <Badge className="bg-blue-600">Mới</Badge>
                 )}
               </div>
 
@@ -496,14 +496,14 @@ const ReportCard = React.memo(({
             {/* Report Summary */}
             <div className="space-y-2">
               <div>
-                <span className="text-sm font-medium text-green-700">Æ¯u Ä‘iá»ƒm: </span>
+                <span className="text-sm font-medium text-green-700">Ưu điểm: </span>
                 <span className="text-sm text-gray-600">
                   {report.strengths?.substring(0, 100)}
                   {report.strengths && report.strengths.length > 100 ? '...' : ''}
                 </span>
               </div>
               <div>
-                <span className="text-sm font-medium text-orange-700">Khuyáº¿t Ä‘iá»ƒm: </span>
+                <span className="text-sm font-medium text-orange-700">Khuyết điểm: </span>
                 <span className="text-sm text-gray-600">
                   {report.weaknesses?.substring(0, 100)}
                   {report.weaknesses && report.weaknesses.length > 100 ? '...' : ''}
@@ -517,12 +517,12 @@ const ReportCard = React.memo(({
                 {notification.parent_response?.agreement_status === 'agree' ? (
                   <>
                     <ThumbsUp className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">ÄÃ£ pháº£n há»“i: Äá»“ng Ã½</span>
+                    <span className="text-green-600">Đã phản hồi: Đồng ý</span>
                   </>
                 ) : (
                   <>
                     <ThumbsDown className="h-4 w-4 text-red-600" />
-                    <span className="text-red-600">ÄÃ£ pháº£n há»“i: KhÃ´ng Ä‘á»“ng Ã½</span>
+                    <span className="text-red-600">Đã phản hồi: Không đồng ý</span>
                   </>
                 )}
                 <span className="text-gray-500">
@@ -538,9 +538,9 @@ const ReportCard = React.memo(({
                 variant="ghost"
                 size="sm"
                 onClick={(e) => { e.stopPropagation(); setIsExpanded(prev => !prev) }}
-                aria-label={isExpanded ? 'Thu gá»n' : 'Xem chi tiáº¿t'}
+                aria-label={isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
               >
-                {isExpanded ? 'Thu gá»n' : 'Xem chi tiáº¿t'}
+                {isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
               </Button>
 
               {!hasResponse && (
@@ -553,7 +553,7 @@ const ReportCard = React.memo(({
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Pháº£n há»“i
+                  Phản hồi
                 </Button>
               )}
             </div>
@@ -566,26 +566,26 @@ const ReportCard = React.memo(({
             {/* Report Period Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <Label className="text-sm font-medium">Ká»³ bÃ¡o cÃ¡o</Label>
+                <Label className="text-sm font-medium">Kỳ báo cáo</Label>
                 <p className="text-sm text-gray-600">{report.report_period?.name}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Thá»i gian</Label>
+                <Label className="text-sm font-medium">Thời gian</Label>
                 <p className="text-sm text-gray-600">
                   {report.report_period?.start_date && report.report_period?.end_date ?
                     `${formatDate(report.report_period.start_date)} - ${formatDate(report.report_period.end_date)}` :
-                    'ChÆ°a cÃ³ thÃ´ng tin'
+                    'Chưa có thông tin'
                   }
                 </p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Lá»›p</Label>
+                <Label className="text-sm font-medium">Lớp</Label>
                 <p className="text-sm text-gray-600">{report.class?.name}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">NgÃ y gá»­i</Label>
+                <Label className="text-sm font-medium">Ngày gửi</Label>
                 <p className="text-sm text-gray-600">
-                  {report.sent_at ? formatDate(report.sent_at) : 'ChÆ°a gá»­i'}
+                  {report.sent_at ? formatDate(report.sent_at) : 'Chưa gửi'}
                 </p>
               </div>
             </div>
@@ -593,7 +593,7 @@ const ReportCard = React.memo(({
             {/* Academic Performance */}
             {report.academic_performance && (
               <div>
-                <Label className="text-sm font-medium text-blue-600">Káº¿t quáº£ há»c táº­p</Label>
+                <Label className="text-sm font-medium text-blue-600">Kết quả học tập</Label>
                 <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                   {report.academic_performance}
                 </p>
@@ -603,7 +603,7 @@ const ReportCard = React.memo(({
             {/* Discipline Status */}
             {report.discipline_status && (
               <div>
-                <Label className="text-sm font-medium text-green-600">TÃ¬nh hÃ¬nh rÃ¨n luyá»‡n</Label>
+                <Label className="text-sm font-medium text-green-600">Tình hình rèn luyện</Label>
                 <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                   {report.discipline_status}
                 </p>
@@ -612,7 +612,7 @@ const ReportCard = React.memo(({
 
             {/* Full Strengths */}
             <div>
-              <Label className="text-sm font-medium text-green-600">Æ¯u Ä‘iá»ƒm</Label>
+              <Label className="text-sm font-medium text-green-600">Ưu điểm</Label>
               <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                 {report.strengths}
               </p>
@@ -620,7 +620,7 @@ const ReportCard = React.memo(({
 
             {/* Full Weaknesses */}
             <div>
-              <Label className="text-sm font-medium text-orange-600">Khuyáº¿t Ä‘iá»ƒm cáº§n kháº¯c phá»¥c</Label>
+              <Label className="text-sm font-medium text-orange-600">Khuyết điểm cần khắc phục</Label>
               <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                 {report.weaknesses}
               </p>
@@ -629,20 +629,20 @@ const ReportCard = React.memo(({
             {/* Parent Response */}
             {notification.parent_response?.responded_at && (
               <div>
-                <Label className="text-sm font-medium text-blue-600">Pháº£n há»“i cá»§a phá»¥ huynh</Label>
+                <Label className="text-sm font-medium text-blue-600">Phản hồi của phụ huynh</Label>
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs font-medium">Má»©c Ä‘á»™ Ä‘á»“ng Ã½:</Label>
+                    <Label className="text-xs font-medium">Mức độ đồng ý:</Label>
                     {notification.parent_response.agreement_status === 'agree' ? (
-                      <Badge className="bg-green-100 text-green-800">Äá»“ng Ã½</Badge>
+                      <Badge className="bg-green-100 text-green-800">Đồng ý</Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800">KhÃ´ng Ä‘á»“ng Ã½</Badge>
+                      <Badge className="bg-red-100 text-red-800">Không đồng ý</Badge>
                     )}
                   </div>
 
                   {notification.parent_response.comments && (
                     <div>
-                      <Label className="text-xs font-medium">Nháº­n xÃ©t:</Label>
+                      <Label className="text-xs font-medium">Nhận xét:</Label>
                       <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                         {notification.parent_response.comments}
                       </p>
@@ -650,7 +650,7 @@ const ReportCard = React.memo(({
                   )}
 
                   <div>
-                    <Label className="text-xs font-medium">Thá»i gian pháº£n há»“i:</Label>
+                    <Label className="text-xs font-medium">Thời gian phản hồi:</Label>
                     <p className="text-sm text-gray-600">
                       {formatDate(notification.parent_response.responded_at)}
                     </p>
@@ -689,11 +689,11 @@ const ReportDetailDialog = React.memo(({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
-            BÃ¡o cÃ¡o há»c táº­p - {reportData.student?.full_name}
+            Báo cáo học tập - {reportData.student?.full_name}
           </DialogTitle>
           <DialogDescription>
             {reportData.report_period?.name} â€¢ {reportData.class?.name} â€¢
-            GiÃ¡o viÃªn: {reportData.homeroom_teacher?.full_name}
+            Giáo viên: {reportData.homeroom_teacher?.full_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -703,29 +703,29 @@ const ReportDetailDialog = React.memo(({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                ThÃ´ng tin ká»³ bÃ¡o cÃ¡o
+                Thông tin kỳ báo cáo
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">Ká»³ bÃ¡o cÃ¡o</Label>
+                  <Label className="text-sm font-medium">Kỳ báo cáo</Label>
                   <p className="text-sm text-gray-600">{reportData.report_period?.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Thá»i gian</Label>
+                  <Label className="text-sm font-medium">Thời gian</Label>
                   <p className="text-sm text-gray-600">
                     {formatDate(reportData.report_period?.start_date || '')} - {formatDate(reportData.report_period?.end_date || '')}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Lá»›p</Label>
+                  <Label className="text-sm font-medium">Lớp</Label>
                   <p className="text-sm text-gray-600">{reportData.class?.name}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">NgÃ y gá»­i</Label>
+                  <Label className="text-sm font-medium">Ngày gửi</Label>
                   <p className="text-sm text-gray-600">
-                    {reportData.sent_at ? formatDate(reportData.sent_at) : 'ChÆ°a gá»­i'}
+                    {reportData.sent_at ? formatDate(reportData.sent_at) : 'Chưa gửi'}
                   </p>
                 </div>
               </div>
@@ -738,7 +738,7 @@ const ReportDetailDialog = React.memo(({
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-blue-600" />
-                  Káº¿t quáº£ há»c táº­p
+                  Kết quả học tập
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -755,7 +755,7 @@ const ReportDetailDialog = React.memo(({
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
-                  TÃ¬nh hÃ¬nh rÃ¨n luyá»‡n
+                  Tình hình rèn luyện
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -771,7 +771,7 @@ const ReportDetailDialog = React.memo(({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <ThumbsUp className="h-5 w-5 text-green-600" />
-                Æ¯u Ä‘iá»ƒm
+                Ưu điểm
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -786,7 +786,7 @@ const ReportDetailDialog = React.memo(({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
-                Khuyáº¿t Ä‘iá»ƒm cáº§n kháº¯c phá»¥c
+                Khuyết điểm cần khắc phục
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -802,23 +802,23 @@ const ReportDetailDialog = React.memo(({
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-blue-600" />
-                  Pháº£n há»“i cá»§a phá»¥ huynh
+                  Phản hồi của phụ huynh
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Label className="text-sm font-medium">Má»©c Ä‘á»™ Ä‘á»“ng Ã½:</Label>
+                    <Label className="text-sm font-medium">Mức độ đồng ý:</Label>
                     {report.parent_response.agreement_status === 'agree' ? (
-                      <Badge className="bg-green-100 text-green-800">Äá»“ng Ã½</Badge>
+                      <Badge className="bg-green-100 text-green-800">Đồng ý</Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800">KhÃ´ng Ä‘á»“ng Ã½</Badge>
+                      <Badge className="bg-red-100 text-red-800">Không đồng ý</Badge>
                     )}
                   </div>
 
                   {report.parent_response.comments && (
                     <div>
-                      <Label className="text-sm font-medium">Nháº­n xÃ©t:</Label>
+                      <Label className="text-sm font-medium">Nhận xét:</Label>
                       <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
                         {report.parent_response.comments}
                       </p>
@@ -826,7 +826,7 @@ const ReportDetailDialog = React.memo(({
                   )}
 
                   <div>
-                    <Label className="text-sm font-medium">Thá»i gian pháº£n há»“i:</Label>
+                    <Label className="text-sm font-medium">Thời gian phản hồi:</Label>
                     <p className="text-sm text-gray-600">
                       {formatDate(report.parent_response.responded_at)}
                     </p>
@@ -867,34 +867,34 @@ const ResponseDialog = React.memo(({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Pháº£n há»“i bÃ¡o cÃ¡o
+            Phản hồi báo cáo
           </DialogTitle>
           <DialogDescription>
-            Gá»­i pháº£n há»“i vá» bÃ¡o cÃ¡o há»c táº­p cá»§a {selectedReport?.student_report?.student?.full_name}
+            Gửi phản hồi về báo cáo học tập của {selectedReport?.student_report?.student?.full_name}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="agreement">Má»©c Ä‘á»™ Ä‘á»“ng Ã½ *</Label>
+            <Label htmlFor="agreement">Mức độ đồng ý *</Label>
             <Select
               value={responseForm.agreement_status}
               onValueChange={(value) => setResponseForm(prev => ({ ...prev, agreement_status: value }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chá»n má»©c Ä‘á»™ Ä‘á»“ng Ã½" />
+                <SelectValue placeholder="Chọn mức độ đồng ý" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="agree">
                   <div className="flex items-center gap-2">
                     <ThumbsUp className="h-4 w-4 text-green-600" />
-                    Äá»“ng Ã½
+                    Đồng ý
                   </div>
                 </SelectItem>
                 <SelectItem value="disagree">
                   <div className="flex items-center gap-2">
                     <ThumbsDown className="h-4 w-4 text-red-600" />
-                    KhÃ´ng Ä‘á»“ng Ã½
+                    Không đồng ý
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -902,12 +902,12 @@ const ResponseDialog = React.memo(({
           </div>
 
           <div>
-            <Label htmlFor="comments">Nháº­n xÃ©t thÃªm (tÃ¹y chá»n)</Label>
+            <Label htmlFor="comments">Nhận xét thêm (tùy chọn)</Label>
             <Textarea
               id="comments"
               value={responseForm.comments}
               onChange={(e) => setResponseForm(prev => ({ ...prev, comments: e.target.value }))}
-              placeholder="Chia sáº» Ã½ kiáº¿n cá»§a báº¡n vá» bÃ¡o cÃ¡o nÃ y..."
+              placeholder="Chia sẻ ý kiến của bạn về báo cáo này..."
               className="mt-1"
               rows={4}
             />
@@ -916,7 +916,7 @@ const ResponseDialog = React.memo(({
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Há»§y
+            Hủy
           </Button>
           <Button
             onClick={onSubmit}
@@ -927,7 +927,7 @@ const ResponseDialog = React.memo(({
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Gá»­i pháº£n há»“i
+            Gửi phản hồi
           </Button>
         </div>
       </DialogContent>

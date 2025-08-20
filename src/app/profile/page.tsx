@@ -22,10 +22,10 @@ const MotionDiv = nextDynamic(() => import('framer-motion').then(mod => mod.moti
 })
 
 const roleConfig = {
-  admin: { label: 'Quáº£n trá»‹ viÃªn', color: 'bg-red-500' },
-  teacher: { label: 'GiÃ¡o viÃªn', color: 'bg-blue-500' },
-  student: { label: 'Há»c sinh', color: 'bg-green-500' },
-  parent: { label: 'Phá»¥ huynh', color: 'bg-purple-500' },
+  admin: { label: 'Quản trị viên', color: 'bg-red-500' },
+  teacher: { label: 'Giáo viên', color: 'bg-blue-500' },
+  student: { label: 'Học sinh', color: 'bg-green-500' },
+  parent: { label: 'Phụ huynh', color: 'bg-purple-500' },
 }
 
 export default function ProfilePage() {
@@ -116,7 +116,7 @@ export default function ProfilePage() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
-              Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem há»“ sÆ¡ cá»§a báº¡n.
+              Vui lòng đăng nhập để xem hồ sơ của bạn.
             </p>
           </CardContent>
         </Card>
@@ -147,7 +147,7 @@ export default function ProfilePage() {
                 />
                 <div className="flex-1">
                   <CardTitle className="text-2xl">
-                    {profile.full_name || 'Há»“ sÆ¡ ngÆ°á»i dÃ¹ng'}
+                    {profile.full_name || 'Hồ sơ người dùng'}
                   </CardTitle>
                   <CardDescription className="flex items-center space-x-2 mt-1">
                     <span>{profile.email}</span>
@@ -165,15 +165,15 @@ export default function ProfilePage() {
           <TabsList>
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User className="w-4 h-4" />
-              <span>Há»“ sÆ¡</span>
+              <span>Hồ sơ</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2">
               <Settings className="w-4 h-4" />
-              <span>CÃ i Ä‘áº·t</span>
+              <span>Cài đặt</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center space-x-2">
               <Shield className="w-4 h-4" />
-              <span>Báº£o máº­t</span>
+              <span>Bảo mật</span>
             </TabsTrigger>
           </TabsList>
 
@@ -187,14 +187,14 @@ export default function ProfilePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>ThÃ´ng tin cÃ¡ nhÃ¢n</CardTitle>
+                      <CardTitle>Thông tin cá nhân</CardTitle>
                       <CardDescription>
-                        Cáº­p nháº­t thÃ´ng tin cÃ¡ nhÃ¢n vÃ  liÃªn há»‡ cá»§a báº¡n
+                        Cập nhật thông tin cá nhân và liên hệ của bạn
                       </CardDescription>
                     </div>
                     {!isEditing && (
                       <Button onClick={() => setIsEditing(true)}>
-                        Chá»‰nh sá»­a há»“ sÆ¡
+                        Chỉnh sửa hồ sơ
                       </Button>
                     )}
                   </div>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="full_name">Há» vÃ  tÃªn</Label>
+                      <Label htmlFor="full_name">Họ và tên</Label>
                       <Input
                         id="full_name"
                         value={formData.full_name}
@@ -223,19 +223,19 @@ export default function ProfilePage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Vai trÃ²</Label>
+                    <Label>Vai trò</Label>
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline" className={config.color}>
                         {config.label}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        LiÃªn há»‡ quáº£n trá»‹ viÃªn Ä‘á»ƒ thay Ä‘á»•i vai trÃ²
+                        Liên hệ quản trị viên để thay đổi vai trò
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>NgÃ y táº¡o tÃ i khoáº£n</Label>
+                    <Label>Ngày tạo tài khoản</Label>
                     <p className="text-sm text-muted-foreground">
                       {new Date(profile.created_at).toLocaleDateString('vi-VN')}
                     </p>
@@ -244,10 +244,10 @@ export default function ProfilePage() {
                   {isEditing && (
                     <div className="flex space-x-2 pt-4">
                       <Button onClick={handleSave} disabled={loading}>
-                        {loading ? 'Äang lÆ°u...' : 'LÆ°u thay Ä‘á»•i'}
+                        {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </Button>
                       <Button variant="outline" onClick={handleCancel}>
-                        Há»§y
+                        Hủy
                       </Button>
                     </div>
                   )}
@@ -264,46 +264,46 @@ export default function ProfilePage() {
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>CÃ i Ä‘áº·t tÃ i khoáº£n</CardTitle>
+                  <CardTitle>Cài đặt tài khoản</CardTitle>
                   <CardDescription>
-                    Quáº£n lÃ½ tuá»³ chá»n tÃ i khoáº£n vÃ  thÃ´ng bÃ¡o
+                    Quản lý tuỳ chọn tài khoản và thông báo
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">ThÃ´ng bÃ¡o Email</h4>
+                        <h4 className="font-medium">Thông báo Email</h4>
                         <p className="text-sm text-muted-foreground">
-                          Nháº­n cáº­p nháº­t qua email vá» tÃ i khoáº£n cá»§a báº¡n
+                          Nhận cập nhật qua email về tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Cáº¥u hÃ¬nh
+                        Cấu hình
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">CÃ i Ä‘áº·t quyá»n riÃªng tÆ°</h4>
+                        <h4 className="font-medium">Cài đặt quyền riêng tư</h4>
                         <p className="text-sm text-muted-foreground">
-                          Kiá»ƒm soÃ¡t ai cÃ³ thá»ƒ xem thÃ´ng tin há»“ sÆ¡ cá»§a báº¡n
+                          Kiểm soát ai có thể xem thông tin hồ sơ của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Quáº£n lÃ½
+                        Quản lý
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Xuáº¥t dá»¯ liá»‡u</h4>
+                        <h4 className="font-medium">Xuất dữ liệu</h4>
                         <p className="text-sm text-muted-foreground">
-                          Táº£i xuá»‘ng báº£n sao dá»¯ liá»‡u cá»§a báº¡n
+                          Tải xuống bản sao dữ liệu của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Xuáº¥t
+                        Xuất
                       </Button>
                     </div>
                   </div>
@@ -320,42 +320,42 @@ export default function ProfilePage() {
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>CÃ i Ä‘áº·t báº£o máº­t</CardTitle>
+                  <CardTitle>Cài đặt bảo mật</CardTitle>
                   <CardDescription>
-                    Quáº£n lÃ½ báº£o máº­t tÃ i khoáº£n vÃ  phÆ°Æ¡ng thá»©c xÃ¡c thá»±c
+                    Quản lý bảo mật tài khoản và phương thức xác thực
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">Äá»•i máº­t kháº©u</h4>
+                        <h4 className="font-medium">Đổi mật khẩu</h4>
                         <p className="text-sm text-muted-foreground">
-                          Cáº­p nháº­t máº­t kháº©u tÃ i khoáº£n cá»§a báº¡n
+                          Cập nhật mật khẩu tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Äá»•i
+                        Đổi
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">XÃ¡c thá»±c hai lá»›p</h4>
+                        <h4 className="font-medium">Xác thực hai lớp</h4>
                         <p className="text-sm text-muted-foreground">
-                          ThÃªm má»™t lá»›p báº£o máº­t cho tÃ i khoáº£n cá»§a báº¡n
+                          Thêm một lớp bảo mật cho tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">
-                        Báº­t
+                        Bật
                       </Button>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">PhiÃªn Ä‘Äƒng nháº­p hiá»‡n táº¡i</h4>
+                        <h4 className="font-medium">Phiên đăng nhập hiện tại</h4>
                         <p className="text-sm text-muted-foreground">
-                          Quáº£n lÃ½ cÃ¡c thiáº¿t bá»‹ Ä‘ang Ä‘Äƒng nháº­p vÃ o tÃ i khoáº£n cá»§a báº¡n
+                          Quản lý các thiết bị đang đăng nhập vào tài khoản của bạn
                         </p>
                       </div>
                       <Button variant="outline" size="sm">

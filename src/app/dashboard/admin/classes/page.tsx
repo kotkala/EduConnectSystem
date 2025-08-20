@@ -48,7 +48,7 @@ export default function ClassManagementPage() {
   // Fetch Classes
   const fetchClasses = useCallback(async () => {
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Äang táº£i danh sÃ¡ch lá»›p há»c...")
+    startPageTransition("Đang tải danh sách lớp học...")
     setClassesError(null)
 
     try {
@@ -59,12 +59,12 @@ export default function ClassManagementPage() {
         setClassesTotal(result.total)
         setClassesPage(result.page || 1)
       } else {
-        const errorMessage = result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c"
+        const errorMessage = result.error || "Không thể tải danh sách lớp học"
         setClassesError(errorMessage)
-        console.error("Lá»—i táº£i danh sÃ¡ch lá»›p:", errorMessage)
+        console.error("Lỗi tải danh sách lớp:", errorMessage)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch lá»›p há»c"
+      const errorMessage = err instanceof Error ? err.message : "Không thể tải danh sách lớp học"
       setClassesError(errorMessage)
       console.error("Classes fetch exception:", err)
     } finally {
@@ -98,7 +98,7 @@ export default function ClassManagementPage() {
         setTeachers(teachersResult.data)
       }
     } catch (error) {
-      console.error("Lá»—i táº£i dá»¯ liá»‡u biá»ƒu máº«u:", error)
+      console.error("Lỗi tải dữ liệu biểu mẫu:", error)
     }
   }, [academicYears.length, semesters.length, teachers.length])
 
@@ -160,14 +160,14 @@ export default function ClassManagementPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ lá»›p há»c</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý lớp học</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ lá»›p chÃ­nh vÃ  lá»›p tá»• há»£p mÃ´n
+            Quản lý lớp chính và lớp tổ hợp môn
           </p>
         </div>
         <Button onClick={() => setShowCreateClassDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          ThÃªm lá»›p
+          Thêm lớp
         </Button>
       </div>
 
@@ -175,52 +175,52 @@ export default function ClassManagementPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng sá»‘ lá»›p</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số lớp</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{classesTotal}</div>
             <p className="text-xs text-muted-foreground">
-              Táº¥t cáº£ lá»›p trong há»‡ thá»‘ng
+              Tất cả lớp trong hệ thống
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lá»›p chÃ­nh</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lớp chính</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{classStats.mainClasses.length}</div>
             <p className="text-xs text-muted-foreground">
-              Lá»›p chá»§ nhiá»‡m thÃ´ng thÆ°á»ng
+              Lớp chủ nhiệm thông thường
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lá»›p tá»• há»£p mÃ´n</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lớp tổ hợp môn</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{classStats.combinedClasses.length}</div>
             <p className="text-xs text-muted-foreground">
-              Lá»›p theo tá»• há»£p mÃ´n
+              Lớp theo tổ hợp môn
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tá»•ng sá»‘ há»c sinh</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số học sinh</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{classStats.totalStudents}</div>
             <p className="text-xs text-muted-foreground">
-              {classStats.totalCapacity > 0 ? `${Math.round((classStats.totalStudents / classStats.totalCapacity) * 100)}% cÃ´ng suáº¥t` : "ChÆ°a cÃ³ sá»©c chá»©a"}
+              {classStats.totalCapacity > 0 ? `${Math.round((classStats.totalStudents / classStats.totalCapacity) * 100)}% công suất` : "Chưa có sức chứa"}
             </p>
           </CardContent>
         </Card>
@@ -231,13 +231,13 @@ export default function ClassManagementPage() {
         <Alert variant="destructive">
           <AlertDescription>
             <div className="space-y-2">
-              <p className="font-medium">Lá»—i táº£i danh sÃ¡ch lá»›p:</p>
+              <p className="font-medium">Lỗi tải danh sách lớp:</p>
               <p>{classesError}</p>
               {classesError.includes("does not exist") && (
                 <div className="mt-2 p-2 bg-red-50 rounded border">
                   <p className="text-sm">
-                    <strong>Cáº§n thiáº¿t láº­p cÆ¡ sá»Ÿ dá»¯ liá»‡u:</strong> Báº£ng classes chÆ°a Ä‘Æ°á»£c táº¡o.
-                    Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ há»‡ thá»‘ng Ä‘á»ƒ cháº¡y thiáº¿t láº­p cÆ¡ sá»Ÿ dá»¯ liá»‡u.
+                    <strong>Cần thiết lập cơ sở dữ liệu:</strong> Bảng classes chưa được tạo.
+                    Vui lòng liên hệ quản trị hệ thống để chạy thiết lập cơ sở dữ liệu.
                   </p>
                 </div>
               )}
@@ -265,7 +265,7 @@ export default function ClassManagementPage() {
       <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">ThÃªm lá»›p má»›i</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Thêm lớp mới</DialogTitle>
           </DialogHeader>
           <ClassForm
             onSuccess={handleCreateClassSuccess}

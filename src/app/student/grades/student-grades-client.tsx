@@ -106,7 +106,7 @@ export function StudentGradesClient() {
       const isInitialLoad = grades.length === 0
       
       if (isInitialLoad) {
-        startPageTransition("Äang táº£i báº£ng Ä‘iá»ƒm...")
+        startPageTransition("Đang tải bảng điểm...")
       }
 
       const [gradesResult, summaryResult] = await Promise.all([
@@ -117,17 +117,17 @@ export function StudentGradesClient() {
       if (gradesResult.success && gradesResult.data) {
         setGrades(gradesResult.data as unknown as Grade[])
       } else {
-        toast.error(gradesResult.error || 'KhÃ´ng thá»ƒ táº£i báº£ng Ä‘iá»ƒm')
+        toast.error(gradesResult.error || 'Không thể tải bảng điểm')
       }
 
       if (summaryResult.success && summaryResult.data) {
         setGradeSummary(summaryResult.data)
       } else {
-        toast.error(summaryResult.error || 'KhÃ´ng thá»ƒ táº£i tá»•ng há»£p Ä‘iá»ƒm')
+        toast.error(summaryResult.error || 'Không thể tải tổng hợp điểm')
       }
     } catch (error) {
       console.error('Error loading student grades:', error)
-      toast.error('Lá»—i khi táº£i báº£ng Ä‘iá»ƒm')
+      toast.error('Lỗi khi tải bảng điểm')
     } finally {
       stopLoading()
     }
@@ -216,13 +216,13 @@ export function StudentGradesClient() {
       const getVariant = (type: string) => {
         switch (type.toLowerCase()) {
           case 'midterm':
-          case 'giá»¯a ká»³':
+          case 'giữa kỳ':
             return 'default' as const
           case 'final':
-          case 'cuá»‘i ká»³':
+          case 'cuối kỳ':
             return 'destructive' as const
           case 'quiz':
-          case 'kiá»ƒm tra':
+          case 'kiểm tra':
             return 'secondary' as const
           default:
             return 'outline' as const
@@ -273,32 +273,32 @@ export function StudentGradesClient() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Award className="h-6 w-6" />
-            Báº£ng Ä‘iá»ƒm cÃ¡ nhÃ¢n
+            Bảng điểm cá nhân
           </h1>
           <p className="text-muted-foreground">
-            Xem báº£ng Ä‘iá»ƒm vÃ  thá»‘ng kÃª há»c táº­p cá»§a báº¡n
+            Xem bảng điểm và thống kê học tập của bạn
           </p>
         </div>
         <Button onClick={loadStudentGrades} disabled={coordinatedLoading.isLoading}>
-          LÃ m má»›i
+          Làm mới
         </Button>
       </div>
 
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Bá»™ lá»c</CardTitle>
+          <CardTitle className="text-lg">Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium mb-2 block">Ká»³ bÃ¡o cÃ¡o Ä‘iá»ƒm</label>
+              <label className="text-sm font-medium mb-2 block">Kỳ báo cáo điểm</label>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n ká»³ bÃ¡o cÃ¡o" />
+                  <SelectValue placeholder="Chọn kỳ báo cáo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ ká»³</SelectItem>
+                  <SelectItem value="all">Tất cả kỳ</SelectItem>
                   {periods.map((period) => (
                     <SelectItem key={period.id} value={period.id}>
                       {period.name}
@@ -309,13 +309,13 @@ export function StudentGradesClient() {
             </div>
 
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium mb-2 block">MÃ´n há»c</label>
+              <label className="text-sm font-medium mb-2 block">Môn học</label>
               <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Chá»n mÃ´n há»c" />
+                  <SelectValue placeholder="Chọn môn học" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Táº¥t cáº£ mÃ´n</SelectItem>
+                  <SelectItem value="all">Tất cả môn</SelectItem>
                   {subjects.map((subject) => (
                     <SelectItem key={subject.id} value={subject.id}>
                       {subject.name} ({subject.code})
@@ -336,7 +336,7 @@ export function StudentGradesClient() {
               <BookOpen className="h-5 w-5 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold">{statistics.totalSubjects}</div>
-                <div className="text-sm text-muted-foreground">Tá»•ng mÃ´n há»c</div>
+                <div className="text-sm text-muted-foreground">Tổng môn học</div>
               </div>
             </div>
           </CardContent>
@@ -348,7 +348,7 @@ export function StudentGradesClient() {
               <BarChart3 className="h-5 w-5 text-green-500" />
               <div>
                 <div className="text-2xl font-bold">{statistics.averageGrade.toFixed(1)}</div>
-                <div className="text-sm text-muted-foreground">Äiá»ƒm trung bÃ¬nh</div>
+                <div className="text-sm text-muted-foreground">Điểm trung bình</div>
               </div>
             </div>
           </CardContent>
@@ -360,7 +360,7 @@ export function StudentGradesClient() {
               <TrendingUp className="h-5 w-5 text-emerald-500" />
               <div>
                 <div className="text-2xl font-bold">{statistics.highestGrade.toFixed(1)}</div>
-                <div className="text-sm text-muted-foreground">Äiá»ƒm cao nháº¥t</div>
+                <div className="text-sm text-muted-foreground">Điểm cao nhất</div>
               </div>
             </div>
           </CardContent>
@@ -372,7 +372,7 @@ export function StudentGradesClient() {
               <TrendingDown className="h-5 w-5 text-red-500" />
               <div>
                 <div className="text-2xl font-bold">{statistics.lowestGrade > 0 ? statistics.lowestGrade.toFixed(1) : 'N/A'}</div>
-                <div className="text-sm text-muted-foreground">Äiá»ƒm tháº¥p nháº¥t</div>
+                <div className="text-sm text-muted-foreground">Điểm thấp nhất</div>
               </div>
             </div>
           </CardContent>
@@ -384,26 +384,26 @@ export function StudentGradesClient() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            PhÃ¢n bá»‘ Ä‘iá»ƒm sá»‘
+            Phân bố điểm số
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">{statistics.excellentCount}</div>
-              <div className="text-sm text-green-700">Xuáº¥t sáº¯c (â‰¥8.5)</div>
+              <div className="text-sm text-green-700">Xuất sắc (â‰¥8.5)</div>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">{statistics.goodCount}</div>
-              <div className="text-sm text-blue-700">KhÃ¡ (7.0-8.4)</div>
+              <div className="text-sm text-blue-700">Khá (7.0-8.4)</div>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">{statistics.averageCount}</div>
-              <div className="text-sm text-yellow-700">Trung bÃ¬nh (5.0-6.9)</div>
+              <div className="text-sm text-yellow-700">Trung bình (5.0-6.9)</div>
             </div>
             <div className="text-center p-4 bg-red-50 rounded-lg">
               <div className="text-2xl font-bold text-red-600">{statistics.belowAverageCount}</div>
-              <div className="text-sm text-red-700">Yáº¿u (&lt;5.0)</div>
+              <div className="text-sm text-red-700">Yếu (&lt;5.0)</div>
             </div>
           </div>
         </CardContent>
@@ -412,16 +412,16 @@ export function StudentGradesClient() {
       {/* Grades Data */}
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="summary">Tá»•ng há»£p Ä‘iá»ƒm</TabsTrigger>
-          <TabsTrigger value="detailed">Chi tiáº¿t Ä‘iá»ƒm</TabsTrigger>
+          <TabsTrigger value="summary">Tổng hợp điểm</TabsTrigger>
+          <TabsTrigger value="detailed">Chi tiết điểm</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary">
           <Card>
             <CardHeader>
-              <CardTitle>Tá»•ng há»£p Ä‘iá»ƒm theo mÃ´n há»c</CardTitle>
+              <CardTitle>Tổng hợp điểm theo môn học</CardTitle>
               <CardDescription>
-                Äiá»ƒm trung bÃ¬nh cá»§a tá»«ng mÃ´n há»c theo ká»³ bÃ¡o cÃ¡o
+                Điểm trung bình của từng môn học theo kỳ báo cáo
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -429,30 +429,30 @@ export function StudentGradesClient() {
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-muted-foreground">Äang táº£i tá»•ng há»£p Ä‘iá»ƒm...</p>
+                    <p className="text-muted-foreground">Đang tải tổng hợp điểm...</p>
                   </div>
                 </div>
               ) : filteredGradeSummary.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘</p>
+                  <p className="text-muted-foreground">Không có dữ liệu điểm số</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>MÃ´n há»c</TableHead>
-                      <TableHead>Ká»³ bÃ¡o cÃ¡o</TableHead>
-                      <TableHead>Sá»‘ Ä‘iá»ƒm</TableHead>
-                      <TableHead>Äiá»ƒm trung bÃ¬nh</TableHead>
-                      <TableHead>Xáº¿p loáº¡i</TableHead>
+                      <TableHead>Môn học</TableHead>
+                      <TableHead>Kỳ báo cáo</TableHead>
+                      <TableHead>Số điểm</TableHead>
+                      <TableHead>Điểm trung bình</TableHead>
+                      <TableHead>Xếp loại</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredGradeSummary.map((summary, index) => {
-                      const classification = summary.average >= 8.5 ? 'Xuáº¥t sáº¯c' :
-                                           summary.average >= 7.0 ? 'KhÃ¡' :
-                                           summary.average >= 5.0 ? 'Trung bÃ¬nh' : 'Yáº¿u'
+                      const classification = summary.average >= 8.5 ? 'Xuất sắc' :
+                                           summary.average >= 7.0 ? 'Khá' :
+                                           summary.average >= 5.0 ? 'Trung bình' : 'Yếu'
                       
                       return (
                         <TableRow key={index}>
@@ -469,9 +469,9 @@ export function StudentGradesClient() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={
-                              classification === 'Xuáº¥t sáº¯c' ? 'default' :
-                              classification === 'KhÃ¡' ? 'secondary' :
-                              classification === 'Trung bÃ¬nh' ? 'outline' : 'destructive'
+                              classification === 'Xuất sắc' ? 'default' :
+                              classification === 'Khá' ? 'secondary' :
+                              classification === 'Trung bình' ? 'outline' : 'destructive'
                             }>
                               {classification}
                             </Badge>
@@ -489,9 +489,9 @@ export function StudentGradesClient() {
         <TabsContent value="detailed">
           <Card>
             <CardHeader>
-              <CardTitle>Chi tiáº¿t Ä‘iá»ƒm sá»‘</CardTitle>
+              <CardTitle>Chi tiết điểm số</CardTitle>
               <CardDescription>
-                Táº¥t cáº£ Ä‘iá»ƒm sá»‘ chi tiáº¿t theo tá»«ng bÃ i kiá»ƒm tra
+                Tất cả điểm số chi tiết theo từng bài kiểm tra
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -499,24 +499,24 @@ export function StudentGradesClient() {
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-muted-foreground">Äang táº£i chi tiáº¿t Ä‘iá»ƒm...</p>
+                    <p className="text-muted-foreground">Đang tải chi tiết điểm...</p>
                   </div>
                 </div>
               ) : filteredGrades.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">KhÃ´ng cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘</p>
+                  <p className="text-muted-foreground">Không có dữ liệu điểm số</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>MÃ´n há»c</TableHead>
-                      <TableHead>Loáº¡i Ä‘iá»ƒm</TableHead>
-                      <TableHead>Äiá»ƒm sá»‘</TableHead>
-                      <TableHead>GiÃ¡o viÃªn</TableHead>
-                      <TableHead>NgÃ y nháº­p</TableHead>
-                      <TableHead>Ghi chÃº</TableHead>
+                      <TableHead>Môn học</TableHead>
+                      <TableHead>Loại điểm</TableHead>
+                      <TableHead>Điểm số</TableHead>
+                      <TableHead>Giáo viên</TableHead>
+                      <TableHead>Ngày nhập</TableHead>
+                      <TableHead>Ghi chú</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -537,7 +537,7 @@ export function StudentGradesClient() {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <User className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">ChÆ°a cÃ³ thÃ´ng tin</span>
+                            <span className="text-sm">Chưa có thông tin</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -550,7 +550,7 @@ export function StudentGradesClient() {
                         </TableCell>
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {grade.notes || 'KhÃ´ng cÃ³ ghi chÃº'}
+                            {grade.notes || 'Không có ghi chú'}
                           </span>
                         </TableCell>
                       </TableRow>

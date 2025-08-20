@@ -116,11 +116,11 @@ export default function ParentGradesClient() {
 
         setStudents(Array.from(studentMap.values()))
       } else {
-        toast.error(result.error || "KhÃ´ng thá»ƒ táº£i báº£ng Ä‘iá»ƒm")
+        toast.error(result.error || "Không thể tải bảng điểm")
         setStudents([])
       }
     } catch {
-      toast.error("CÃ³ lá»—i xáº£y ra khi táº£i báº£ng Ä‘iá»ƒm")
+      toast.error("Có lỗi xảy ra khi tải bảng điểm")
       setStudents([])
     } finally {
       setLoading(false)
@@ -160,9 +160,9 @@ export default function ParentGradesClient() {
       const filename = `BangDiem_${submission.student.student_id}_${submission.student.full_name}_${submission.semester.name}.xlsx`
 
       downloadExcelFile(excelBuffer, filename)
-      toast.success(`ÄÃ£ táº£i báº£ng Ä‘iá»ƒm cá»§a ${submission.student.full_name}`)
+      toast.success(`Đã tải bảng điểm của ${submission.student.full_name}`)
     } catch {
-      toast.error("CÃ³ lá»—i xáº£y ra khi táº£i file Excel")
+      toast.error("Có lỗi xảy ra khi tải file Excel")
     }
   }, [])
 
@@ -177,7 +177,7 @@ export default function ParentGradesClient() {
       return (
         <div className="flex items-center justify-center py-8">
           <LoadingSpinner size="lg" />
-          <span className="ml-2 text-muted-foreground">Äang táº£i danh sÃ¡ch há»c sinh...</span>
+          <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
         </div>
       )
     }
@@ -186,8 +186,8 @@ export default function ParentGradesClient() {
       return (
         <EmptyState
           icon={Users}
-          title="KhÃ´ng cÃ³ báº£ng Ä‘iá»ƒm"
-          description="ChÆ°a cÃ³ báº£ng Ä‘iá»ƒm nÃ o Ä‘Æ°á»£c gá»­i tá»« giÃ¡o viÃªn chá»§ nhiá»‡m"
+          title="Không có bảng điểm"
+          description="Chưa có bảng điểm nào được gửi từ giáo viên chủ nhiệm"
         />
       )
     }
@@ -196,11 +196,11 @@ export default function ParentGradesClient() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Há»c sinh</TableHead>
-            <TableHead>Lá»›p</TableHead>
-            <TableHead>Sá»‘ báº£ng Ä‘iá»ƒm</TableHead>
-            <TableHead>MÃ´n há»c</TableHead>
-            <TableHead className="text-right">Thao tÃ¡c</TableHead>
+            <TableHead>Học sinh</TableHead>
+            <TableHead>Lớp</TableHead>
+            <TableHead>Số bảng điểm</TableHead>
+            <TableHead>Môn học</TableHead>
+            <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -209,14 +209,14 @@ export default function ParentGradesClient() {
               <TableCell>
                 <div>
                   <div className="font-medium">{student.full_name}</div>
-                  <div className="text-sm text-gray-500">MÃ£ HS: {student.student_id}</div>
+                  <div className="text-sm text-gray-500">Mã HS: {student.student_id}</div>
                 </div>
               </TableCell>
               <TableCell>
                 <Badge variant="outline">{student.class_name}</Badge>
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">{student.submissions.length} báº£ng Ä‘iá»ƒm</Badge>
+                <Badge variant="secondary">{student.submissions.length} bảng điểm</Badge>
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1">
@@ -270,8 +270,8 @@ export default function ParentGradesClient() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Báº£ng Ä‘iá»ƒm con em</h1>
-          <p className="text-gray-600">Xem báº£ng Ä‘iá»ƒm cÃ¡c con Ä‘Æ°á»£c gá»­i tá»« giÃ¡o viÃªn chá»§ nhiá»‡m</p>
+          <h1 className="text-2xl font-bold">Bảng điểm con em</h1>
+          <p className="text-gray-600">Xem bảng điểm các con được gửi từ giáo viên chủ nhiệm</p>
         </div>
       </div>
 
@@ -282,7 +282,7 @@ export default function ParentGradesClient() {
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Há»c sinh</p>
+                <p className="text-sm font-medium text-muted-foreground">Học sinh</p>
                 <p className="text-2xl font-bold">{students.length}</p>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function ParentGradesClient() {
             <div className="flex items-center space-x-2">
               <FileText className="h-5 w-5 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Báº£ng Ä‘iá»ƒm</p>
+                <p className="text-sm font-medium text-muted-foreground">Bảng điểm</p>
                 <p className="text-2xl font-bold">{submissions.length}</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ export default function ParentGradesClient() {
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-purple-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Tá»•ng Ä‘iá»ƒm</p>
+                <p className="text-sm font-medium text-muted-foreground">Tổng điểm</p>
                 <p className="text-2xl font-bold">
                   {students.reduce((sum, student) => sum + student.total_grades, 0)}
                 </p>
@@ -319,9 +319,9 @@ export default function ParentGradesClient() {
       {/* Students List */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sÃ¡ch há»c sinh</CardTitle>
+          <CardTitle>Danh sách học sinh</CardTitle>
           <CardDescription>
-            Hiá»ƒn thá»‹ {students.length} há»c sinh
+            Hiển thị {students.length} học sinh
           </CardDescription>
         </CardHeader>
         <CardContent>

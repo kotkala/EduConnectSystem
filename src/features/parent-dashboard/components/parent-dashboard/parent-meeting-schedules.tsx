@@ -53,14 +53,14 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       if (schedulesResult.success && schedulesResult.data) {
         setMeetingSchedules(schedulesResult.data)
       } else {
-        toast.error(schedulesResult.error || 'KhÃ´ng thá»ƒ táº£i lá»‹ch há»p')
+        toast.error(schedulesResult.error || 'Không thể tải lịch họp')
       }
 
       if (countResult.success && countResult.data) {
         setUnreadCount(countResult.data.count)
       }
     } catch {
-      toast.error('Lá»—i khi táº£i lá»‹ch há»p')
+      toast.error('Lỗi khi tải lịch họp')
     } finally {
       setIsLoading(false)
     }
@@ -119,10 +119,10 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
 
   const getMeetingTypeLabel = useCallback((type: string) => {
     switch (type) {
-      case 'parent_meeting': return 'Há»p Phá»¥ Huynh'
-      case 'class_meeting': return 'Há»p Lá»›p'
-      case 'individual_meeting': return 'Há»p CÃ¡ NhÃ¢n'
-      default: return 'Cuá»™c Há»p'
+      case 'parent_meeting': return 'Họp Phụ Huynh'
+      case 'class_meeting': return 'Họp Lớp'
+      case 'individual_meeting': return 'Họp Cá Nhân'
+      default: return 'Cuộc Họp'
     }
   }, [])
 
@@ -146,7 +146,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       return (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Äang táº£i lá»‹ch há»p...</span>
+          <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
     }
@@ -156,9 +156,9 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Calendar className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">ChÆ°a cÃ³ lá»‹ch há»p</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lịch họp</h3>
             <p className="text-gray-600 text-center">
-              Báº¡n chÆ°a nháº­n Ä‘Æ°á»£c lá»‹ch há»p nÃ o tá»« giÃ¡o viÃªn chá»§ nhiá»‡m
+              Bạn chưa nhận được lịch họp nào từ giáo viên chủ nhiệm
             </p>
           </CardContent>
         </Card>
@@ -176,12 +176,12 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                     <h3 className="font-semibold text-lg">{meeting.title}</h3>
                     {!meeting.is_read && (
                       <Badge variant="default" className="text-xs">
-                        Má»›i
+                        Mới
                       </Badge>
                     )}
                     {meeting.isUpcoming && (
                       <Badge variant="secondary" className="text-xs">
-                        Sáº¯p diá»…n ra
+                        Sắp diễn ra
                       </Badge>
                     )}
                   </div>
@@ -228,7 +228,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   className="ml-4"
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  Xem chi tiáº¿t
+                  Xem chi tiết
                 </Button>
               </div>
             </CardContent>
@@ -246,7 +246,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
         className="relative"
       >
         <Calendar className="mr-2 h-4 w-4" />
-        Lá»‹ch há»p phá»¥ huynh
+        Lịch họp phụ huynh
         {unreadCount > 0 && (
           <Badge variant="destructive" className="ml-2 px-1 py-0 text-xs">
             {unreadCount}
@@ -261,14 +261,14 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Lá»‹ch Há»p Phá»¥ Huynh</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Lịch Họp Phụ Huynh</h2>
           <p className="text-muted-foreground">
-            Xem lá»‹ch há»p tá»« giÃ¡o viÃªn chá»§ nhiá»‡m
+            Xem lịch họp từ giáo viên chủ nhiệm
           </p>
         </div>
         <Button onClick={loadMeetingSchedules} disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          LÃ m má»›i
+          Làm mới
         </Button>
       </div>
 
@@ -281,10 +281,10 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Chi Tiáº¿t Lá»‹ch Há»p
+              Chi Tiết Lịch Họp
             </DialogTitle>
             <DialogDescription>
-              ThÃ´ng tin chi tiáº¿t vá» cuá»™c há»p phá»¥ huynh
+              Thông tin chi tiết về cuộc họp phụ huynh
             </DialogDescription>
           </DialogHeader>
 
@@ -297,7 +297,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   {selectedMeeting.is_read && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" />
-                      ÄÃ£ Ä‘á»c
+                      Đã đọc
                     </Badge>
                   )}
                 </div>
@@ -308,14 +308,14 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium">Thá»i gian</p>
+                      <p className="text-sm font-medium">Thời gian</p>
                       <p className="text-sm text-muted-foreground">{formatDateTime(selectedMeeting.meeting_date)}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-green-600" />
                     <div>
-                      <p className="text-sm font-medium">Thá»i lÆ°á»£ng</p>
+                      <p className="text-sm font-medium">Thời lượng</p>
                       <p className="text-sm text-muted-foreground">{formatDuration(selectedMeeting.duration_minutes)}</p>
                     </div>
                   </div>
@@ -325,14 +325,14 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-purple-600" />
                     <div>
-                      <p className="text-sm font-medium">GiÃ¡o viÃªn chá»§ nhiá»‡m</p>
+                      <p className="text-sm font-medium">Giáo viên chủ nhiệm</p>
                       <p className="text-sm text-muted-foreground">{selectedMeeting.teacher_name}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-orange-600" />
                     <div>
-                      <p className="text-sm font-medium">Lá»›p</p>
+                      <p className="text-sm font-medium">Lớp</p>
                       <p className="text-sm text-muted-foreground">{selectedMeeting.class_name}</p>
                     </div>
                   </div>
@@ -343,7 +343,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-red-600" />
                   <div>
-                    <p className="text-sm font-medium">Äá»‹a Ä‘iá»ƒm</p>
+                    <p className="text-sm font-medium">Địa điểm</p>
                     <p className="text-sm text-muted-foreground">{selectedMeeting.meeting_location}</p>
                   </div>
                 </div>
@@ -351,7 +351,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
 
               {selectedMeeting.description && (
                 <div>
-                  <p className="text-sm font-medium mb-2">MÃ´ táº£ cuá»™c há»p</p>
+                  <p className="text-sm font-medium mb-2">Mô tả cuộc họp</p>
                   <div className="bg-gray-50 rounded-md p-3">
                     <p className="text-sm">{selectedMeeting.description}</p>
                   </div>
@@ -362,7 +362,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              ÄÃ³ng
+              Đóng
             </Button>
           </DialogFooter>
         </DialogContent>

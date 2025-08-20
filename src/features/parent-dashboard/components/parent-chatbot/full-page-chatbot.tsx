@@ -65,7 +65,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
     {
       id: '1',
       role: 'assistant',
-      content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+      content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
       timestamp: new Date()
     }
   ])
@@ -155,7 +155,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
 
     const result = await createConversation({
       parent_id: user.id,
-      title: 'Cuá»™c trÃ² chuyá»‡n má»›i'
+      title: 'Cuộc trò chuyện mới'
     })
 
     if (result.success && result.data) {
@@ -163,7 +163,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
       setMessages([{
         id: '1',
         role: 'assistant',
-        content: 'Xin chÃ o! TÃ´i lÃ  trá»£ lÃ½ AI cá»§a báº¡n. TÃ´i cÃ³ thá»ƒ giÃºp báº¡n theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em. HÃ£y há»i tÃ´i vá» Ä‘iá»ƒm sá»‘, pháº£n há»“i tá»« giÃ¡o viÃªn, hoáº·c báº¥t ká»³ tháº¯c máº¯c nÃ o vá» viá»‡c há»c cá»§a con báº¡n.',
+        content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
         timestamp: new Date()
       }])
     }
@@ -171,12 +171,12 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
 
   // Memoized suggested prompts for performance
   const suggestedPrompts = useMemo(() => [
-    "Äiá»ƒm sá»‘ gáº§n Ä‘Ã¢y cá»§a con em nhÆ° tháº¿ nÃ o?",
-    "Con em cÃ³ cáº§n cáº£i thiá»‡n mÃ´n nÃ o khÃ´ng?",
-    "Pháº£n há»“i tá»« giÃ¡o viÃªn tuáº§n nÃ y ra sao?",
-    "Con em cÃ³ tiáº¿n bá»™ gÃ¬ Ä‘Ã¡ng chÃº Ã½ khÃ´ng?",
-    "MÃ´n nÃ o con em há»c tá»‘t nháº¥t?",
-    "TÃ´i nÃªn há»— trá»£ con em há»c táº­p nhÆ° tháº¿ nÃ o?"
+    "Điểm số gần đây của con em như thế nào?",
+    "Con em có cần cải thiện môn nào không?",
+    "Phản hồi từ giáo viên tuần này ra sao?",
+    "Con em có tiến bộ gì đáng chú ý không?",
+    "Môn nào con em học tốt nhất?",
+    "Tôi nên hỗ trợ con em học tập như thế nào?"
   ], [])
 
   return (
@@ -204,10 +204,10 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Bot className="h-6 w-6 text-blue-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Trá»£ LÃ½ AI EduConnect</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Trợ Lý AI EduConnect</h2>
               </div>
               <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
-                â— Äang hoáº¡t Ä‘á»™ng
+                â— Đang hoạt động
               </Badge>
             </div>
 
@@ -224,7 +224,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
           {/* Suggested Prompts */}
           {messages.length === 1 && (
             <div className="p-6 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">ðŸ’¡ Gá»£i Ã½ cÃ¢u há»i:</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">ðŸ’¡ Gợi ý câu hỏi:</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {suggestedPrompts.map((prompt, index) => (
                   <Button
@@ -250,7 +250,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="text-sm font-medium text-gray-900">
-                        {message.role === 'user' ? 'Báº¡n' : 'EduConnect AI'}
+                        {message.role === 'user' ? 'Bạn' : 'EduConnect AI'}
                       </span>
                       <span className="text-xs text-gray-500">
                         {formatTime(message.timestamp)}
@@ -271,7 +271,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                       <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="flex items-center space-x-2 text-xs text-blue-700">
                           <Sparkles className="h-3 w-3" />
-                          <span>Dá»±a trÃªn {message.contextUsed.feedbackCount} pháº£n há»“i, {message.contextUsed.gradesCount} Ä‘iá»ƒm sá»‘</span>
+                          <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số</span>
                         </div>
                       </div>
                     )}
@@ -281,7 +281,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                       <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
                         <div className="flex items-center space-x-2 text-xs text-green-700">
                           <Gauge className="h-3 w-3" />
-                          <span>Äá»™ máº¡nh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
+                          <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
                           <div className="flex-1 bg-gray-200 rounded-full h-1.5 ml-2">
                             <div
                               className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
@@ -347,7 +347,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-gray-600">Äang tráº£ lá»i...</span>
+                    <span className="text-sm text-gray-600">Đang trả lời...</span>
                   </div>
                 </div>
               </div>
@@ -365,7 +365,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => handleKeyPress(e, sendMessage)}
-                  placeholder="Há»i vá» tÃ¬nh hÃ¬nh há»c táº­p cá»§a con em..."
+                  placeholder="Hỏi về tình hình học tập của con em..."
                   disabled={isLoading || isStreaming}
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500"
                 />
@@ -385,12 +385,12 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
         <div className="w-80 bg-gray-50 border-l border-gray-200 p-6">
           <div className="space-y-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">âš™ï¸ CÃ€I Äáº¶T HIá»‚N THá»Š</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">âš™ï¸ CÀI ĐẶT HIỂN THỊ</h3>
 
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="font-size-slider" className="text-xs font-medium text-gray-600">KÃ­ch cá»¡ chá»¯</label>
+                    <label htmlFor="font-size-slider" className="text-xs font-medium text-gray-600">Kích cỡ chữ</label>
                     <span className="text-xs text-gray-600">{fontSize[0]}px</span>
                   </div>
                   <Slider
@@ -403,16 +403,16 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                     className="w-full"
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Nhá»</span>
-                    <span>Vá»«a</span>
-                    <span>Lá»›n</span>
+                    <span>Nhỏ</span>
+                    <span>Vừa</span>
+                    <span>Lớn</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ“‹ THÃ”NG TIN</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ“‹ THÔNG TIN</h3>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <div className="space-y-2 text-xs text-gray-600">
                   <div className="flex justify-between">
@@ -420,44 +420,44 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                     <span className="font-medium">EduConnect AI</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>PhiÃªn báº£n:</span>
+                    <span>Phiên bản:</span>
                     <span className="font-medium">2.0</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tráº¡ng thÃ¡i:</span>
-                    <span className="font-medium text-green-600">â— Hoáº¡t Ä‘á»™ng</span>
+                    <span>Trạng thái:</span>
+                    <span className="font-medium text-green-600">â— Hoạt động</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ’¡ HÆ¯á»šNG DáºªN</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ’¡ HƯỚNG DẪN</h3>
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <div className="space-y-2 text-xs text-blue-700">
-                  <p>â€¢ Há»i vá» Ä‘iá»ƒm sá»‘ vÃ  thÃ nh tÃ­ch há»c táº­p</p>
-                  <p>â€¢ Xem pháº£n há»“i tá»« giÃ¡o viÃªn</p>
-                  <p>â€¢ Theo dÃµi tiáº¿n bá»™ cá»§a con em</p>
-                  <p>â€¢ Nháº­n tÆ° váº¥n há»— trá»£ há»c táº­p</p>
+                  <p>â€¢ Hỏi về điểm số và thành tích học tập</p>
+                  <p>â€¢ Xem phản hồi từ giáo viên</p>
+                  <p>â€¢ Theo dõi tiến bộ của con em</p>
+                  <p>â€¢ Nhận tư vấn hỗ trợ học tập</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">âš ï¸ LÆ¯U Ã QUAN TRá»ŒNG</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">âš ï¸ LƯU Ý QUAN TRỌNG</h3>
               <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                 <div className="space-y-2 text-xs text-yellow-800">
                   <div className="flex items-start space-x-2">
                     <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">ThÃ´ng tin tham kháº£o:</p>
-                      <p>AI cung cáº¥p thÃ´ng tin dá»±a trÃªn dá»¯ liá»‡u cÃ³ sáºµn. Vui lÃ²ng liÃªn há»‡ trá»±c tiáº¿p vá»›i giÃ¡o viÃªn Ä‘á»ƒ cÃ³ thÃ´ng tin chÃ­nh xÃ¡c nháº¥t.</p>
+                      <p className="font-medium">Thông tin tham khảo:</p>
+                      <p>AI cung cấp thông tin dựa trên dữ liệu có sẵn. Vui lòng liên hệ trực tiếp với giáo viên để có thông tin chính xác nhất.</p>
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-yellow-200">
-                    <p className="text-xs">â€¢ Dá»¯ liá»‡u Ä‘Æ°á»£c cáº­p nháº­t Ä‘á»‹nh ká»³</p>
-                    <p className="text-xs">â€¢ Pháº£n há»“i cá»§a báº¡n giÃºp cáº£i thiá»‡n AI</p>
-                    <p className="text-xs">â€¢ Báº£o máº­t thÃ´ng tin Ä‘Æ°á»£c Ä‘áº£m báº£o</p>
+                    <p className="text-xs">â€¢ Dữ liệu được cập nhật định kỳ</p>
+                    <p className="text-xs">â€¢ Phản hồi của bạn giúp cải thiện AI</p>
+                    <p className="text-xs">â€¢ Bảo mật thông tin được đảm bảo</p>
                   </div>
                 </div>
               </div>

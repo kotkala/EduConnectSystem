@@ -66,10 +66,10 @@ export default function AcademicManagementPage() {
         setAcademicYearsTotal(result.total)
         setAcademicYearsPage(result.page || 1)
       } else {
-        setAcademicYearsError(result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch niÃªn khÃ³a")
+        setAcademicYearsError(result.error || "Không thể tải danh sách niên khóa")
       }
     } catch (err) {
-      setAcademicYearsError(err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch niÃªn khÃ³a")
+      setAcademicYearsError(err instanceof Error ? err.message : "Không thể tải danh sách niên khóa")
     } finally {
       setAcademicYearsLoading(false)
     }
@@ -87,10 +87,10 @@ export default function AcademicManagementPage() {
         setSemestersTotal(result.total)
         setSemestersPage(result.page || 1)
       } else {
-        setSemestersError(result.error || "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c ká»³")
+        setSemestersError(result.error || "Không thể tải danh sách học kỳ")
       }
     } catch (err) {
-      setSemestersError(err instanceof Error ? err.message : "KhÃ´ng thá»ƒ táº£i danh sÃ¡ch há»c ká»³")
+      setSemestersError(err instanceof Error ? err.message : "Không thể tải danh sách học kỳ")
     }
   }, [semestersFilters])
 
@@ -178,10 +178,10 @@ export default function AcademicManagementPage() {
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Tá»« chá»‘i truy cáº­p</h2>
-          <p className="text-gray-600">Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p khu vá»±c NiÃªn khÃ³a.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập khu vực Niên khóa.</p>
           <Button onClick={() => router.push('/dashboard/admin')}>
-            Quay láº¡i trang tá»•ng quan
+            Quay lại trang tổng quan
           </Button>
         </div>
       </div>
@@ -204,9 +204,9 @@ export default function AcademicManagementPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ niÃªn khÃ³a</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý niên khóa</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ nÄƒm há»c vÃ  há»c ká»³
+            Quản lý năm học và học kỳ
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
@@ -216,16 +216,16 @@ export default function AcademicManagementPage() {
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">ThÃªm há»c ká»³</span>
-            <span className="sm:hidden">Há»c ká»³</span>
+            <span className="hidden sm:inline">Thêm học kỳ</span>
+            <span className="sm:hidden">Học kỳ</span>
           </Button>
           <Button
             onClick={() => setShowCreateAcademicYearDialog(true)}
             className="w-full sm:w-auto"
           >
             <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">ThÃªm nÄƒm há»c</span>
-            <span className="sm:hidden">NÄƒm há»c</span>
+            <span className="hidden sm:inline">Thêm năm học</span>
+            <span className="sm:hidden">Năm học</span>
           </Button>
         </div>
       </div>
@@ -234,56 +234,56 @@ export default function AcademicManagementPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">NÄƒm há»c hiá»‡n táº¡i</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Năm học hiện tại</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">
-              {currentAcademicYear?.name || "KhÃ´ng cÃ³"}
+              {currentAcademicYear?.name || "Không có"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {currentAcademicYear ? "Äang Ã¡p dá»¥ng" : "ChÆ°a cÃ³ nÄƒm há»c hoáº¡t Ä‘á»™ng"}
+              {currentAcademicYear ? "Đang áp dụng" : "Chưa có năm học hoạt động"}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Há»c ká»³ hiá»‡n táº¡i</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Học kỳ hiện tại</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">
-              {currentSemester?.name || "KhÃ´ng cÃ³"}
+              {currentSemester?.name || "Không có"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {currentSemester ? `${currentSemester.weeks_count} tuáº§n` : "ChÆ°a cÃ³ há»c ká»³ hoáº¡t Ä‘á»™ng"}
+              {currentSemester ? `${currentSemester.weeks_count} tuần` : "Chưa có học kỳ hoạt động"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»‘ nÄƒm há»c</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng số năm học</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{academicYearsTotal}</div>
             <p className="text-xs text-muted-foreground">
-              Táº¥t cáº£ nÄƒm há»c
+              Tất cả năm học
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Tá»•ng sá»‘ há»c ká»³</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Tổng số học kỳ</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{totalSemesters}</div>
             <p className="text-xs text-muted-foreground">
-              Táº¥t cáº£ há»c ká»³
+              Tất cả học kỳ
             </p>
           </CardContent>
         </Card>
@@ -292,8 +292,8 @@ export default function AcademicManagementPage() {
       {/* Tabs for Academic Years and Semesters */}
       <Tabs defaultValue="academic-years" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="academic-years">NÄƒm há»c</TabsTrigger>
-          <TabsTrigger value="semesters">Há»c ká»³</TabsTrigger>
+          <TabsTrigger value="academic-years">Năm học</TabsTrigger>
+          <TabsTrigger value="semesters">Học kỳ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="academic-years" className="space-y-4">
@@ -339,7 +339,7 @@ export default function AcademicManagementPage() {
       <Dialog open={showCreateAcademicYearDialog} onOpenChange={setShowCreateAcademicYearDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">ThÃªm nÄƒm há»c má»›i</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Thêm năm học mới</DialogTitle>
           </DialogHeader>
           <AcademicYearForm
             onSuccess={handleCreateAcademicYearSuccess}
@@ -352,7 +352,7 @@ export default function AcademicManagementPage() {
       <Dialog open={showEditAcademicYearDialog} onOpenChange={setShowEditAcademicYearDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Chá»‰nh sá»­a nÄƒm há»c</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Chỉnh sửa năm học</DialogTitle>
           </DialogHeader>
           {editingAcademicYear && (
             <AcademicYearForm
@@ -371,7 +371,7 @@ export default function AcademicManagementPage() {
       <Dialog open={showCreateSemesterDialog} onOpenChange={setShowCreateSemesterDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">ThÃªm há»c ká»³ má»›i</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Thêm học kỳ mới</DialogTitle>
           </DialogHeader>
           <SemesterForm
             onSuccess={handleCreateSemesterSuccess}
@@ -384,7 +384,7 @@ export default function AcademicManagementPage() {
       <Dialog open={showEditSemesterDialog} onOpenChange={setShowEditSemesterDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Chá»‰nh sá»­a há»c ká»³</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Chỉnh sửa học kỳ</DialogTitle>
           </DialogHeader>
           {editingSemester && (
             <SemesterForm

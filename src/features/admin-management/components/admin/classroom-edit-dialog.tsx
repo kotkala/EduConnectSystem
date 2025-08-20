@@ -70,15 +70,15 @@ export function ClassroomEditDialog({
       })
 
       if (result.success) {
-        toast.success("ÄÃ£ cáº­p nháº­t phÃ²ng há»c thÃ nh cÃ´ng")
+        toast.success("Đã cập nhật phòng học thành công")
         onSuccess()
         onOpenChange(false)
       } else {
-        toast.error(result.error || "Cáº­p nháº­t tháº¥t báº¡i")
+        toast.error(result.error || "Cập nhật thất bại")
       }
     } catch (error) {
-      console.error('Lá»—i cáº­p nháº­t:', error)
-      toast.error("CÃ³ lá»—i xáº£y ra khi cáº­p nháº­t")
+      console.error('Lỗi cập nhật:', error)
+      toast.error("Có lỗi xảy ra khi cập nhật")
     } finally {
       setIsLoading(false)
     }
@@ -88,37 +88,37 @@ export function ClassroomEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Chá»‰nh sá»­a phÃ²ng há»c</DialogTitle>
+          <DialogTitle>Chỉnh sửa phòng học</DialogTitle>
           <DialogDescription>
-            Cáº­p nháº­t thÃ´ng tin phÃ²ng há»c
+            Cập nhật thông tin phòng học
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="name">TÃªn phÃ²ng há»c</Label>
+              <Label htmlFor="name">Tên phòng học</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Nháº­p tÃªn phÃ²ng há»c"
+                placeholder="Nhập tên phòng học"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="building">TÃ²a nhÃ </Label>
+              <Label htmlFor="building">Tòa nhà</Label>
               <Input
                 id="building"
                 value={formData.building}
                 onChange={(e) => setFormData(prev => ({ ...prev, building: e.target.value }))}
-                placeholder="Nháº­p tÃªn tÃ²a nhÃ "
+                placeholder="Nhập tên tòa nhà"
               />
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="floor">Táº§ng</Label>
+              <Label htmlFor="floor">Tầng</Label>
               <Input
                 id="floor"
                 type="number"
@@ -129,7 +129,7 @@ export function ClassroomEditDialog({
               />
             </div>
             <div>
-              <Label htmlFor="room_type">Loáº¡i phÃ²ng</Label>
+              <Label htmlFor="room_type">Loại phòng</Label>
               <Select
                 value={formData.room_type}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, room_type: value }))}
@@ -147,7 +147,7 @@ export function ClassroomEditDialog({
               </Select>
             </div>
             <div>
-              <Label htmlFor="capacity">Sá»©c chá»©a</Label>
+              <Label htmlFor="capacity">Sức chứa</Label>
               <Input
                 id="capacity"
                 type="number"
@@ -161,27 +161,27 @@ export function ClassroomEditDialog({
           </div>
 
           <div>
-            <Label htmlFor="equipment">Thiáº¿t bá»‹ (phÃ¢n cÃ¡ch báº±ng dáº¥u pháº©y)</Label>
+            <Label htmlFor="equipment">Thiết bị (phân cách bằng dấu phẩy)</Label>
             <Input
               id="equipment"
               value={formData.equipment}
               onChange={(e) => setFormData(prev => ({ ...prev, equipment: e.target.value }))}
-              placeholder="MÃ¡y chiáº¿u, Báº£ng thÃ´ng minh, MÃ¡y tÃ­nh..."
+              placeholder="Máy chiếu, Bảng thông minh, Máy tính..."
             />
           </div>
 
           <div className="flex items-center gap-2">
             <Badge variant={classroom?.is_active ? "default" : "secondary"}>
-              {classroom?.is_active ? "Hoáº¡t Ä‘á»™ng" : "KhÃ´ng hoáº¡t Ä‘á»™ng"}
+              {classroom?.is_active ? "Hoạt động" : "Không hoạt động"}
             </Badge>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Há»§y
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Äang cáº­p nháº­t..." : "Cáº­p nháº­t"}
+              {isLoading ? "Đang cập nhật..." : "Cập nhật"}
             </Button>
           </DialogFooter>
         </form>

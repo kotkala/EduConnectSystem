@@ -26,7 +26,7 @@ export async function saveAIFeedbackAction(request: SaveAIFeedbackRequest): Prom
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify user is a teacher
@@ -37,7 +37,7 @@ export async function saveAIFeedbackAction(request: SaveAIFeedbackRequest): Prom
       .single()
 
     if (!profile || profile.role !== 'teacher') {
-      throw new Error("Tá»« chá»‘i truy cáº­p. YÃªu cáº§u vai trÃ² giÃ¡o viÃªn.")
+      throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
     // Get submission details to verify teacher access
@@ -58,13 +58,13 @@ export async function saveAIFeedbackAction(request: SaveAIFeedbackRequest): Prom
       .single()
 
     if (submissionError || !submission) {
-      throw new Error("KhÃ´ng tÃ¬m tháº¥y bÃ i ná»™p hoáº·c bá»‹ tá»« chá»‘i truy cáº­p")
+      throw new Error("Không tìm thấy bài nộp hoặc bị từ chối truy cập")
     }
 
     // Verify teacher is the homeroom teacher for this class
     const classData = submission.classes as unknown as { homeroom_teacher_id: string }
     if (classData.homeroom_teacher_id !== user.id) {
-      throw new Error("Tá»« chá»‘i truy cáº­p. Báº¡n khÃ´ng pháº£i lÃ  giÃ¡o viÃªn chá»§ nhiá»‡m cá»§a lá»›p nÃ y.")
+      throw new Error("Từ chối truy cập. Bạn không phải là giáo viên chủ nhiệm của lớp này.")
     }
 
     // Find a timetable event for this teacher and class to satisfy the NOT NULL constraint
@@ -134,7 +134,7 @@ export async function sendAIFeedbackToParentsAction(request: SendFeedbackToParen
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Verify the feedback exists and belongs to the teacher
@@ -149,7 +149,7 @@ export async function sendAIFeedbackToParentsAction(request: SendFeedbackToParen
     if (!feedback) {
       return {
         success: false,
-        error: "KhÃ´ng tÃ¬m tháº¥y pháº£n há»“i hoáº·c bá»‹ tá»« chá»‘i truy cáº­p"
+        error: "Không tìm thấy phản hồi hoặc bị từ chối truy cập"
       }
     }
 
@@ -242,7 +242,7 @@ export async function getAIFeedbackAction(submissionId: string, studentId: strin
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      throw new Error("YÃªu cáº§u xÃ¡c thá»±c")
+      throw new Error("Yêu cầu xác thực")
     }
 
     // Get existing AI feedback for this submission
@@ -296,7 +296,7 @@ export async function getAIFeedbackAction(submissionId: string, studentId: strin
     console.error("Get AI feedback error:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "KhÃ´ng thá»ƒ láº¥y pháº£n há»“i AI"
+      error: error instanceof Error ? error.message : "Không thể lấy phản hồi AI"
     }
   }
 }

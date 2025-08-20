@@ -49,7 +49,7 @@ export default async function DashboardLayout({
             <SidebarInset>
               <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
                 <SidebarTrigger className="-ml-1" />
-                <h1 className="text-lg sm:text-xl font-semibold truncate">Báº£ng Ä‘iá»u khiá»ƒn</h1>
+                <h1 className="text-lg sm:text-xl font-semibold truncate">Bảng điều khiển</h1>
                 <div className="ml-auto">
                   <AcademicYearSelector />
                 </div>
@@ -66,7 +66,7 @@ export default async function DashboardLayout({
           <SidebarInset>
             <header className="flex h-14 sm:h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
               <SidebarTrigger className="-ml-1" />
-              <h1 className="text-lg sm:text-xl font-semibold truncate">Báº£ng Ä‘iá»u khiá»ƒn</h1>
+              <h1 className="text-lg sm:text-xl font-semibold truncate">Bảng điều khiển</h1>
             </header>
             <main className="flex-1 overflow-auto">
               {children}

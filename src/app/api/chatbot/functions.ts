@@ -1122,7 +1122,7 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
     if (!gradeSubmissions || gradeSubmissions.length === 0) {
       return {
         studentName: (student as any).profiles?.full_name || studentName,
-        message: 'ChÆ°a cÃ³ báº£ng Ä‘iá»ƒm chÃ­nh thá»©c nÃ o Ä‘Æ°á»£c gá»­i tá»« nhÃ  trÆ°á»ng.',
+        message: 'Chưa có bảng điểm chính thức nào được gửi từ nhà trường.',
         gradeSubmissions: []
       }
     }
@@ -1227,11 +1227,11 @@ function processHomeroomTeacher(classAssignment: any, teacherType: string) {
       className: classAssignment.classes[0].name,
       academicYear: classAssignment.classes[0].academic_year?.[0]?.name,
       semester: classAssignment.classes[0].semester?.[0]?.name,
-      role: 'GiÃ¡o viÃªn chá»§ nhiá»‡m'
+      role: 'Giáo viên chủ nhiệm'
     }
   } else {
     return {
-      message: 'ChÆ°a cÃ³ thÃ´ng tin giÃ¡o viÃªn chá»§ nhiá»‡m'
+      message: 'Chưa có thông tin giáo viên chủ nhiệm'
     }
   }
 }
@@ -1265,7 +1265,7 @@ async function processSubjectTeachers(supabase: Awaited<ReturnType<typeof create
   if (!teacherAssignments || teacherAssignments.length === 0) {
     return {
       subjectTeachers: [],
-      message: 'ChÆ°a cÃ³ thÃ´ng tin phÃ¢n cÃ´ng giÃ¡o viÃªn bá»™ mÃ´n'
+      message: 'Chưa có thông tin phân công giáo viên bộ môn'
     }
   }
 
@@ -1277,12 +1277,12 @@ async function processSubjectTeachers(supabase: Awaited<ReturnType<typeof create
     subjectName: assignment.subject?.name_vietnamese,
     subjectCategory: assignment.subject?.category,
     className: assignment.class?.name,
-    role: 'GiÃ¡o viÃªn bá»™ mÃ´n'
+    role: 'Giáo viên bộ môn'
   }))
 
   // Group by subject category for better organization
   const teachersByCategory = teacherAssignments.reduce((acc: Record<string, any[]>, assignment: any) => {
-    const category = assignment.subject?.category || 'KhÃ¡c'
+    const category = assignment.subject?.category || 'Khác'
     if (!acc[category]) acc[category] = []
     acc[category].push({
       teacherName: assignment.teacher?.full_name,
@@ -1306,7 +1306,7 @@ function buildContactSummary(homeroomTeacher: any, subjectTeachers: any[]) {
     allTeachers.push({
       name: homeroomTeacher.name,
       email: homeroomTeacher.email,
-      role: 'GiÃ¡o viÃªn chá»§ nhiá»‡m',
+      role: 'Giáo viên chủ nhiệm',
       priority: 'high'
     })
   }
@@ -1316,7 +1316,7 @@ function buildContactSummary(homeroomTeacher: any, subjectTeachers: any[]) {
       allTeachers.push({
         name: teacher.teacherName,
         email: teacher.teacherEmail,
-        role: `GiÃ¡o viÃªn ${teacher.subjectName}`,
+        role: `Giáo viên ${teacher.subjectName}`,
         priority: 'normal'
       })
     })
@@ -1325,7 +1325,7 @@ function buildContactSummary(homeroomTeacher: any, subjectTeachers: any[]) {
   return {
     totalTeachers: allTeachers.length,
     teachers: allTeachers,
-    note: 'LiÃªn há»‡ giÃ¡o viÃªn chá»§ nhiá»‡m cho cÃ¡c váº¥n Ä‘á» chung, giÃ¡o viÃªn bá»™ mÃ´n cho cÃ¡c váº¥n Ä‘á» cá»¥ thá»ƒ vá» mÃ´n há»c'
+    note: 'Liên hệ giáo viên chủ nhiệm cho các vấn đề chung, giáo viên bộ môn cho các vấn đề cụ thể về môn học'
   }
 }
 
@@ -1403,135 +1403,135 @@ async function getWebsiteUsageGuide(_supabase: Awaited<ReturnType<typeof createC
 
   const guides = {
     overview: {
-      title: 'HÆ°á»›ng dáº«n sá»­ dá»¥ng Cá»•ng thÃ´ng tin Phá»¥ huynh',
-      description: 'Cá»•ng thÃ´ng tin giÃºp phá»¥ huynh theo dÃµi tÃ¬nh hÃ¬nh há»c táº­p vÃ  sinh hoáº¡t cá»§a con em',
+      title: 'Hướng dẫn sử dụng Cổng thông tin Phụ huynh',
+      description: 'Cổng thông tin giúp phụ huynh theo dõi tình hình học tập và sinh hoạt của con em',
       mainFeatures: [
-        'Xem báº£ng Ä‘iá»ƒm vÃ  káº¿t quáº£ há»c táº­p',
-        'Nháº­n pháº£n há»“i tá»« giÃ¡o viÃªn',
-        'Theo dÃµi thÃ´ng bÃ¡o tá»« nhÃ  trÆ°á»ng',
-        'ÄÄƒng kÃ½ lá»‹ch háº¹n vá»›i giÃ¡o viÃªn',
-        'Xem vi pháº¡m vÃ  khen thÆ°á»Ÿng',
-        'Ná»™p Ä‘Æ¡n xin nghá»‰ há»c',
-        'Chat vá»›i AI há»— trá»£'
+        'Xem bảng điểm và kết quả học tập',
+        'Nhận phản hồi từ giáo viên',
+        'Theo dõi thông báo từ nhà trường',
+        'Đăng ký lịch hẹn với giáo viên',
+        'Xem vi phạm và khen thưởng',
+        'Nộp đơn xin nghỉ học',
+        'Chat với AI hỗ trợ'
       ]
     },
     grades: {
-      title: 'Xem báº£ng Ä‘iá»ƒm vÃ  káº¿t quáº£ há»c táº­p',
+      title: 'Xem bảng điểm và kết quả học tập',
       steps: [
-        '1. ÄÄƒng nháº­p vÃ o há»‡ thá»‘ng vá»›i tÃ i khoáº£n phá»¥ huynh',
-        '2. VÃ o menu "Báº£ng Ä‘iá»ƒm" hoáº·c "Káº¿t quáº£ há»c táº­p"',
-        '3. Chá»n con em báº¡n muá»‘n xem (náº¿u cÃ³ nhiá»u con)',
-        '4. Chá»n há»c ká»³ vÃ  nÄƒm há»c',
-        '5. Xem chi tiáº¿t Ä‘iá»ƒm tá»«ng mÃ´n há»c',
-        '6. Táº£i xuá»‘ng báº£ng Ä‘iá»ƒm PDF náº¿u cáº§n'
+        '1. Đăng nhập vào hệ thống với tài khoản phụ huynh',
+        '2. Vào menu "Bảng điểm" hoặc "Kết quả học tập"',
+        '3. Chọn con em bạn muốn xem (nếu có nhiều con)',
+        '4. Chọn học kỳ và năm học',
+        '5. Xem chi tiết điểm từng môn học',
+        '6. Tải xuống bảng điểm PDF nếu cần'
       ],
       tips: [
-        'Báº£ng Ä‘iá»ƒm Ä‘Æ°á»£c cáº­p nháº­t sau khi giÃ¡o viÃªn hoÃ n thÃ nh cháº¥m Ä‘iá»ƒm',
-        'CÃ³ thá»ƒ xem Ä‘iá»ƒm giá»¯a ká»³, cuá»‘i ká»³ vÃ  Ä‘iá»ƒm trung bÃ¬nh',
-        'Nháº­n thÃ´ng bÃ¡o qua email khi cÃ³ báº£ng Ä‘iá»ƒm má»›i'
+        'Bảng điểm được cập nhật sau khi giáo viên hoàn thành chấm điểm',
+        'Có thể xem điểm giữa kỳ, cuối kỳ và điểm trung bình',
+        'Nhận thông báo qua email khi có bảng điểm mới'
       ]
     },
     feedback: {
-      title: 'Xem pháº£n há»“i tá»« giÃ¡o viÃªn',
+      title: 'Xem phản hồi từ giáo viên',
       steps: [
-        '1. VÃ o menu "Pháº£n há»“i giÃ¡o viÃªn"',
-        '2. Chá»n con em vÃ  thá»i gian muá»‘n xem',
-        '3. Xem pháº£n há»“i theo tá»«ng mÃ´n há»c',
-        '4. Äá»c nháº­n xÃ©t chi tiáº¿t tá»« giÃ¡o viÃªn',
-        '5. Xem Ä‘Ã¡nh giÃ¡ báº±ng sao (1-5 sao)',
-        '6. LiÃªn há»‡ giÃ¡o viÃªn náº¿u cáº§n lÃ m rÃµ'
+        '1. Vào menu "Phản hồi giáo viên"',
+        '2. Chọn con em và thời gian muốn xem',
+        '3. Xem phản hồi theo từng môn học',
+        '4. Đọc nhận xét chi tiết từ giáo viên',
+        '5. Xem đánh giá bằng sao (1-5 sao)',
+        '6. Liên hệ giáo viên nếu cần làm rõ'
       ],
       tips: [
-        'Pháº£n há»“i Ä‘Æ°á»£c cáº­p nháº­t hÃ ng tuáº§n',
-        'CÃ³ thá»ƒ lá»c theo mÃ´n há»c cá»¥ thá»ƒ',
-        'LÆ°u Ã½ cÃ¡c khuyáº¿n nghá»‹ tá»« giÃ¡o viÃªn'
+        'Phản hồi được cập nhật hàng tuần',
+        'Có thể lọc theo môn học cụ thể',
+        'Lưu ý các khuyến nghị từ giáo viên'
       ]
     },
     notifications: {
-      title: 'Theo dÃµi thÃ´ng bÃ¡o tá»« nhÃ  trÆ°á»ng',
+      title: 'Theo dõi thông báo từ nhà trường',
       steps: [
-        '1. Kiá»ƒm tra biá»ƒu tÆ°á»£ng chuÃ´ng á»Ÿ gÃ³c pháº£i mÃ n hÃ¬nh',
-        '2. Click vÃ o Ä‘á»ƒ xem danh sÃ¡ch thÃ´ng bÃ¡o',
-        '3. Äá»c thÃ´ng bÃ¡o má»›i (cÃ³ dáº¥u cháº¥m Ä‘á»)',
-        '4. Click vÃ o thÃ´ng bÃ¡o Ä‘á»ƒ xem chi tiáº¿t',
-        '5. ÄÃ¡nh dáº¥u Ä‘Ã£ Ä‘á»c hoáº·c lÆ°u thÃ´ng bÃ¡o quan trá»ng'
+        '1. Kiểm tra biểu tượng chuông ở góc phải màn hình',
+        '2. Click vào để xem danh sách thông báo',
+        '3. Đọc thông báo mới (có dấu chấm đỏ)',
+        '4. Click vào thông báo để xem chi tiết',
+        '5. Đánh dấu đã đọc hoặc lưu thông báo quan trọng'
       ],
       types: [
-        'ThÃ´ng bÃ¡o tá»« giÃ¡o viÃªn chá»§ nhiá»‡m',
-        'ThÃ´ng bÃ¡o tá»« giÃ¡o viÃªn bá»™ mÃ´n',
-        'ThÃ´ng bÃ¡o tá»« ban giÃ¡m hiá»‡u',
-        'ThÃ´ng bÃ¡o sá»± kiá»‡n, hoáº¡t Ä‘á»™ng'
+        'Thông báo từ giáo viên chủ nhiệm',
+        'Thông báo từ giáo viên bộ môn',
+        'Thông báo từ ban giám hiệu',
+        'Thông báo sự kiện, hoạt động'
       ]
     },
     meetings: {
-      title: 'ÄÄƒng kÃ½ lá»‹ch háº¹n vá»›i giÃ¡o viÃªn',
+      title: 'Đăng ký lịch hẹn với giáo viên',
       steps: [
-        '1. VÃ o menu "Lá»‹ch háº¹n" hoáº·c "Gáº·p gá»¡ giÃ¡o viÃªn"',
-        '2. Chá»n giÃ¡o viÃªn muá»‘n gáº·p',
-        '3. Xem lá»‹ch trá»‘ng cá»§a giÃ¡o viÃªn',
-        '4. Chá»n thá»i gian phÃ¹ há»£p',
-        '5. Nháº­p lÃ½ do vÃ  ná»™i dung muá»‘n trao Ä‘á»•i',
-        '6. Gá»­i yÃªu cáº§u vÃ  chá» xÃ¡c nháº­n'
+        '1. Vào menu "Lịch hẹn" hoặc "Gặp gỡ giáo viên"',
+        '2. Chọn giáo viên muốn gặp',
+        '3. Xem lịch trống của giáo viên',
+        '4. Chọn thời gian phù hợp',
+        '5. Nhập lý do và nội dung muốn trao đổi',
+        '6. Gửi yêu cầu và chờ xác nhận'
       ],
       tips: [
-        'Äáº·t lá»‹ch trÆ°á»›c Ã­t nháº¥t 1 ngÃ y',
-        'Chuáº©n bá»‹ cÃ¢u há»i trÆ°á»›c khi gáº·p',
-        'CÃ³ thá»ƒ há»§y hoáº·c Ä‘á»•i lá»‹ch náº¿u cáº§n'
+        'Đặt lịch trước ít nhất 1 ngày',
+        'Chuẩn bị câu hỏi trước khi gặp',
+        'Có thể hủy hoặc đổi lịch nếu cần'
       ]
     },
     violations: {
-      title: 'Xem vi pháº¡m vÃ  khen thÆ°á»Ÿng',
+      title: 'Xem vi phạm và khen thưởng',
       steps: [
-        '1. VÃ o menu "Háº¡nh kiá»ƒm" hoáº·c "Vi pháº¡m/Khen thÆ°á»Ÿng"',
-        '2. Chá»n con em vÃ  khoáº£ng thá»i gian',
-        '3. Xem danh sÃ¡ch vi pháº¡m (náº¿u cÃ³)',
-        '4. Xem danh sÃ¡ch khen thÆ°á»Ÿng',
-        '5. Äá»c chi tiáº¿t tá»«ng sá»± viá»‡c',
-        '6. LiÃªn há»‡ giÃ¡o viÃªn náº¿u cÃ³ tháº¯c máº¯c'
+        '1. Vào menu "Hạnh kiểm" hoặc "Vi phạm/Khen thưởng"',
+        '2. Chọn con em và khoảng thời gian',
+        '3. Xem danh sách vi phạm (nếu có)',
+        '4. Xem danh sách khen thưởng',
+        '5. Đọc chi tiết từng sự việc',
+        '6. Liên hệ giáo viên nếu có thắc mắc'
       ],
       categories: [
-        'Vi pháº¡m: Ä‘i muá»™n, khÃ´ng lÃ m bÃ i táº­p, vi pháº¡m ná»™i quy',
-        'Khen thÆ°á»Ÿng: há»c tá»‘t, cÃ³ tiáº¿n bá»™, tham gia tÃ­ch cá»±c'
+        'Vi phạm: đi muộn, không làm bài tập, vi phạm nội quy',
+        'Khen thưởng: học tốt, có tiến bộ, tham gia tích cực'
       ]
     },
     leave_application: {
-      title: 'Ná»™p Ä‘Æ¡n xin nghá»‰ há»c',
+      title: 'Nộp đơn xin nghỉ học',
       steps: [
-        '1. VÃ o menu "ÄÆ¡n xin nghá»‰"',
-        '2. Click "Táº¡o Ä‘Æ¡n má»›i"',
-        '3. Chá»n con em cáº§n xin nghá»‰',
-        '4. Chá»n ngÃ y nghá»‰ (tá»« ngÃ y - Ä‘áº¿n ngÃ y)',
-        '5. Nháº­p lÃ½ do nghá»‰ há»c',
-        '6. ÄÃ­nh kÃ¨m áº£nh giáº¥y tá» (náº¿u cáº§n)',
-        '7. Gá»­i Ä‘Æ¡n cho giÃ¡o viÃªn chá»§ nhiá»‡m'
+        '1. Vào menu "Đơn xin nghỉ"',
+        '2. Click "Tạo đơn mới"',
+        '3. Chọn con em cần xin nghỉ',
+        '4. Chọn ngày nghỉ (từ ngày - đến ngày)',
+        '5. Nhập lý do nghỉ học',
+        '6. Đính kèm ảnh giấy tờ (nếu cần)',
+        '7. Gửi đơn cho giáo viên chủ nhiệm'
       ],
       tips: [
-        'Ná»™p Ä‘Æ¡n trÆ°á»›c khi nghá»‰ Ã­t nháº¥t 1 ngÃ y',
-        'ÄÃ­nh kÃ¨m giáº¥y bÃ¡c sÄ© náº¿u nghá»‰ á»‘m',
-        'Theo dÃµi tráº¡ng thÃ¡i duyá»‡t Ä‘Æ¡n'
+        'Nộp đơn trước khi nghỉ ít nhất 1 ngày',
+        'Đính kèm giấy bác sĩ nếu nghỉ ốm',
+        'Theo dõi trạng thái duyệt đơn'
       ]
     },
     chatbot: {
-      title: 'Sá»­ dá»¥ng AI Chatbot há»— trá»£',
+      title: 'Sử dụng AI Chatbot hỗ trợ',
       steps: [
-        '1. Click vÃ o biá»ƒu tÆ°á»£ng chat á»Ÿ gÃ³c mÃ n hÃ¬nh',
-        '2. Nháº­p cÃ¢u há»i báº±ng tiáº¿ng Viá»‡t',
-        '3. Äá»£i AI phÃ¢n tÃ­ch vÃ  tráº£ lá»i',
-        '4. Äáº·t cÃ¢u há»i tiáº¿p theo náº¿u cáº§n',
-        '5. Sá»­ dá»¥ng cÃ¡c gá»£i Ã½ cÃ¢u há»i cÃ³ sáºµn'
+        '1. Click vào biểu tượng chat ở góc màn hình',
+        '2. Nhập câu hỏi bằng tiếng Việt',
+        '3. Đợi AI phân tích và trả lời',
+        '4. Đặt câu hỏi tiếp theo nếu cần',
+        '5. Sử dụng các gợi ý câu hỏi có sẵn'
       ],
       capabilities: [
-        'PhÃ¢n tÃ­ch káº¿t quáº£ há»c táº­p cá»§a con',
-        'TÃ³m táº¯t pháº£n há»“i tá»« giÃ¡o viÃªn',
-        'HÆ°á»›ng dáº«n sá»­ dá»¥ng cÃ¡c tÃ­nh nÄƒng',
-        'Cung cáº¥p thÃ´ng tin giÃ¡o viÃªn',
-        'Tráº£ lá»i cÃ¡c cÃ¢u há»i vá» giÃ¡o dá»¥c'
+        'Phân tích kết quả học tập của con',
+        'Tóm tắt phản hồi từ giáo viên',
+        'Hướng dẫn sử dụng các tính năng',
+        'Cung cấp thông tin giáo viên',
+        'Trả lời các câu hỏi về giáo dục'
       ],
       examples: [
-        '"Káº¿t quáº£ há»c táº­p cá»§a con em tháº¿ nÃ o?"',
-        '"GiÃ¡o viÃªn nÃ³i gÃ¬ vá» con em?"',
-        '"LÃ m sao Ä‘á»ƒ xem báº£ng Ä‘iá»ƒm?"',
-        '"ThÃ´ng tin giÃ¡o viÃªn chá»§ nhiá»‡m?"'
+        '"Kết quả học tập của con em thế nào?"',
+        '"Giáo viên nói gì về con em?"',
+        '"Làm sao để xem bảng điểm?"',
+        '"Thông tin giáo viên chủ nhiệm?"'
       ]
     }
   }
@@ -1547,22 +1547,22 @@ async function getWebsiteUsageGuide(_supabase: Awaited<ReturnType<typeof createC
   } else if (guides[feature as keyof typeof guides]) {
     result.guide = guides[feature as keyof typeof guides]
   } else {
-    result.error = `TÃ­nh nÄƒng "${typeof feature === 'string' ? feature : String(feature)}" khÃ´ng tá»“n táº¡i. CÃ¡c tÃ­nh nÄƒng cÃ³ sáºµn: ${Object.keys(guides).join(', ')}`
+    result.error = `Tính năng "${typeof feature === 'string' ? feature : String(feature)}" không tồn tại. Các tính năng có sẵn: ${Object.keys(guides).join(', ')}`
   }
 
   // Add general tips for all features
   result.generalTips = [
-    'LuÃ´n Ä‘Äƒng xuáº¥t sau khi sá»­ dá»¥ng xong',
-    'Cáº­p nháº­t thÃ´ng tin liÃªn láº¡c Ä‘á»ƒ nháº­n thÃ´ng bÃ¡o',
-    'Kiá»ƒm tra thÃ´ng bÃ¡o thÆ°á»ng xuyÃªn',
-    'LiÃªn há»‡ nhÃ  trÆ°á»ng náº¿u gáº·p khÃ³ khÄƒn ká»¹ thuáº­t',
-    'Sá»­ dá»¥ng chatbot AI Ä‘á»ƒ Ä‘Æ°á»£c há»— trá»£ nhanh chÃ³ng'
+    'Luôn đăng xuất sau khi sử dụng xong',
+    'Cập nhật thông tin liên lạc để nhận thông báo',
+    'Kiểm tra thông báo thường xuyên',
+    'Liên hệ nhà trường nếu gặp khó khăn kỹ thuật',
+    'Sử dụng chatbot AI để được hỗ trợ nhanh chóng'
   ]
 
   result.supportContact = {
     email: 'support@school.edu.vn',
     phone: '024-xxxx-xxxx',
-    workingHours: 'Thá»© 2 - Thá»© 6: 7:00 - 17:00'
+    workingHours: 'Thứ 2 - Thứ 6: 7:00 - 17:00'
   }
 
   return result
@@ -1617,7 +1617,7 @@ async function fetchNotifications(supabase: Awaited<ReturnType<typeof createClie
     content: notif.content,
     imageUrl: notif.image_url,
     date: new Date(notif.created_at).toLocaleDateString('vi-VN'),
-    sender: notif.sender?.full_name || 'NhÃ  trÆ°á»ng',
+    sender: notif.sender?.full_name || 'Nhà trường',
     senderRole: notif.sender?.role || 'admin',
     targetRoles: notif.target_roles,
     targetClasses: notif.target_classes
@@ -1767,15 +1767,15 @@ async function getNotifications(supabase: Awaited<ReturnType<typeof createClient
         const totalItems = totalNotifications + totalMeetings + totalEvents
         let timeframeName: string
         if (timeframe === 'week') {
-          timeframeName = 'tuáº§n'
+          timeframeName = 'tuần'
         } else if (timeframe === 'month') {
-          timeframeName = 'thÃ¡ng'
+          timeframeName = 'tháng'
         } else if (timeframe === 'semester') {
-          timeframeName = 'há»c ká»³'
+          timeframeName = 'học kỳ'
         } else {
-          timeframeName = 'thá»i gian'
+          timeframeName = 'thời gian'
         }
-        return `TÃ¬m tháº¥y ${totalItems} thÃ´ng bÃ¡o vÃ  sá»± kiá»‡n trong ${timeframeName} qua`
+        return `Tìm thấy ${totalItems} thông báo và sự kiện trong ${timeframeName} qua`
       })()
     }
 
@@ -1929,11 +1929,11 @@ async function buildAcademicSchedule(supabase: Awaited<ReturnType<typeof createC
         isActive,
         status: (() => {
           if (isActive) {
-            return 'Äang diá»…n ra'
+            return 'Đang diễn ra'
           } else if (semesterStart > now) {
-            return 'Sáº¯p tá»›i'
+            return 'Sắp tới'
           } else {
-            return 'ÄÃ£ káº¿t thÃºc'
+            return 'Đã kết thúc'
           }
         })()
       }
@@ -1941,7 +1941,7 @@ async function buildAcademicSchedule(supabase: Awaited<ReturnType<typeof createC
     currentStatus: {
       date: now.toLocaleDateString('vi-VN'),
       academicYear: currentYear.name,
-      currentSemester: semesters?.find((s: any) => s.is_current)?.name || 'ChÆ°a xÃ¡c Ä‘á»‹nh'
+      currentSemester: semesters?.find((s: any) => s.is_current)?.name || 'Chưa xác định'
     }
   }
 }
@@ -2078,7 +2078,7 @@ async function getSystemData(supabase: Awaited<ReturnType<typeof createClient>>,
         result.timetable = timetableEvents?.map((event: any) => ({
           id: event.id,
           dayOfWeek: event.day_of_week,
-          dayName: ['Chá»§ nháº­t', 'Thá»© hai', 'Thá»© ba', 'Thá»© tÆ°', 'Thá»© nÄƒm', 'Thá»© sÃ¡u', 'Thá»© báº£y'][event.day_of_week],
+          dayName: ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][event.day_of_week],
           startTime: event.start_time,
           endTime: event.end_time,
           weekNumber: event.week_number,
@@ -2148,7 +2148,7 @@ async function getSystemData(supabase: Awaited<ReturnType<typeof createClient>>,
 
         // Group subjects by category
         const subjectsByCategory = subjectAssignments?.reduce((acc: Record<string, any[]>, assignment: any) => {
-          const category = assignment.subject?.category || 'KhÃ¡c'
+          const category = assignment.subject?.category || 'Khác'
           if (!acc[category]) acc[category] = []
 
           // Check if subject already exists in this category

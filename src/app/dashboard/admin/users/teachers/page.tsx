@@ -25,12 +25,12 @@ export default async function TeachersPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quáº£n lÃ½ giÃ¡o viÃªn</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý giáo viên</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Quáº£n lÃ½ tÃ i khoáº£n, mÃ£ nhÃ¢n viÃªn vÃ  quyá»n GVCN
+            Quản lý tài khoản, mã nhân viên và quyền GVCN
           </p>
         </div>
-        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay vá» Quáº£n lÃ½ ngÆ°á»i dÃ¹ng</a>
+        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay về Quản lý người dùng</a>
       </div>
 
       <Suspense fallback={<div>Loading...</div>}>

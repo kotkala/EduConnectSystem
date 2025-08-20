@@ -164,13 +164,13 @@ export default function TeacherTimetableCalendar() {
 
         setEvents(calendarEvents);
       } else {
-        toast.error("KhÃ´ng thá»ƒ táº£i lá»‹ch giáº£ng dáº¡y");
+        toast.error("Không thể tải lịch giảng dạy");
         setEvents([]);
         setTimetableEventsMap(new Map());
       }
     } catch (error) {
       console.error("Error loading timetable events:", error);
-      toast.error("KhÃ´ng thá»ƒ táº£i lá»‹ch giáº£ng dáº¡y");
+      toast.error("Không thể tải lịch giảng dạy");
       setEvents([]);
       setTimetableEventsMap(new Map());
     } finally {
@@ -198,7 +198,7 @@ export default function TeacherTimetableCalendar() {
   // Handle cell click (disabled for teachers - they can't create events)
   const handleCellClick = useCallback(() => {
     // Teachers cannot create new events
-    toast.info("Chá»‰ quáº£n trá»‹ viÃªn má»›i cÃ³ thá»ƒ táº¡o lá»‹ch giáº£ng dáº¡y má»›i");
+    toast.info("Chỉ quản trị viên mới có thể tạo lịch giảng dạy mới");
   }, []);
 
   return (
@@ -220,13 +220,13 @@ export default function TeacherTimetableCalendar() {
       <div className="flex-1">
         <CalendarDndProvider onEventUpdate={() => {
           // Teachers cannot update events
-          toast.info("Chá»‰ quáº£n trá»‹ viÃªn má»›i cÃ³ thá»ƒ chá»‰nh sá»­a lá»‹ch giáº£ng dáº¡y");
+          toast.info("Chỉ quản trị viên mới có thể chỉnh sửa lịch giảng dạy");
         }}>
           <div className="flex-1 rounded-lg border bg-card">
             <div className="flex flex-col h-full">
               {/* Calendar Header */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border-b">
-                <h2 className="text-base sm:text-lg font-semibold">Lá»‹ch Giáº£ng Dáº¡y Cá»§a TÃ´i</h2>
+                <h2 className="text-base sm:text-lg font-semibold">Lịch Giảng Dạy Của Tôi</h2>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                   {/* View Toggle */}
                   <div className="flex rounded-md border w-full sm:w-auto">
@@ -239,7 +239,7 @@ export default function TeacherTimetableCalendar() {
                           : "bg-transparent hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      NgÃ y
+                      Ngày
                     </button>
                     <button
                       type="button"
@@ -250,7 +250,7 @@ export default function TeacherTimetableCalendar() {
                           : "bg-transparent hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      Tuáº§n
+                      Tuần
                     </button>
                     <button
                       type="button"
@@ -261,7 +261,7 @@ export default function TeacherTimetableCalendar() {
                           : "bg-transparent hover:bg-accent hover:text-accent-foreground"
                       }`}
                     >
-                      ThÃ¡ng
+                      Tháng
                     </button>
                   </div>
 

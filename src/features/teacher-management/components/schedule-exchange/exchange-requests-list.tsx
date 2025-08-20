@@ -23,26 +23,26 @@ interface ExchangeRequestsListProps {
 
 const statusConfig = {
   pending: {
-    label: "Äang chá»",
+    label: "Đang chờ",
     variant: "secondary" as const,
     icon: Clock,
-    description: "Äang chá» phÃª duyá»‡t tá»« admin"
+    description: "Đang chờ phê duyệt từ admin"
   },
   approved: {
-    label: "ÄÃ£ cháº¥p thuáº­n",
+    label: "Đã chấp thuận",
     variant: "default" as const,
     icon: CheckCircle,
-    description: "YÃªu cáº§u Ä‘Ã£ Ä‘Æ°á»£c cháº¥p thuáº­n"
+    description: "Yêu cầu đã được chấp thuận"
   },
   rejected: {
-    label: "ÄÃ£ tá»« chá»‘i",
+    label: "Đã từ chối",
     variant: "destructive" as const,
     icon: XCircle,
-    description: "YÃªu cáº§u Ä‘Ã£ bá»‹ tá»« chá»‘i"
+    description: "Yêu cầu đã bị từ chối"
   }
 }
 
-const dayNames = ['Chá»§ Nháº­t', 'Thá»© Hai', 'Thá»© Ba', 'Thá»© TÆ°', 'Thá»© NÄƒm', 'Thá»© SÃ¡u', 'Thá»© Báº£y']
+const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
 
 export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequestsListProps) {
   const [requests, setRequests] = useState<ScheduleExchangeRequestDetailed[]>([])
@@ -63,7 +63,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         toast.error(result.error)
       }
     } catch {
-      toast.error("KhÃ´ng thá»ƒ táº£i danh sÃ¡ch yÃªu cáº§u Ä‘á»•i lá»‹ch")
+      toast.error("Không thể tải danh sách yêu cầu đổi lịch")
     } finally {
       setLoading(false)
     }
@@ -99,7 +99,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
       const result = await response.json()
 
       if (result.success) {
-        toast.success("ÄÃ£ xoÃ¡ yÃªu cáº§u thÃ nh cÃ´ng")
+        toast.success("Đã xoá yêu cầu thành công")
         setRequests(prev => prev.filter(req => req.id !== requestToDelete))
         setDeleteDialogOpen(false)
         setRequestToDelete(null)
@@ -107,7 +107,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         toast.error(result.error)
       }
     } catch {
-      toast.error("KhÃ´ng thá»ƒ xoÃ¡ yÃªu cáº§u")
+      toast.error("Không thể xoá yêu cầu")
     } finally {
       setDeleting(false)
     }
@@ -124,7 +124,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            Äang táº£i yÃªu cáº§u Ä‘á»•i lá»‹ch...
+            Đang tải yêu cầu đổi lịch...
           </CardTitle>
         </CardHeader>
       </Card>
@@ -135,13 +135,13 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
     return (
       <Card>
         <CardHeader>
-          <CardTitle>YÃªu cáº§u Ä‘á»•i lá»‹ch</CardTitle>
-          <CardDescription>CÃ¡c yÃªu cáº§u Ä‘á»•i lá»‹ch cá»§a báº¡n sáº½ hiá»ƒn thá»‹ táº¡i Ä‘Ã¢y</CardDescription>
+          <CardTitle>Yêu cầu đổi lịch</CardTitle>
+          <CardDescription>Các yêu cầu đổi lịch của bạn sẽ hiển thị tại đây</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
             <AlertDescription>
-              Báº¡n chÆ°a gá»­i yÃªu cáº§u Ä‘á»•i lá»‹ch nÃ o.
+              Bạn chưa gửi yêu cầu đổi lịch nào.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -155,9 +155,9 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>YÃªu cáº§u Ä‘á»•i lá»‹ch</CardTitle>
+              <CardTitle>Yêu cầu đổi lịch</CardTitle>
               <CardDescription>
-                CÃ¡c yÃªu cáº§u Ä‘á»•i lá»‹ch cá»§a báº¡n vÃ  tráº¡ng thÃ¡i xá»­ lÃ½
+                Các yêu cầu đổi lịch của bạn và trạng thái xử lý
               </CardDescription>
             </div>
             <Button
@@ -167,7 +167,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              LÃ m má»›i
+              Làm mới
             </Button>
           </div>
         </CardHeader>
@@ -191,7 +191,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                           {config.label}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                          {isRequester ? "Gá»­i tá»›i" : "Nháº­n tá»«"} {otherTeacher.name}
+                          {isRequester ? "Gửi tới" : "Nhận từ"} {otherTeacher.name}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -214,22 +214,22 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                   {/* Teaching Slot Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <strong>MÃ´n:</strong> {request.subject_code} - {request.subject_name}
+                      <strong>Môn:</strong> {request.subject_code} - {request.subject_name}
                     </div>
                     <div>
-                      <strong>Lá»›p:</strong> {request.class_name}
+                      <strong>Lớp:</strong> {request.class_name}
                     </div>
                     <div>
-                      <strong>Thá»i gian:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
+                      <strong>Thời gian:</strong> {dayNames[request.day_of_week]} {request.start_time}-{request.end_time}
                     </div>
                     <div>
-                      <strong>PhÃ²ng há»c:</strong> {request.classroom_name}
+                      <strong>Phòng học:</strong> {request.classroom_name}
                     </div>
                     <div>
-                      <strong>Tuáº§n:</strong> {request.week_number}
+                      <strong>Tuần:</strong> {request.week_number}
                     </div>
                     <div>
-                      <strong>NgÃ y Ä‘á»•i lá»‹ch:</strong> {request.formattedExchangeDate}
+                      <strong>Ngày đổi lịch:</strong> {request.formattedExchangeDate}
                     </div>
                   </div>
 
@@ -246,7 +246,7 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                     <>
                       <Separator />
                       <div>
-                        <strong className="text-sm">Pháº£n há»“i tá»« admin:</strong>
+                        <strong className="text-sm">Phản hồi từ admin:</strong>
                         <p className="text-sm text-muted-foreground mt-1">{request.admin_response}</p>
                       </div>
                     </>
@@ -255,11 +255,11 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
                   {/* Timestamps */}
                   <div className="flex justify-between text-xs text-muted-foreground pt-2">
                     <span>
-                      ÄÃ£ gá»­i: {request.formattedCreatedAt}
+                      Đã gửi: {request.formattedCreatedAt}
                     </span>
                     {request.formattedApprovedAt && (
                       <span>
-                        {request.status === 'approved' ? 'ÄÃ£ cháº¥p thuáº­n' : 'ÄÃ£ tá»« chá»‘i'}: {request.formattedApprovedAt}
+                        {request.status === 'approved' ? 'Đã chấp thuận' : 'Đã từ chối'}: {request.formattedApprovedAt}
                       </span>
                     )}
                   </div>
@@ -274,9 +274,9 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>XoÃ¡ yÃªu cáº§u Ä‘á»•i lá»‹ch</DialogTitle>
+            <DialogTitle>Xoá yêu cầu đổi lịch</DialogTitle>
             <DialogDescription>
-              Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n xoÃ¡ yÃªu cáº§u Ä‘á»•i lá»‹ch nÃ y? HÃ nh Ä‘á»™ng nÃ y khÃ´ng thá»ƒ hoÃ n tÃ¡c.
+              Bạn có chắc chắn muốn xoá yêu cầu đổi lịch này? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -285,14 +285,14 @@ export function ExchangeRequestsList({ teacherId, refreshTrigger }: ExchangeRequ
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleting}
             >
-              Há»§y
+              Hủy
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteRequest}
               disabled={deleting}
             >
-              {deleting ? "Äang xoÃ¡..." : "XoÃ¡"}
+              {deleting ? "Đang xoá..." : "Xoá"}
             </Button>
           </DialogFooter>
         </DialogContent>

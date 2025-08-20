@@ -89,12 +89,12 @@ export function TeacherGradeOverview({
           onGradeDataChange(result.data)
         }
       } else {
-        setError(result.error || 'KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘')
+        setError(result.error || 'Không thể tải dữ liệu điểm số')
       }
 
     } catch (error) {
       console.error('Error loading grade data:', error)
-      setError('KhÃ´ng thá»ƒ táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘')
+      setError('Không thể tải dữ liệu điểm số')
     } finally {
       setLoading(false)
     }
@@ -112,7 +112,7 @@ export function TeacherGradeOverview({
       return null
     }
 
-    // Vietnamese formula: ÄTBmhk = (Tá»•ng Ä‘iá»ƒm thÆ°á»ng xuyÃªn + 2 x Äiá»ƒm giá»¯a ká»³ + 3 x Äiá»ƒm cuá»‘i ká»³) / (Sá»‘ bÃ i thÆ°á»ng xuyÃªn + 5)
+    // Vietnamese formula: ĐTBmhk = (Tổng điểm thường xuyên + 2 x Điểm giữa kỳ + 3 x Điểm cuối kỳ) / (Số bài thường xuyên + 5)
     const regularSum = regularGrades.reduce((sum, grade) => sum + grade, 0)
     const regularCount = regularGrades.length
     const totalScore = regularSum + (2 * midtermGrade) + (3 * finalGrade)
@@ -220,7 +220,7 @@ export function TeacherGradeOverview({
         <CardContent className="flex items-center justify-center py-8">
           <div className="text-center text-muted-foreground">
             <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <p>Vui lÃ²ng chá»n ká»³ bÃ¡o cÃ¡o, lá»›p há»c vÃ  mÃ´n há»c Ä‘á»ƒ xem Ä‘iá»ƒm sá»‘</p>
+            <p>Vui lòng chọn kỳ báo cáo, lớp học và môn học để xem điểm số</p>
           </div>
         </CardContent>
       </Card>
@@ -241,19 +241,19 @@ export function TeacherGradeOverview({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Báº£ng Ä‘iá»ƒm chi tiáº¿t</span>
+            <span>Bảng điểm chi tiết</span>
             <Button variant="outline" size="sm" onClick={onImportClick}>
               <Edit className="mr-2 h-4 w-4" />
-              Nháº­p Ä‘iá»ƒm
+              Nhập điểm
             </Button>
           </CardTitle>
           <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm font-medium text-blue-900 mb-1">CÃ¡ch tÃ­nh Ä‘iá»ƒm trung bÃ¬nh mÃ´n há»c ká»³:</p>
+            <p className="text-sm font-medium text-blue-900 mb-1">Cách tính điểm trung bình môn học kỳ:</p>
             <p className="text-xs text-blue-700">
-              ÄTBmhk = (Tá»•ng Ä‘iá»ƒm thÆ°á»ng xuyÃªn + 2 Ã— Äiá»ƒm giá»¯a ká»³ + 3 Ã— Äiá»ƒm cuá»‘i ká»³) / (Sá»‘ bÃ i thÆ°á»ng xuyÃªn + 5)
+              ĐTBmhk = (Tổng điểm thường xuyên + 2 Ý— Điểm giữa kỳ + 3 Ý— Điểm cuối kỳ) / (Số bài thường xuyên + 5)
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Äiá»ƒm thÆ°á»ng xuyÃªn (há»‡ sá»‘ 1) â€¢ Äiá»ƒm giá»¯a ká»³ (há»‡ sá»‘ 2) â€¢ Äiá»ƒm cuá»‘i ká»³ (há»‡ sá»‘ 3)
+              Điểm thường xuyên (hệ số 1) â€¢ Điểm giữa kỳ (hệ số 2) â€¢ Điểm cuối kỳ (hệ số 3)
             </p>
           </div>
         </CardHeader>
@@ -262,7 +262,7 @@ export function TeacherGradeOverview({
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
-                <p>Äang táº£i dá»¯ liá»‡u Ä‘iá»ƒm sá»‘...</p>
+                <p>Đang tải dữ liệu điểm số...</p>
               </div>
             </div>
           ) : grades.length > 0 ? (
@@ -271,16 +271,16 @@ export function TeacherGradeOverview({
                 <thead className="border-b bg-blue-600 text-white">
                   <tr>
                     <th className="text-center p-3 font-medium border-r border-blue-500">STT</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">MÃ£ há»c sinh</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Há» vÃ  tÃªn</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm thÆ°á»ng xuyÃªn 1</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm thÆ°á»ng xuyÃªn 2</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm thÆ°á»ng xuyÃªn 3</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm thÆ°á»ng xuyÃªn 4</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm giá»¯a kÃ¬</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm cuá»‘i kÃ¬</th>
-                    <th className="text-center p-3 font-medium border-r border-blue-500">Äiá»ƒm tá»•ng káº¿t há»c kÃ¬</th>
-                    <th className="text-center p-3 font-medium">Ghi chÃº</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Mã học sinh</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Họ và tên</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 1</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 2</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 3</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm thường xuyên 4</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm giữa kì</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm cuối kì</th>
+                    <th className="text-center p-3 font-medium border-r border-blue-500">Điểm tổng kết học kì</th>
+                    <th className="text-center p-3 font-medium">Ghi chú</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -346,7 +346,7 @@ export function TeacherGradeOverview({
                           {student.lastModified ? (
                             <div className="space-y-1">
                               <div>{new Date(student.lastModified).toLocaleDateString('vi-VN')}</div>
-                              <div className="text-xs">{student.modifiedBy || 'Há»‡ thá»‘ng'}</div>
+                              <div className="text-xs">{student.modifiedBy || 'Hệ thống'}</div>
                             </div>
                           ) : (
                             '-'
@@ -361,10 +361,10 @@ export function TeacherGradeOverview({
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>ChÆ°a cÃ³ dá»¯ liá»‡u Ä‘iá»ƒm sá»‘</p>
+              <p>Chưa có dữ liệu điểm số</p>
               <Button variant="outline" className="mt-4" onClick={onImportClick}>
                 <Edit className="mr-2 h-4 w-4" />
-                Nháº­p Ä‘iá»ƒm Ä‘áº§u tiÃªn
+                Nhập điểm đầu tiên
               </Button>
             </div>
           )}

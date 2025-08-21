@@ -1105,8 +1105,14 @@ export async function getWeeklyGroupedViolationsAction(params: { semester_id: st
   }
 }
 
-// Xếp hạng theo "tháng học kì" (4 tuần)
-export async function getMonthlyRankingAction(params: { semester_id: string; month_index: number; class_id?: string }) {
+// Xếp hạng theo "tháng học kì" (4 tuần) - Optimized with pagination
+export async function getMonthlyRankingAction(params: {
+  semester_id: string;
+  month_index: number;
+  class_id?: string;
+  limit?: number;
+  offset?: number;
+}) {
   try {
     const { supabase } = await checkAdminPermissions()
     let query = supabase
@@ -1118,18 +1124,58 @@ export async function getMonthlyRankingAction(params: { semester_id: string; mon
       `)
       .eq('semester_id', params.semester_id)
       .eq('month_index', params.month_index)
+      .order('created_at', { ascending: false })
 
     if (params.class_id) query = query.eq('class_id', params.class_id)
+
+    // Add pagination for performance
+    if (params.limit) {
+      query = query.limit(params.limit)
+      if (params.offset) {
+        query = query.range(params.offset, params.offset + params.limit - 1)
+      }
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = (await query) as any
     if (error) throw new Error(error.message)
 
-    const map = new Map<string, { student: { id: string; full_name: string; student_id: string } | null; class: { id: string; name: string } | null; total_points: number; total_violations: number }>()
+    // Get viewed status from monthly_violation_alerts
+    const { data: alertsData } = await supabase
+      .from('monthly_violation_alerts')
+      .select('student_id, is_seen, seen_at')
+      .eq('semester_id', params.semester_id)
+      .eq('month_index', params.month_index)
+
+    const viewedStatusMap = new Map<string, { is_seen: boolean; seen_at: string | null }>()
+    for (const alert of (alertsData || [])) {
+      viewedStatusMap.set(alert.student_id, {
+        is_seen: alert.is_seen || false,
+        seen_at: alert.seen_at
+      })
+    }
+
+    const map = new Map<string, {
+      student: { id: string; full_name: string; student_id: string } | null;
+      class: { id: string; name: string } | null;
+      total_points: number;
+      total_violations: number;
+      is_viewed: boolean;
+      viewed_at: string | null;
+    }>()
+
     for (const row of (data || [])) {
       const key = row.student_id
       if (!map.has(key)) {
-        map.set(key, { student: row.student, class: row.class, total_points: 0, total_violations: 0 })
+        const viewedStatus = viewedStatusMap.get(key) || { is_seen: false, seen_at: null }
+        map.set(key, {
+          student: row.student,
+          class: row.class,
+          total_points: 0,
+          total_violations: 0,
+          is_viewed: viewedStatus.is_seen,
+          viewed_at: viewedStatus.seen_at
+        })
       }
       const agg = map.get(key)!
       agg.total_points += row.points || 0
@@ -1220,21 +1266,17 @@ export async function markMonthlyAlertSeenAction(params: { student_id: string; s
   try {
     const { userId, supabase } = await checkAdminPermissions()
 
-    // Update the underlying unified_violation_reports table instead of the view
+    // Update the correct table: monthly_violation_alerts
     const { error } = await supabase
-      .from('unified_violation_reports')
+      .from('monthly_violation_alerts')
       .update({
-        is_alert_sent: true,
-        created_by: userId,
-        alert_sent_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        is_seen: true,
+        seen_by: userId,
+        seen_at: new Date().toISOString()
       })
       .eq('student_id', params.student_id)
       .eq('semester_id', params.semester_id)
-      .eq('report_type', 'alert')
-      .eq('report_period', 'monthly')
-      .filter('created_at', 'gte', `${new Date().getFullYear()}-${params.month_index.toString().padStart(2, '0')}-01`)
-      .filter('created_at', 'lt', `${new Date().getFullYear()}-${(params.month_index + 1).toString().padStart(2, '0')}-01`)
+      .eq('month_index', params.month_index)
 
     if (error) throw new Error(error.message)
     return { success: true }

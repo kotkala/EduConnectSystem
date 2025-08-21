@@ -239,6 +239,20 @@ export async function sendGradesToParentAction(submissionId: string, parentIds: 
       }
     }
 
+    // Update submission status to indicate it has been sent to parents
+    const { error: updateError } = await supabase
+      .from('student_grade_submissions')
+      .update({
+        status: 'sent_to_parent',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', submissionId)
+
+    if (updateError) {
+      console.error('Error updating submission status:', updateError)
+      // Don't fail the entire operation if status update fails
+    }
+
     revalidatePath('/dashboard/teacher/grade-reports')
     return {
       success: true,

@@ -529,7 +529,7 @@ export async function getTeacherMeetingSchedulesAction(): Promise<{
         duration_minutes,
         meeting_type,
         created_at,
-        classes(
+        classes!meeting_schedules_class_id_fkey(
           name
         ),
         meeting_schedule_recipients(count)

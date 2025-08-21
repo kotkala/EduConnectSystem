@@ -1,6 +1,7 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/shared/utils/supabase/admin'
 import { checkParentPermissions, checkParentStudentAccess } from '@/lib/utils/permission-utils'
 
 // Types for detailed grades processing
@@ -164,7 +165,7 @@ export async function getChildrenGradeReportsAction() {
         )
       `)
       .in('student_id', studentIds)
-      .eq('status', 'sent_to_teacher')
+      .eq('status', 'sent_to_parent')
       .order('updated_at', { ascending: false })
 
     console.log('ðŸ” [PARENT GRADES] Student submissions query result:', {
@@ -200,7 +201,9 @@ export async function getChildrenGradeReportsAction() {
       }
 
       // Check if there's a grade_submission for this class that has been sent to parents
-      const { data: gradeSubmission, error: gradeSubmissionError } = await supabase
+      // Use admin client to bypass RLS issues for grade submissions that have been sent to parents
+      const adminSupabase = createAdminClient()
+      const { data: gradeSubmission, error: gradeSubmissionError } = await adminSupabase
         .from('grade_submissions')
         .select(`
           id,
@@ -253,7 +256,7 @@ export async function getChildrenGradeReportsAction() {
           : homeroomTeacher
 
         // Get detailed grades for this student and period
-        const { data: detailedGrades } = await supabase
+        const { data: detailedGrades } = await adminSupabase
           .from('student_detailed_grades')
           .select(`
             id,
@@ -270,6 +273,8 @@ export async function getChildrenGradeReportsAction() {
           .eq('student_id', studentSubmission.student_id)
           .eq('class_id', studentSubmission.class_id)
           .eq('period_id', gradeSubmission.period_id)
+
+
 
         // Process detailed grades into aggregated format
         const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])

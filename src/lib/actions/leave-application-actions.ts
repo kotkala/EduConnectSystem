@@ -29,6 +29,7 @@ export interface LeaveApplication {
   responded_at?: string
   created_at: string
   updated_at: string
+  student_name?: string // For display purposes
   student?: {
     full_name: string
     student_id: string
@@ -136,7 +137,13 @@ export async function getParentLeaveApplicationsAction(): Promise<{ success: boo
       throw new Error(error.message)
     }
 
-    return { success: true, data: applications || [] }
+    // Map student name for display
+    const mappedApplications = applications?.map(app => ({
+      ...app,
+      student_name: (app.student as { full_name?: string })?.full_name || 'Unknown Student'
+    })) || []
+
+    return { success: true, data: mappedApplications }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }

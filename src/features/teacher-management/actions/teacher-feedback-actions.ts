@@ -10,6 +10,8 @@ export interface StudentInfo {
   student_id: string
 }
 
+
+
 export interface FeedbackData {
   student_id: string
   feedback_text: string
@@ -50,11 +52,24 @@ export async function getClassStudentsAction(classId: string): Promise<{
       throw new Error("Access denied. Teacher role required.")
     }
 
-    // Get students in the class
+    // Verify teacher has access to this class first (security check)
+    const { data: accessCheck } = await supabase
+      .from('timetable_events')
+      .select('id')
+      .eq('teacher_id', user.id)
+      .eq('class_id', classId)
+      .limit(1)
+      .single()
+
+    if (!accessCheck) {
+      throw new Error('Teacher does not have access to this class')
+    }
+
+    // Get students in the class using optimized direct query with explicit relationship
     const { data: students, error } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        students:profiles!student_class_assignments_student_id_fkey(
+        profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           email,
@@ -62,22 +77,24 @@ export async function getClassStudentsAction(classId: string): Promise<{
         )
       `)
       .eq('class_id', classId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
+      .eq('profiles.role', 'student')
 
     if (error) {
       throw new Error(error.message)
     }
 
-    // Process the data to flatten the structure
-    const studentList = students?.map(enrollment => {
-      const student = enrollment.students as unknown as StudentInfo
+    // Process the data - extract from nested profiles structure and sort
+    const studentList = students?.map(assignment => {
+      const student = assignment.profiles as unknown as StudentInfo
       return {
         id: student.id,
         full_name: student.full_name,
         email: student.email,
         student_id: student.student_id
       }
-    }) || []
+    }).sort((a, b) => a.full_name.localeCompare(b.full_name)) || []
 
     return { success: true, data: studentList }
   } catch (error: unknown) {

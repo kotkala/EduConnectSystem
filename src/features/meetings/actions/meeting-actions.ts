@@ -70,9 +70,11 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
         id,
         name,
         academic_years(name),
-        student_class_assignments(count)
+        class_assignments!inner(count)
       `)
       .eq('homeroom_teacher_id', user.id)
+      .eq('class_assignments.assignment_type', 'student')
+      .eq('class_assignments.is_active', true)
 
     if (error) {
       throw new Error(error.message)
@@ -83,7 +85,7 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
       id: classItem.id,
       name: classItem.name,
       academic_year_name: (classItem.academic_years as unknown as { name: string }).name,
-      student_count: (classItem.student_class_assignments as unknown as Array<unknown>).length || 0
+      student_count: (classItem.class_assignments as unknown as Array<unknown>).length || 0
     })) || []
 
     return { success: true, data: classList }
@@ -133,9 +135,9 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
 
     // Get students with their parents - need to fix the relationship join
     const { data: students, error } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        students:profiles!student_class_assignments_student_id_fkey(
+        students:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           email,
@@ -143,6 +145,7 @@ export async function getHomeroomStudentsWithParentsAction(classId: string): Pro
         )
       `)
       .eq('class_id', classId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (error) {

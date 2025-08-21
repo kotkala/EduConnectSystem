@@ -28,7 +28,7 @@ export async function getParentStudentRelationships(parentId: string) {
       .from('parent_student_relationships')
       .select(`
         student_id,
-        profiles!student_id(
+        profiles!parent_student_relationships_student_id_fkey(
           full_name,
           student_id
         )
@@ -139,12 +139,12 @@ export async function getRecentViolationsData(studentIds: string[], daysBack: nu
         description,
         recorded_at,
         violation_date,
-        student:profiles!student_id(full_name, student_id),
+        student:profiles!student_violations_student_id_fkey(full_name, student_id),
         violation_type:violation_types(
           name,
           violation_categories(name)
         ),
-        recorded_by:profiles!recorded_by(full_name)
+        recorded_by:profiles!student_violations_recorded_by_fkey(full_name)
       `)
       .in('student_id', studentIds)
       .gte('recorded_at', cutoffDate)

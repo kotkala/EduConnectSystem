@@ -77,16 +77,18 @@ export async function getHomeroomGradeDataAction(
 
     // Get all students in the homeroom class
     const { data: students, error: studentsError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student_id,
-        students!inner(
+        user_id,
+        students:profiles!class_assignments_user_id_fkey(
           id,
-          student_number,
+          student_id,
           full_name
         )
       `)
       .eq('class_id', classId)
+      .eq('assignment_type', 'student')
+      .eq('is_active', true)
 
     if (studentsError) throw studentsError
 
@@ -120,7 +122,7 @@ export async function getHomeroomGradeDataAction(
     const processedData: HomeroomGradeData[] = []
 
     for (const student of students || []) {
-      const studentGrades = gradeData?.filter(g => g.student_id === student.student_id) || []
+      const studentGrades = gradeData?.filter(g => g.student_id === student.user_id) || []
       
       // Group grades by subject
       const subjectMap = new Map<string, {
@@ -196,12 +198,12 @@ export async function getHomeroomGradeDataAction(
         }
       })
 
-      const studentData = (student.students as Array<{ id: string; student_number: string; full_name: string }>)?.[0]
+      const studentData = student.students as unknown as { id: string; student_id: string; full_name: string }
 
       processedData.push({
-        student_id: student.student_id,
+        student_id: student.user_id,
         student_name: studentData?.full_name || 'Unknown',
-        student_number: studentData?.student_number || 'Unknown',
+        student_number: studentData?.student_id || 'Unknown',
         subjects
       })
     }

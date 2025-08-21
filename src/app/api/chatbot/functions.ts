@@ -358,7 +358,7 @@ async function getViolationHistory(supabase: Awaited<ReturnType<typeof createCli
   // Get student ID from parent relationship
   const { data: relationships } = await supabase
     .from('parent_student_relationships')
-    .select('student_id, profiles!student_id(full_name)')
+    .select('student_id, profiles!parent_student_relationships_student_id_fkey(full_name)')
     .eq('parent_id', parentId)
 
   const student = relationships?.find((rel: any) =>
@@ -995,7 +995,7 @@ async function getTeacherFeedback(supabase: Awaited<ReturnType<typeof createClie
   // Get student ID from parent relationship
   const { data: relationships } = await supabase
     .from('parent_student_relationships')
-    .select('student_id, profiles!student_id(full_name)')
+    .select('student_id, profiles!parent_student_relationships_student_id_fkey(full_name)')
     .eq('parent_id', parentId)
 
   const student = relationships?.find((rel: any) =>
@@ -1989,7 +1989,7 @@ async function getSystemData(supabase: Awaited<ReturnType<typeof createClient>>,
   // Get student ID from parent relationship
   const { data: relationships } = await supabase
     .from('parent_student_relationships')
-    .select('student_id, profiles!student_id(full_name)')
+    .select('student_id, profiles!parent_student_relationships_student_id_fkey(full_name)')
     .eq('parent_id', parentId)
 
   const student = relationships?.find((rel: any) =>

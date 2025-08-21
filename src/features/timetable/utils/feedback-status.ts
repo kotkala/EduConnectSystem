@@ -34,9 +34,10 @@ export async function getFeedbackInfo(
 
     // Get total number of students in the class
     const { data: studentsData, error: studentsError } = await supabase
-      .from('student_class_assignments')
-      .select('student_id')
+      .from('class_assignments')
+      .select('user_id')
       .eq('class_id', classId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true);
 
     if (studentsError) {
@@ -90,9 +91,10 @@ export async function getBatchFeedbackInfo(
     // Get student counts for all classes
     const uniqueClassIds = [...new Set(classIds)];
     const { data: studentsData, error: studentsError } = await supabase
-      .from('student_class_assignments')
-      .select('class_id, student_id')
+      .from('class_assignments')
+      .select('class_id, user_id')
       .in('class_id', uniqueClassIds)
+      .eq('assignment_type', 'student')
       .eq('is_active', true);
 
     if (studentsError) {

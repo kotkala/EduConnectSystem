@@ -74,9 +74,10 @@ export async function getHomeroomClassInfoAction(): Promise<{
 
     // Get student count for the homeroom class
     const { count: studentCount } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('*', { count: 'exact', head: true })
       .eq('class_id', homeroomClass.id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     return {

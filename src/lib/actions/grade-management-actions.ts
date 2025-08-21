@@ -360,16 +360,16 @@ export async function getStudentsForGradeInputAction(options?: {
     await checkAdminPermissions()
     const supabase = await createClient()
 
-    // Optimized query using student_class_assignments to avoid over-fetching
+    // Optimized query using class_assignments to avoid over-fetching
     let query = supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id
         ),
-        class:classes!student_class_assignments_class_id_fkey(
+        class:classes!class_assignments_class_id_fkeysignments_class_id_fkey(
           id,
           name
         )

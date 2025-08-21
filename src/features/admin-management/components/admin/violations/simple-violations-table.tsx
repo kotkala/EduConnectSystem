@@ -56,7 +56,7 @@ interface ViolationRecord {
 
 // Using existing validation functions for consistency
 
-// Helper function to render violations content
+// Helper function to render violations content - Context7 pattern
 function renderViolationsContent(
   loading: boolean,
   violations: ViolationRecord[],
@@ -66,13 +66,19 @@ function renderViolationsContent(
   setCurrentPage: (page: number) => void
 ) {
   if (loading) {
-    return <div className="text-center py-8">Loading violations...</div>
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading violations...</p>
+      </div>
+    )
   }
 
   if (violations.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No violations recorded yet
+        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>No violations recorded yet</p>
       </div>
     )
   }
@@ -221,12 +227,20 @@ export default function SimpleViolationsTable() {
 
       if (error) {
         console.error('Error loading classes:', error)
+        toast.error(`Failed to load classes: ${error.message}`)
         return
       }
 
-      setClasses(data || [])
+      if (!Array.isArray(data)) {
+        console.error('Invalid classes data structure:', data)
+        toast.error('Invalid classes data received')
+        return
+      }
+
+      setClasses(data)
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error loading classes:', error)
+      toast.error(`An error occurred while loading classes: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -234,11 +248,19 @@ export default function SimpleViolationsTable() {
     try {
       setLoading(true)
 
-      // Build optimized query with all required fields
+      // Build base query with proper joins - Context7 pattern
       let query = supabase
         .from('student_violations')
         .select(`
-          *,
+          id,
+          student_id,
+          class_id,
+          violation_type_id,
+          severity,
+          description,
+          recorded_by,
+          recorded_at,
+          violation_date,
           student:profiles!student_id(id, full_name, student_id),
           class:classes!class_id(id, name),
           violation_type:violation_types!violation_type_id(
@@ -249,38 +271,77 @@ export default function SimpleViolationsTable() {
           recorded_by_user:profiles!recorded_by(id, full_name)
         `, { count: 'exact' })
 
-      // Apply filters with optimized search
+      // Apply search filter - simplified approach for reliability
       if (debouncedSearchTerm) {
-        query = query.or(`student.full_name.ilike.%${debouncedSearchTerm}%,student.student_id.ilike.%${debouncedSearchTerm}%`)
+        // First get student IDs that match the search term
+        const { data: matchingStudents } = await supabase
+          .from('profiles')
+          .select('id')
+          .or(`full_name.ilike.%${debouncedSearchTerm}%,student_id.ilike.%${debouncedSearchTerm}%`)
+
+        if (matchingStudents && matchingStudents.length > 0) {
+          const studentIds = matchingStudents.map(s => s.id)
+          query = query.in('student_id', studentIds)
+        } else {
+          // No matching students found, return empty result
+          setViolations([])
+          setTotal(0)
+          return
+        }
       }
 
+      // Apply severity filter
       if (severityFilter !== 'all') {
         query = query.eq('severity', severityFilter)
       }
 
+      // Apply class filter
       if (classFilter !== 'all') {
         query = query.eq('class_id', classFilter)
       }
 
-      // Pagination with Context7 patterns
+      // Pagination
       const from = (currentPage - 1) * pageSize
       const to = from + pageSize - 1
 
+      // Execute query with proper error handling
       const { data, error, count } = await query
         .order('recorded_at', { ascending: false })
         .range(from, to)
 
       if (error) {
         console.error('Error loading violations:', error)
-        toast.error('Failed to load violations')
+        toast.error(`Failed to load violations: ${error.message}`)
         return
       }
 
-      setViolations(data || [])
+      // Validate data structure
+      if (!Array.isArray(data)) {
+        console.error('Invalid data structure received:', data)
+        toast.error('Invalid data received from server')
+        return
+      }
+
+      // Type cast and validate the data structure
+      const validatedViolations = data.map(violation => {
+        const violationType = Array.isArray(violation.violation_type) ? violation.violation_type[0] : violation.violation_type
+        return {
+          ...violation,
+          student: Array.isArray(violation.student) ? violation.student[0] : violation.student,
+          class: Array.isArray(violation.class) ? violation.class[0] : violation.class,
+          violation_type: {
+            ...violationType,
+            category: Array.isArray(violationType?.category) ? violationType.category[0] : violationType?.category
+          },
+          recorded_by_user: Array.isArray(violation.recorded_by_user) ? violation.recorded_by_user[0] : violation.recorded_by_user
+        }
+      }) as ViolationRecord[]
+
+      setViolations(validatedViolations)
       setTotal(count || 0)
     } catch (error) {
-      console.error('Error:', error)
-      toast.error('An error occurred while loading violations')
+      console.error('Error loading violations:', error)
+      toast.error(`An error occurred while loading violations: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }

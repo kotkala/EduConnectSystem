@@ -1,13 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
-import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -69,6 +67,12 @@ interface TeacherFeedbackFormProps {
 
 type FeedbackMode = 'individual' | 'group' | 'class'
 
+interface IndividualFeedback {
+  studentId: string
+  feedbackText: string
+  rating?: number
+}
+
 export function TeacherFeedbackForm({
   timetableEvent,
   existingFeedback,
@@ -81,6 +85,7 @@ export function TeacherFeedbackForm({
   const [feedbackMode, setFeedbackMode] = useState<FeedbackMode>('individual')
   const [feedbackText, setFeedbackText] = useState('')
   const [rating, setRating] = useState<number | undefined>(undefined)
+  const [individualFeedbacks, setIndividualFeedbacks] = useState<Map<string, IndividualFeedback>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isEditing, setIsEditing] = useState(!hasExistingFeedback)
@@ -138,36 +143,70 @@ export function TeacherFeedbackForm({
     }
   }
 
-  const handleSubmitFeedback = async () => {
-    if (!feedbackText.trim()) {
-      toast.error('Vui lòng nhập nội dung phản hồi')
-      return
-    }
+  // Memoized computations for performance - Context7 pattern
+  const studentsWithFeedback = useMemo(() => {
+    return Array.from(individualFeedbacks.values()).filter(f => f.feedbackText.trim())
+  }, [individualFeedbacks])
 
-    let targetStudents: string[] = []
-    
-    if (feedbackMode === 'individual' && selectedStudents.size !== 1) {
-      toast.error('Vui lòng chọn một học sinh cho phản hồi cá nhân')
-      return
-    } else if (feedbackMode === 'group' && selectedStudents.size < 2) {
-      toast.error('Vui lòng chọn ít nhất 2 học sinh cho phản hồi nhóm')
-      return
-    } else if (feedbackMode === 'class') {
-      targetStudents = students.map(s => s.id)
+  const feedbackCompletionStats = useMemo(() => {
+    const completed = studentsWithFeedback.length
+    const total = students.length
+    const remaining = total - completed
+    return { completed, total, remaining }
+  }, [studentsWithFeedback.length, students.length])
+
+  const canSubmit = useMemo(() => {
+    if (feedbackMode === 'individual') {
+      return studentsWithFeedback.length > 0
     } else {
-      targetStudents = Array.from(selectedStudents)
+      return feedbackText.trim().length > 0 && (
+        feedbackMode === 'class' ||
+        (feedbackMode === 'group' && selectedStudents.size >= 2)
+      )
+    }
+  }, [feedbackMode, studentsWithFeedback.length, feedbackText, selectedStudents.size])
+
+  const handleSubmitFeedback = useCallback(async () => {
+    // Early validation using memoized values - Context7 pattern
+    if (!canSubmit) {
+      if (feedbackMode === 'individual') {
+        toast.error('Vui lòng nhập phản hồi cho ít nhất một học sinh')
+      } else if (feedbackMode === 'group') {
+        toast.error('Vui lòng chọn ít nhất 2 học sinh cho phản hồi nhóm')
+      } else {
+        toast.error('Vui lòng nhập nội dung phản hồi')
+      }
+      return
     }
 
-    setIsSubmitting(true)
-    try {
-      const feedbackData: FeedbackData[] = targetStudents.map(studentId => ({
+    let feedbackData: FeedbackData[] = []
+
+    if (feedbackMode === 'individual') {
+      // Use memoized studentsWithFeedback for better performance
+      feedbackData = studentsWithFeedback.map(feedback => ({
+        student_id: feedback.studentId,
+        feedback_text: feedback.feedbackText,
+        rating: feedback.rating,
+        feedback_type: feedbackMode,
+        group_id: undefined
+      }))
+    } else {
+      // Group and class feedback - optimized logic
+      const targetStudents = feedbackMode === 'class'
+        ? students.map(s => s.id)
+        : Array.from(selectedStudents)
+
+      feedbackData = targetStudents.map(studentId => ({
         student_id: studentId,
         feedback_text: feedbackText,
         rating: rating,
         feedback_type: feedbackMode,
         group_id: undefined
       }))
+    }
 
+    setIsSubmitting(true)
+    try {
       const request: CreateFeedbackRequest = {
         timetable_event_id: timetableEvent.id,
         class_id: timetableEvent.class_id,
@@ -176,13 +215,13 @@ export function TeacherFeedbackForm({
       }
 
       const result = await createStudentFeedbackAction(request)
-      
+
       if (result.success) {
         const action = hasExistingFeedback ? 'cập nhật' : 'tạo'
         toast.success(`Đã ${action} phản hồi cho ${result.data?.created_count} học sinh`)
-        
-        // Redirect back to schedule
-        router.push('/dashboard/teacher/schedule')
+
+        // Redirect back to schedule with preserved filters
+        router.back()
       } else {
         toast.error(result.error || 'Không thể lưu phản hồi')
       }
@@ -191,10 +230,10 @@ export function TeacherFeedbackForm({
     } finally {
       setIsSubmitting(false)
     }
-  }
+  }, [canSubmit, feedbackMode, studentsWithFeedback, students, selectedStudents, feedbackText, rating, timetableEvent, hasExistingFeedback, router])
 
   const handleCancel = () => {
-    router.push('/dashboard/teacher/schedule')
+    router.back()
   }
 
   const getFeedbackModeText = (mode: FeedbackMode): string => {
@@ -203,245 +242,612 @@ export function TeacherFeedbackForm({
     return 'cả lớp'
   }
 
+  const getFeedbackTargetText = (mode: FeedbackMode): string => {
+    if (mode === 'individual') return 'học sinh'
+    if (mode === 'group') return 'nhóm học sinh'
+    return 'cả lớp'
+  }
+
+  const getFeedbackPlaceholder = (mode: FeedbackMode): string => {
+    if (mode === 'individual') return 'Nhập phản hồi cá nhân...'
+    if (mode === 'group') return 'Nhập phản hồi cho nhóm...'
+    return 'Nhập phản hồi cho cả lớp...'
+  }
+
+  // Helper functions for individual feedback - Optimized with useCallback
+  const updateIndividualFeedback = useCallback((studentId: string, field: 'feedbackText' | 'rating', value: string | number | undefined) => {
+    setIndividualFeedbacks(prev => {
+      const newMap = new Map(prev)
+      const existing = newMap.get(studentId) || { studentId, feedbackText: '', rating: undefined }
+
+      // Only update if value actually changed - prevent unnecessary re-renders
+      const currentValue = field === 'feedbackText' ? existing.feedbackText : existing.rating
+      if (currentValue === value) {
+        return prev // Return same reference to prevent re-render
+      }
+
+      if (field === 'feedbackText') {
+        existing.feedbackText = value as string
+      } else if (field === 'rating') {
+        existing.rating = value as number | undefined
+      }
+
+      newMap.set(studentId, existing)
+      return newMap
+    })
+  }, [])
+
+  const getIndividualFeedback = useCallback((studentId: string): IndividualFeedback => {
+    return individualFeedbacks.get(studentId) || { studentId, feedbackText: '', rating: undefined }
+  }, [individualFeedbacks])
+
+
+
+
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        Đang tải...
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          {/* Header skeleton */}
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-200 rounded animate-pulse w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="flex space-x-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-10 bg-gray-200 rounded animate-pulse w-24"></div>
+            ))}
+          </div>
+
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-1/3"></div>
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-1/3"></div>
+              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <Button
-        variant="outline"
-        onClick={handleCancel}
-        className="flex items-center gap-2"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Quay lại lịch giảng dạy
-      </Button>
-
-      {/* Existing Feedback Display */}
-      {hasExistingFeedback && !isEditing && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Phản hồi đã tạo
-            </CardTitle>
-            {canEdit && (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Modern Header with Context */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2"
+                variant="ghost"
+                onClick={handleCancel}
+                className="flex items-center gap-2 hover:bg-blue-50"
               >
-                <Edit className="h-4 w-4" />
-                Chỉnh sửa
+                <ArrowLeft className="h-4 w-4" />
+                Quay lại thời khóa biểu
               </Button>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Badge variant="secondary">
-                Phản hồi {getFeedbackModeText(existingFeedback[0]?.feedback_type as FeedbackMode)}
-              </Badge>
-            </div>
-            <div>
-              <strong>Nội dung:</strong>
-              <p className="mt-1 text-sm bg-muted p-3 rounded-md">
-                {existingFeedback[0]?.feedback_text}
-              </p>
-            </div>
-            {existingFeedback[0]?.rating && (
+              <div className="h-6 w-px bg-gray-300"></div>
               <div>
-                <strong>Đánh giá:</strong> {existingFeedback[0].rating}/5 ⭐
-              </div>
-            )}
-            <div>
-              <strong>Học sinh:</strong>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {existingFeedback.map(feedback => (
-                  <Badge key={feedback.id} variant="outline">
-                    {feedback.student_name}
-                  </Badge>
-                ))}
+                <h1 className="text-xl font-semibold text-gray-900">
+                  Phản hồi học sinh
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {timetableEvent.subject_name} - Lớp {timetableEvent.class_name}
+                </p>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Tạo lúc: {new Date(existingFeedback[0]?.created_at).toLocaleString('vi-VN')}
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-900">
+                Tuần {timetableEvent.week_number} - {timetableEvent.semester_name}
+              </div>
+              <div className="text-xs text-gray-500">
+                {timetableEvent.start_time} - {timetableEvent.end_time}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </div>
+      </div>
 
-      {/* Feedback Form */}
-      {isEditing && canEdit && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {hasExistingFeedback ? 'Chỉnh sửa phản hồi' : 'Tạo phản hồi mới'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Feedback Mode Selection */}
-            <div className="space-y-3">
-              <div className="text-sm font-medium">Chế độ phản hồi:</div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={feedbackMode === 'individual' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFeedbackMode('individual')}
-                  className="flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  Cá nhân
-                </Button>
-                <Button
-                  type="button"
-                  variant={feedbackMode === 'group' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFeedbackMode('group')}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Nhóm
-                </Button>
-                <Button
-                  type="button"
-                  variant={feedbackMode === 'class' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFeedbackMode('class')}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="h-4 w-4" />
-                  Cả lớp
-                </Button>
-              </div>
-            </div>
+      <div className="container mx-auto px-4 py-6 space-y-6">
 
-            {/* Student Selection */}
-            {feedbackMode !== 'class' && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Chọn học sinh:</span>
+        {/* Existing Feedback Display - Modern Teacher-Friendly Design */}
+        {hasExistingFeedback && !isEditing && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-green-50 border-b border-green-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-green-900">Phản hồi đã hoàn thành</h3>
+                    <p className="text-sm text-green-700">
+                      Đã gửi phản hồi cho {existingFeedback.length} học sinh
+                    </p>
+                  </div>
+                </div>
+                {canEdit && (
                   <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectAll}
+                    onClick={() => setIsEditing(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    <Edit className="h-4 w-4 mr-2" />
+                    Chỉnh sửa phản hồi
                   </Button>
-                </div>
+                )}
+              </div>
+            </div>
 
-                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2">
-                  {students.map((student) => (
-                    <div key={student.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={selectedStudents.has(student.id)}
-                        onCheckedChange={(checked) => handleStudentSelect(student.id, !!checked)}
-                      />
-                      <span className="text-sm">{student.full_name}</span>
-                      <span className="text-xs text-muted-foreground">({student.student_id})</span>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Thông tin phản hồi</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {getFeedbackModeText(existingFeedback[0]?.feedback_type as FeedbackMode)}
+                      </Badge>
+                      {existingFeedback[0]?.rating && (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                          {existingFeedback[0].rating}/5 ⭐
+                        </Badge>
+                      )}
                     </div>
-                  ))}
+                    <div className="text-sm text-gray-600">
+                      <strong>Thời gian tạo:</strong><br/>
+                      {new Date(existingFeedback[0]?.created_at).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
                 </div>
 
-                {selectedStudents.size > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    Đã chọn {selectedStudents.size} học sinh
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Học sinh nhận phản hồi</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {existingFeedback.slice(0, 6).map(feedback => (
+                      <Badge key={feedback.id} variant="secondary" className="bg-gray-100">
+                        {feedback.student_name}
+                      </Badge>
+                    ))}
+                    {existingFeedback.length > 6 && (
+                      <Badge variant="secondary" className="bg-gray-100">
+                        +{existingFeedback.length - 6} khác
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Nội dung phản hồi</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <p className="text-gray-800 leading-relaxed">
+                    {existingFeedback[0]?.feedback_text}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modern Feedback Form - Teacher-Friendly Design */}
+        {isEditing && canEdit && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <MessageSquare className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      {hasExistingFeedback ? 'Chỉnh sửa phản hồi' : 'Tạo phản hồi mới'}
+                    </h2>
+                    <p className="text-blue-100">
+                      Gửi phản hồi cho học sinh về buổi học hôm nay
+                    </p>
+                  </div>
+                </div>
+                {hasExistingFeedback && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsEditing(false)}
+                    className="text-white hover:bg-white/20"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Hủy chỉnh sửa
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 space-y-8">
+              {/* Modern Feedback Mode Selection */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">Chọn cách gửi phản hồi</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      feedbackMode === 'individual'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                    onClick={() => setFeedbackMode('individual')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setFeedbackMode('individual')
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        feedbackMode === 'individual' ? 'bg-blue-100' : 'bg-gray-100'
+                      }`}>
+                        <User className={`h-5 w-5 ${
+                          feedbackMode === 'individual' ? 'text-blue-600' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Phản hồi cá nhân</h4>
+                        <p className="text-sm text-gray-600">Mỗi học sinh một phản hồi riêng</p>
+                      </div>
+                    </div>
+                    {feedbackMode === 'individual' && (
+                      <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      feedbackMode === 'group'
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                    onClick={() => setFeedbackMode('group')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        feedbackMode === 'group' ? 'bg-green-100' : 'bg-gray-100'
+                      }`}>
+                        <Users className={`h-5 w-5 ${
+                          feedbackMode === 'group' ? 'text-green-600' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Phản hồi nhóm</h4>
+                        <p className="text-sm text-gray-600">Chọn một số học sinh</p>
+                      </div>
+                    </div>
+                    {feedbackMode === 'group' && (
+                      <div className="absolute top-2 right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                      feedbackMode === 'class'
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                    }`}
+                    onClick={() => setFeedbackMode('class')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        feedbackMode === 'class' ? 'bg-purple-100' : 'bg-gray-100'
+                      }`}>
+                        <Users className={`h-5 w-5 ${
+                          feedbackMode === 'class' ? 'text-purple-600' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Phản hồi cả lớp</h4>
+                        <p className="text-sm text-gray-600">Gửi cùng nội dung cho tất cả</p>
+                      </div>
+                    </div>
+                    {feedbackMode === 'class' && (
+                      <div className="absolute top-2 right-2 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+            {/* Two Column Layout - Context7 Pattern */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Student List */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">
+                    {feedbackMode === 'individual' ? 'Danh sách học sinh (tất cả sẽ có phản hồi riêng)' : 'Danh sách học sinh'}
+                  </h3>
+                  {feedbackMode === 'group' && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                    >
+                      {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    </Button>
+                  )}
+                </div>
+
+                {feedbackMode === 'class' && (
+                  <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md border border-blue-200">
+                    ✓ Tất cả {students.length} học sinh trong lớp sẽ nhận phản hồi
+                  </div>
+                )}
+
+                {feedbackMode === 'individual' && (
+                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
+                    ✓ Mỗi học sinh sẽ có phản hồi riêng biệt. Nhập phản hồi ở cột bên phải.
+                  </div>
+                )}
+
+                <div className="border rounded-lg">
+                  <div className="max-h-96 overflow-y-auto">
+                    {students.map((student, index) => {
+                      const hasIndividualFeedback = feedbackMode === 'individual' &&
+                        getIndividualFeedback(student.id).feedbackText.trim().length > 0
+
+                      return (
+                        <div
+                          key={student.id}
+                          className={`flex items-center p-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors ${
+                            feedbackMode === 'class' || selectedStudents.has(student.id) || hasIndividualFeedback ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          {feedbackMode === 'group' && (
+                            <Checkbox
+                              checked={selectedStudents.has(student.id)}
+                              onCheckedChange={(checked) => handleStudentSelect(student.id, !!checked)}
+                              className="mr-3"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{student.full_name}</div>
+                            <div className="text-xs text-muted-foreground">MSSV: {student.student_id}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {feedbackMode === 'individual' && hasIndividualFeedback && (
+                              <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                ✓ Có phản hồi
+                              </div>
+                            )}
+                            <div className="text-xs text-muted-foreground">#{index + 1}</div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {feedbackMode === 'group' && selectedStudents.size > 0 && (
+                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md border border-green-200">
+                    ✓ Đã chọn {selectedStudents.size} học sinh
                   </div>
                 )}
               </div>
-            )}
 
-            {feedbackMode === 'class' && (
-              <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-md">
-                Phản hồi sẽ được gửi cho tất cả {students.length} học sinh trong lớp
+              {/* Right Column - Feedback Content */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">
+                  {feedbackMode === 'individual' ? 'Phản hồi cá nhân cho từng học sinh' : 'Nội dung phản hồi'}
+                </h3>
+
+                {feedbackMode === 'individual' ? (
+                  /* Individual Feedback Mode - Each student gets their own input */
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {students.map((student, index) => {
+                      const feedback = getIndividualFeedback(student.id)
+                      return (
+                        <div key={student.id} className="border rounded-lg p-4 bg-white">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="font-medium text-sm">{student.full_name}</h4>
+                              <p className="text-xs text-muted-foreground">MSSV: {student.student_id}</p>
+                            </div>
+                            <div className="text-xs text-muted-foreground">#{index + 1}</div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-sm font-medium block mb-1">
+                                Phản hồi cho {student.full_name}:
+                              </label>
+                              <Textarea
+                                placeholder={`Nhập phản hồi cá nhân cho ${student.full_name}...`}
+                                value={feedback.feedbackText}
+                                onChange={(e) => updateIndividualFeedback(student.id, 'feedbackText', e.target.value)}
+                                rows={3}
+                                className="resize-none text-sm"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor={`rating-${student.id}`} className="text-sm font-medium block mb-1">Đánh giá:</label>
+                              <Select
+                                value={feedback.rating?.toString() || ''}
+                                onValueChange={(value) => updateIndividualFeedback(student.id, 'rating', value ? parseInt(value) : undefined)}
+                              >
+                                <SelectTrigger id={`rating-${student.id}`} className="w-full">
+                                  <SelectValue placeholder="Chọn mức đánh giá" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="1">⭐ 1 - Cần cải thiện</SelectItem>
+                                  <SelectItem value="2">⭐⭐ 2 - Khá</SelectItem>
+                                  <SelectItem value="3">⭐⭐⭐ 3 - Tốt</SelectItem>
+                                  <SelectItem value="4">⭐⭐⭐⭐ 4 - Rất tốt</SelectItem>
+                                  <SelectItem value="5">⭐⭐⭐⭐⭐ 5 - Xuất sắc</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {/* Summary for individual mode - Optimized with memoized values */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium mb-2">Tóm tắt phản hồi cá nhân:</h4>
+                      <div className="text-sm text-blue-800">
+                        <strong>Tổng số học sinh:</strong> {feedbackCompletionStats.total}<br/>
+                        <strong>Đã có phản hồi:</strong> {feedbackCompletionStats.completed}<br/>
+                        <strong>Chưa có phản hồi:</strong> {feedbackCompletionStats.remaining}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Group and Class Feedback Mode - Single input for all */
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="feedback-text" className="text-sm font-medium block mb-2">
+                        Phản hồi cho {getFeedbackTargetText(feedbackMode)}:
+                      </label>
+                      <Textarea
+                        id="feedback-text"
+                        placeholder={getFeedbackPlaceholder(feedbackMode)}
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        rows={6}
+                        className="resize-none"
+                      />
+                    </div>
+
+                    {/* Rating */}
+                    <div>
+                      <label htmlFor="rating-select" className="text-sm font-medium block mb-2">Đánh giá (tùy chọn):</label>
+                      <Select value={rating?.toString()} onValueChange={(value) => setRating(value ? parseInt(value) : undefined)}>
+                        <SelectTrigger id="rating-select" className="w-full">
+                          <SelectValue placeholder="Chọn mức đánh giá" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">⭐ 1 - Cần cải thiện</SelectItem>
+                          <SelectItem value="2">⭐⭐ 2 - Khá</SelectItem>
+                          <SelectItem value="3">⭐⭐⭐ 3 - Tốt</SelectItem>
+                          <SelectItem value="4">⭐⭐⭐⭐ 4 - Rất tốt</SelectItem>
+                          <SelectItem value="5">⭐⭐⭐⭐⭐ 5 - Xuất sắc</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Preview */}
+                    <div className="bg-gray-50 border rounded-lg p-4">
+                      <h4 className="text-sm font-medium mb-2">Xem trước phản hồi:</h4>
+                      <div className="text-sm text-gray-600 mb-2">
+                        <strong>Loại:</strong> Phản hồi {getFeedbackModeText(feedbackMode)}
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        <strong>Số học sinh:</strong> {feedbackMode === 'class' ? students.length : selectedStudents.size}
+                      </div>
+                      {rating && (
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>Đánh giá:</strong> {rating}/5 ⭐
+                        </div>
+                      )}
+                      <div className="text-sm text-gray-600">
+                        <strong>Nội dung:</strong>
+                        <div className="mt-1 p-2 bg-white border rounded text-gray-800">
+                          {feedbackText || 'Chưa có nội dung phản hồi...'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Feedback Content */}
-            <div className="space-y-2">
-              <label htmlFor="feedback-text" className="text-sm font-medium">Nội dung phản hồi:</label>
-              <Textarea
-                id="feedback-text"
-                placeholder="Nhập phản hồi cho học sinh..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                rows={4}
-                className="resize-none"
-              />
             </div>
 
-            {/* Rating */}
-            <div className="space-y-2">
-              <label htmlFor="rating-select" className="text-sm font-medium">Đánh giá (tùy chọn):</label>
-              <Select value={rating?.toString()} onValueChange={(value) => setRating(value ? parseInt(value) : undefined)}>
-                <SelectTrigger id="rating-select" className="w-48">
-                  <SelectValue placeholder="Chọn mức đánh giá" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">⭐ 1 - Cần cải thiện</SelectItem>
-                  <SelectItem value="2">⭐⭐ 2 - Khá</SelectItem>
-                  <SelectItem value="3">⭐⭐⭐ 3 - Tốt</SelectItem>
-                  <SelectItem value="4">⭐⭐⭐⭐ 4 - Rất tốt</SelectItem>
-                  <SelectItem value="5">⭐⭐⭐⭐⭐ 5 - Xuất sắc</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
-            {/* Summary */}
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-              <p className="text-sm text-blue-800">
-                <strong>Tóm tắt:</strong> Sẽ {hasExistingFeedback ? 'cập nhật' : 'tạo'} phản hồi {getFeedbackModeText(feedbackMode)} cho{' '}
-                {feedbackMode === 'class' ? `tất cả ${students.length} học sinh` : `${selectedStudents.size} học sinh đã chọn`}
+
+              {/* Modern Action Buttons */}
+              <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {feedbackMode === 'individual' ? (
+                    `${feedbackCompletionStats.completed}/${feedbackCompletionStats.total} học sinh đã có phản hồi`
+                  ) : feedbackMode === 'group' ? (
+                    `${selectedStudents.size} học sinh được chọn`
+                  ) : (
+                    `Gửi cho tất cả ${students.length} học sinh`
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (hasExistingFeedback) {
+                        setIsEditing(false)
+                      } else {
+                        handleCancel()
+                      }
+                    }}
+                    className="px-6"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Hủy
+                  </Button>
+                  <Button
+                    onClick={handleSubmitFeedback}
+                    disabled={isSubmitting || !canSubmit}
+                    className="px-6 bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Save className="h-4 w-4 mr-2" />
+                    {hasExistingFeedback ? 'Cập nhật phản hồi' : 'Gửi phản hồi'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Edit Permission - Modern Design */}
+        {!canEdit && (
+          <div className="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden">
+            <div className="bg-orange-50 border-b border-orange-200 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <X className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-orange-900">Không thể chỉnh sửa phản hồi</h3>
+                  <p className="text-sm text-orange-700">
+                    Thời gian chỉnh sửa đã hết hạn
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 leading-relaxed">
+                Bạn chỉ có thể tạo hoặc chỉnh sửa phản hồi trong vòng 24 giờ kể từ khi kết thúc tiết học.
+                Thời gian này đã qua, vì vậy phản hồi không thể thay đổi được nữa.
               </p>
+              <div className="mt-4 text-sm text-gray-600">
+                <strong>Lưu ý:</strong> Nếu bạn cần thay đổi phản hồi khẩn cấp, vui lòng liên hệ với ban quản lý.
+              </div>
             </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  if (hasExistingFeedback) {
-                    setIsEditing(false)
-                  } else {
-                    handleCancel()
-                  }
-                }}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Hủy
-              </Button>
-              <Button
-                onClick={handleSubmitFeedback}
-                disabled={isSubmitting || !feedbackText.trim()}
-              >
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="h-4 w-4 mr-2" />
-                {hasExistingFeedback ? 'Cập nhật phản hồi' : 'Tạo phản hồi'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* No Edit Permission */}
-      {!canEdit && (
-        <Alert>
-          <AlertDescription>
-            Bạn không thể tạo hoặc chỉnh sửa phản hồi vì đã quá 24 giờ kể từ khi kết thúc tiết học.
-          </AlertDescription>
-        </Alert>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

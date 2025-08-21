@@ -885,7 +885,7 @@ export async function submitStudentGradesToHomeroomAction(
       .select(`
         id,
         full_name,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           class_id,
           classes(
             id,
@@ -903,7 +903,7 @@ export async function submitStudentGradesToHomeroomAction(
     const classesByStudent = new Map<string, { classId: string; homeroomTeacherId: string }>()
 
     for (const student of studentData || []) {
-      const classAssignments = student.student_class_assignments as unknown as Array<{
+      const classAssignments = student.class_assignments as unknown as Array<{
         class_id: string
         classes: { id: string; name: string; homeroom_teacher_id: string; academic_year_id: string }
       }>

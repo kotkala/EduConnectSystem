@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
@@ -67,15 +68,51 @@ function hasValidFilters(filters: TeacherTimetableFiltersType): filters is Teach
 export default function TeacherScheduleBigCalendar() {
   const { user } = useAuth();
   const { currentDate, setCurrentDate, isColorVisible } = useCalendarContext();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [timetableEventsMap, setTimetableEventsMap] = useState<Map<string, TeacherTimetableEvent>>(new Map());
   const [feedbackInfoMap, setFeedbackInfoMap] = useState<Map<string, FeedbackInfo>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState<TeacherTimetableFiltersType>({
-    academicYearId: undefined,
-    semesterId: undefined,
-    studyWeek: undefined,
-  });
+
+  // Initialize filters from URL - Context7 pattern
+  const [filters, setFilters] = useState<TeacherTimetableFiltersType>(() => ({
+    academicYearId: searchParams.get('academicYearId') || undefined,
+    semesterId: searchParams.get('semesterId') || undefined,
+    studyWeek: searchParams.get('studyWeek') ? parseInt(searchParams.get('studyWeek')!) : undefined,
+  }));
+
+  // Helper function to update URL with new filters - Context7 pattern
+  const updateURLWithFilters = useCallback(
+    (newFilters: TeacherTimetableFiltersType) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Update or remove parameters based on filter values
+      if (newFilters.academicYearId) {
+        params.set('academicYearId', newFilters.academicYearId);
+      } else {
+        params.delete('academicYearId');
+      }
+
+      if (newFilters.semesterId) {
+        params.set('semesterId', newFilters.semesterId);
+      } else {
+        params.delete('semesterId');
+      }
+
+      if (newFilters.studyWeek) {
+        params.set('studyWeek', newFilters.studyWeek.toString());
+      } else {
+        params.delete('studyWeek');
+      }
+
+      // Use replaceState to avoid adding to history stack - Context7 pattern
+      const newURL = `${pathname}?${params.toString()}`;
+      window.history.replaceState(null, '', newURL);
+    },
+    [searchParams, pathname]
+  );
 
   // Dialog state
   const [selectedEvent, setSelectedEvent] = useState<TeacherTimetableEvent | null>(null);
@@ -278,7 +315,10 @@ export default function TeacherScheduleBigCalendar() {
           <div className="flex-1">
             <TeacherTimetableFilters
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={(newFilters) => {
+                setFilters(newFilters);
+                updateURLWithFilters(newFilters);
+              }}
               loading={isLoading}
               onRefresh={() => {
                 if (hasValidFilters(filters)) {

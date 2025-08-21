@@ -295,8 +295,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
       .select(`
         id,
         name,
-        academic_years!inner(name),
-        student_class_assignments!inner(count)
+        academic_years!inner(name)
       `)
       .eq('homeroom_teacher_id', user.id)
       .eq('is_active', true)
@@ -313,11 +312,12 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
       }
     }
 
-    // Get student count for the homeroom class
+    // Get student count for the homeroom class using the correct table
     const { count: studentCount } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('*', { count: 'exact', head: true })
       .eq('class_id', homeroomClass.id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     return {

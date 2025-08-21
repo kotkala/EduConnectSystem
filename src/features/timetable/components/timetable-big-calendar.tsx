@@ -66,7 +66,7 @@ export default function TimetableBigCalendar() {
   const { currentDate, setCurrentDate, isColorVisible } = useCalendarContext();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [studySlots, setStudySlots] = useState<StudySlot[]>([]);
-  const [feedbackInfoMap, setFeedbackInfoMap] = useState<Map<string, FeedbackInfo>>(new Map());
+  const [_feedbackInfoMap, _setFeedbackInfoMap] = useState<Map<string, FeedbackInfo>>(new Map());
   const [selectedSlot, setSelectedSlot] = useState<StudySlot | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -148,7 +148,7 @@ export default function TimetableBigCalendar() {
     if (eventIds.length > 0) {
       try {
         feedbackMap = await getBatchFeedbackInfo(eventIds, classIds);
-        setFeedbackInfoMap(feedbackMap);
+        _setFeedbackInfoMap(feedbackMap);
       } catch (error) {
         console.error("Error loading feedback info:", error);
       }

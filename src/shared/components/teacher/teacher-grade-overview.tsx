@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import {
@@ -57,7 +56,7 @@ export function TeacherGradeOverview({
   const [grades, setGrades] = useState<StudentGrade[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  const loadGradeData = async () => {
+  const loadGradeData = useCallback(async () => {
     if (!periodId || !classId || !subjectId) return
 
     setLoading(true)
@@ -69,13 +68,7 @@ export function TeacherGradeOverview({
 
       if (result.success && result.data) {
         setGrades(result.data)
-
-
-
-        // Pass grade data to parent for PDF export
-        if (onGradeDataChange) {
-          onGradeDataChange(result.data)
-        }
+        // Note: onGradeDataChange is now handled in separate useEffect to prevent circular dependency
       } else {
         setError(result.error || 'Không thể tải dữ liệu điểm số')
       }
@@ -86,11 +79,11 @@ export function TeacherGradeOverview({
     } finally {
       setLoading(false)
     }
-  }
+  }, [periodId, classId, subjectId]) // Remove onGradeDataChange from dependencies
 
-  // Vietnamese grade calculation formula
-  const calculateSubjectAverage = (student: StudentGrade): number | null => {
-    const regularGrades = student.regularGrades.filter(g => g !== null) as number[]
+  // Vietnamese grade calculation formula - memoized for performance
+  const calculateSubjectAverage = useCallback((student: StudentGrade): number | null => {
+    const regularGrades = student.regularGrades.filter((g): g is number => g !== null)
     const midtermGrade = student.midtermGrade
     const finalGrade = student.finalGrade
 
@@ -107,7 +100,35 @@ export function TeacherGradeOverview({
     const totalWeight = regularCount + 5
 
     return Math.round((totalScore / totalWeight) * 10) / 10
-  }
+  }, [])
+
+  // Memoized grade statistics calculation
+  const gradeStatistics = useMemo(() => {
+    if (grades.length === 0) return null
+
+    const totalStudents = grades.length
+    let studentsWithGrades = 0
+    const allGrades: number[] = []
+
+    grades.forEach(student => {
+      const average = calculateSubjectAverage(student)
+      if (average !== null) {
+        studentsWithGrades++
+        allGrades.push(average)
+      }
+    })
+
+    const averageGrade = allGrades.length > 0
+      ? allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length
+      : 0
+
+    return {
+      totalStudents,
+      studentsWithGrades,
+      completionRate: totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0,
+      averageGrade: Math.round(averageGrade * 10) / 10
+    }
+  }, [grades, calculateSubjectAverage])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const calculateStats = (gradeData: StudentGrade[]): GradeOverviewStats => {
@@ -173,35 +194,18 @@ export function TeacherGradeOverview({
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getGradeStatusBadge = (grade: number | null | undefined) => {
-    if (grade === null || grade === undefined) {
-      return <Badge variant="outline" className="text-gray-500">-</Badge>
-    }
-    
-    if (grade >= 8) {
-      return <Badge variant="default" className="bg-green-100 text-green-800">{grade}</Badge>
-    } else if (grade >= 6.5) {
-      return <Badge variant="default" className="bg-blue-100 text-blue-800">{grade}</Badge>
-    } else if (grade >= 5) {
-      return <Badge variant="default" className="bg-yellow-100 text-yellow-800">{grade}</Badge>
-    } else {
-      return <Badge variant="destructive">{grade}</Badge>
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const exportGrades = () => {
-    // TODO: Implement export functionality
-    console.log('Exporting grades...')
-  }
-
   useEffect(() => {
     if (periodId && classId && subjectId) {
       loadGradeData()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodId, classId, subjectId])
+  }, [periodId, classId, subjectId, loadGradeData])
+
+  // Separate effect for grade data change callback to prevent circular dependency
+  useEffect(() => {
+    if (grades.length > 0 && onGradeDataChange) {
+      onGradeDataChange(grades)
+    }
+  }, [grades, onGradeDataChange])
 
   if (!periodId || !classId || !subjectId) {
     return (

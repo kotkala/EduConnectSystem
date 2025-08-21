@@ -158,16 +158,18 @@ async function getStudentClassAssignments(supabase: Awaited<ReturnType<typeof cr
     .select(`
       user_id,
       class_id,
-      classes(
+      classes!inner(
         id,
         name,
         homeroom_teacher_id,
+        academic_year_id,
         academic_years(id, name),
         homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(id, full_name)
       )
     `)
     .eq('assignment_type', 'student')
     .eq('is_active', true)
+    .eq('classes.academic_year_id', academicYearId)
     .in('user_id', studentIds)
 
   if (error) {

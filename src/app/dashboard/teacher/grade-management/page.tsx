@@ -1,6 +1,7 @@
 ﻿"use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useMemo, useCallback } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
@@ -40,13 +41,7 @@ import {
   getTeacherClassesAction,
   getTeacherSubjectsAction
 } from "@/lib/actions/enhanced-grade-actions"
-import {
-  type TeacherClass,
-  type TeacherSubject
-} from "@/lib/types/teacher-grade-types"
-import {
-  type EnhancedGradeReportingPeriod
-} from "@/lib/validations/enhanced-grade-validations"
+
 import {
   createTeacherGradeTemplate,
   downloadExcelFile,
@@ -57,14 +52,10 @@ import {
 } from "@/lib/utils/teacher-excel-utils"
 
 export default function TeacherGradeManagementPage() {
-  const [periods, setPeriods] = useState<EnhancedGradeReportingPeriod[]>([])
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  // Filter states
-  const [classes, setClasses] = useState<TeacherClass[]>([])
-  const [subjects, setSubjects] = useState<TeacherSubject[]>([])
+  // Selection states
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
   const [selectedClass, setSelectedClass] = useState<string>('')
   const [selectedSubject, setSelectedSubject] = useState<string>('')
   const [selectedPeriodType, setSelectedPeriodType] = useState<GradePeriodType>('regular_1')
@@ -76,69 +67,96 @@ export default function TeacherGradeManagementPage() {
   // Grade data for PDF export
   const [currentGradeData, setCurrentGradeData] = useState<GradeExportData[]>([])
 
-  const loadPeriods = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    
-    try {
+  // Optimized refresh function using TanStack Query
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['teacher-grade-periods'] })
+    queryClient.invalidateQueries({ queryKey: ['teacher-classes'] })
+    queryClient.invalidateQueries({ queryKey: ['teacher-subjects'] })
+  }
+
+  // TanStack Query: Optimized data fetching with caching
+  const {
+    data: periods = [],
+    isLoading: periodsLoading,
+    error: periodsError
+  } = useQuery({
+    queryKey: ['teacher-grade-periods'],
+    queryFn: async () => {
       const result = await getEnhancedGradeReportingPeriodsAction({
-        status: 'open', // Only show open periods for teachers
+        status: 'open',
         page: 1,
         limit: 100
       })
-      if (result.success) {
-        setPeriods(result.data || [])
-        // Auto-select first period if none selected
-        if (!selectedPeriod && result.data && result.data.length > 0) {
-          setSelectedPeriod(result.data[0].id)
-        }
-      } else {
-        setError(result.error || 'Không thể tải danh sách kỳ báo cáo điểm')
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tải danh sách kỳ báo cáo điểm')
       }
-    } catch {
-      setError('Không thể tải danh sách kỳ báo cáo điểm')
-    } finally {
-      setLoading(false)
-    }
-  }, [selectedPeriod])
+      return result.data || []
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  })
 
-  const loadClasses = useCallback(async () => {
-    try {
+  const {
+    data: classes = [],
+    isLoading: classesLoading
+  } = useQuery({
+    queryKey: ['teacher-classes'],
+    queryFn: async () => {
       const result = await getTeacherClassesAction()
-      if (result.success) {
-        setClasses(result.data || [])
-        // Auto-select first class if none selected
-        if (!selectedClass && result.data && result.data.length > 0) {
-          setSelectedClass(result.data[0].id)
-        }
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tải danh sách lớp học')
       }
-    } catch (error) {
-      console.error('Error loading classes:', error)
-    }
-  }, [selectedClass])
+      return result.data || []
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
+  })
 
-  const loadSubjects = useCallback(async () => {
-    try {
+  const {
+    data: subjects = [],
+    isLoading: subjectsLoading
+  } = useQuery({
+    queryKey: ['teacher-subjects'],
+    queryFn: async () => {
       const result = await getTeacherSubjectsAction()
-      if (result.success) {
-        setSubjects(result.data || [])
-        // Auto-select first subject if none selected
-        if (!selectedSubject && result.data && result.data.length > 0) {
-          setSelectedSubject(result.data[0].id)
-        }
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tải danh sách môn học')
       }
-    } catch (error) {
-      console.error('Error loading subjects:', error)
+      return result.data || []
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 20 * 60 * 1000, // 20 minutes
+  })
+
+  // Memoized computed values
+  const loading = useMemo(() =>
+    periodsLoading || classesLoading || subjectsLoading,
+    [periodsLoading, classesLoading, subjectsLoading]
+  )
+
+  const error = useMemo(() =>
+    periodsError?.message || null,
+    [periodsError]
+  )
+
+  // Auto-selection logic with memoization
+  useMemo(() => {
+    if (!selectedPeriod && periods.length > 0) {
+      setSelectedPeriod(periods[0].id)
     }
-  }, [selectedSubject])
+  }, [periods, selectedPeriod])
 
+  useMemo(() => {
+    if (!selectedClass && classes.length > 0) {
+      setSelectedClass(classes[0].id)
+    }
+  }, [classes, selectedClass])
 
-
-  useEffect(() => {
-    loadPeriods()
-    loadClasses()
-    loadSubjects()
-  }, [loadPeriods, loadClasses, loadSubjects])
+  useMemo(() => {
+    if (!selectedSubject && subjects.length > 0) {
+      setSelectedSubject(subjects[0].id)
+    }
+  }, [subjects, selectedSubject])
 
   const handlePeriodChange = (periodId: string) => {
     setSelectedPeriod(periodId)
@@ -286,7 +304,7 @@ export default function TeacherGradeManagementPage() {
     }
   }
 
-  const handleGradeDataChange = (grades: StudentGrade[]) => {
+  const handleGradeDataChange = useCallback((grades: StudentGrade[]) => {
     // Convert grade data to export format
     const exportData: GradeExportData[] = grades.map(grade => ({
       studentId: grade.studentId,
@@ -299,7 +317,7 @@ export default function TeacherGradeManagementPage() {
       modifiedBy: grade.modifiedBy
     }))
     setCurrentGradeData(exportData)
-  }
+  }, []) // Empty dependency array since this function doesn't depend on any props or state
 
   const handleExportPDF = async () => {
     if (!selectedPeriod || !selectedClass || !selectedSubject) {
@@ -340,7 +358,10 @@ export default function TeacherGradeManagementPage() {
     }
   }
 
-  const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
+  const selectedPeriodData = useMemo(() =>
+    periods.find(p => p.id === selectedPeriod),
+    [periods, selectedPeriod]
+  )
 
   return (
     <div className="p-6">
@@ -354,7 +375,7 @@ export default function TeacherGradeManagementPage() {
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
-            <Button variant="outline" onClick={loadPeriods} disabled={loading} className="w-full sm:w-auto">
+            <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Làm mới
             </Button>

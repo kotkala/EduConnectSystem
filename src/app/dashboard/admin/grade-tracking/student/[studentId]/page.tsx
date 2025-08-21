@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useParams, useSearchParams } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
@@ -18,9 +19,7 @@ import {
 import {
   getGradePeriodsAction,
   getStudentDetailedGradesAction,
-  getStudentGradeHistoryAction,
-  type GradePeriod,
-  type StudentDetailedGrades
+  getStudentGradeHistoryAction
 } from "@/lib/actions/admin-grade-tracking-actions"
 import { AdminStudentGradeTable } from "@/shared/components/admin/admin-student-grade-table"
 
@@ -30,11 +29,7 @@ export default function StudentGradeDetailPage() {
   const studentId = params.studentId as string
   const initialPeriodId = searchParams.get('period')
 
-  const [periods, setPeriods] = useState<GradePeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>(initialPeriodId || '')
-  const [studentData, setStudentData] = useState<StudentDetailedGrades | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [gradeHistory, setGradeHistory] = useState<Array<{
     id: string
     grade_id: string
@@ -51,45 +46,63 @@ export default function StudentGradeDetailPage() {
   const [historyLoading, setHistoryLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('grades')
 
-  // Load grade periods
-  const loadPeriods = useCallback(async () => {
-    try {
+  // TanStack Query: Optimized periods loading with caching
+  const {
+    data: periods = [],
+    isLoading: periodsLoading,
+    error: periodsError
+  } = useQuery({
+    queryKey: ['admin-grade-periods'],
+    queryFn: async () => {
       const result = await getGradePeriodsAction()
-      if (result.success && result.data) {
-        setPeriods(result.data)
-        if (!selectedPeriod && result.data.length > 0) {
-          setSelectedPeriod(result.data[0].id)
-        }
-      } else {
-        setError(result.error || 'Không thể tải danh sách kỳ báo cáo')
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tải danh sách kỳ báo cáo')
       }
-    } catch (error) {
-      console.error('Error loading periods:', error)
-      setError('Không thể tải danh sách kỳ báo cáo')
-    }
-  }, [selectedPeriod])
+      return result.data || []
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  })
 
-  // Load student detailed grades
-  const loadStudentGrades = useCallback(async () => {
-    if (!selectedPeriod || !studentId) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
+  // TanStack Query: Optimized student grades loading
+  const {
+    data: studentData,
+    isLoading: gradesLoading,
+    error: gradesError,
+    refetch: refetchGrades
+  } = useQuery({
+    queryKey: ['student-detailed-grades', selectedPeriod, studentId],
+    queryFn: async () => {
+      if (!selectedPeriod || !studentId) return null
       const result = await getStudentDetailedGradesAction(selectedPeriod, studentId)
-      if (result.success) {
-        setStudentData(result.data || null)
-      } else {
-        setError(result.error || 'Không thể tải dữ liệu điểm số')
+      if (!result.success) {
+        throw new Error(result.error || 'Không thể tải dữ liệu điểm số')
       }
-    } catch (error) {
-      console.error('Error loading student grades:', error)
-      setError('Không thể tải dữ liệu điểm số')
-    } finally {
-      setLoading(false)
+      return result.data || null
+    },
+    enabled: !!(selectedPeriod && studentId),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // Computed values
+  const loading = useMemo(() => periodsLoading || gradesLoading, [periodsLoading, gradesLoading])
+  const error = useMemo(() =>
+    periodsError?.message || gradesError?.message || null,
+    [periodsError, gradesError]
+  )
+
+  // Auto-select first period when periods are loaded
+  useMemo(() => {
+    if (!selectedPeriod && periods.length > 0) {
+      setSelectedPeriod(periods[0].id)
     }
-  }, [selectedPeriod, studentId])
+  }, [periods, selectedPeriod])
+
+  // Optimized refresh function using TanStack Query
+  const handleRefreshGrades = useCallback(() => {
+    refetchGrades()
+  }, [refetchGrades])
 
   const loadGradeHistory = useCallback(async () => {
     if (!selectedPeriod) return
@@ -107,19 +120,12 @@ export default function StudentGradeDetailPage() {
     }
   }, [selectedPeriod, studentId])
 
-  useEffect(() => {
-    loadPeriods()
-  }, [loadPeriods])
-
+  // Only load grade history when the history tab is active
   useEffect(() => {
     if (activeTab === 'history') {
       loadGradeHistory()
     }
   }, [activeTab, loadGradeHistory])
-
-  useEffect(() => {
-    loadStudentGrades()
-  }, [loadStudentGrades])
 
 
 
@@ -140,7 +146,7 @@ export default function StudentGradeDetailPage() {
           </p>
         </div>
         <div className="ml-auto">
-          <Button variant="outline" onClick={loadStudentGrades} disabled={loading}>
+          <Button variant="outline" onClick={handleRefreshGrades} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Làm mới
           </Button>
@@ -303,7 +309,7 @@ export default function StudentGradeDetailPage() {
             <p className="text-muted-foreground mb-4">
               Chưa có dữ liệu điểm số cho học sinh này trong kỳ báo cáo đã chọn
             </p>
-            <Button variant="outline" onClick={loadStudentGrades}>
+            <Button variant="outline" onClick={handleRefreshGrades}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Thử lại
             </Button>

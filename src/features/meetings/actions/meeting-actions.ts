@@ -346,7 +346,7 @@ export async function getParentMeetingSchedulesAction(): Promise<{
         is_read,
         read_at,
         created_at,
-        meeting_schedules(
+        meeting_schedules!meeting_schedule_recipients_meeting_schedule_id_fkey(
           id,
           title,
           description,

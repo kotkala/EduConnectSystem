@@ -1658,13 +1658,20 @@ export async function getSubmittedStudentGradeDetailsAction(
         const subjectId = grade.subject_id
         // Handle both single object and array cases
         const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+
+        // Skip grades with missing subject data (data integrity issue)
+        if (!subjectData) {
+          console.warn(`Missing subject data for grade with subject_id: ${subjectId}`)
+          continue
+        }
+
         const subjectInfo = subjectData as { id: string; name_vietnamese: string; code: string }
 
         if (!subjectMap.has(subjectId)) {
           subjectMap.set(subjectId, {
             subject_id: subjectId,
-            subject_name: subjectInfo.name_vietnamese,
-            subject_code: subjectInfo.code,
+            subject_name: subjectInfo.name_vietnamese || 'Unknown Subject',
+            subject_code: subjectInfo.code || 'UNKNOWN',
             grades: {
               regular: [],
               midterm: null,

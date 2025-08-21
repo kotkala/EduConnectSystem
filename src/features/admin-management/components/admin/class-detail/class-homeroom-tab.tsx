@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
@@ -34,7 +35,11 @@ import {
 } from "@/shared/components/ui/select"
 import { UserCheck, UserPlus, Trash2, Loader2, Mail, Phone, MapPin } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
-import { getHomeroomEnabledTeachersAction } from "@/features/admin-management/actions/class-actions"
+import {
+  getHomeroomEnabledTeachersAction,
+  updateHomeroomTeacherAction,
+  removeHomeroomTeacherAction
+} from "@/features/admin-management/actions/class-actions"
 
 // Simple teacher interface for dropdown
 interface SimpleTeacher {
@@ -89,17 +94,21 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
 
     try {
       setAssigning(true)
-      
+      setError(null)
 
-      // const result = await updateHomeroomTeacherAction(classId, selectedTeacherId)
-      
-      // Mock success for now
-      console.log("Assigning homeroom teacher:", selectedTeacherId, "to class:", classId)
-      
-      setShowAssignDialog(false)
-      setSelectedTeacherId("")
-      
-      
+      const result = await updateHomeroomTeacherAction(classId, selectedTeacherId)
+
+      if (result.success) {
+        setShowAssignDialog(false)
+        setSelectedTeacherId("")
+        toast.success(result.message || "Cập nhật giáo viên chủ nhiệm thành công")
+        // Refresh the page to show updated data
+        window.location.reload()
+      } else {
+        setError(result.error || "Failed to assign homeroom teacher")
+        toast.error(result.error || "Không thể cập nhật giáo viên chủ nhiệm")
+      }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign homeroom teacher")
     } finally {
@@ -110,12 +119,19 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
   const handleRemoveHomeroom = async () => {
     try {
       setRemoving(true)
-      
+      setError(null)
 
-      // Mock success for now
-      console.log("Removing homeroom teacher from class:", classId)
-      
-      
+      const result = await removeHomeroomTeacherAction(classId)
+
+      if (result.success) {
+        toast.success(result.message || "Gỡ giáo viên chủ nhiệm thành công")
+        // Refresh the page to show updated data
+        window.location.reload()
+      } else {
+        setError(result.error || "Failed to remove homeroom teacher")
+        toast.error(result.error || "Không thể gỡ giáo viên chủ nhiệm")
+      }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove homeroom teacher")
     } finally {

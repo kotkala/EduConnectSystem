@@ -699,6 +699,229 @@ export async function getHomeroomEnabledTeachersAction() {
   }
 }
 
+// Update homeroom teacher for a class
+export async function updateHomeroomTeacherAction(classId: string, teacherId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Check if class exists
+    const { data: classData, error: fetchError } = await supabase
+      .from("classes")
+      .select("id, name, semester_id")
+      .eq("id", classId)
+      .single()
+
+    if (fetchError || !classData) {
+      return {
+        success: false,
+        error: "Không tìm thấy lớp"
+      }
+    }
+
+    // Validate teacher
+    const { data: teacher } = await supabase
+      .from("profiles")
+      .select("role, homeroom_enabled")
+      .eq("id", teacherId)
+      .eq("role", "teacher")
+      .single()
+
+    if (!teacher) {
+      return {
+        success: false,
+        error: "Không tìm thấy giáo viên chủ nhiệm đã chọn"
+      }
+    }
+
+    if (!teacher.homeroom_enabled) {
+      return {
+        success: false,
+        error: "Giáo viên đã chọn chưa được kích hoạt cho nhiệm vụ chủ nhiệm"
+      }
+    }
+
+    // Check if teacher is already assigned to another class in the same semester
+    const { data: existingAssignment } = await supabase
+      .from("classes")
+      .select("name")
+      .eq("homeroom_teacher_id", teacherId)
+      .eq("semester_id", classData.semester_id)
+      .neq("id", classId)
+      .single()
+
+    if (existingAssignment) {
+      return {
+        success: false,
+        error: `Giáo viên này đã được phân công làm chủ nhiệm cho lớp ${existingAssignment.name}`
+      }
+    }
+
+    // Check for data constraints (students, grades, feedback, etc.)
+    const constraintCheck = await checkHomeroomTeacherConstraints(supabase, classId)
+    if (!constraintCheck.canChange) {
+      return {
+        success: false,
+        error: constraintCheck.reason
+      }
+    }
+
+    // Update homeroom teacher
+    const { error: updateError } = await supabase
+      .from("classes")
+      .update({
+        homeroom_teacher_id: teacherId,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", classId)
+
+    if (updateError) {
+      return {
+        success: false,
+        error: updateError.message
+      }
+    }
+
+    revalidatePath("/dashboard/admin/classes")
+    return {
+      success: true,
+      message: "Cập nhật giáo viên chủ nhiệm thành công"
+    }
+
+  } catch (error) {
+    console.error("Update homeroom teacher error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update homeroom teacher"
+    }
+  }
+}
+
+// Remove homeroom teacher from a class
+export async function removeHomeroomTeacherAction(classId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Check if class exists
+    const { data: classData, error: fetchError } = await supabase
+      .from("classes")
+      .select("id, name, homeroom_teacher_id")
+      .eq("id", classId)
+      .single()
+
+    if (fetchError || !classData) {
+      return {
+        success: false,
+        error: "Không tìm thấy lớp"
+      }
+    }
+
+    if (!classData.homeroom_teacher_id) {
+      return {
+        success: false,
+        error: "Lớp này chưa có giáo viên chủ nhiệm"
+      }
+    }
+
+    // Check for data constraints (students, grades, feedback, etc.)
+    const constraintCheck = await checkHomeroomTeacherConstraints(supabase, classId)
+    if (!constraintCheck.canChange) {
+      return {
+        success: false,
+        error: constraintCheck.reason
+      }
+    }
+
+    // Remove homeroom teacher
+    const { error: updateError } = await supabase
+      .from("classes")
+      .update({
+        homeroom_teacher_id: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", classId)
+
+    if (updateError) {
+      return {
+        success: false,
+        error: updateError.message
+      }
+    }
+
+    revalidatePath("/dashboard/admin/classes")
+    return {
+      success: true,
+      message: "Gỡ giáo viên chủ nhiệm thành công"
+    }
+
+  } catch (error) {
+    console.error("Remove homeroom teacher error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to remove homeroom teacher"
+    }
+  }
+}
+
+// Helper function to check data constraints for homeroom teacher changes
+async function checkHomeroomTeacherConstraints(supabase: ReturnType<typeof createAdminClient>, classId: string) {
+  try {
+    // Check if class has students
+    const { data: students } = await supabase
+      .from("class_assignments")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("assignment_type", "student")
+      .eq("is_active", true)
+      .limit(1)
+
+    if (students && students.length > 0) {
+      // Check if there are grades or feedback records
+      const { data: grades } = await supabase
+        .from("grade_submissions")
+        .select("id")
+        .eq("class_id", classId)
+        .limit(1)
+
+      if (grades && grades.length > 0) {
+        return {
+          canChange: false,
+          reason: "Không thể thay đổi giáo viên chủ nhiệm vì lớp đã có dữ liệu điểm số. Vui lòng liên hệ quản trị viên để được hỗ trợ."
+        }
+      }
+
+      const { data: feedback } = await supabase
+        .from("student_feedback")
+        .select(`
+          id,
+          timetable_events!inner(class_id)
+        `)
+        .eq("timetable_events.class_id", classId)
+        .limit(1)
+
+      if (feedback && feedback.length > 0) {
+        return {
+          canChange: false,
+          reason: "Không thể thay đổi giáo viên chủ nhiệm vì lớp đã có dữ liệu phản hồi. Vui lòng liên hệ quản trị viên để được hỗ trợ."
+        }
+      }
+    }
+
+    return {
+      canChange: true,
+      reason: null
+    }
+
+  } catch (error) {
+    console.error("Error checking homeroom teacher constraints:", error)
+    return {
+      canChange: false,
+      reason: "Không thể kiểm tra ràng buộc dữ liệu. Vui lòng thử lại."
+    }
+  }
+}
+
 // Get single class by ID
 export async function getClassByIdAction(classId: string) {
   try {
@@ -809,7 +1032,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
     const studentsWithOtherClass = assignments.map((assignment) => {
       const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
       const otherType = assignment.assignment_type === "main" ? "combined" : "main"
-      const otherName = studentIdToTypeToClass[assignment.user_id]?.[otherType as "main" | "combined"]
+      const otherName = studentIdToTypeToClass[assignment.user_id]?.[otherType]
       return {
         id: assignment.id,
         student_id: student?.student_id || "",

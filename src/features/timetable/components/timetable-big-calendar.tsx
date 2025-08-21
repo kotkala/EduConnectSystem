@@ -66,7 +66,7 @@ export default function TimetableBigCalendar() {
   const { currentDate, setCurrentDate, isColorVisible } = useCalendarContext();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [studySlots, setStudySlots] = useState<StudySlot[]>([]);
-  const [_feedbackInfoMap, _setFeedbackInfoMap] = useState<Map<string, FeedbackInfo>>(new Map());
+  const [feedbackInfoMap, setFeedbackInfoMap] = useState<Map<string, FeedbackInfo>>(new Map());
   const [selectedSlot, setSelectedSlot] = useState<StudySlot | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -129,18 +129,24 @@ export default function TimetableBigCalendar() {
     updateCurrentDateForWeek();
   }, [filters.studyWeek, filters.semesterId, setCurrentDate, supabase]);
 
-  // Helper function to convert slots to calendar events with correct dates and feedback info
-  const convertSlotsToEvents = useCallback(async (slots: StudySlot[]): Promise<CalendarEvent[]> => {
-    // Get semester start date for correct date calculation
+  // Memoized semester start date to avoid repeated database calls
+  const semesterStartDate = useMemo(async () => {
+    if (!filters.semesterId) return undefined;
+
     const { data: semesterData } = await supabase
       .from('semesters')
       .select('start_date')
-      .eq('id', filters.semesterId!)
+      .eq('id', filters.semesterId)
       .single();
 
-    const semesterStartDate = semesterData ? new Date(semesterData.start_date) : undefined;
+    return semesterData ? new Date(semesterData.start_date) : undefined;
+  }, [supabase, filters.semesterId]);
 
-    // Load feedback information for all slots
+  // Helper function to convert slots to calendar events with correct dates and feedback info
+  const convertSlotsToEvents = useCallback(async (slots: StudySlot[]): Promise<CalendarEvent[]> => {
+    const startDate = await semesterStartDate;
+
+    // Only load feedback info if we have valid slots with IDs
     const eventIds = slots.map(slot => slot.id).filter((id): id is string => Boolean(id));
     const classIds = slots.map(slot => slot.class_id).filter((id): id is string => Boolean(id));
 
@@ -148,7 +154,7 @@ export default function TimetableBigCalendar() {
     if (eventIds.length > 0) {
       try {
         feedbackMap = await getBatchFeedbackInfo(eventIds, classIds);
-        _setFeedbackInfoMap(feedbackMap);
+        setFeedbackInfoMap(feedbackMap);
       } catch (error) {
         console.error("Error loading feedback info:", error);
       }
@@ -156,9 +162,9 @@ export default function TimetableBigCalendar() {
 
     return slots.map(slot => {
       const feedbackInfo = slot.id ? feedbackMap.get(slot.id) : undefined;
-      return studySlotToCalendarEvent(slot, semesterStartDate, filters.studyWeek, feedbackInfo);
+      return studySlotToCalendarEvent(slot, startDate, filters.studyWeek, feedbackInfo);
     });
-  }, [supabase, filters.semesterId, filters.studyWeek]);
+  }, [semesterStartDate, filters.studyWeek]);
 
   // Filter events based on visible colors
   const visibleEvents = useMemo(() => {

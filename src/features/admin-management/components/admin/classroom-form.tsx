@@ -61,7 +61,7 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
       id: classroom.id,
       name: classroom.name,
       building: classroom.building || '',
-      floor: classroom.floor || undefined,
+      floor: classroom.floor || 1,
       capacity: classroom.capacity,
       room_type: classroom.room_type as 'standard' | 'lab' | 'computer' | 'auditorium' | 'gym' | 'library',
       equipment: classroom.equipment,
@@ -69,7 +69,7 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
     } : {
       name: '',
       building: '',
-      floor: undefined,
+      floor: 1,
       capacity: 40,
       room_type: 'standard',
       equipment: [],
@@ -169,13 +169,13 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
                 <FormItem>
                   <FormLabel>Tầng</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       min="1"
                       max="20"
                       placeholder="1"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 1)}
                     />
                   </FormControl>
                   <FormMessage />

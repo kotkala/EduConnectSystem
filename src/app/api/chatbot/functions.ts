@@ -1358,7 +1358,7 @@ async function getTeacherInformation(supabase: Awaited<ReturnType<typeof createC
       .from('student_class_assignments')
       .select(`
         class_id,
-        classes!inner(
+        classes(
           name,
           homeroom_teacher_id,
           academic_year:academic_years(name),
@@ -1684,9 +1684,10 @@ async function fetchTimetableEvents(supabase: Awaited<ReturnType<typeof createCl
 
   // Get student's class assignments
   const { data: classAssignments } = await supabase
-    .from('student_class_assignments')
+    .from('class_assignments')
     .select('class_id')
-    .eq('student_id', student.student_id)
+    .eq('user_id', student.student_id)
+    .eq('assignment_type', 'student')
     .eq('is_active', true)
 
   if (!classAssignments || classAssignments.length === 0) {
@@ -2008,7 +2009,7 @@ async function getSystemData(supabase: Awaited<ReturnType<typeof createClient>>,
 
     // Get student's class assignments
     const { data: classAssignments } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
         class_id,
         is_active,
@@ -2020,7 +2021,8 @@ async function getSystemData(supabase: Awaited<ReturnType<typeof createClient>>,
           homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(full_name, employee_id)
         )
       `)
-      .eq('student_id', student.student_id)
+      .eq('user_id', student.student_id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (dataType === 'class_info' || dataType === 'all_data') {

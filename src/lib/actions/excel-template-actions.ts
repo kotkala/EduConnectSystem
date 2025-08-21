@@ -158,9 +158,10 @@ export async function getTemplateInfoAction(params: {
         .single(),
       
       supabase
-        .from('student_class_assignments')
+        .from('class_assignments')
         .select('id')
         .eq('class_id', params.class_id)
+        .eq('assignment_type', 'student')
         .eq('is_active', true)
     ])
 

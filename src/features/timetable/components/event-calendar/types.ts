@@ -15,6 +15,9 @@ export interface CalendarEvent {
   teacher_name?: string;
   classroom_name?: string;
   class_name?: string;
+  status?: string; // Status for visual indicators
+  statusColor?: string; // Color class for status
+  statusBgColor?: string; // Background color class for status
   // Store original event data for dialogs
   originalEvent?: unknown;
 }

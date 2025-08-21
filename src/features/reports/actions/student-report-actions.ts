@@ -90,20 +90,21 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
     // Uses proper column selection to reduce over-fetching
     // Adds pagination to prevent loading too much data
     const { data: studentsData, error } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_id(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id,
           email
         ),
-        class:classes!class_id(
+        class:classes!class_assignments_class_id_fkey(
           id,
           name,
           homeroom_teacher_id
         )
       `)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
       .eq('classes.homeroom_teacher_id', userId)
       .limit(100) // Pagination: Limit to 100 students max for performance
@@ -542,9 +543,10 @@ export async function saveStudentReportAction(formData: StudentReportFormData) {
 
     // Get student's class
     const { data: studentClass, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', validatedData.student_id)
+      .eq('user_id', validatedData.student_id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
       .single()
 

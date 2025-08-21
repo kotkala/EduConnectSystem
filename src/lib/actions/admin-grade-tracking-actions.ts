@@ -17,9 +17,10 @@ async function storeSummaryGradeInDatabase(
 
     // Find the class_id for this student
     const { data: classAssignment } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId)
+      .eq('assignment_type', 'student')
       .single()
 
     if (!classAssignment) return
@@ -553,7 +554,7 @@ export async function getStudentDetailedGradesAction(
         student_id,
         student_class_assignments!student_class_assignments_student_id_fkey(
           class_id,
-          classes!inner(id, name)
+          classes(id, name)
         )
       `)
       .eq('id', studentId)
@@ -886,7 +887,7 @@ export async function submitStudentGradesToHomeroomAction(
         full_name,
         student_class_assignments!student_class_assignments_student_id_fkey(
           class_id,
-          classes!inner(
+          classes(
             id,
             name,
             homeroom_teacher_id,

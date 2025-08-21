@@ -41,11 +41,11 @@ export async function sendDailyFeedbackToParentsAction(
       .from('student_feedback')
       .select(`
         id,
-        timetable_events!inner(
+        timetable_events(
           day_of_week,
           week_number,
           semester_id,
-          semesters!inner(academic_year_id)
+          semesters(academic_year_id)
         )
       `)
       .eq('student_id', studentId)
@@ -261,11 +261,11 @@ export async function checkDailyFeedbackSentStatusAction(
       .from('student_feedback')
       .select(`
         id,
-        timetable_events!inner(
+        timetable_events(
           day_of_week,
           week_number,
           semester_id,
-          semesters!inner(academic_year_id)
+          semesters(academic_year_id)
         )
       `)
       .eq('student_id', studentId)

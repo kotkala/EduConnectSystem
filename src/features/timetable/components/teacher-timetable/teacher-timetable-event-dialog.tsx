@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import {
@@ -21,7 +21,7 @@ import {
   FileText,
   MessageSquare
 } from "lucide-react"
-import { TeacherFeedbackDialog } from "./teacher-feedback-dialog"
+
 
 export interface TeacherTimetableEvent {
   id: string
@@ -37,6 +37,9 @@ export interface TeacherTimetableEvent {
   notes: string | null
   created_at: string
   updated_at: string
+  substitute_teacher_id?: string | null
+  substitute_date?: string | null
+  exchange_request_id?: string | null
   // Joined data from the detailed view
   class_name: string
   subject_code: string
@@ -49,6 +52,13 @@ export interface TeacherTimetableEvent {
   semester_name: string
   academic_year_name: string
   student_count?: number // Optional field for feedback functionality
+  // Feedback status fields
+  feedback_status?: string
+  feedback_count?: number
+  can_edit_feedback?: boolean
+  // Actual lesson date fields
+  actual_lesson_date?: string
+  semester_start_date?: string
 }
 
 interface TeacherTimetableEventDialogProps {
@@ -64,13 +74,19 @@ export function TeacherTimetableEventDialog({
   onOpenChange,
   onClose,
 }: TeacherTimetableEventDialogProps) {
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
+  const router = useRouter()
 
   if (!event) return null
 
   const getDayName = (dayOfWeek: number) => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
     return days[dayOfWeek] || 'Không xác định'
+  }
+
+  const getFeedbackStatusVariant = (status: string) => {
+    if (status === 'Chưa tạo phản hồi') return 'secondary'
+    if (status === 'Đã chỉnh sửa') return 'default'
+    return 'outline'
   }
 
   const formatTime = (timeString: string) => {
@@ -193,6 +209,26 @@ export function TeacherTimetableEventDialog({
             </div>
           )}
 
+          {/* Feedback Status */}
+          {event.feedback_status && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium">Trạng thái phản hồi:</span>
+                </div>
+                <Badge variant={getFeedbackStatusVariant(event.feedback_status)}>
+                  {event.feedback_status}
+                </Badge>
+              </div>
+              {event.feedback_count !== undefined && event.feedback_count > 0 && (
+                <div className="text-sm text-muted-foreground mt-1">
+                  Đã tạo phản hồi cho {event.feedback_count} học sinh
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Schedule Information */}
           <div className="border-t pt-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -226,7 +262,10 @@ export function TeacherTimetableEventDialog({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={() => setFeedbackDialogOpen(true)}
+            onClick={() => {
+              router.push(`/dashboard/teacher/feedback/${event.id}`)
+              onClose()
+            }}
             className="flex items-center gap-2"
           >
             <MessageSquare className="h-4 w-4" />
@@ -236,19 +275,6 @@ export function TeacherTimetableEventDialog({
             Đóng
           </Button>
         </DialogFooter>
-
-        {/* Feedback Dialog */}
-        <TeacherFeedbackDialog
-          open={feedbackDialogOpen}
-          onOpenChange={setFeedbackDialogOpen}
-          timetableEvent={{
-            id: event.id,
-            class_id: event.class_id,
-            subject_id: event.subject_id,
-            class_name: event.class_name,
-            subject_name: event.subject_name
-          }}
-        />
       </DialogContent>
     </Dialog>
   )

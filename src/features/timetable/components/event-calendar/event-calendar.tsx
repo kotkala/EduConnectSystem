@@ -211,8 +211,8 @@ export function EventCalendar({
     if (view === "month") {
       return format(currentDate, "MMMM yyyy");
     } else if (view === "week") {
-      const start = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const end = endOfWeek(currentDate, { weekStartsOn: 0 });
+      const start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start to match WeekView
+      const end = endOfWeek(currentDate, { weekStartsOn: 1 });
       if (isSameMonth(start, end)) {
         return `${format(start, "MMM d")} - ${format(end, "d, yyyy")}`;
       } else {

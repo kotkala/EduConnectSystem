@@ -6,17 +6,17 @@ import { z } from 'zod'
 
 // Validation schemas
 const classroomSchema = z.object({
-  name: z.string().min(1, 'Classroom name is required').max(50),
+  name: z.string().min(1, 'Tên phòng học là bắt buộc').max(50, 'Tên phòng học không được quá 50 ký tự'),
   building: z.string().optional(),
-  floor: z.number().int().min(1).max(20).optional(),
-  capacity: z.number().int().min(1).max(200).default(40),
+  floor: z.number().int().min(1, 'Tầng phải từ 1 trở lên').max(20, 'Tầng không được quá 20').optional(),
+  capacity: z.number().int().min(1, 'Sức chứa phải từ 1 trở lên').max(200, 'Sức chứa không được quá 200').default(40),
   room_type: z.enum(['standard', 'lab', 'computer', 'auditorium', 'gym', 'library']).default('standard'),
   equipment: z.array(z.string()).default([]),
   is_active: z.boolean().default(true)
 })
 
 const updateClassroomSchema = classroomSchema.partial().extend({
-  id: z.string().uuid()
+  id: z.string().min(1, 'ID là bắt buộc')
 })
 
 const classroomFiltersSchema = z.object({

@@ -204,23 +204,23 @@ export const getWeeksInSemester = (semesterStartDate: Date, semesterEndDate: Dat
 
 // Room type options for forms
 export const ROOM_TYPES = [
-  { value: 'standard', label: 'Standard Classroom' },
-  { value: 'lab', label: 'Laboratory' },
-  { value: 'computer', label: 'Computer Lab' },
-  { value: 'auditorium', label: 'Auditorium' },
-  { value: 'gym', label: 'Gymnasium' },
-  { value: 'library', label: 'Library' }
+  { value: 'standard', label: 'Phòng học thường' },
+  { value: 'lab', label: 'Phòng thí nghiệm' },
+  { value: 'computer', label: 'Phòng máy tính' },
+  { value: 'auditorium', label: 'Hội trường' },
+  { value: 'gym', label: 'Phòng thể dục' },
+  { value: 'library', label: 'Thư viện' }
 ] as const
 
 // Equipment options for classrooms
 export const EQUIPMENT_OPTIONS = [
-  'Projector',
-  'Whiteboard',
-  'Smart Board',
-  'Computer',
-  'Audio System',
-  'Air Conditioning',
-  'Laboratory Equipment',
-  'Sports Equipment',
-  'Musical Instruments'
+  'Máy chiếu',
+  'Bảng trắng',
+  'Bảng thông minh',
+  'Máy tính',
+  'Hệ thống âm thanh',
+  'Điều hòa không khí',
+  'Thiết bị thí nghiệm',
+  'Thiết bị thể thao',
+  'Nhạc cụ'
 ] as const

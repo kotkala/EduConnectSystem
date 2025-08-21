@@ -473,10 +473,10 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
 
     // Check if student already has assignment of this type
     const { data: existingAssignment } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select("id, class_id")
-      .eq("student_id", validatedData.student_id)
-      .eq("assignment_type", validatedData.assignment_type)
+      .eq("user_id", validatedData.student_id)
+      .eq("assignment_type", "student")
       .single()
 
     if (existingAssignment) {
@@ -488,11 +488,11 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
 
     // Create assignment
     const { error: assignError } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .insert({
-        student_id: validatedData.student_id,
+        user_id: validatedData.student_id,
         class_id: validatedData.class_id,
-        assignment_type: validatedData.assignment_type
+        assignment_type: "student"
       })
 
     if (assignError) {
@@ -537,8 +537,8 @@ export async function removeStudentFromClassAction(assignmentId: string) {
 
     // Get assignment details
     const { data: assignment, error: fetchError } = await supabase
-      .from("student_class_assignments")
-      .select("id, student_id, class_id, assignment_type")
+      .from("class_assignments")
+      .select("id, user_id, class_id, assignment_type")
       .eq("id", assignmentId)
       .single()
 
@@ -558,7 +558,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
 
     // Remove assignment
     const { error: deleteError } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .delete()
       .eq("id", assignmentId)
 
@@ -610,7 +610,7 @@ export async function getStudentsWithClassAssignmentsAction() {
         id,
         full_name,
         student_id,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           id,
           assignment_type,
           class:classes(
@@ -635,7 +635,7 @@ export async function getStudentsWithClassAssignmentsAction() {
 
     // Transform data to include main_class and combined_class
     const studentsWithAssignments = data.map(student => {
-      const assignments = student.student_class_assignments || []
+      const assignments = student.class_assignments || []
       const mainAssignment = assignments.find(a => a.assignment_type === 'main')
       const combinedAssignment = assignments.find(a => a.assignment_type === 'combined')
 
@@ -748,13 +748,13 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select(`
         id,
-        student_id,
+        user_id,
         assignment_type,
         assigned_at,
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id,
@@ -762,6 +762,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
         )
       `)
       .eq("class_id", classId)
+      .eq("assignment_type", "student")
       .eq("is_active", true)
       .order("assigned_at", { ascending: false })
 
@@ -776,17 +777,18 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
 
     // Batch fetch other assignments to avoid N+1 queries
     const assignments = data || []
-    const uniqueStudentIds = Array.from(new Set(assignments.map(a => a.student_id)))
+    const uniqueStudentIds = Array.from(new Set(assignments.map(a => a.user_id)))
 
     // Fetch all active assignments for these students (both types)
     const { data: otherAssignments, error: otherErr } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select(`
-        student_id,
+        user_id,
         assignment_type,
         class:classes(name)
       `)
-      .in("student_id", uniqueStudentIds)
+      .eq("assignment_type", "student")
+      .in("user_id", uniqueStudentIds)
       .eq("is_active", true)
 
     if (otherErr) {
@@ -799,7 +801,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
       const cls = Array.isArray(oa.class) ? oa.class[0] : oa.class
       const className: string | undefined = cls?.name
       if (!className) continue
-      const bucket = (studentIdToTypeToClass[oa.student_id] ||= {})
+      const bucket = (studentIdToTypeToClass[oa.user_id] ||= {})
       if (oa.assignment_type === "main") bucket.main = className
       else if (oa.assignment_type === "combined") bucket.combined = className
     }
@@ -807,7 +809,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
     const studentsWithOtherClass = assignments.map((assignment) => {
       const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
       const otherType = assignment.assignment_type === "main" ? "combined" : "main"
-      const otherName = studentIdToTypeToClass[assignment.student_id]?.[otherType as "main" | "combined"]
+      const otherName = studentIdToTypeToClass[assignment.user_id]?.[otherType as "main" | "combined"]
       return {
         id: assignment.id,
         student_id: student?.student_id || "",

@@ -298,9 +298,10 @@ export async function checkClassFeedbackCompletionAction(timetableEventId: strin
 
     // Count total students in the class
     const { count: totalStudents } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('*', { count: 'exact', head: true })
       .eq('class_id', timetableEvent.class_id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     // Count feedback given for this timetable event
@@ -325,6 +326,204 @@ export async function checkClassFeedbackCompletionAction(timetableEventId: strin
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to check feedback completion"
+    }
+  }
+}
+
+// Check if feedback can be created/edited (24-hour rule)
+export async function checkFeedbackEditPermissionAction(timetableEventId: string): Promise<{
+  success: boolean
+  data?: {
+    canEdit: boolean
+    hasExistingFeedback: boolean
+    timeRemaining?: number // minutes remaining
+    lessonEndTime?: string
+  }
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Authentication required")
+    }
+
+    // Get timetable event details with semester info to calculate actual lesson date
+    const { data: timetableEvent, error: eventError } = await supabase
+      .from('timetable_events')
+      .select(`
+        id,
+        teacher_id,
+        day_of_week,
+        start_time,
+        end_time,
+        week_number,
+        semester_id,
+        semesters(
+          start_date,
+          end_date
+        )
+      `)
+      .eq('id', timetableEventId)
+      .single()
+
+    if (eventError || !timetableEvent) {
+      throw new Error("Timetable event not found")
+    }
+
+    if (timetableEvent.teacher_id !== user.id) {
+      throw new Error("Access denied. You are not assigned to this class.")
+    }
+
+    // Calculate the actual lesson date
+    const semester = timetableEvent.semesters as unknown as { start_date: string; end_date: string }
+    const semesterStart = new Date(semester.start_date)
+
+    // Calculate the date of the specific week and day
+    const weekOffset = (timetableEvent.week_number - 1) * 7
+    const lessonDate = new Date(semesterStart)
+    lessonDate.setDate(lessonDate.getDate() + weekOffset + timetableEvent.day_of_week)
+
+    // Combine lesson date with end time
+    const [endHour, endMinute] = timetableEvent.end_time.split(':').map(Number)
+    const lessonEndTime = new Date(lessonDate)
+    lessonEndTime.setHours(endHour, endMinute, 0, 0)
+
+    // Check if within 24 hours of lesson end
+    const now = new Date()
+    const timeDiff = now.getTime() - lessonEndTime.getTime()
+    const hoursDiff = timeDiff / (1000 * 60 * 60)
+    const canEdit = hoursDiff <= 24
+
+    // Calculate remaining time in minutes
+    const timeRemaining = canEdit ? Math.max(0, (24 * 60) - (timeDiff / (1000 * 60))) : 0
+
+    // Check if feedback already exists
+    const { data: existingFeedback } = await supabase
+      .from('student_feedback')
+      .select('id')
+      .eq('timetable_event_id', timetableEventId)
+      .eq('teacher_id', user.id)
+      .limit(1)
+
+    return {
+      success: true,
+      data: {
+        canEdit,
+        hasExistingFeedback: (existingFeedback?.length || 0) > 0,
+        timeRemaining: Math.round(timeRemaining),
+        lessonEndTime: lessonEndTime.toISOString()
+      }
+    }
+  } catch (error: unknown) {
+    console.error("Check feedback edit permission error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to check edit permission"
+    }
+  }
+}
+
+// Get timetable event details for feedback page
+export async function getTimetableEventForFeedbackAction(timetableEventId: string): Promise<{
+  success: boolean
+  data?: {
+    id: string
+    class_id: string
+    subject_id: string
+    class_name: string
+    subject_name: string
+    subject_code: string
+    day_of_week: number
+    start_time: string
+    end_time: string
+    week_number: number
+    semester_name: string
+    academic_year_name: string
+    actual_lesson_date: string
+    semester_start_date: string
+  }
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Authentication required")
+    }
+
+    // Get detailed timetable event info
+    const { data: event, error } = await supabase
+      .from('timetable_events')
+      .select(`
+        id,
+        class_id,
+        subject_id,
+        teacher_id,
+        day_of_week,
+        start_time,
+        end_time,
+        week_number,
+        semester_id,
+        classes(name),
+        subjects(name_vietnamese, code),
+        semesters(
+          name,
+          start_date,
+          academic_years(name)
+        )
+      `)
+      .eq('id', timetableEventId)
+      .single()
+
+    if (error || !event) {
+      throw new Error("Timetable event not found")
+    }
+
+    if (event.teacher_id !== user.id) {
+      throw new Error("Access denied. You are not assigned to this class.")
+    }
+
+    const classData = event.classes as unknown as { name: string }
+    const subjectData = event.subjects as unknown as { name_vietnamese: string; code: string }
+    const semesterData = event.semesters as unknown as {
+      name: string;
+      start_date: string;
+      academic_years: { name: string }
+    }
+
+    // Calculate actual lesson date
+    const semesterStart = new Date(semesterData.start_date)
+    const weekOffset = (event.week_number - 1) * 7
+    const actualLessonDate = new Date(semesterStart)
+    actualLessonDate.setDate(actualLessonDate.getDate() + weekOffset + event.day_of_week)
+
+    return {
+      success: true,
+      data: {
+        id: event.id,
+        class_id: event.class_id,
+        subject_id: event.subject_id,
+        class_name: classData.name,
+        subject_name: subjectData.name_vietnamese,
+        subject_code: subjectData.code,
+        day_of_week: event.day_of_week,
+        start_time: event.start_time,
+        end_time: event.end_time,
+        week_number: event.week_number,
+        semester_name: semesterData.name,
+        academic_year_name: semesterData.academic_years.name,
+        actual_lesson_date: actualLessonDate.toISOString(),
+        semester_start_date: semesterData.start_date
+      }
+    }
+  } catch (error: unknown) {
+    console.error("Get timetable event for feedback error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch timetable event"
     }
   }
 }

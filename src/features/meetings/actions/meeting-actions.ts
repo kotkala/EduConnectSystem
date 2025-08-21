@@ -69,8 +69,8 @@ export async function getTeacherHomeroomClassesAction(): Promise<{
       .select(`
         id,
         name,
-        academic_years!inner(name),
-        student_class_assignments!inner(count)
+        academic_years(name),
+        student_class_assignments(count)
       `)
       .eq('homeroom_teacher_id', user.id)
 
@@ -343,7 +343,7 @@ export async function getParentMeetingSchedulesAction(): Promise<{
         is_read,
         read_at,
         created_at,
-        meeting_schedules!inner(
+        meeting_schedules(
           id,
           title,
           description,

@@ -20,6 +20,7 @@ import {
 } from "./teacher-timetable-event-dialog";
 import { getTeacherScheduleAction } from "@/features/teacher-management/actions/teacher-schedule-actions";
 import { useAuth } from "@/features/authentication/hooks/use-auth";
+import { createClient } from "@/lib/supabase/client";
 
 // Helper function to check if a string is a valid UUID
 function isValidUUID(str: string): boolean {
@@ -39,6 +40,7 @@ function hasValidFilters(filters: TeacherTimetableFiltersType): boolean {
 export default function TeacherTimetableCalendar() {
   const { user } = useAuth();
   const { currentDate, setCurrentDate } = useCalendarContext();
+  const supabase = createClient();
   const [view, setView] = useState<CalendarView>("week");
 
   // Navigation functions using the original logic but extracted for reusability
@@ -84,15 +86,22 @@ export default function TeacherTimetableCalendar() {
 
   // Convert timetable event to calendar event
   const timetableEventToCalendarEvent = useCallback((event: TeacherTimetableEvent): CalendarEvent => {
-    // Get the start of the current week (Monday = 1, Sunday = 0)
-    const weekStart = new Date(currentDate);
-    const dayOfWeek = weekStart.getDay();
-    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday (0), go back 6 days to Monday
-    weekStart.setDate(weekStart.getDate() + daysToMonday);
+    // Use the actual lesson date from the database calculation
+    // This ensures the correct week is displayed based on semester start date and week number
+    let eventDate: Date;
 
-    // Calculate the event date based on day_of_week (1 = Monday, 7 = Sunday)
-    const eventDate = new Date(weekStart);
-    eventDate.setDate(weekStart.getDate() + (event.day_of_week - 1));
+    if (event.actual_lesson_date) {
+      // Use the calculated actual lesson date from the database
+      eventDate = new Date(event.actual_lesson_date);
+    } else {
+      // Fallback to current week calculation (for backward compatibility)
+      const weekStart = new Date(currentDate);
+      const dayOfWeek = weekStart.getDay();
+      const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      weekStart.setDate(weekStart.getDate() + daysToMonday);
+      eventDate = new Date(weekStart);
+      eventDate.setDate(weekStart.getDate() + (event.day_of_week - 1));
+    }
 
     const [startHour, startMinute] = event.start_time.split(':').map(Number);
     const [endHour, endMinute] = event.end_time.split(':').map(Number);
@@ -103,8 +112,19 @@ export default function TeacherTimetableCalendar() {
     const endTime = new Date(eventDate);
     endTime.setHours(endHour, endMinute, 0, 0);
 
-    // Temporarily simplify to isolate the error
-    const title = `${event.subject_name || 'Unknown'} - ${event.class_name || 'Unknown'}`;
+    // Create title with feedback status indicator
+    let title = `${event.subject_name || 'Unknown'} - ${event.class_name || 'Unknown'}`;
+
+    // Add feedback status indicator
+    if (event.feedback_status) {
+      let statusIcon = '🔵'; // Default for 'Đã tạo phản hồi'
+      if (event.feedback_status === 'Chưa tạo phản hồi') {
+        statusIcon = '⚪';
+      } else if (event.feedback_status === 'Đã chỉnh sửa') {
+        statusIcon = '🟢';
+      }
+      title = `${statusIcon} ${title}`;
+    }
 
     return {
       id: event.id,
@@ -112,6 +132,8 @@ export default function TeacherTimetableCalendar() {
       start: startTime,
       end: endTime,
       color: "blue" as const, // Blue color for teacher events
+      location: event.classroom_name,
+      description: event.feedback_status || 'Chưa có phản hồi'
     };
   }, [currentDate]);
 
@@ -178,6 +200,40 @@ export default function TeacherTimetableCalendar() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, user]);
+
+  // Update currentDate when week filter changes
+  useEffect(() => {
+    const updateCurrentDateForWeek = async () => {
+      if (filters.studyWeek && filters.semesterId) {
+        try {
+          // Get semester start date
+          const { data: semesterData, error } = await supabase
+            .from('semesters')
+            .select('start_date')
+            .eq('id', filters.semesterId)
+            .single();
+
+          if (semesterData && !error) {
+            const semesterStart = new Date(semesterData.start_date);
+            // Calculate the start of the selected week
+            const weekOffset = (filters.studyWeek - 1) * 7;
+            const selectedWeekStart = new Date(semesterStart);
+            selectedWeekStart.setDate(selectedWeekStart.getDate() + weekOffset);
+
+            // Set currentDate to the middle of the selected week (Wednesday)
+            const selectedWeekMiddle = new Date(selectedWeekStart);
+            selectedWeekMiddle.setDate(selectedWeekMiddle.getDate() + 2); // Wednesday
+
+            setCurrentDate(selectedWeekMiddle);
+          }
+        } catch (error) {
+          console.error('Error updating current date for week:', error);
+        }
+      }
+    };
+
+    updateCurrentDateForWeek();
+  }, [filters.studyWeek, filters.semesterId, setCurrentDate, supabase]);
 
   // Load events when filters change
   useEffect(() => {

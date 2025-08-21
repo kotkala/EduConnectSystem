@@ -115,8 +115,8 @@ export async function getGradeReportingPeriodsAction(filters?: Partial<GradeFilt
         import_deadline,
         edit_deadline,
         is_active,
-        academic_year:academic_years!inner(name),
-        semester:semesters!inner(name)
+        academic_year:academic_years(name),
+        semester:semesters(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 
@@ -502,8 +502,8 @@ export async function getGradeReportingPeriodsForTeachersAction(filters?: Partia
         import_deadline,
         edit_deadline,
         is_active,
-        academic_year:academic_years!inner(name),
-        semester:semesters!inner(name)
+        academic_year:academic_years(name),
+        semester:semesters(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 

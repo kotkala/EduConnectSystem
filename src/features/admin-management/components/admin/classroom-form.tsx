@@ -104,10 +104,10 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
       if (result.success) {
         onSuccess()
       } else {
-        setError(result.error || 'Failed to save classroom')
+        setError(result.error || 'Không thể lưu phòng học')
       }
     } catch {
-      setError('An unexpected error occurred')
+      setError('Đã xảy ra lỗi không mong muốn')
     } finally {
       setLoading(false)
     }
@@ -130,11 +130,11 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Classroom Name *</FormLabel>
+                  <FormLabel>Tên phòng học *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., A101, Lab-Physics-1" 
-                      {...field} 
+                    <Input
+                      placeholder="VD: A101, Phòng thí nghiệm Vật lý 1"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -147,11 +147,11 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               name="building"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Building</FormLabel>
+                  <FormLabel>Tòa nhà</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., Building A, Science Block" 
-                      {...field} 
+                    <Input
+                      placeholder="VD: Tòa A, Khối Khoa học"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -167,7 +167,7 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               name="floor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Floor</FormLabel>
+                  <FormLabel>Tầng</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
@@ -188,7 +188,7 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               name="capacity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Capacity *</FormLabel>
+                  <FormLabel>Sức chứa *</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
@@ -209,11 +209,11 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
               name="room_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Room Type *</FormLabel>
+                  <FormLabel>Loại phòng *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select room type" />
+                        <SelectValue placeholder="Chọn loại phòng" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -232,12 +232,12 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
 
           {/* Equipment Section */}
           <div className="space-y-4">
-            <Label>Equipment</Label>
-            
+            <Label>Trang thiết bị</Label>
+
             {/* Equipment Selection */}
             <Select onValueChange={addEquipment}>
               <SelectTrigger>
-                <SelectValue placeholder="Add equipment" />
+                <SelectValue placeholder="Thêm trang thiết bị" />
               </SelectTrigger>
               <SelectContent>
                 {EQUIPMENT_OPTIONS.filter(eq => !selectedEquipment.includes(eq)).map((equipment) => (
@@ -271,9 +271,9 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Active Status</FormLabel>
+                  <FormLabel className="text-base">Trạng thái hoạt động</FormLabel>
                   <div className="text-sm text-muted-foreground">
-                    Enable this classroom for scheduling
+                    Kích hoạt phòng học này để lập lịch
                   </div>
                 </div>
                 <FormControl>
@@ -289,12 +289,12 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
           {/* Form Actions */}
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={loading}>
               {(() => {
-                if (loading) return 'Saving...'
-                return isEditing ? 'Update Classroom' : 'Create Classroom'
+                if (loading) return 'Đang lưu...'
+                return isEditing ? 'Cập nhật phòng học' : 'Tạo phòng học'
               })()}
             </Button>
           </div>

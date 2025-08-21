@@ -85,9 +85,9 @@ export async function getParentStudentsAction(): Promise<{ success: boolean; dat
     // Get current class assignments for each student using their profile IDs
     const studentProfileIds = students.map(s => s.id)
     const { data: currentAssignments } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student_id,
+        user_id,
         class_id,
         classes(
           id,
@@ -97,12 +97,13 @@ export async function getParentStudentsAction(): Promise<{ success: boolean; dat
           homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(id, full_name)
         )
       `)
-      .in('student_id', studentProfileIds)
+      .eq('assignment_type', 'student')
+      .in('user_id', studentProfileIds)
       .eq('is_active', true)
 
     // Combine student info with current class assignments
     const studentsWithClasses: StudentInfo[] = students.map(student => {
-      const currentAssignment = currentAssignments?.find(a => a.student_id === student.id)
+      const currentAssignment = currentAssignments?.find(a => a.user_id === student.id)
 
       return {
         id: student.id,
@@ -153,9 +154,9 @@ async function getStudentProfiles(supabase: Awaited<ReturnType<typeof createClie
 // Helper function to get class assignments for students
 async function getStudentClassAssignments(supabase: Awaited<ReturnType<typeof createClient>>, academicYearId: string, studentIds: string[]) {
   const { data: assignments, error } = await supabase
-    .from('student_class_assignments')
+    .from('class_assignments')
     .select(`
-      student_id,
+      user_id,
       class_id,
       classes(
         id,
@@ -165,9 +166,9 @@ async function getStudentClassAssignments(supabase: Awaited<ReturnType<typeof cr
         homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(id, full_name)
       )
     `)
-    .eq('academic_year_id', academicYearId)
+    .eq('assignment_type', 'student')
     .eq('is_active', true)
-    .in('student_id', studentIds)
+    .in('user_id', studentIds)
 
   if (error) {
     throw new Error(error.message)
@@ -179,7 +180,7 @@ async function getStudentClassAssignments(supabase: Awaited<ReturnType<typeof cr
 // Helper function to transform assignment data to StudentInfo
 function transformAssignmentToStudentInfo(
   assignment: {
-    student_id: string
+    user_id: string
     class_id: string
     classes: unknown
   },
@@ -237,7 +238,7 @@ export async function getParentStudentsByYearAction(academicYearId: string): Pro
     // Transform assignments to StudentInfo
     const studentsWithClasses: StudentInfo[] = []
     for (const assignment of assignments) {
-      const student = students.find(s => s.id === assignment.student_id)
+      const student = students.find(s => s.id === assignment.user_id)
       if (student) {
         studentsWithClasses.push(transformAssignmentToStudentInfo(assignment, student))
       }

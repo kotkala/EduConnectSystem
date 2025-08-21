@@ -72,9 +72,11 @@ function EventWrapper({
   return (
     <button
       className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3",
+        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3 flex-col",
         getEventColorClasses(event.color),
         getBorderRadiusClasses(determineEventPosition(isFirstDay, isLastDay)),
+        // Add status background color
+        event.statusBgColor,
         className,
       )}
       data-dragging={isDragging || undefined}
@@ -154,9 +156,9 @@ export function EventItem({
     // For longer events, show both start and end time with duration
     let durationText = ` (${durationMinutes}min)`;
     if (durationMinutes === 45) {
-      durationText = " â€¢ 45min";
+      durationText = " • 45min";
     } else if (durationMinutes === 60) {
-      durationText = " â€¢ 1h";
+      durationText = " • 1h";
     }
     return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}${durationText}`;
   };
@@ -170,7 +172,7 @@ export function EventItem({
         isDragging={isDragging}
         onClick={onClick}
         className={cn(
-          "mt-[var(--event-gap)] h-[var(--event-height)] items-center text-[10px] sm:text-[13px]",
+          "mt-[var(--event-gap)] min-h-[var(--event-height)] items-start flex-col py-1 text-[10px] sm:text-[13px]",
           className,
         )}
         currentTime={currentTime}
@@ -180,14 +182,28 @@ export function EventItem({
         onTouchStart={onTouchStart}
       >
         {children || (
-          <span className="truncate">
-            {!event.allDay && (
-              <span className="truncate sm:text-xs font-normal opacity-70 uppercase">
-                {formatTimeWithOptionalMinutes(displayStart)}{" "}
-              </span>
+          <>
+            <div className="truncate font-semibold mb-1">
+              {!event.allDay && (
+                <span className="truncate sm:text-xs font-normal opacity-70 uppercase">
+                  {formatTimeWithOptionalMinutes(displayStart)}{" "}
+                </span>
+              )}
+              {event.title}
+            </div>
+
+            {/* Show full status text in month view */}
+            {event.status && (
+              <div className={cn(
+                "text-[8px] sm:text-[10px] font-medium px-1 py-0.5 rounded text-center",
+                event.statusColor,
+                event.statusBgColor,
+                "border border-white/20"
+              )}>
+                {event.status}
+              </div>
             )}
-            {event.title}
-          </span>
+          </>
         )}
       </EventWrapper>
     );
@@ -202,8 +218,7 @@ export function EventItem({
         isDragging={isDragging}
         onClick={onClick}
         className={cn(
-          "py-2",
-          durationMinutes < 45 ? "items-center" : "flex-col",
+          "py-2 flex-col justify-start",
           view === "week" ? "text-[12px] sm:text-[14px]" : "text-[14px]",
           // Add visual indicator for 45-minute slots
           durationMinutes === 45 && "border-l-4 border-l-blue-500/70 bg-blue-50/30",
@@ -215,26 +230,36 @@ export function EventItem({
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
       >
-        {durationMinutes < 45 ? (
-          <div className="truncate">
-            {event.title}{" "}
-            {showTime && (
-              <span className="opacity-70">
-                {formatTimeWithOptionalMinutes(displayStart)}
-              </span>
-            )}
-          </div>
-        ) : (
+        {/* Always use expanded layout for better status display */}
+        {(
           <>
-            <div className="truncate font-semibold text-sm">{event.title}</div>
-            {event.location && event.location !== 'TBD' && (
+            <div className={cn(
+              "font-semibold text-sm mb-1",
+              // Don't truncate titles
+              "break-words"
+            )}>
+              {event.title}
+            </div>
+
+            {/* Always show full status text */}
+            {event.status && (
+              <div className={cn(
+                "text-xs font-medium px-2 py-1 rounded-md mb-1 text-center",
+                event.statusColor,
+                event.statusBgColor,
+                "border border-white/20"
+              )}>
+                {event.status}
+              </div>
+            )}
+            {event.location && event.location !== 'Chưa xác định' && (
               <div className="truncate font-medium opacity-80 text-xs mt-0.5">
                 ðŸ“ Phòng {event.location}
               </div>
             )}
             {showTime && (
               <div className="truncate font-medium opacity-70 text-xs mt-0.5">
-                ðŸ• {getEventTime()}
+                 {getEventTime()}
               </div>
             )}
           </>
@@ -258,6 +283,19 @@ export function EventItem({
       {...dndAttributes}
     >
       <div className="text-sm font-medium">{event.title}</div>
+
+      {/* Show full status text in agenda view */}
+      {event.status && (
+        <div className={cn(
+          "text-xs font-medium px-2 py-1 rounded-md my-1 text-center",
+          event.statusColor,
+          event.statusBgColor,
+          "border border-white/20"
+        )}>
+          {event.status}
+        </div>
+      )}
+
       <div className="text-xs opacity-70">
         {event.allDay ? (
           <span>All day</span>

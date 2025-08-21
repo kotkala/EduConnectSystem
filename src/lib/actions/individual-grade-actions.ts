@@ -86,9 +86,9 @@ export async function getStudentsForGradeSubmissionAction(classId: string): Prom
 
     // Get students in the class
     const { data: students, error: studentsError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id,
@@ -96,6 +96,7 @@ export async function getStudentsForGradeSubmissionAction(classId: string): Prom
         )
       `)
       .eq('class_id', classId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (studentsError) {

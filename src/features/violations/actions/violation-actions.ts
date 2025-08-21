@@ -988,16 +988,17 @@ export async function getStudentsByClassAction(classId?: string): Promise<{ succ
     // If class filter is provided, get students in that class
     if (classId) {
       const { data: assignments, error: assignmentsError } = await supabase
-        .from('student_class_assignments')
-        .select('student_id')
+        .from('class_assignments')
+        .select('user_id')
         .eq('class_id', classId)
+        .eq('assignment_type', 'student')
         .eq('is_active', true)
 
       if (assignmentsError) {
         throw new Error(assignmentsError.message)
       }
 
-      const studentIdsInClass = assignments?.map(a => a.student_id) || []
+      const studentIdsInClass = assignments?.map(a => a.user_id) || []
 
       const filteredStudents = students
         .filter(student =>
@@ -1218,16 +1219,23 @@ export async function getUnseenViolationAlertsCountAction(): Promise<{
 export async function markMonthlyAlertSeenAction(params: { student_id: string; semester_id: string; month_index: number }) {
   try {
     const { userId, supabase } = await checkAdminPermissions()
+
+    // Update the underlying unified_violation_reports table instead of the view
     const { error } = await supabase
-      .from('monthly_violation_alerts')
+      .from('unified_violation_reports')
       .update({
-        is_seen: true,
-        seen_by: userId,
-        seen_at: new Date().toISOString()
+        is_alert_sent: true,
+        created_by: userId,
+        alert_sent_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .eq('student_id', params.student_id)
       .eq('semester_id', params.semester_id)
-      .eq('month_index', params.month_index)
+      .eq('report_type', 'alert')
+      .eq('report_period', 'monthly')
+      .filter('created_at', 'gte', `${new Date().getFullYear()}-${params.month_index.toString().padStart(2, '0')}-01`)
+      .filter('created_at', 'lt', `${new Date().getFullYear()}-${(params.month_index + 1).toString().padStart(2, '0')}-01`)
+
     if (error) throw new Error(error.message)
     return { success: true }
   } catch (error: unknown) {
@@ -1279,10 +1287,11 @@ export async function getDisciplinaryActionTypesAction() {
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('disciplinary_action_types')
+      .from('violation_types')
       .select('*')
+      .eq('type_category', 'action')
       .eq('is_active', true)
-      .order('name')
+      .order('type_name')
 
     if (error) throw new Error(error.message)
     return { success: true, data: data || [] }
@@ -1296,9 +1305,11 @@ export async function createDisciplinaryActionTypeAction(params: { name: string;
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('disciplinary_action_types')
+      .from('violation_types')
       .insert({
-        name: params.name,
+        type_category: 'action',
+        type_code: params.name.toLowerCase().replace(/\s+/g, '_'),
+        type_name: params.name,
         description: params.description,
         severity_level: typeof params.severity_level === 'number' ? params.severity_level : 1,
         is_active: true
@@ -1342,9 +1353,10 @@ export async function deactivateDisciplinaryActionTypeAction(params: { id: strin
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('disciplinary_action_types')
+      .from('violation_types')
       .update({ is_active: false })
       .eq('id', params.id)
+      .eq('type_category', 'action')
       .select()
       .single()
 

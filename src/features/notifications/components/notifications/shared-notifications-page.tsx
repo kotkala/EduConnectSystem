@@ -93,38 +93,36 @@ function renderNotificationsContent(
 
 
   return notifications.map((notification) => (
-    <button
+    <div
       key={notification.id}
-      className={`card-modern p-6 cursor-pointer transition-all duration-200 hover:shadow-medium group text-left w-full ${
+      className={`card-modern p-6 transition-all duration-200 hover:shadow-medium group relative ${
         !notification.is_read
           ? 'border-orange-200 bg-orange-50/30 hover:bg-orange-50/50'
           : 'hover:bg-gray-50/50'
       }`}
-      onClick={() => {
-        const basePath = getBasePath(config.role)
-        router.push(`${basePath}/notifications/${notification.id}`)
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
+    >
+      {/* Main clickable area */}
+      <button
+        className="cursor-pointer text-left w-full"
+        onClick={() => {
           const basePath = getBasePath(config.role)
           router.push(`${basePath}/notifications/${notification.id}`)
-        }
-      }}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 space-y-3">
-          {/* Title and New Badge */}
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold text-foreground group-hover:text-orange-700 transition-colors">
-              {notification.title}
-            </h3>
-            {!notification.is_read && (
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-1 rounded-xl">
-                Mới
-              </Badge>
-            )}
-          </div>
+        }}
+        aria-label={`View notification: ${notification.title}`}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1 space-y-3">
+            {/* Title and New Badge */}
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-foreground group-hover:text-orange-700 transition-colors">
+                {notification.title}
+              </h3>
+              {!notification.is_read && (
+                <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-1 rounded-xl">
+                  Mới
+                </Badge>
+              )}
+            </div>
 
           {/* Metadata */}
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -179,23 +177,25 @@ function renderNotificationsContent(
             ))}
           </div>
 
-          {/* Mark as Read Button */}
-          {!notification.is_read && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-xl hover:bg-orange-100 hover:text-orange-700 opacity-0 group-hover:opacity-100 transition-all duration-200"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleMarkAsRead(notification.id)
-              }}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-          )}
+
+          </div>
         </div>
-      </div>
-    </button>
+      </button>
+
+      {/* Mark as Read Button - Separate clickable area */}
+      {!notification.is_read && (
+        <button
+          className="absolute top-4 right-4 h-8 w-8 p-0 rounded-xl hover:bg-orange-100 hover:text-orange-700 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleMarkAsRead(notification.id)
+          }}
+          aria-label="Mark notification as read"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   ))
 }
 

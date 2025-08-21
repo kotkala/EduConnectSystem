@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import Image from 'next/image'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
+import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
 import {
   getNotificationForViewAction,
   markNotificationAsReadAction,
@@ -21,7 +22,8 @@ import {
 export default function ParentNotificationDetailPage() {
   const router = useRouter()
   const params = useParams()
-  useAuth() // For authentication context
+  const { user } = useAuth() // For authentication context
+  const { refreshCounts } = useNotificationCount('parent', user?.id)
   const notificationId = params.id as string
 
   const [notification, setNotification] = useState<Notification | null>(null)
@@ -61,6 +63,8 @@ export default function ParentNotificationDetailPage() {
     const result = await markNotificationAsReadAction(notification.id)
     if (result.success) {
       setNotification(prev => prev ? { ...prev, is_read: true } : null)
+      // Refresh notification count in sidebar
+      refreshCounts()
       toast.success('Đã đánh dấu là đã đọc')
     } else {
       toast.error(result.error || 'Không thể đánh dấu là đã đọc')

@@ -3,7 +3,7 @@
 import { createClient } from "@/shared/utils/supabase/server"
 import { createAdminClient } from "@/shared/utils/supabase/admin"
 import { checkAdminPermissions } from "@/lib/utils/permission-utils"
-import { sendTeacherGradeNotificationEmail } from "@/lib/services/email-service"
+import { sendTeacherGradeNotificationEmail, sendGradeNotificationEmail } from "@/lib/services/email-service"
 
 // Helper function to store calculated summary grade in database
 async function storeSummaryGradeInDatabase(
@@ -1001,7 +1001,7 @@ export async function submitStudentGradesToHomeroomAction(
           .eq('id', Object.values(classesByStudent)[0]?.classId)
           .single()
 
-        // Send email notification
+        // Send email notification to teacher
         await sendTeacherGradeNotificationEmail({
           teacherEmail: teacherData.email,
           teacherName: teacherData.full_name || 'Giáo viên',
@@ -1013,8 +1013,83 @@ export async function submitStudentGradesToHomeroomAction(
         })
       }
     } catch (emailError) {
-      console.error('Error sending email notification:', emailError)
+      console.error('Error sending teacher email notification:', emailError)
       // Don't fail the entire operation if email fails
+    }
+
+    // Send email notifications to parents
+    try {
+      // Get period and class information for parent emails
+      const { data: periodData } = await supabase
+        .from('grade_reporting_periods')
+        .select('name')
+        .eq('id', periodId)
+        .single()
+
+      const { data: classData } = await supabase
+        .from('classes')
+        .select('name')
+        .eq('id', Object.values(classesByStudent)[0]?.classId)
+        .single()
+
+      // Get teacher information for parent emails
+      const { data: teacherData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', Object.values(classesByStudent)[0]?.homeroomTeacherId)
+        .single()
+
+      // Send email to parents for each student
+      for (const studentId of studentIds) {
+        try {
+          // Get student information
+          const { data: studentInfo } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', studentId)
+            .single()
+
+          // Get parent emails for this student
+          const { data: parentRelationships, error: parentError } = await supabase
+            .from('parent_student_relationships')
+            .select(`
+              parent:profiles!parent_id(
+                full_name,
+                email
+              )
+            `)
+            .eq('student_id', studentId)
+
+          if (parentError) {
+            console.error(`Error getting parents for student ${studentId}:`, parentError)
+            continue
+          }
+
+          // Send email to each parent
+          for (const relationship of parentRelationships || []) {
+            const parent = relationship.parent as unknown as { full_name: string; email: string }
+
+            if (parent?.email) {
+              await sendGradeNotificationEmail({
+                parentEmail: parent.email,
+                parentName: parent.full_name || 'Phụ huynh',
+                studentName: studentInfo?.full_name || 'Học sinh',
+                className: classData?.name || 'Lớp',
+                periodName: periodData?.name || 'Kỳ báo cáo',
+                teacherName: teacherData?.full_name || 'Giáo viên'
+              })
+
+              console.log(`✅ Parent email sent to ${parent.email} for student ${studentInfo?.full_name}`)
+            }
+          }
+        } catch (studentEmailError) {
+          console.error(`Error sending parent email for student ${studentId}:`, studentEmailError)
+          // Continue with other students even if one fails
+        }
+      }
+    } catch (parentEmailError) {
+      console.error('Error sending parent email notifications:', parentEmailError)
+      // Don't fail the entire operation if parent emails fail
     }
 
     return {

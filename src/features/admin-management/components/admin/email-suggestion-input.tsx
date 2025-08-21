@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Card, CardContent } from "@/shared/components/ui/card"
-import { Button } from "@/shared/components/ui/button"
 import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/features/admin-management/actions/user-actions"
 
@@ -211,13 +210,9 @@ export function EmailSuggestionInput({
                       </div>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                  >
+                  <div className="h-8 w-8 flex items-center justify-center text-green-600">
                     <Check className="h-4 w-4" />
-                  </Button>
+                  </div>
                 </div>
               </button>
             ))}

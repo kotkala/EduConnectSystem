@@ -667,7 +667,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         </TabsContent>
 
         <TabsContent value="discipline" className="space-y-6">
-          <TeacherDisciplinaryCases />
+          <TeacherDisciplinaryCases homeroomClass={homeroomClass} />
         </TabsContent>
       </Tabs>
     </div>

@@ -40,21 +40,6 @@ interface DisciplinaryCase {
   notes: string
   status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
   created_at: string
-  profiles?: {
-    id: string
-    full_name: string
-    student_id: string
-  }
-  classes?: {
-    id: string
-    name: string
-  }
-  disciplinary_action_types?: {
-    id: string
-    name: string
-    severity_level?: number
-  }
-  // Legacy support for the old structure
   student?: {
     id: string
     full_name: string
@@ -686,10 +671,10 @@ export default function DisciplinaryProcessing() {
                     </TableRow>
                   ) : (
                     cases.map((caseItem) => {
-                      // Handle both new and legacy data structures
-                      const student = caseItem.profiles || caseItem.student
-                      const classInfo = caseItem.classes || caseItem.class
-                      const actionType = caseItem.disciplinary_action_types || caseItem.action_type
+                      // Use the correct data structure returned by the API
+                      const student = caseItem.student
+                      const classInfo = caseItem.class
+                      const actionType = caseItem.action_type
 
                       return (
                         <TableRow key={caseItem.id}>

@@ -23,12 +23,19 @@ interface DisciplinaryCase {
   notes: string
   status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
   created_at: string
-  student: { full_name: string; student_id: string }
-  class: { name: string }
-  action_type: { name: string }
+  student: { id: string; full_name: string; student_id: string } | null
+  class: { id: string; name: string } | null
+  action_type: { id: string; name: string } | null
 }
 
-export default function TeacherDisciplinaryCases() {
+interface TeacherDisciplinaryCasesProps {
+  homeroomClass?: {
+    id: string
+    name: string
+  } | null
+}
+
+export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<TeacherDisciplinaryCasesProps>) {
   const [cases, setCases] = useState<DisciplinaryCase[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCase, setSelectedCase] = useState<DisciplinaryCase | null>(null)
@@ -42,10 +49,16 @@ export default function TeacherDisciplinaryCases() {
   const loadCases = async () => {
     setIsLoading(true)
     try {
-      // Lấy các case được gửi đến GVCN (status = 'sent_to_homeroom')
+      // Only load cases if teacher has a homeroom class
+      if (!homeroomClass) {
+        setCases([])
+        return
+      }
+
+      // Lấy các case được gửi đến GVCN cho lớp chủ nhiệm của giáo viên
       const result = await getDisciplinaryCasesAction({
-        status: 'sent_to_homeroom'
-        // TODO: Filter by homeroom classes của teacher hiện tại
+        status: 'sent_to_homeroom',
+        class_id: homeroomClass.id
       })
 
       if (result.success && result.data) {
@@ -165,12 +178,12 @@ export default function TeacherDisciplinaryCases() {
                   <TableRow key={caseItem.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{caseItem.student.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{caseItem.student.student_id}</div>
+                        <div className="font-medium">{caseItem.student?.full_name || 'Không xác định'}</div>
+                        <div className="text-sm text-muted-foreground">{caseItem.student?.student_id || 'N/A'}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{caseItem.class.name}</TableCell>
-                    <TableCell>{caseItem.action_type.name}</TableCell>
+                    <TableCell>{caseItem.class?.name || 'Không xác định'}</TableCell>
+                    <TableCell>{caseItem.action_type?.name || 'Không xác định'}</TableCell>
                     <TableCell>
                       <Badge variant="outline">Tuần {caseItem.week_index}</Badge>
                     </TableCell>
@@ -200,17 +213,17 @@ export default function TeacherDisciplinaryCases() {
                                   <div>
                                     <Label className="text-sm font-medium">Học sinh</Label>
                                     <div className="mt-1">
-                                      <div className="font-medium">{selectedCase.student.full_name}</div>
-                                      <div className="text-sm text-muted-foreground">{selectedCase.student.student_id}</div>
+                                      <div className="font-medium">{selectedCase.student?.full_name || 'Không xác định'}</div>
+                                      <div className="text-sm text-muted-foreground">{selectedCase.student?.student_id || 'N/A'}</div>
                                     </div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Lớp</Label>
-                                    <div className="mt-1 font-medium">{selectedCase.class.name}</div>
+                                    <div className="mt-1 font-medium">{selectedCase.class?.name || 'Không xác định'}</div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Hình thức kỷ luật</Label>
-                                    <div className="mt-1 font-medium">{selectedCase.action_type.name}</div>
+                                    <div className="mt-1 font-medium">{selectedCase.action_type?.name || 'Không xác định'}</div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Tuần vi phạm</Label>

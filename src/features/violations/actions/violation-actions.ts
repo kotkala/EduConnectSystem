@@ -1408,7 +1408,23 @@ export async function deactivateDisciplinaryActionTypeAction(params: { id: strin
 // Lấy danh sách case kỷ luật
 export async function getDisciplinaryCasesAction(params?: { semester_id?: string; status?: string; class_id?: string }) {
   try {
-    const { supabase } = await checkAdminPermissions()
+    // Allow both admins and teachers to access this function
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error("Yêu cầu đăng nhập")
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['admin', 'teacher'].includes(profile.role)) {
+      throw new Error("Yêu cầu quyền admin hoặc giáo viên")
+    }
 
     // Build the query with basic data first, then manually join the related data
     let query = supabase
@@ -1460,11 +1476,15 @@ export async function getDisciplinaryCasesAction(params?: { semester_id?: string
       .select('id, name')
       .in('id', classIds)
 
-    // Fetch action types
-    const { data: actionTypes } = await supabase
-      .from('disciplinary_action_types')
-      .select('id, name')
-      .in('id', actionTypeIds)
+    // Fetch action types - handle empty array case
+    let actionTypes = null
+    if (actionTypeIds.length > 0) {
+      const { data: actionTypesData } = await supabase
+        .from('disciplinary_action_types')
+        .select('id, name')
+        .in('id', actionTypeIds)
+      actionTypes = actionTypesData
+    }
 
     // Combine the data
     const enrichedCases = cases.map(caseItem => ({
@@ -1484,7 +1504,24 @@ export async function getDisciplinaryCasesAction(params?: { semester_id?: string
 // Cập nhật trạng thái case kỷ luật
 export async function updateDisciplinaryCaseStatusAction(params: { case_id: string; status: string }) {
   try {
-    const { supabase } = await checkAdminPermissions()
+    // Allow both admins and teachers to update case status
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error("Yêu cầu đăng nhập")
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['admin', 'teacher'].includes(profile.role)) {
+      throw new Error("Yêu cầu quyền admin hoặc giáo viên")
+    }
+
     const { data, error } = await supabase
       .from('student_disciplinary_cases')
       .update({ status: params.status, updated_at: new Date().toISOString() })

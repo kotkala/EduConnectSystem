@@ -134,12 +134,10 @@ export async function POST(request: NextRequest) {
         student_id,
         academic_year:academic_years(name),
         semester:semesters(name),
-        grades:individual_subject_grades(
+        detailed_grades:student_detailed_grades(
           subject_id,
-          midterm_grade,
-          final_grade,
-          average_grade,
-          notes
+          component_type,
+          grade_value
         )
       `)
       .in('student_id', studentIds)

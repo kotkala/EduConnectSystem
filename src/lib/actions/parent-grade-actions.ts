@@ -30,6 +30,7 @@ interface SubjectGradeData {
     name_vietnamese?: string
     category?: string
   } | undefined
+  regular_grades: number[]
   midterm_grade: number | null
   final_grade: number | null
   average_grade: number | null
@@ -50,6 +51,7 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
       gradesBySubject.set(subjectId, {
         subject_id: subjectId,
         subject: subject,
+        regular_grades: [],
         midterm_grade: null,
         final_grade: null,
         average_grade: null,
@@ -64,11 +66,13 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
   for (const [subjectId, subjectData] of gradesBySubject) {
     const grades = subjectData.grades
 
-    // Find midterm and final grades
+    // Find regular, midterm and final grades
+    // Regular grades can be 'regular', 'regular_1', 'regular_2', etc.
+    const regularGrades = grades.filter((g) => g.component_type.startsWith('regular')).map(g => g.grade_value)
     const midtermGrade = grades.find((g) => g.component_type === 'midterm')
     const finalGrade = grades.find((g) => g.component_type === 'final')
 
-    // Calculate average if both exist
+    // Calculate average if both midterm and final exist
     let averageGrade = null
     if (midtermGrade && finalGrade) {
       averageGrade = Math.round(((midtermGrade.grade_value + finalGrade.grade_value) / 2) * 10) / 10
@@ -76,6 +80,7 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
 
     result.push({
       subject_id: subjectId,
+      regular_grades: regularGrades,
       midterm_grade: midtermGrade?.grade_value || null,
       final_grade: finalGrade?.grade_value || null,
       average_grade: averageGrade,
@@ -369,7 +374,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     }
 
     // Verify that this submission has been sent to parents by checking grade_submissions
-    const { data: gradeSubmission } = await supabase
+    // Use admin client to bypass RLS issues and handle multiple submissions properly
+    const adminSupabase = createAdminClient()
+    const { data: gradeSubmission } = await adminSupabase
       .from('grade_submissions')
       .select(`
         id,
@@ -385,7 +392,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       `)
       .eq('class_id', submission.class_id)
       .not('sent_to_parents_at', 'is', null)
-      .single()
+      .order('sent_to_parents_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
     if (!gradeSubmission) {
       return {
@@ -433,8 +442,8 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Get detailed grades separately with proper filtering
-    const { data: detailedGrades, error: gradesError } = await supabase
+    // Get detailed grades separately with proper filtering using admin client
+    const { data: detailedGrades, error: gradesError } = await adminSupabase
       .from('student_detailed_grades')
       .select(`
         id,

@@ -1091,12 +1091,10 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
           name,
           homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(full_name)
         ),
-        grades:individual_subject_grades(
+        detailed_grades:student_detailed_grades(
           subject_id,
-          midterm_grade,
-          final_grade,
-          average_grade,
-          notes,
+          component_type,
+          grade_value,
           subject:subjects(
             code,
             name_vietnamese,
@@ -1145,23 +1143,21 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
         className: latestSubmission.class?.[0]?.name,
         homeroomTeacher: latestSubmission.class?.[0]?.homeroom_teacher?.[0]?.full_name,
         submittedAt: new Date(latestSubmission.created_at).toLocaleDateString('vi-VN'),
-        subjects: latestSubmission.grades?.map((grade: any) => ({
+        subjects: latestSubmission.detailed_grades?.map((grade: any) => ({
           subjectCode: grade.subject?.code,
           subjectName: grade.subject?.name_vietnamese,
           category: grade.subject?.category,
-          midtermGrade: grade.midterm_grade,
-          finalGrade: grade.final_grade,
-          averageGrade: grade.average_grade,
-          notes: grade.notes
+          componentType: grade.component_type,
+          gradeValue: grade.grade_value
         })) || []
       }
 
-      // Calculate statistics
-      const validGrades = latestSubmission.grades?.filter((g: any) => g.average_grade !== null) || []
-      if (validGrades.length > 0) {
-        const averages = validGrades.map((g: any) => g.average_grade)
+      // Calculate statistics from detailed grades
+      const finalGrades = latestSubmission.detailed_grades?.filter((g: any) => g.component_type === 'final') || []
+      if (finalGrades.length > 0) {
+        const averages = finalGrades.map((g: any) => g.grade_value)
         result.statistics = {
-          totalSubjects: validGrades.length,
+          totalSubjects: finalGrades.length,
           overallAverage: (averages.reduce((sum: number, grade: number) => sum + grade, 0) / averages.length).toFixed(2),
           highestGrade: Math.max(...averages),
           lowestGrade: Math.min(...averages),

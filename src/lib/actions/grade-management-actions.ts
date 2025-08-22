@@ -268,9 +268,9 @@ export async function deleteGradeReportingPeriodAction(id: string) {
 
     // Check if there are existing grades in the NEW system
     const { data: existingGrades } = await supabase
-      .from('individual_subject_grades')
+      .from('student_detailed_grades')
       .select('id')
-      .eq('submission_id', id)
+      .eq('period_id', id)
       .limit(1)
 
     if (existingGrades && existingGrades.length > 0) {

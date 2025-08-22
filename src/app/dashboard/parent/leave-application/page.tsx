@@ -208,7 +208,7 @@ export default function LeaveApplicationPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => router.push(`/dashboard/parent/leave-application/${application.id}`)}
+                          onClick={() => router.push(`/dashboard/leave-application/${application.id}`)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

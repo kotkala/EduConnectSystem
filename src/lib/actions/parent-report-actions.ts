@@ -230,7 +230,7 @@ export async function markReportAsReadAction(notificationId: string) {
       .from('report_notifications')
       .select('student_report_id')
       .eq('id', notificationId)
-      .single()
+      .maybeSingle()
 
     if (notification) {
       await supabase
@@ -317,7 +317,7 @@ export async function getParentReportAction(reportId: string) {
       .select('id')
       .eq('parent_id', userId)
       .eq('student_id', report.student_id)
-      .single()
+      .maybeSingle()
 
     if (relationError || !parentRelation) {
       throw new Error('Access denied - you do not have permission to view this report')
@@ -329,7 +329,7 @@ export async function getParentReportAction(reportId: string) {
       .select('id')
       .eq('student_report_id', reportId)
       .eq('parent_id', userId)
-      .single()
+      .maybeSingle()
 
     if (notificationError || !notification) {
       throw new Error('Notification record not found')
@@ -341,7 +341,7 @@ export async function getParentReportAction(reportId: string) {
       .select('*')
       .eq('student_report_id', reportId)
       .eq('parent_id', userId)
-      .single()
+      .maybeSingle()
 
     return {
       success: true,

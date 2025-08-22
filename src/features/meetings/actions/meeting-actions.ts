@@ -29,7 +29,7 @@ export interface MeetingScheduleInfo {
   teacher_name: string
   class_name: string
   is_read: boolean
-  read_at?: string
+  read_at?: string | null
   created_at: string
 }
 
@@ -243,18 +243,19 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       throw new Error("Từ chối truy cập. Bạn không phải là giáo viên chủ nhiệm của lớp này.")
     }
 
-    // Create the meeting schedule
+    // Create the meeting schedule using unified_meetings table
     const { data: meetingSchedule, error: meetingError } = await supabase
-      .from('meeting_schedules')
+      .from('unified_meetings')
       .insert({
-        teacher_id: user.id,
-        class_id: request.class_id,
+        organizer_id: user.id,
+        meeting_class_id: request.class_id,
         title: request.meeting_data.title,
         description: request.meeting_data.description,
-        meeting_date: request.meeting_data.meeting_date,
-        meeting_location: request.meeting_data.meeting_location,
+        scheduled_at: request.meeting_data.meeting_date,
+        location: request.meeting_data.meeting_location,
         duration_minutes: request.meeting_data.duration_minutes || 60,
-        meeting_type: request.meeting_data.meeting_type || 'parent_meeting'
+        meeting_type: request.meeting_data.meeting_type || 'parent_meeting',
+        status: 'scheduled'
       })
       .select('id')
       .single()
@@ -273,25 +274,20 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       throw new Error(parentsError.message)
     }
 
-    // Create recipients records using student UUIDs directly
-    const recipients: Array<{
-      meeting_schedule_id: string
-      student_id: string
-      parent_id: string
-    }> = []
+    // Create recipients data for JSONB storage
+    const recipients = studentParents?.map(rel => ({
+      student_id: rel.student_id,
+      parent_id: rel.parent_id,
+      is_read: false,
+      read_at: null
+    })) || []
 
-    studentParents?.forEach(rel => {
-      recipients.push({
-        meeting_schedule_id: meetingSchedule.id,
-        student_id: rel.student_id,
-        parent_id: rel.parent_id
-      })
-    })
-
+    // Update the meeting with recipients data
     if (recipients.length > 0) {
       const { error: recipientsError } = await supabase
-        .from('meeting_schedule_recipients')
-        .insert(recipients)
+        .from('unified_meetings')
+        .update({ recipients: recipients })
+        .eq('id', meetingSchedule.id)
 
       if (recipientsError) {
         throw new Error(recipientsError.message)
@@ -339,63 +335,84 @@ export async function getParentMeetingSchedulesAction(): Promise<{
       throw new Error("Từ chối truy cập. Yêu cầu vai trò phụ huynh.")
     }
 
-    // Get meeting schedules for this parent
-    const { data: meetingSchedules, error } = await supabase
-      .from('meeting_schedule_recipients')
+    // Get all meetings and filter in JavaScript (more reliable than complex JSONB queries)
+    const { data: allMeetings, error } = await supabase
+      .from('unified_meetings')
       .select(`
-        is_read,
-        read_at,
+        id,
+        title,
+        description,
+        scheduled_at,
+        location,
+        duration_minutes,
+        meeting_type,
+        recipients,
         created_at,
-        meeting_schedules!meeting_schedule_recipients_meeting_schedule_id_fkey(
-          id,
-          title,
-          description,
-          meeting_date,
-          meeting_location,
-          duration_minutes,
-          meeting_type,
-          teachers:profiles!meeting_schedules_teacher_id_fkey(
-            full_name
-          ),
-          classes(
-            name
-          )
-        )
+        organizer_id,
+        meeting_class_id
       `)
-      .eq('parent_id', user.id)
+      .not('recipients', 'is', null)
       .order('created_at', { ascending: false })
+
+    // Filter meetings where this parent is in the recipients array
+    const meetingSchedules = allMeetings?.filter(meeting => {
+      const recipients = meeting.recipients as Array<{ parent_id: string }>
+      return recipients?.some(recipient => recipient.parent_id === user.id)
+    }) || []
 
     if (error) {
       throw new Error(error.message)
     }
 
+    // Get organizer and class names
+    const organizerIds = meetingSchedules?.map(m => m.organizer_id).filter(Boolean) || []
+    const classIds = meetingSchedules?.map(m => m.meeting_class_id).filter(Boolean) || []
+
+    const organizerMap = new Map<string, string>()
+    const classMap = new Map<string, string>()
+
+    if (organizerIds.length > 0) {
+      const { data: organizers } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', organizerIds)
+
+      organizers?.forEach(org => {
+        organizerMap.set(org.id, org.full_name)
+      })
+    }
+
+    if (classIds.length > 0) {
+      const { data: classes } = await supabase
+        .from('classes')
+        .select('id, name')
+        .in('id', classIds)
+
+      classes?.forEach(cls => {
+        classMap.set(cls.id, cls.name)
+      })
+    }
+
     // Process the data
-    const scheduleList = meetingSchedules?.map(item => {
-      const schedule = item.meeting_schedules as unknown as {
-        id: string
-        title: string
-        description?: string
-        meeting_date: string
-        meeting_location?: string
-        duration_minutes: number
-        meeting_type: string
-        teachers: { full_name: string }
-        classes: { name: string }
-      }
+    const scheduleList = meetingSchedules?.map(schedule => {
+      const recipients = schedule.recipients as unknown as Array<{ parent_id: string; is_read?: boolean; read_at?: string }>
+
+      // Find this parent's recipient data
+      const parentRecipient = recipients?.find(r => r.parent_id === user.id)
 
       return {
         id: schedule.id,
         title: schedule.title,
         description: schedule.description,
-        meeting_date: schedule.meeting_date,
-        meeting_location: schedule.meeting_location,
+        meeting_date: schedule.scheduled_at,
+        meeting_location: schedule.location,
         duration_minutes: schedule.duration_minutes,
         meeting_type: schedule.meeting_type,
-        teacher_name: schedule.teachers.full_name,
-        class_name: schedule.classes.name,
-        is_read: item.is_read,
-        read_at: item.read_at,
-        created_at: item.created_at
+        teacher_name: organizerMap.get(schedule.organizer_id) || 'Unknown Teacher',
+        class_name: classMap.get(schedule.meeting_class_id) || 'Unknown Class',
+        is_read: parentRecipient?.is_read || false,
+        read_at: parentRecipient?.read_at || null,
+        created_at: schedule.created_at
       }
     }) || []
 
@@ -422,15 +439,29 @@ export async function markMeetingScheduleAsReadAction(meetingScheduleId: string)
       throw new Error("Yêu cầu xác thực")
     }
 
-    // Update the recipient record to mark as read
+    // Get the meeting and update the recipient data
+    const { data: meeting, error: fetchError } = await supabase
+      .from('unified_meetings')
+      .select('recipients')
+      .eq('id', meetingScheduleId)
+      .single()
+
+    if (fetchError || !meeting) {
+      throw new Error(fetchError?.message || "Meeting not found")
+    }
+
+    // Update the recipients array to mark this parent as read
+    const recipients = meeting.recipients as Array<{ parent_id: string; is_read?: boolean; read_at?: string }>
+    const updatedRecipients = recipients.map(recipient =>
+      recipient.parent_id === user.id
+        ? { ...recipient, is_read: true, read_at: new Date().toISOString() }
+        : recipient
+    )
+
     const { error } = await supabase
-      .from('meeting_schedule_recipients')
-      .update({
-        is_read: true,
-        read_at: new Date().toISOString()
-      })
-      .eq('meeting_schedule_id', meetingScheduleId)
-      .eq('parent_id', user.id)
+      .from('unified_meetings')
+      .update({ recipients: updatedRecipients })
+      .eq('id', meetingScheduleId)
 
     if (error) {
       throw new Error(error.message)
@@ -460,18 +491,27 @@ export async function getUnreadMeetingScheduleCountAction(): Promise<{
       throw new Error("Yêu cầu xác thực")
     }
 
-    // Count unread meeting schedules
-    const { count, error } = await supabase
-      .from('meeting_schedule_recipients')
-      .select('*', { count: 'exact', head: true })
-      .eq('parent_id', user.id)
-      .eq('is_read', false)
+    // Get all meetings and filter for this parent
+    const { data: allMeetings, error } = await supabase
+      .from('unified_meetings')
+      .select('recipients')
+      .not('recipients', 'is', null)
 
     if (error) {
       throw new Error(error.message)
     }
 
-    return { success: true, data: { count: count || 0 } }
+    // Filter meetings for this parent and count unread ones
+    let unreadCount = 0
+    allMeetings?.forEach(meeting => {
+      const recipients = meeting.recipients as Array<{ parent_id: string; is_read?: boolean }>
+      const parentRecipient = recipients?.find(r => r.parent_id === user.id)
+      if (parentRecipient && !parentRecipient.is_read) {
+        unreadCount++
+      }
+    })
+
+    return { success: true, data: { count: unreadCount } }
   } catch (error: unknown) {
     console.error("Get unread meeting schedule count error:", error)
     return {
@@ -517,44 +557,56 @@ export async function getTeacherMeetingSchedulesAction(): Promise<{
       throw new Error("Từ chối truy cập. Yêu cầu vai trò giáo viên.")
     }
 
-    // Get meeting schedules created by this teacher
+    // Get meeting schedules created by this teacher with manual join
     const { data: meetingSchedules, error } = await supabase
-      .from('meeting_schedules')
+      .from('unified_meetings')
       .select(`
         id,
         title,
         description,
-        meeting_date,
-        meeting_location,
+        scheduled_at,
+        location,
         duration_minutes,
         meeting_type,
+        recipients,
         created_at,
-        classes!meeting_schedules_class_id_fkey(
-          name
-        ),
-        meeting_schedule_recipients(count)
+        meeting_class_id
       `)
-      .eq('teacher_id', user.id)
+      .eq('organizer_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {
       throw new Error(error.message)
     }
 
+    // Get class names for the meetings
+    const classIds = meetingSchedules?.map(m => m.meeting_class_id).filter(Boolean) || []
+    const classMap = new Map<string, string>()
+
+    if (classIds.length > 0) {
+      const { data: classes } = await supabase
+        .from('classes')
+        .select('id, name')
+        .in('id', classIds)
+
+      classes?.forEach(cls => {
+        classMap.set(cls.id, cls.name)
+      })
+    }
+
     // Process the data
     const scheduleList = meetingSchedules?.map(schedule => {
-      const classInfo = schedule.classes as unknown as { name: string }
-      const recipients = schedule.meeting_schedule_recipients as unknown as Array<unknown>
+      const recipients = schedule.recipients as unknown as Array<unknown> || []
 
       return {
         id: schedule.id,
         title: schedule.title,
         description: schedule.description,
-        meeting_date: schedule.meeting_date,
-        meeting_location: schedule.meeting_location,
+        meeting_date: schedule.scheduled_at,
+        meeting_location: schedule.location,
         duration_minutes: schedule.duration_minutes,
         meeting_type: schedule.meeting_type,
-        class_name: classInfo.name,
+        class_name: classMap.get(schedule.meeting_class_id) || 'Unknown Class',
         recipients_count: recipients.length,
         created_at: schedule.created_at
       }

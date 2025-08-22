@@ -137,7 +137,7 @@ export async function getWeeklyGroupedViolationsAction(params: {
     let query = supabase
       .from('student_violations')
       .select(`
-        id, student_id, class_id, violation_type_id, severity, points, description, violation_date,
+        id, student_id, class_id, violation_type_id, severity, points, description, violation_date, sent_status, sent_at,
         student:profiles!student_id(id, full_name, student_id),
         class:classes!class_id(id, name),
         violation_type:violation_types!violation_type_id(id, name, points)
@@ -165,7 +165,17 @@ export async function getWeeklyGroupedViolationsAction(params: {
       class: { id: string; name: string } | null;
       total_points: number;
       total_violations: number;
-      violations: Array<{ id: string; name: string; points: number; date: string; description: string | null }>;
+      sent_violations: number;
+      unsent_violations: number;
+      violations: Array<{
+        id: string;
+        name: string;
+        points: number;
+        date: string;
+        description: string | null;
+        sent_status: string;
+        sent_at: string | null;
+      }>;
     }>()
 
     for (const row of (violations || [])) {
@@ -176,6 +186,8 @@ export async function getWeeklyGroupedViolationsAction(params: {
           class: Array.isArray(row.class) ? row.class[0] : row.class,
           total_points: 0,
           total_violations: 0,
+          sent_violations: 0,
+          unsent_violations: 0,
           violations: []
         })
       }
@@ -189,12 +201,22 @@ export async function getWeeklyGroupedViolationsAction(params: {
 
       agg.total_points += effectivePoints
       agg.total_violations += 1
+
+      // Track sent/unsent status
+      if (row.sent_status === 'sent') {
+        agg.sent_violations += 1
+      } else {
+        agg.unsent_violations += 1
+      }
+
       agg.violations.push({
         id: row.id,
         name: (vt?.name) || '',
         points: effectivePoints,
         date: row.violation_date,
-        description: row.description
+        description: row.description,
+        sent_status: row.sent_status || 'unsent',
+        sent_at: row.sent_at
       })
     }
 
@@ -204,19 +226,36 @@ export async function getWeeklyGroupedViolationsAction(params: {
 
     console.log('🔍 Final grouped data:', Array.from(map.values()))
 
+    // Get report status to determine sync info
+    const statusResult = await getWeeklyReportStatusAction({
+      semester_id: params.semester_id,
+      week_index: params.week_index,
+      class_id: params.class_id
+    })
+
+    const reportStatus = statusResult.success ? statusResult.data : null
+    const needsResync = reportStatus?.needs_resync || false
+    const reportWasSent = reportStatus?.is_sent_to_teacher || false
+
+    // Determine data source
+    let dataSource: 'cached' | 'realtime' = 'realtime'
+    if (!needsResync && reportWasSent) {
+      dataSource = 'cached'
+    }
+
     return {
       success: true,
       data: Array.from(map.values()),
       sync_info: {
-        has_existing_report: false,
-        report_was_sent: false,
-        report_sent_at: null,
-        data_changed_since_sent: false,
-        needs_resync: false,
+        has_existing_report: reportWasSent,
+        report_was_sent: reportWasSent,
+        report_sent_at: reportStatus?.sent_at || null,
+        data_changed_since_sent: needsResync,
+        needs_resync: needsResync,
         current_violation_count: currentViolationCount,
         current_total_points: currentTotalPoints,
         last_report_updated: null,
-        data_source: 'realtime'
+        data_source: dataSource
       }
     }
   } catch (error) {
@@ -428,6 +467,7 @@ export async function markWeeklyReportsAsSentAction(params: {
   class_id?: string;
 }): Promise<{
   success: boolean;
+  message?: string;
   error?: string;
 }> {
   try {
@@ -449,14 +489,15 @@ export async function markWeeklyReportsAsSentAction(params: {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
 
-    // Get current violation data for this period to store in report
+    // Get current UNSENT violation data for this period to store in report
     let violationQuery = supabase
       .from('student_violations')
       .select(`
-        id, student_id, points, severity, description, violation_date,
+        id, student_id, points, severity, description, violation_date, sent_status,
         violation_type:violation_types!violation_type_id(name, points)
       `)
       .eq('semester_id', params.semester_id)
+      .eq('sent_status', 'unsent')  // Only get unsent violations
       .gte('violation_date', weekStart.toISOString().split('T')[0])
       .lte('violation_date', weekEnd.toISOString().split('T')[0])
 
@@ -482,6 +523,7 @@ export async function markWeeklyReportsAsSentAction(params: {
     }) || []
 
     // Create or update unified violation report for weekly type
+    // Use the unique constraint fields for upsert, let database generate ID
     const { error } = await supabase
       .from('unified_violation_reports')
       .upsert({
@@ -498,11 +540,33 @@ export async function markWeeklyReportsAsSentAction(params: {
         alert_sent_at: new Date().toISOString(),
         created_by: userId,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'report_type,report_period,semester_id,class_id'
       })
 
     if (error) throw new Error('Không thể cập nhật trạng thái gửi báo cáo')
 
-    return { success: true }
+    // Mark individual violations as sent
+    if (currentViolations && currentViolations.length > 0) {
+      const violationIds = currentViolations.map(v => v.id)
+      const { error: updateError } = await supabase
+        .from('student_violations')
+        .update({
+          sent_status: 'sent',
+          sent_at: new Date().toISOString()
+        })
+        .in('id', violationIds)
+
+      if (updateError) {
+        console.error('Error marking violations as sent:', updateError)
+        // Don't throw error here, report was still created successfully
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Đã gửi báo cáo tuần cho giáo viên chủ nhiệm'
+    }
   } catch (error) {
     return {
       success: false,
@@ -513,6 +577,7 @@ export async function markWeeklyReportsAsSentAction(params: {
 
 /**
  * Get weekly report status using unified_violation_reports
+ * Also checks if data has changed since the report was sent
  */
 export async function getWeeklyReportStatusAction(params: {
   semester_id: string;
@@ -523,36 +588,94 @@ export async function getWeeklyReportStatusAction(params: {
   data?: {
     is_sent_to_teacher: boolean;
     sent_at: string | null;
+    needs_resync?: boolean;
+    current_violation_count?: number;
+    report_violation_count?: number;
+    sent_violations?: number;
+    unsent_violations?: number;
   };
   error?: string;
 }> {
   try {
     const { supabase } = await checkAuthenticatedUser()
 
-    let query = supabase
-      .from('unified_violation_reports')
-      .select('is_alert_sent, alert_sent_at')
-      .eq('report_type', 'weekly')
-      .eq('report_period', `week_${params.week_index}`)
-      .eq('semester_id', params.semester_id)
+    // Get semester start date for week calculation
+    const { data: semester } = await supabase
+      .from('semesters')
+      .select('start_date')
+      .eq('id', params.semester_id)
+      .single()
 
-    if (params.class_id) {
-      query = query.eq('class_id', params.class_id)
-    } else {
-      query = query.is('class_id', null)
+    if (!semester) {
+      throw new Error('Không tìm thấy học kỳ')
     }
 
-    const { data: report, error } = await query.single()
+    // Calculate week date range
+    const startDate = new Date(semester.start_date)
+    const weekStart = new Date(startDate)
+    weekStart.setDate(startDate.getDate() + (params.week_index - 1) * 7)
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6)
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      throw new Error('Không thể lấy trạng thái báo cáo')
+    // Get current violation count and sent status for this week
+    let violationQuery = supabase
+      .from('student_violations')
+      .select('id, sent_status')
+      .eq('semester_id', params.semester_id)
+      .gte('violation_date', weekStart.toISOString().split('T')[0])
+      .lte('violation_date', weekEnd.toISOString().split('T')[0])
+
+    if (params.class_id) {
+      violationQuery = violationQuery.eq('class_id', params.class_id)
+    }
+
+    const { data: violations } = await violationQuery
+    const currentViolationCount = violations?.length || 0
+    const sentViolationCount = violations?.filter(v => v.sent_status === 'sent').length || 0
+    const unsentViolationCount = violations?.filter(v => v.sent_status === 'unsent').length || 0
+
+    // We no longer need to check unified_violation_reports since we're using individual violation status
+
+    // Determine status based on individual violation sent status
+    const hasAnySentViolations = sentViolationCount > 0
+    const hasAnyUnsentViolations = unsentViolationCount > 0
+
+    // If there are unsent violations, the report is not fully sent
+    const isSent = hasAnySentViolations && !hasAnyUnsentViolations
+    const needsResync = hasAnySentViolations && hasAnyUnsentViolations
+
+    // Get the most recent sent_at from violations if any were sent
+    let mostRecentSentAt: string | null = null
+    if (hasAnySentViolations) {
+      let sentAtQuery = supabase
+        .from('student_violations')
+        .select('sent_at')
+        .eq('semester_id', params.semester_id)
+        .eq('sent_status', 'sent')
+        .gte('violation_date', weekStart.toISOString().split('T')[0])
+        .lte('violation_date', weekEnd.toISOString().split('T')[0])
+        .not('sent_at', 'is', null)
+        .order('sent_at', { ascending: false })
+        .limit(1)
+
+      if (params.class_id) {
+        sentAtQuery = sentAtQuery.eq('class_id', params.class_id)
+      }
+
+      const { data: sentViolation } = await sentAtQuery.single()
+      mostRecentSentAt = sentViolation?.sent_at || null
     }
 
     return {
       success: true,
       data: {
-        is_sent_to_teacher: report?.is_alert_sent || false,
-        sent_at: report?.alert_sent_at || null
+        is_sent_to_teacher: isSent,
+        sent_at: mostRecentSentAt,
+        needs_resync: needsResync,
+        current_violation_count: currentViolationCount,
+        report_violation_count: sentViolationCount,
+        sent_violations: sentViolationCount,
+        unsent_violations: unsentViolationCount
       }
     }
   } catch (error) {

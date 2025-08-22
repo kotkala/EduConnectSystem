@@ -78,8 +78,19 @@ export async function createStudentViolationAction(data: StudentViolationFormDat
 
     if (error) throw new Error('Không thể tạo vi phạm')
 
+    // CRITICAL: Sync reports after adding violation
+    // This ensures already-sent reports are invalidated if they're affected
+    const syncResult = await syncViolationReportsAction({
+      semester_id: validatedData.semester_id,
+      class_id: validatedData.class_id
+    })
+
     revalidatePath('/dashboard/admin/violations')
-    return { success: true, data: violation }
+    return {
+      success: true,
+      data: violation,
+      sync_result: syncResult // Include sync info for debugging
+    }
   } catch (error) {
     return { 
       success: false, 
@@ -156,10 +167,8 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
     // CRITICAL: Sync reports after adding violations
     // This ensures already-sent reports are invalidated if they're affected
     const syncResult = await syncViolationReportsAction({
-      violation_date: validatedData.violation_date,
       semester_id: validatedData.semester_id,
-      class_id: validatedData.class_id,
-      student_ids: validatedData.student_ids
+      class_id: validatedData.class_id
     })
 
     revalidatePath('/dashboard/admin/violations')

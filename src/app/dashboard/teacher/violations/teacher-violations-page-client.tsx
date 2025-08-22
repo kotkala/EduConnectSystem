@@ -234,15 +234,15 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       if (selectedWeek && selectedSemester) {
         const selectedWeekOption = weekOptions.find(w => w.number === selectedWeek)
         if (selectedWeekOption) {
-          const startDate = selectedWeekOption.startDate.toISOString()
-          const endDate = selectedWeekOption.endDate.toISOString()
+          const startDate = selectedWeekOption.startDate.toISOString().split('T')[0]
+          const endDate = selectedWeekOption.endDate.toISOString().split('T')[0]
           query = query
-            .gte('recorded_at', startDate)
-            .lte('recorded_at', endDate)
+            .gte('violation_date', startDate)
+            .lte('violation_date', endDate)
         }
       }
 
-      const { data, error } = await query.order('recorded_at', { ascending: false })
+      const { data, error } = await query.order('violation_date', { ascending: false })
 
       if (error) {
         console.error('Error loading violations:', error)

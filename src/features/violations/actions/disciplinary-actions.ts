@@ -23,11 +23,11 @@ export async function createDisciplinaryCaseAction(data: DisciplinaryCaseFormDat
       .from('student_disciplinary_cases')
       .insert({
         ...validatedData,
-        status: 'pending',
+        status: 'draft',
         created_by: userId,
         created_at: new Date().toISOString()
       })
-      .select(DISCIPLINARY_CASE_FIELDS)
+      .select('*')
       .single()
 
     if (error) throw new Error('Không thể tạo hồ sơ kỷ luật')
@@ -191,9 +191,16 @@ export async function getDisciplinaryCasesAction(filters?: {
     const { page = 1, limit = 10, ...otherFilters } = filters || {}
     const { from, to } = buildPaginationParams(page, limit)
 
+    // Use simplified query to avoid complex join issues
     let query = supabase
       .from('student_disciplinary_cases')
-      .select(DISCIPLINARY_CASE_FIELDS, { count: 'exact' })
+      .select(`
+        *,
+        student:profiles!student_id(id, full_name, student_id, email),
+        class:classes(id, name),
+        action_type:disciplinary_action_types(id, name, description, severity_level),
+        creator:profiles!created_by(full_name)
+      `, { count: 'exact' })
 
     // Apply filters
     Object.entries(otherFilters).forEach(([key, value]) => {

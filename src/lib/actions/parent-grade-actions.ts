@@ -442,7 +442,30 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Get detailed grades separately with proper filtering using admin client
+    // CRITICAL FIX: Check if this is a summary period and get grades from component periods
+    const { data: periodInfo } = await adminSupabase
+      .from('grade_reporting_periods')
+      .select('period_type, academic_year_id, semester_id')
+      .eq('id', periodId)
+      .single()
+
+    let gradeQueryPeriods = [periodId]
+
+    // If this is a summary period, get grades from component periods
+    if (periodInfo?.period_type && periodInfo.period_type.includes('summary')) {
+      const { data: componentPeriods } = await adminSupabase
+        .from('grade_reporting_periods')
+        .select('id')
+        .eq('academic_year_id', periodInfo.academic_year_id)
+        .eq('semester_id', periodInfo.semester_id)
+        .not('period_type', 'like', '%summary%')
+
+      if (componentPeriods && componentPeriods.length > 0) {
+        gradeQueryPeriods = [...componentPeriods.map(p => p.id), periodId]
+      }
+    }
+
+    // Get detailed grades from all relevant periods
     const { data: detailedGrades, error: gradesError } = await adminSupabase
       .from('student_detailed_grades')
       .select(`
@@ -460,7 +483,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       `)
       .eq('student_id', detailedSubmission.student_id)
       .eq('class_id', detailedSubmission.class_id)
-      .eq('period_id', periodId)
+      .in('period_id', gradeQueryPeriods)
 
     if (gradesError) {
       console.error('Error fetching detailed grades:', gradesError)

@@ -293,7 +293,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                     )}
 
                     {/* Action buttons */}
-                    <div className="flex items-center space-x-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-2 mt-2 opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"

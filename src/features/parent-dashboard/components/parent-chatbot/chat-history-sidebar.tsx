@@ -287,44 +287,55 @@ export function ChatHistorySidebar({
 
       {/* Content */}
       <div className="flex-1 h-[calc(100vh-200px)] overflow-y-auto">
-        {searchQuery && searchResults.length > 0 ? (
-          /* Search Results */
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-500 mb-3">
-              Kết quả tìm kiếm ({searchResults.length})
-            </h3>
-            <div className="space-y-2">
-              {searchResults.map((result) => (
-                <button
-                  key={result.id}
-                  type="button"
-                  className="w-full text-left p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onClick={() => onConversationSelect(result.conversation_id)}
-                >
-                  <div className="text-sm font-medium mb-1">
-                    {result.conversation?.title || 'Cuộc trò chuyện'}
-                  </div>
-                  <div className="text-xs text-gray-600 line-clamp-2">
-                    {result.content}
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <Badge variant="outline" className="text-xs">
-                      {result.role === 'user' ? 'Bạn' : 'AI'}
-                    </Badge>
-                    <span className="text-xs text-gray-400">
-                      {formatDate(result.created_at)}
-                    </span>
-                  </div>
-                </button>
-              ))}
+        <div className="p-4">
+          {searchQuery.trim() && searchResults.length > 0 && (
+            /* Search Results */
+            <>
+              <h3 className="text-sm font-medium text-gray-500 mb-3">
+                Kết quả tìm kiếm ({searchResults.length})
+              </h3>
+              <div className="space-y-2">
+                {searchResults.map((result) => (
+                  <button
+                    key={result.id}
+                    type="button"
+                    className="w-full text-left p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={() => onConversationSelect(result.conversation_id)}
+                  >
+                    <div className="text-sm font-medium mb-1">
+                      {result.conversation?.title || 'Cuộc trò chuyện'}
+                    </div>
+                    <div className="text-xs text-gray-600 line-clamp-2">
+                      {result.content}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {result.role === 'user' ? 'Bạn' : 'AI'}
+                      </Badge>
+                      <span className="text-xs text-gray-400">
+                        {formatDate(result.created_at)}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {searchQuery.trim() && searchResults.length === 0 && !isSearching && (
+            /* No Search Results */
+            <div className="text-center py-8 text-gray-500">
+              <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Không tìm thấy kết quả</p>
+              <p className="text-xs mt-1">Thử từ khóa khác</p>
             </div>
-          </div>
-        ) : (
-          /* Conversation List */
-          <div className="p-4">
-            {renderConversationContent()}
-          </div>
-        )}
+          )}
+
+          {!searchQuery.trim() && (
+            /* Conversation List */
+            renderConversationContent()
+          )}
+        </div>
       </div>
 
       {/* Footer */}

@@ -99,7 +99,15 @@ export async function saveAIFeedbackAction(request: SaveAIFeedbackRequest): Prom
       group_id: null
     }
 
-    // Insert feedback record
+    // First, delete any existing AI feedback for this submission
+    await supabase
+      .from('student_feedback')
+      .delete()
+      .eq('student_id', request.student_id)
+      .eq('teacher_id', user.id)
+      .like('feedback_text', `[AI_GENERATED:${request.submission_id}]%`)
+
+    // Insert new feedback record
     const { data: insertedFeedback, error: insertError } = await supabase
       .from('student_feedback')
       .insert([feedbackRecord])

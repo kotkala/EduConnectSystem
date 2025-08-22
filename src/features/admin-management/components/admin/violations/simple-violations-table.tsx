@@ -196,7 +196,10 @@ export default function SimpleViolationsTable() {
   const [searchTerm, setSearchTerm] = useState('')
   const [severityFilter, setSeverityFilter] = useState<string>('all')
   const [classFilter, setClassFilter] = useState<string>('all')
+  const [monthFilter, setMonthFilter] = useState<string>('all')
+  const [academicYearFilter, setAcademicYearFilter] = useState<string>('all')
   const [classes, setClasses] = useState<Array<{id: string, name: string}>>([])
+  const [academicYears, setAcademicYears] = useState<Array<{id: string, name: string}>>([])
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const supabase = createClient()
 
@@ -211,12 +214,13 @@ export default function SimpleViolationsTable() {
 
   useEffect(() => {
     loadClasses()
+    loadAcademicYears()
     loadViolations()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadViolations()
-  }, [currentPage, debouncedSearchTerm, severityFilter, classFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchTerm, severityFilter, classFilter, monthFilter, academicYearFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadClasses = async () => {
     try {
@@ -241,6 +245,32 @@ export default function SimpleViolationsTable() {
     } catch (error) {
       console.error('Error loading classes:', error)
       toast.error(`An error occurred while loading classes: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  const loadAcademicYears = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('academic_years')
+        .select('id, name')
+        .order('name', { ascending: false })
+
+      if (error) {
+        console.error('Error loading academic years:', error)
+        toast.error(`Failed to load academic years: ${error.message}`)
+        return
+      }
+
+      if (!Array.isArray(data)) {
+        console.error('Invalid academic years data structure:', data)
+        toast.error('Invalid academic years data received')
+        return
+      }
+
+      setAcademicYears(data)
+    } catch (error) {
+      console.error('Error loading academic years:', error)
+      toast.error(`An error occurred while loading academic years: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -300,6 +330,34 @@ export default function SimpleViolationsTable() {
         query = query.eq('class_id', classFilter)
       }
 
+      // Apply month filter
+      if (monthFilter !== 'all') {
+        const year = new Date().getFullYear()
+        const month = parseInt(monthFilter)
+        const startDate = new Date(year, month - 1, 1).toISOString()
+        const endDate = new Date(year, month, 0, 23, 59, 59).toISOString()
+        query = query.gte('recorded_at', startDate).lte('recorded_at', endDate)
+      }
+
+      // Apply academic year filter
+      if (academicYearFilter !== 'all') {
+        // Get semesters for the selected academic year
+        const { data: semesters } = await supabase
+          .from('semesters')
+          .select('id')
+          .eq('academic_year_id', academicYearFilter)
+
+        if (semesters && semesters.length > 0) {
+          const semesterIds = semesters.map(s => s.id)
+          query = query.in('semester_id', semesterIds)
+        } else {
+          // No semesters found for this academic year, return empty result
+          setViolations([])
+          setTotal(0)
+          return
+        }
+      }
+
       // Pagination
       const from = (currentPage - 1) * pageSize
       const to = from + pageSize - 1
@@ -351,6 +409,8 @@ export default function SimpleViolationsTable() {
     setSearchTerm('')
     setSeverityFilter('all')
     setClassFilter('all')
+    setMonthFilter('all')
+    setAcademicYearFilter('all')
     setCurrentPage(1)
   }
 
@@ -377,7 +437,7 @@ export default function SimpleViolationsTable() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -387,6 +447,41 @@ export default function SimpleViolationsTable() {
                 className="pl-10"
               />
             </div>
+
+            <Select value={academicYearFilter} onValueChange={setAcademicYearFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tất cả năm học" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả năm học</SelectItem>
+                {academicYears.map((year) => (
+                  <SelectItem key={year.id} value={year.id}>
+                    {year.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tất cả tháng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả tháng</SelectItem>
+                <SelectItem value="1">Tháng 1</SelectItem>
+                <SelectItem value="2">Tháng 2</SelectItem>
+                <SelectItem value="3">Tháng 3</SelectItem>
+                <SelectItem value="4">Tháng 4</SelectItem>
+                <SelectItem value="5">Tháng 5</SelectItem>
+                <SelectItem value="6">Tháng 6</SelectItem>
+                <SelectItem value="7">Tháng 7</SelectItem>
+                <SelectItem value="8">Tháng 8</SelectItem>
+                <SelectItem value="9">Tháng 9</SelectItem>
+                <SelectItem value="10">Tháng 10</SelectItem>
+                <SelectItem value="11">Tháng 11</SelectItem>
+                <SelectItem value="12">Tháng 12</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
               <SelectTrigger>

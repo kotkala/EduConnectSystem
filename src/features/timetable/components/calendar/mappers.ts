@@ -58,9 +58,11 @@ export function studySlotToCalendarEvent(
     const weekStart = new Date(semesterStart);
     weekStart.setDate(weekStart.getDate() + weekOffset);
 
-    // day_of_week is 1..7 (Mon..Sun). Align to the week start.
+    // day_of_week is 0..6 (Sun..Sat) from database. Convert to Monday-based week.
+    // If day_of_week is 0 (Sunday), it should be day 6 in Monday-based week
+    const mondayBasedDay = slot.day_of_week === 0 ? 6 : slot.day_of_week - 1;
     targetDate = new Date(weekStart);
-    targetDate.setDate(weekStart.getDate() + (slot.day_of_week - 1));
+    targetDate.setDate(weekStart.getDate() + mondayBasedDay);
   } else {
     // Fallback to current week (original behavior)
     const today = new Date();
@@ -69,9 +71,11 @@ export function studySlotToCalendarEvent(
     const diffToMonday = day === 0 ? -6 : 1 - day;
     startOfWeek.setDate(startOfWeek.getDate() + diffToMonday);
 
-    // day_of_week is 1..7 (Mon..Sun). Align to the week start.
+    // day_of_week is 0..6 (Sun..Sat) from database. Convert to Monday-based week.
+    // If day_of_week is 0 (Sunday), it should be day 6 in Monday-based week
+    const mondayBasedDay = slot.day_of_week === 0 ? 6 : slot.day_of_week - 1;
     targetDate = new Date(startOfWeek);
-    targetDate.setDate(startOfWeek.getDate() + (slot.day_of_week - 1));
+    targetDate.setDate(startOfWeek.getDate() + mondayBasedDay);
   }
 
   const [sh, sm] = slot.start_time.split(":").map(Number);

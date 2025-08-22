@@ -1329,11 +1329,10 @@ export async function getDisciplinaryActionTypesAction() {
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('violation_types')
+      .from('disciplinary_action_types')
       .select('*')
-      .eq('type_category', 'action')
       .eq('is_active', true)
-      .order('type_name')
+      .order('name')
 
     if (error) throw new Error(error.message)
     return { success: true, data: data || [] }
@@ -1347,11 +1346,9 @@ export async function createDisciplinaryActionTypeAction(params: { name: string;
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('violation_types')
+      .from('disciplinary_action_types')
       .insert({
-        type_category: 'action',
-        type_code: params.name.toLowerCase().replace(/\s+/g, '_'),
-        type_name: params.name,
+        name: params.name,
         description: params.description,
         severity_level: typeof params.severity_level === 'number' ? params.severity_level : 1,
         is_active: true
@@ -1395,10 +1392,9 @@ export async function deactivateDisciplinaryActionTypeAction(params: { id: strin
   try {
     const { supabase } = await checkAdminPermissions()
     const { data, error } = await supabase
-      .from('violation_types')
+      .from('disciplinary_action_types')
       .update({ is_active: false })
       .eq('id', params.id)
-      .eq('type_category', 'action')
       .select()
       .single()
 
@@ -1413,25 +1409,74 @@ export async function deactivateDisciplinaryActionTypeAction(params: { id: strin
 export async function getDisciplinaryCasesAction(params?: { semester_id?: string; status?: string; class_id?: string }) {
   try {
     const { supabase } = await checkAdminPermissions()
+
+    // Build the query with basic data first, then manually join the related data
     let query = supabase
       .from('student_disciplinary_cases')
       .select(`
-        id, student_id, class_id, semester_id, week_index, total_points, notes, status, created_at,
-        student:profiles!student_id(id, full_name, student_id),
-        class:classes!class_id(id, name),
-        action_type:disciplinary_action_types!action_type_id(id, name)
+        id,
+        student_id,
+        class_id,
+        semester_id,
+        week_index,
+        total_points,
+        notes,
+        status,
+        created_at,
+        action_type_id
       `)
       .order('created_at', { ascending: false })
 
+    // Apply filters if provided
     if (params?.semester_id) query = query.eq('semester_id', params.semester_id)
     if (params?.status) query = query.eq('status', params.status)
     if (params?.class_id) query = query.eq('class_id', params.class_id)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = (await query) as any
-    if (error) throw new Error(error.message)
-    return { success: true, data: data || [] }
+    const { data: cases, error } = await query
+
+    if (error) {
+      console.error('Database error in getDisciplinaryCasesAction:', error)
+      throw new Error(error.message)
+    }
+
+    if (!cases || cases.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    // Manually fetch related data
+    const studentIds = [...new Set(cases.map(c => c.student_id))]
+    const classIds = [...new Set(cases.map(c => c.class_id))]
+    const actionTypeIds = [...new Set(cases.map(c => c.action_type_id).filter(Boolean))]
+
+    // Fetch students
+    const { data: students } = await supabase
+      .from('profiles')
+      .select('id, full_name, student_id')
+      .in('id', studentIds)
+
+    // Fetch classes
+    const { data: classes } = await supabase
+      .from('classes')
+      .select('id, name')
+      .in('id', classIds)
+
+    // Fetch action types
+    const { data: actionTypes } = await supabase
+      .from('disciplinary_action_types')
+      .select('id, name')
+      .in('id', actionTypeIds)
+
+    // Combine the data
+    const enrichedCases = cases.map(caseItem => ({
+      ...caseItem,
+      student: students?.find(s => s.id === caseItem.student_id) || null,
+      class: classes?.find(c => c.id === caseItem.class_id) || null,
+      action_type: actionTypes?.find(a => a.id === caseItem.action_type_id) || null
+    }))
+
+    return { success: true, data: enrichedCases }
   } catch (error: unknown) {
+    console.error('Error in getDisciplinaryCasesAction:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
 }

@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 import { updateClassroomAction, type Classroom } from "@/features/admin-management/actions/classroom-actions"
-import { ROOM_TYPES } from "@/lib/validations/timetable-validations"
+import { ROOM_TYPES, EQUIPMENT_OPTIONS } from "@/lib/validations/timetable-validations"
+import { X } from "lucide-react"
 
 interface ClassroomEditDialogProps {
   readonly open: boolean
@@ -39,14 +40,24 @@ export function ClassroomEditDialog({
   onSuccess
 }: ClassroomEditDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(classroom?.equipment || [])
   const [formData, setFormData] = useState({
     name: classroom?.name || '',
     building: classroom?.building || '',
     floor: classroom?.floor || 1,
     room_type: classroom?.room_type || 'standard',
-    capacity: classroom?.capacity || 30,
-    equipment: classroom?.equipment?.join(', ') || ''
+    capacity: classroom?.capacity || 30
   })
+
+  const addEquipment = (equipment: string) => {
+    if (!selectedEquipment.includes(equipment)) {
+      setSelectedEquipment([...selectedEquipment, equipment])
+    }
+  }
+
+  const removeEquipment = (equipment: string) => {
+    setSelectedEquipment(selectedEquipment.filter(item => item !== equipment))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,11 +65,6 @@ export function ClassroomEditDialog({
 
     setIsLoading(true)
     try {
-      const equipmentArray = formData.equipment
-        .split(',')
-        .map(item => item.trim())
-        .filter(item => item.length > 0)
-
       const result = await updateClassroomAction({
         id: classroom.id,
         name: formData.name,
@@ -66,7 +72,7 @@ export function ClassroomEditDialog({
         floor: formData.floor || undefined,
         room_type: formData.room_type as "standard" | "lab" | "computer" | "auditorium" | "gym" | "library",
         capacity: formData.capacity,
-        equipment: equipmentArray
+        equipment: selectedEquipment
       })
 
       if (result.success) {
@@ -160,14 +166,43 @@ export function ClassroomEditDialog({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="equipment">Thiết bị (phân cách bằng dấu phẩy)</Label>
-            <Input
-              id="equipment"
-              value={formData.equipment}
-              onChange={(e) => setFormData(prev => ({ ...prev, equipment: e.target.value }))}
-              placeholder="Máy chiếu, Bảng thông minh, Máy tính..."
-            />
+          {/* Equipment Section */}
+          <div className="space-y-4">
+            <Label>Trang thiết bị</Label>
+
+            {/* Equipment Selection */}
+            <Select onValueChange={addEquipment}>
+              <SelectTrigger>
+                <SelectValue placeholder="Thêm trang thiết bị" />
+              </SelectTrigger>
+              <SelectContent>
+                {EQUIPMENT_OPTIONS.filter(eq => !selectedEquipment.includes(eq)).map((equipment) => (
+                  <SelectItem key={equipment} value={equipment}>
+                    {equipment}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Selected Equipment Display */}
+            {selectedEquipment.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedEquipment.map((equipment) => (
+                  <Badge key={equipment} variant="secondary" className="flex items-center gap-1">
+                    {equipment}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
+                      onClick={() => removeEquipment(equipment)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

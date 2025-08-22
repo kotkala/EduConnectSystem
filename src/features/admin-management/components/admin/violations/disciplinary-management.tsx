@@ -47,13 +47,23 @@ interface DisciplinaryCase {
   semester_id: string
   week_index: number
   total_points: number
-  action_type_id: string
   notes: string
   status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
   created_at: string
-  student: { full_name: string; student_id: string }
-  class: { name: string }
-  action_type: { name: string }
+  student?: {
+    id: string
+    full_name: string
+    student_id: string
+  }
+  class?: {
+    id: string
+    name: string
+  }
+  action_type?: {
+    id: string
+    name: string
+    severity_level?: number
+  }
 }
 
 export default function DisciplinaryManagement() {
@@ -144,7 +154,7 @@ export default function DisciplinaryManagement() {
     try {
       const result = await getDisciplinaryCasesAction()
       if (result.success && result.data) {
-        setCases(result.data)
+        setCases(result.data as unknown as DisciplinaryCase[])
       }
     } catch (error) {
       console.error('Lỗi tải case kỷ luật:', error)
@@ -454,12 +464,12 @@ export default function DisciplinaryManagement() {
                   <TableRow key={caseItem.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{caseItem.student.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{caseItem.student.student_id}</div>
+                        <div className="font-medium">{caseItem.student?.full_name || 'Không xác định'}</div>
+                        <div className="text-sm text-muted-foreground">{caseItem.student?.student_id || 'N/A'}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{caseItem.class.name}</TableCell>
-                    <TableCell>{caseItem.action_type.name}</TableCell>
+                    <TableCell>{caseItem.class?.name || 'Không xác định'}</TableCell>
+                    <TableCell>{caseItem.action_type?.name || 'Không xác định'}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(caseItem.status)}>
                         {getStatusLabel(caseItem.status)}

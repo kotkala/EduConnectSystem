@@ -32,28 +32,54 @@ interface DisciplinaryActionType {
 
 interface DisciplinaryCase {
   id: string
-  student: {
+  student_id: string
+  class_id: string
+  semester_id: string
+  week_index: number
+  total_points: number
+  notes: string
+  status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
+  created_at: string
+  profiles?: {
     id: string
     full_name: string
     student_id: string
   }
-  class: {
+  classes?: {
     id: string
     name: string
   }
-  action_type: DisciplinaryActionType
-  description: string
-  status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
-  created_at: string
-  created_by: string
+  disciplinary_action_types?: {
+    id: string
+    name: string
+    severity_level?: number
+  }
+  // Legacy support for the old structure
+  student?: {
+    id: string
+    full_name: string
+    student_id: string
+  }
+  class?: {
+    id: string
+    name: string
+  }
+  action_type?: {
+    id: string
+    name: string
+    severity_level?: number
+  }
 }
 
 export default function DisciplinaryProcessing() {
   const [actionTypes, setActionTypes] = useState<DisciplinaryActionType[]>([])
   const [cases, setCases] = useState<DisciplinaryCase[]>([])
-  // const [isLoading, setIsLoading] = useState(false) // not used currently
+  const [classBlocks, setClassBlocks] = useState<{ id: string; name: string }[]>([])
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
+  const [students, setStudents] = useState<{ id: string; full_name: string; student_id: string }[]>([])
+  const [filteredStudents, setFilteredStudents] = useState<{ id: string; full_name: string; student_id: string }[]>([])
   const [activeTab, setActiveTab] = useState('add-case')
-  
+
   // Form states
   const [selectedBlock, setSelectedBlock] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
@@ -79,7 +105,30 @@ export default function DisciplinaryProcessing() {
   useEffect(() => {
     loadActionTypes()
     loadCases()
+    loadClassBlocks()
   }, [])
+
+  useEffect(() => {
+    if (selectedBlock) {
+      loadClassesByBlock()
+    } else {
+      setClasses([])
+      setSelectedClass('')
+    }
+  }, [selectedBlock])
+
+  useEffect(() => {
+    if (selectedClass) {
+      loadStudentsByClass()
+    } else {
+      setStudents([])
+      setSelectedStudent('')
+    }
+  }, [selectedClass])
+
+  useEffect(() => {
+    filterStudents()
+  }, [students, studentSearch])
 
   const loadActionTypes = async () => {
     try {
@@ -101,15 +150,78 @@ export default function DisciplinaryProcessing() {
     try {
       const { getDisciplinaryCasesAction } = await import('@/features/violations/actions/violation-actions')
       const result = await getDisciplinaryCasesAction()
+      console.log('Load cases result:', result) // Debug log
       if (result.success && result.data) {
+        console.log('Cases data:', result.data) // Debug log
         setCases(result.data as unknown as DisciplinaryCase[])
       } else {
+        console.log('No cases data or failed:', result.error) // Debug log
         setCases([])
       }
     } catch (error) {
       console.error('Lỗi tải case kỷ luật:', error)
       setCases([])
     }
+  }
+
+  const loadClassBlocks = async () => {
+    try {
+      const { getClassBlocksAction } = await import('@/features/violations/actions/violation-actions')
+      const result = await getClassBlocksAction()
+      if (result.success && result.data) {
+        setClassBlocks(result.data)
+      } else {
+        setClassBlocks([])
+      }
+    } catch (error) {
+      console.error('Lỗi tải khối lớp:', error)
+      setClassBlocks([])
+    }
+  }
+
+  const loadClassesByBlock = async () => {
+    if (!selectedBlock) return
+    try {
+      const { getClassesByBlockAction } = await import('@/features/violations/actions/violation-actions')
+      const result = await getClassesByBlockAction(selectedBlock)
+      if (result.success && result.data) {
+        setClasses(result.data)
+      } else {
+        setClasses([])
+      }
+    } catch (error) {
+      console.error('Lỗi tải lớp học:', error)
+      setClasses([])
+    }
+  }
+
+  const loadStudentsByClass = async () => {
+    if (!selectedClass) return
+    try {
+      const { getStudentsByClassAction } = await import('@/features/violations/actions/violation-actions')
+      const result = await getStudentsByClassAction(selectedClass)
+      if (result.success && result.data) {
+        setStudents(result.data)
+      } else {
+        setStudents([])
+      }
+    } catch (error) {
+      console.error('Lỗi tải học sinh:', error)
+      setStudents([])
+    }
+  }
+
+  const filterStudents = () => {
+    if (!studentSearch.trim()) {
+      setFilteredStudents(students)
+      return
+    }
+
+    const filtered = students.filter(student =>
+      student.full_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      student.student_id.toLowerCase().includes(studentSearch.toLowerCase())
+    )
+    setFilteredStudents(filtered)
   }
 
   // Duplicate handlers removed below. Use single definitions above.
@@ -339,23 +451,31 @@ export default function DisciplinaryProcessing() {
                       <SelectValue placeholder="Chọn khối" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10">Khối 10</SelectItem>
-                      <SelectItem value="11">Khối 11</SelectItem>
-                      <SelectItem value="12">Khối 12</SelectItem>
+                      {classBlocks.map((block) => (
+                        <SelectItem key={block.id} value={block.id}>
+                          {block.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Lớp</Label>
-                  <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <Select
+                    value={selectedClass}
+                    onValueChange={setSelectedClass}
+                    disabled={!selectedBlock}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn lớp" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="10A1">10A1</SelectItem>
-                      <SelectItem value="10A2">10A2</SelectItem>
-                      <SelectItem value="10A3">10A3</SelectItem>
+                      {classes.map((cls) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -376,14 +496,20 @@ export default function DisciplinaryProcessing() {
 
               <div className="space-y-2">
                 <Label>Học sinh</Label>
-                <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                <Select
+                  value={selectedStudent}
+                  onValueChange={setSelectedStudent}
+                  disabled={!selectedClass}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn học sinh" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="student1">Nguyễn Văn An (SU0001)</SelectItem>
-                    <SelectItem value="student2">Trần Thị Bình (SU002)</SelectItem>
-                    <SelectItem value="student3">Lê Văn Cường (SU006)</SelectItem>
+                    {filteredStudents.map((student) => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.full_name} ({student.student_id})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -552,40 +678,55 @@ export default function DisciplinaryProcessing() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cases.map((caseItem) => (
-                    <TableRow key={caseItem.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{caseItem.student?.full_name || 'Không xác định'}</div>
-                          <div className="text-sm text-muted-foreground">{caseItem.student?.student_id || 'N/A'}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{caseItem.class?.name || 'Không xác định'}</TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{caseItem.action_type?.name || 'Không xác định'}</div>
-                          {caseItem.action_type?.severity_level ? getSeverityBadge(caseItem.action_type.severity_level) : <Badge variant="outline">N/A</Badge>}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(caseItem.status)}</TableCell>
-                      <TableCell>
-                        {new Date(caseItem.created_at).toLocaleDateString('vi-VN')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {caseItem.status === 'draft' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSendToHomeroom(caseItem.id)}
-                            className="flex items-center gap-2"
-                          >
-                            <Send className="h-4 w-4" />
-                            Gửi GVCN
-                          </Button>
-                        )}
+                  {cases.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Chưa có case kỷ luật nào được tạo
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    cases.map((caseItem) => {
+                      // Handle both new and legacy data structures
+                      const student = caseItem.profiles || caseItem.student
+                      const classInfo = caseItem.classes || caseItem.class
+                      const actionType = caseItem.disciplinary_action_types || caseItem.action_type
+
+                      return (
+                        <TableRow key={caseItem.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{student?.full_name || 'Không xác định'}</div>
+                              <div className="text-sm text-muted-foreground">{student?.student_id || 'N/A'}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{classInfo?.name || 'Không xác định'}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{actionType?.name || 'Không xác định'}</div>
+                              {actionType?.severity_level ? getSeverityBadge(actionType.severity_level) : <Badge variant="outline">N/A</Badge>}
+                            </div>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(caseItem.status)}</TableCell>
+                          <TableCell>
+                            {new Date(caseItem.created_at).toLocaleDateString('vi-VN')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {caseItem.status === 'draft' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendToHomeroom(caseItem.id)}
+                                className="flex items-center gap-2"
+                              >
+                                <Send className="h-4 w-4" />
+                                Gửi GVCN
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

@@ -33,7 +33,7 @@ import {
   getClassBlocksAction,
   getClassesByBlockAction,
   getStudentsByClassAction
-} from '@/features/violations/actions/violation-actions'
+} from '@/features/violations/actions'
 
 interface Student {
   id: string
@@ -277,7 +277,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5" />
-          Record Student Violations
+          Ghi nhận vi phạm học sinh
         </CardTitle>
         <CardDescription>
           Select students and record their violations with appropriate severity levels
@@ -299,7 +299,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   }}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select grade block" />
+                        <SelectValue placeholder="Chọn khối lớp" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -325,7 +325,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select class" />
+                        <SelectValue placeholder="Chọn lớp học" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -345,7 +345,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
             {watchedClassId && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <FormLabel>Select Students</FormLabel>
+                  <FormLabel>Chọn học sinh</FormLabel>
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -355,7 +355,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                       disabled={(filteredStudents || []).length === 0}
                     >
                       <Users className="h-4 w-4 mr-1" />
-                      Select All ({(filteredStudents || []).length})
+                      Chọn tất cả ({(filteredStudents || []).length})
                     </Button>
                     <Button
                       type="button"
@@ -364,7 +364,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                       onClick={handleClearSelection}
                       disabled={(selectedStudents || []).length === 0}
                     >
-                      Clear ({(selectedStudents || []).length})
+                      Bỏ chọn ({(selectedStudents || []).length})
                     </Button>
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search students by name or ID..."
+                    placeholder="Tìm kiếm học sinh theo tên hoặc mã số..."
                     value={studentSearch}
                     onChange={(e) => setStudentSearch(e.target.value)}
                     className="pl-10"
@@ -404,7 +404,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   ))}
                   {(filteredStudents || []).length === 0 && (
                     <div className="text-center text-muted-foreground py-4">
-                      No students found
+                      Không tìm thấy học sinh
                     </div>
                   )}
                 </div>
@@ -441,7 +441,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   }}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select violation category" />
+                        <SelectValue placeholder="Chọn danh mục vi phạm" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -467,7 +467,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select violation type" />
+                        <SelectValue placeholder="Chọn loại vi phạm" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -498,7 +498,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select severity level" />
+                        <SelectValue placeholder="Chọn mức độ nghiêm trọng" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -525,7 +525,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional details about the violation..."
+                      placeholder="Chi tiết bổ sung về vi phạm..."
                       className="resize-none"
                       {...field}
                     />
@@ -541,7 +541,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
               name="violation_date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Violation Date</FormLabel>
+                  <FormLabel>Ngày vi phạm</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -555,7 +555,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                           {field.value ? (
                             format(new Date(field.value), "PPP")
                           ) : (
-                            <span>Pick a date</span>
+                            <span>Chọn ngày</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -599,14 +599,14 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                 }}
                 disabled={loading}
               >
-                Reset
+                Đặt lại
               </Button>
               <Button
                 type="submit"
                 disabled={loading || (selectedStudents || []).length === 0}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {loading ? 'Recording...' : `Record ${(selectedStudents || []).length} Violation(s)`}
+                {loading ? 'Đang ghi nhận...' : `Ghi nhận ${(selectedStudents || []).length} vi phạm`}
               </Button>
             </div>
           </form>

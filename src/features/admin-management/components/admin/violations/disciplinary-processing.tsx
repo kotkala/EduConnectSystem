@@ -20,7 +20,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { Plus, Search, FileText, Send, Edit, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateDisciplinaryActionTypeAction, deactivateDisciplinaryActionTypeAction } from '@/features/violations/actions/violation-actions'
+import { updateDisciplinaryActionTypeAction, deactivateDisciplinaryActionTypeAction } from '@/features/violations/actions'
 
 interface DisciplinaryActionType {
   id: string
@@ -117,7 +117,7 @@ export default function DisciplinaryProcessing() {
 
   const loadActionTypes = async () => {
     try {
-      const { getDisciplinaryActionTypesAction } = await import('@/features/violations/actions/violation-actions')
+      const { getDisciplinaryActionTypesAction } = await import('@/features/violations/actions')
       const result = await getDisciplinaryActionTypesAction()
       if (result.success && result.data) {
         setActionTypes(result.data as unknown as DisciplinaryActionType[])
@@ -133,7 +133,7 @@ export default function DisciplinaryProcessing() {
 
   const loadCases = async () => {
     try {
-      const { getDisciplinaryCasesAction } = await import('@/features/violations/actions/violation-actions')
+      const { getDisciplinaryCasesAction } = await import('@/features/violations/actions')
       const result = await getDisciplinaryCasesAction()
       console.log('Load cases result:', result) // Debug log
       if (result.success && result.data) {
@@ -151,7 +151,7 @@ export default function DisciplinaryProcessing() {
 
   const loadClassBlocks = async () => {
     try {
-      const { getClassBlocksAction } = await import('@/features/violations/actions/violation-actions')
+      const { getClassBlocksAction } = await import('@/features/violations/actions')
       const result = await getClassBlocksAction()
       if (result.success && result.data) {
         setClassBlocks(result.data)
@@ -167,7 +167,7 @@ export default function DisciplinaryProcessing() {
   const loadClassesByBlock = async () => {
     if (!selectedBlock) return
     try {
-      const { getClassesByBlockAction } = await import('@/features/violations/actions/violation-actions')
+      const { getClassesByBlockAction } = await import('@/features/violations/actions')
       const result = await getClassesByBlockAction(selectedBlock)
       if (result.success && result.data) {
         setClasses(result.data)
@@ -183,7 +183,7 @@ export default function DisciplinaryProcessing() {
   const loadStudentsByClass = async () => {
     if (!selectedClass) return
     try {
-      const { getStudentsByClassAction } = await import('@/features/violations/actions/violation-actions')
+      const { getStudentsByClassAction } = await import('@/features/violations/actions')
       const result = await getStudentsByClassAction(selectedClass)
       if (result.success && result.data) {
         setStudents(result.data)
@@ -218,7 +218,7 @@ export default function DisciplinaryProcessing() {
 
   const sendCaseToHomeroom = async (caseId: string) => {
     try {
-      const { updateDisciplinaryCaseStatusAction } = await import('@/features/violations/actions/violation-actions')
+      const { updateDisciplinaryCaseStatusAction } = await import('@/features/violations/actions')
       const res = await updateDisciplinaryCaseStatusAction({ case_id: caseId, status: 'sent_to_homeroom' })
       if (res.success) {
         setCases(prev => prev.map(c => c.id === caseId ? { ...c, status: 'sent_to_homeroom' as const } : c))
@@ -281,7 +281,7 @@ export default function DisciplinaryProcessing() {
     if (!deletingActionType) return
 
     try {
-      const res = await deactivateDisciplinaryActionTypeAction({ id: deletingActionType.id })
+      const res = await deactivateDisciplinaryActionTypeAction(deletingActionType.id)
       if (res.success) {
         toast.success('Đã vô hiệu hóa hình thức kỷ luật')
         setActionTypes(prev => prev.map(t =>
@@ -309,10 +309,11 @@ export default function DisciplinaryProcessing() {
     }
 
     try {
-      const { createDisciplinaryActionTypeAction } = await import('@/features/violations/actions/violation-actions')
+      const { createDisciplinaryActionTypeAction } = await import('@/features/violations/actions')
       const res = await createDisciplinaryActionTypeAction({
         name: newActionType.name,
-        description: newActionType.description
+        description: newActionType.description,
+        severity_level: 5 // Default severity level
       })
       if (res.success && res.data) {
         setActionTypes(prev => [...prev, res.data as unknown as DisciplinaryActionType])
@@ -335,7 +336,7 @@ export default function DisciplinaryProcessing() {
 
     try {
       const [{ createDisciplinaryCaseAction }, { getSemestersAction }] = await Promise.all([
-        import('@/features/violations/actions/violation-actions'),
+        import('@/features/violations/actions'),
         import('@/features/admin-management/actions/academic-actions')
       ])
 
@@ -354,10 +355,11 @@ export default function DisciplinaryProcessing() {
 
       const res = await createDisciplinaryCaseAction({
         student_id: selectedStudent,
-        class_id: selectedClass || undefined,
+        class_id: selectedClass || '',
         semester_id: current.id,
         week_index,
         action_type_id: selectedActionType,
+        total_points: 0, // Will be calculated by the action
         notes: caseDescription
       })
       if (res.success) {

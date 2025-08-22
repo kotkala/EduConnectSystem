@@ -10,9 +10,9 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Eye, Calendar, MessageSquare, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions/violation-actions'
+import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions'
 
-interface DisciplinaryCase {
+interface TeacherDisciplinaryCase {
   id: string
   student_id: string
   class_id: string
@@ -36,9 +36,9 @@ interface TeacherDisciplinaryCasesProps {
 }
 
 export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<TeacherDisciplinaryCasesProps>) {
-  const [cases, setCases] = useState<DisciplinaryCase[]>([])
+  const [cases, setCases] = useState<TeacherDisciplinaryCase[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCase, setSelectedCase] = useState<DisciplinaryCase | null>(null)
+  const [selectedCase, setSelectedCase] = useState<TeacherDisciplinaryCase | null>(null)
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [meetingNotes, setMeetingNotes] = useState('')
 
@@ -62,7 +62,7 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
       })
 
       if (result.success && result.data) {
-        setCases(result.data)
+        setCases(result.data as unknown as TeacherDisciplinaryCase[])
       }
     } catch (error) {
       console.error('Lỗi tải case kỷ luật:', error)

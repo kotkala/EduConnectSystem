@@ -2,7 +2,7 @@
 // Export all violation-related components and actions
 
 // Actions
-export * from './actions/violation-actions'
+export * from './actions'
 
 // Components (when created)
 // export * from './components/violation-tracker'

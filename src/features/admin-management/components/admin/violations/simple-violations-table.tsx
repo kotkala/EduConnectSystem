@@ -69,7 +69,7 @@ function renderViolationsContent(
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Loading violations...</p>
+        <p className="text-muted-foreground">Đang tải vi phạm...</p>
       </div>
     )
   }
@@ -78,7 +78,7 @@ function renderViolationsContent(
     return (
       <div className="text-center py-8 text-muted-foreground">
         <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No violations recorded yet</p>
+        <p>Chưa có vi phạm nào được ghi nhận</p>
       </div>
     )
   }
@@ -92,9 +92,9 @@ function renderViolationsContent(
             <TableHead>Class</TableHead>
             <TableHead>Violation</TableHead>
             <TableHead>Severity</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Recorded By</TableHead>
-            <TableHead className="w-[120px]">Actions</TableHead>
+            <TableHead>Ngày</TableHead>
+            <TableHead>Người ghi nhận</TableHead>
+            <TableHead className="w-[120px]">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -102,7 +102,7 @@ function renderViolationsContent(
           <TableRow key={violation.id}>
             <TableCell>
               <div>
-                <div className="font-medium">{violation.student?.full_name || 'Unknown'}</div>
+                <div className="font-medium">{violation.student?.full_name || 'Không xác định'}</div>
                 <div className="text-sm text-muted-foreground">
                   {violation.student?.student_id || 'N/A'}
                 </div>
@@ -111,9 +111,9 @@ function renderViolationsContent(
             <TableCell>{violation.class?.name || 'Unknown'}</TableCell>
             <TableCell>
               <div>
-                <div className="font-medium">{violation.violation_type?.name || 'Unknown'}</div>
+                <div className="font-medium">{violation.violation_type?.name || 'Không xác định'}</div>
                 <div className="text-sm text-muted-foreground">
-                  {violation.violation_type?.category?.name || 'Unknown'}
+                  {violation.violation_type?.category?.name || 'Không xác định'}
                 </div>
                 {violation.description && (
                   <div className="text-sm text-muted-foreground mt-1">
@@ -159,7 +159,7 @@ function renderViolationsContent(
       {totalPages > 1 && (
       <div className="flex items-center justify-between mt-4">
         <div className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          Trang {currentPage} / {totalPages}
         </div>
         <div className="flex gap-2">
           <Button
@@ -169,7 +169,7 @@ function renderViolationsContent(
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            Trước
           </Button>
           <Button
             variant="outline"
@@ -177,7 +177,7 @@ function renderViolationsContent(
             onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            Next
+            Tiếp
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -433,7 +433,7 @@ export default function SimpleViolationsTable() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filters
+            Bộ lọc
           </CardTitle>
         </CardHeader>
         <CardContent>

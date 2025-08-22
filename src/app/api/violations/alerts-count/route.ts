@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getUnseenViolationAlertsCountAction } from '@/features/violations/actions/violation-actions'
+import { getUnseenViolationAlertsCountAction } from '@/features/violations/actions'
 
 export async function GET() {
   const result = await getUnseenViolationAlertsCountAction()

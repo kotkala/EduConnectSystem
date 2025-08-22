@@ -10,7 +10,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { CalendarDays, Users, AlertTriangle, Send, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
-import { getWeeklyGroupedViolationsAction } from '@/features/violations/actions/violation-actions'
+import { getWeeklyGroupedViolationsAction } from '@/features/violations/actions'
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
 
 interface WeeklyViolationReport {
@@ -152,33 +152,39 @@ export default function WeeklyViolationReports() {
       })
 
       if (result.success && result.data) {
-        // Transform the grouped violations data into weekly reports format
-        const transformedReports: WeeklyViolationReport[] = result.data.map(item => ({
-          id: item.student!.id,
-          student: {
-            id: item.student!.id,
-            full_name: item.student!.full_name,
-            student_id: item.student!.student_id
-          },
-          class: {
-            id: item.class!.id,
-            name: item.class!.name
-          },
-          week_number: selectedWeek,
-          week_start_date: new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
-          week_end_date: new Date().toISOString().split('T')[0],
-          total_violations: item.total_violations,
-          total_points_deducted: item.total_points,
-          weekly_score: Math.max(0, 100 - item.total_points),
-          violation_details: item.violations.map(v => ({
-            type: v.name,
-            points: v.points,
-            description: v.description || '',
-            date: v.date || new Date().toISOString().split('T')[0]
-          })),
-          is_sent_to_teacher: false,
-          sent_at: null
-        }))
+        // Transform the grouped violations data into weekly reports format (match new actions shape)
+        const transformedReports: WeeklyViolationReport[] = (result.data || [])
+          .filter(item => item.student && item.class)
+          .map(item => {
+            const { start, end } = getWeekDateRange(selectedWeek)
+            const totalPoints = Number(item.total_points ?? 0)
+            return {
+              id: item.student!.id || item.student!.student_id,
+              student: {
+                id: item.student!.id,
+                full_name: item.student!.full_name,
+                student_id: item.student!.student_id
+              },
+              class: {
+                id: item.class!.id,
+                name: item.class!.name
+              },
+              week_number: selectedWeek,
+              week_start_date: start.toISOString().split('T')[0],
+              week_end_date: end.toISOString().split('T')[0],
+              total_violations: item.total_violations ?? item.violations.length,
+              total_points_deducted: totalPoints,
+              weekly_score: Math.max(0, 100 - totalPoints),
+              violation_details: item.violations.map(v => ({
+                type: v.name || 'Không xác định',
+                points: Number(v.points ?? 0),
+                description: v.description || '',
+                date: v.date || start.toISOString().split('T')[0]
+              })),
+              is_sent_to_teacher: false,
+              sent_at: null
+            }
+          })
         setReports(transformedReports)
       } else {
         setReports([])

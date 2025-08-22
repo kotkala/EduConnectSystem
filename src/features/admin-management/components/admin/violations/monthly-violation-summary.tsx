@@ -8,7 +8,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Calendar, AlertTriangle, Award, Eye } from 'lucide-react'
 import { toast } from 'sonner'
-import { getMonthlyRankingAction } from '@/features/violations/actions/violation-actions'
+import { getMonthlyRankingAction } from '@/features/violations/actions'
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
 
 interface MonthlyViolationSummary {
@@ -116,15 +116,15 @@ export default function MonthlyViolationSummary() {
 
       if (result.success && result.data) {
         const transformedData: MonthlyViolationSummary[] = result.data.map(item => ({
-          id: item.student!.id,
+          id: item.student_id,
           student: {
-            id: item.student!.id,
-            full_name: item.student!.full_name,
-            student_id: item.student!.student_id
+            id: item.student_id,
+            full_name: item.student_name,
+            student_id: item.student_code
           },
           class: {
-            id: item.class!.id,
-            name: item.class!.name
+            id: item.student_id, // Use student_id as fallback
+            name: item.class_name
           },
           month_number: selectedMonth,
           total_violations: item.total_violations,
@@ -157,7 +157,7 @@ export default function MonthlyViolationSummary() {
       const student = summaries.find(s => s.id === summaryId)?.student
       if (!student || !currentSemester) return
 
-      const { markMonthlyAlertSeenAction } = await import('@/features/violations/actions/violation-actions')
+      const { markMonthlyAlertSeenAction } = await import('@/features/violations/actions')
       const res = await markMonthlyAlertSeenAction({
         student_id: student.id,
         semester_id: currentSemester.id,

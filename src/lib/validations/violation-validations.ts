@@ -7,15 +7,15 @@ export type ViolationSeverity = typeof violationSeverityLevels[number]
 // Violation category validation schemas
 export const violationCategorySchema = z.object({
   name: z.string()
-    .min(1, "Category name is required")
-    .max(100, "Category name must be 100 characters or less"),
+    .min(1, "Tên danh mục là bắt buộc")
+    .max(100, "Tên danh mục tối đa 100 ký tự"),
   description: z.string()
-    .max(500, "Description must be 500 characters or less")
+    .max(500, "Mô tả tối đa 500 ký tự")
     .optional()
 })
 
 export const updateViolationCategorySchema = violationCategorySchema.extend({
-  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid category ID"),
+  id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã danh mục không hợp lệ"),
   is_active: z.boolean().optional()
 })
 
@@ -162,7 +162,11 @@ export interface ViolationType {
 }
 
 export interface ViolationTypeWithCategory extends ViolationType {
-  category: {
+  violation_categories?: Array<{
+    id: string
+    name: string
+  }>
+  category?: {
     id: string
     name: string
   }
@@ -262,6 +266,55 @@ export interface ViolationNotificationWithDetails extends ViolationNotification 
   }
 }
 
+export interface DisciplinaryCase {
+  id: string
+  student_id: string
+  class_id: string
+  semester_id: string
+  week_index: number
+  action_type_id: string
+  total_points: number
+  notes?: string
+  status: 'pending' | 'approved' | 'rejected' | 'completed'
+  created_by: string
+  created_at: string
+  updated_at?: string
+  profiles?: {
+    id: string
+    full_name: string
+    student_id: string
+    email: string
+  } | Array<{
+    id: string
+    full_name: string
+    student_id: string
+    email: string
+  }>
+  classes?: {
+    id: string
+    name: string
+  } | Array<{
+    id: string
+    name: string
+  }>
+  disciplinary_action_types?: {
+    id: string
+    name: string
+    description: string
+    severity_level: number
+  } | Array<{
+    id: string
+    name: string
+    description: string
+    severity_level: number
+  }>
+  created_by_profile?: {
+    full_name: string
+  } | Array<{
+    full_name: string
+  }>
+}
+
 // Utility functions
 export function getSeverityLabel(severity: ViolationSeverity): string {
   const labels: Record<ViolationSeverity, string> = {
@@ -282,3 +335,24 @@ export function getSeverityColor(severity: ViolationSeverity): string {
   }
   return colors[severity]
 }
+
+// Disciplinary case validation schemas
+export const disciplinaryCaseSchema = z.object({
+  student_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học sinh không hợp lệ"),
+  class_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã lớp không hợp lệ"),
+  semester_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã học kỳ không hợp lệ"),
+  week_index: z.number().int().min(1).max(52, "Tuần phải từ 1-52"),
+  action_type_id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã loại kỷ luật không hợp lệ"),
+  total_points: z.number().int().min(0, "Tổng điểm phải >= 0"),
+  notes: z.string().max(1000, "Ghi chú tối đa 1000 ký tự").optional()
+})
+
+export const disciplinaryActionTypeSchema = z.object({
+  name: z.string().min(1, "Tên loại kỷ luật là bắt buộc").max(200, "Tên tối đa 200 ký tự"),
+  description: z.string().max(500, "Mô tả tối đa 500 ký tự").optional(),
+  severity_level: z.number().int().min(1).max(10, "Mức độ nghiêm trọng từ 1-10")
+})
+
+// Additional type definitions for disciplinary
+export type DisciplinaryCaseFormData = z.infer<typeof disciplinaryCaseSchema>
+export type DisciplinaryActionTypeFormData = z.infer<typeof disciplinaryActionTypeSchema>

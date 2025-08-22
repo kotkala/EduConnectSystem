@@ -68,7 +68,7 @@ import {
   createViolationTypeAction,
   updateViolationCategoryAction,
   updateViolationTypeAction
-} from '@/features/violations/actions/violation-actions'
+} from '@/features/violations/actions'
 
 export default function ViolationCategoriesManager() {
   const [categories, setCategories] = useState<ViolationCategory[]>([])
@@ -113,7 +113,7 @@ export default function ViolationCategoriesManager() {
     try {
       const result = await getViolationCategoriesAndTypesAction()
       if (result.success && result.categories) {
-        setCategories(result.categories)
+        setCategories(result.categories as unknown as ViolationCategory[])
       } else {
         console.error('Lỗi tải danh mục:', result.error)
         toast.error(result.error || 'Không thể tải danh mục vi phạm')
@@ -689,7 +689,7 @@ export default function ViolationCategoriesManager() {
                     return violationTypes.map((type) => (
                       <TableRow key={type.id}>
                         <TableCell className="font-medium">{type.name}</TableCell>
-                        <TableCell>{type.category.name}</TableCell>
+                        <TableCell>{type.violation_categories?.[0]?.name || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge className={getSeverityColor(type.default_severity)}>
                             {getSeverityLabel(type.default_severity)}

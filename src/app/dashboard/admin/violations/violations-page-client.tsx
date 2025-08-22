@@ -5,12 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Plus, Settings, FileText, AlertTriangle } from 'lucide-react'
-import ViolationCategoriesManager from '@/features/admin-management/components/admin/violations/violation-categories-manager'
-import ViolationRecordForm from '@/features/admin-management/components/admin/violations/violation-record-form'
-import SimpleViolationsTable from '@/features/admin-management/components/admin/violations/simple-violations-table'
-import WeeklyViolationReports from '@/features/admin-management/components/admin/violations/weekly-violation-reports'
-import MonthlyViolationSummary from '@/features/admin-management/components/admin/violations/monthly-violation-summary'
-import DisciplinaryProcessing from '@/features/admin-management/components/admin/violations/disciplinary-processing'
+import ViolationCategoriesManager from '@/features/violations/components/violation-categories-manager'
+import ViolationRecordForm from '@/features/violations/components/violation-record-form'
+import SimpleViolationsTable from '@/features/violations/components/simple-violations-table'
+import WeeklyViolationReports from '@/features/violations/components/weekly-violation-reports'
+import MonthlyViolationSummary from '@/features/violations/components/monthly-violation-summary'
+import DisciplinaryProcessing from '@/features/violations/components/disciplinary-processing'
 import { getViolationStatsAction } from '@/features/violations/actions'
 
 

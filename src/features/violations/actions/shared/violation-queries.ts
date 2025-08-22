@@ -42,16 +42,21 @@ export const STUDENT_VIOLATION_WITH_DETAILS_FIELDS = `
   violation_type_id,
   student_id,
   class_id,
+  severity,
+  description,
   points,
-  notes,
-  created_at,
-  created_by,
   violation_date,
+  academic_year_id,
+  semester_id,
+  recorded_by,
+  recorded_at,
+  created_at,
+  updated_at,
   violation_types!inner(
     id,
     name,
     category_id,
-    severity,
+    default_severity,
     points,
     violation_categories!inner(
       id,
@@ -70,7 +75,7 @@ export const STUDENT_VIOLATION_WITH_DETAILS_FIELDS = `
     academic_year:academic_years(name),
     semester:semesters(name)
   ),
-  created_by_profile:profiles!created_by(
+  recorded_by_profile:profiles!recorded_by(
     full_name
   )
 `
@@ -161,7 +166,7 @@ export const STUDENT_BASIC_FIELDS = `
   full_name,
   student_id,
   email,
-  phone,
+  phone_number,
   date_of_birth
 `
 

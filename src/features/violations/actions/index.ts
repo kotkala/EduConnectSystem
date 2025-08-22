@@ -43,14 +43,15 @@ export {
   getStudentsByClassAction
 } from './student-violations-actions'
 
-// Reports & Analytics (6 functions)
+// Reports & Analytics (9 functions)
 export {
   getViolationStatsAction,
   getWeeklyGroupedViolationsAction,
   getMonthlyRankingAction,
   getMonthlyThreePlusListAction,
-  getUnseenViolationAlertsCountAction,
-  markMonthlyAlertSeenAction
+  markWeeklyReportsAsSentAction,
+  getWeeklyReportStatusAction,
+  markMonthlyViolationAsViewedAction
 } from './violation-reports-actions'
 
 // Disciplinary Management (9 functions)

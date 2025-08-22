@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { checkAdminPermissions, checkHomeroomTeacherPermissions, checkParentPermissions } from './shared/violation-permissions'
+import { syncViolationReportsAction } from './report-sync-actions'
 import { 
   STUDENT_VIOLATION_WITH_DETAILS_FIELDS, 
   STUDENT_BASIC_FIELDS,
@@ -109,25 +110,65 @@ export async function createBulkStudentViolationsAction(data: BulkStudentViolati
       violation_type_id: validatedData.violation_type_id,
       student_id: studentId,
       class_id: validatedData.class_id,
+      severity: validatedData.severity,
+      description: validatedData.description || '',
       points,
-      notes: validatedData.description || '',
       violation_date: validatedData.violation_date,
-      created_by: userId,
-      created_at: new Date().toISOString()
+      academic_year_id: validatedData.academic_year_id,
+      semester_id: validatedData.semester_id,
+      recorded_by: userId,
+      recorded_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }))
 
-    const { data: createdViolations, error } = await supabase
-      .from('student_violations')
-      .insert(violations)
-      .select(STUDENT_VIOLATION_WITH_DETAILS_FIELDS)
+    // Process in batches to avoid timeout and memory issues
+    const BATCH_SIZE = 100
+    const batches = []
+    for (let i = 0; i < violations.length; i += BATCH_SIZE) {
+      batches.push(violations.slice(i, i + BATCH_SIZE))
+    }
 
-    if (error) throw new Error('Không thể tạo vi phạm hàng loạt')
+    const allCreatedViolations = []
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i]
+
+      const { data: batchResult, error: batchError } = await supabase
+        .from('student_violations')
+        .insert(batch)
+        .select(STUDENT_VIOLATION_WITH_DETAILS_FIELDS)
+
+      if (batchError) {
+        throw new Error(`Lỗi tạo vi phạm batch ${i + 1}/${batches.length}: ${batchError.message}`)
+      }
+
+      if (batchResult) {
+        allCreatedViolations.push(...batchResult)
+      }
+
+      // Small delay between batches to prevent overwhelming the database
+      if (i < batches.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+    }
+
+    // CRITICAL: Sync reports after adding violations
+    // This ensures already-sent reports are invalidated if they're affected
+    const syncResult = await syncViolationReportsAction({
+      violation_date: validatedData.violation_date,
+      semester_id: validatedData.semester_id,
+      class_id: validatedData.class_id,
+      student_ids: validatedData.student_ids
+    })
 
     revalidatePath('/dashboard/admin/violations')
-    return { 
-      success: true, 
-      data: createdViolations,
-      count: createdViolations?.length || 0
+
+    return {
+      success: true,
+      data: allCreatedViolations,
+      count: allCreatedViolations.length,
+      sync_result: syncResult // Include sync info for debugging
     }
   } catch (error) {
     return { 
@@ -426,6 +467,7 @@ export async function getStudentsByClassAction(classId?: string): Promise<{
         .eq('class_id', classId)
 
       const studentIds = classAssignments?.map(ca => ca.student_id) || []
+
       if (studentIds.length === 0) {
         return { success: true, data: [] }
       }

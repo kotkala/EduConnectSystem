@@ -60,7 +60,6 @@ import { useExchangeRequestsCount } from '@/shared/hooks/use-exchange-requests-c
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
 import { Badge } from '@/shared/components/ui/badge'
 import dynamic from 'next/dynamic'
-import ViolationAlertBadge from '@/features/admin-management/components/admin/violations/violation-alert-badge'
 import { ThemeToggle } from '@/shared/components/theme-toggle'
 
 // Platform item type
@@ -310,10 +309,6 @@ export function AppSidebar({ role }: AppSidebarProps) {
                           <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
                             {counts.pending > 99 ? '99+' : counts.pending}
                           </Badge>
-                        )}
-                        {/* Violation alert badge */}
-                        {(item.url.includes('/violations') && role === 'admin') && (
-                          <ViolationAlertBadge className="ml-auto" />
                         )}
                       </Link>
                     </SidebarMenuButton>

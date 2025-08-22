@@ -39,6 +39,7 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.56.0",
     "@tanstack/react-query": "^5.85.5",
+    "@tanstack/react-virtual": "^3.13.12",
     "@types/nodemailer": "^6.4.19",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",

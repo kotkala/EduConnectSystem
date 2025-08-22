@@ -8,8 +8,12 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Calendar, AlertTriangle, Award, Eye } from 'lucide-react'
 import { toast } from 'sonner'
-import { getMonthlyRankingAction } from '@/features/violations/actions'
+import {
+  getMonthlyRankingAction,
+  markMonthlyViolationAsViewedAction
+} from '@/features/violations/actions'
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
+import { getClassesAction } from '@/features/admin-management/actions/class-actions'
 
 interface MonthlyViolationSummary {
   id: string
@@ -33,57 +37,106 @@ interface MonthlyViolationSummary {
 export default function MonthlyViolationSummary() {
   const [summaries, setSummaries] = useState<MonthlyViolationSummary[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [currentSemester, setCurrentSemester] = useState<{ id: string; name: string; start_date: string } | null>(null)
-  const [selectedMonth, setSelectedMonth] = useState(1)
-  const [selectedClass, setSelectedClass] = useState('')
+  const [currentSemester, setCurrentSemester] = useState<{ id: string; name: string; start_date: string; end_date: string } | null>(null)
+  const [selectedMonth, setSelectedMonth] = useState(1) // Academic month (1-5 for semester)
+  const [selectedClass, setSelectedClass] = useState('all')
+  const [availableMonths, setAvailableMonths] = useState<number[]>([]) // Tháng có data
+  const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([])
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false)
 
-  function getCurrentMonth(): number {
-    if (currentSemester?.start_date) {
-      const currentWeek = getCurrentWeek()
-      return Math.ceil(currentWeek / 4)
-    }
-    return 1
+  function getCurrentAcademicMonth(): number {
+    if (!currentSemester?.start_date) return 1
+
+    const semesterStart = new Date(currentSemester.start_date)
+    const now = new Date()
+    const diffTime = now.getTime() - semesterStart.getTime()
+    const diffDays = Math.floor(diffTime / (24 * 60 * 60 * 1000))
+    const academicMonth = Math.floor(diffDays / 30.44) + 1
+
+    return Math.max(1, Math.min(4, academicMonth)) // Clamp to 1-4 (4 tháng học kỳ)
   }
 
-  function getCurrentWeek(): number {
-    if (currentSemester?.start_date) {
-      const semesterStart = new Date(currentSemester.start_date)
-      const now = new Date()
-      const diffTime = now.getTime() - semesterStart.getTime()
-      const diffWeeks = Math.ceil(diffTime / (7 * 24 * 60 * 60 * 1000))
-      return Math.max(1, diffWeeks)
+  function getMaxAcademicMonths(): number {
+    if (!currentSemester?.start_date || !currentSemester?.end_date) {
+      // Default: 4 tháng theo chuẩn giáo dục VN
+      return 4
     }
-    return 1
+
+    // Tính duration thực tế của học kỳ
+    const start = new Date(currentSemester.start_date)
+    const end = new Date(currentSemester.end_date)
+    const diffTime = end.getTime() - start.getTime()
+    const diffMonths = Math.ceil(diffTime / (30.44 * 24 * 60 * 60 * 1000))
+
+    // Cap giữa 3-5 tháng (reasonable range)
+    return Math.max(3, Math.min(5, diffMonths))
   }
 
-  function getMonthOptions(): Array<{ value: number; label: string }> {
-    const currentMonth = getCurrentMonth()
+
+
+  function getMonthOptions(): Array<{ value: number; label: string; disabled?: boolean }> {
+    const currentMonth = getCurrentAcademicMonth()
+    const maxMonths = getMaxAcademicMonths()
     const options = []
-    for (let i = 1; i <= Math.max(currentMonth, 5); i++) {
-      const startWeek = (i - 1) * 4 + 1
-      const endWeek = i * 4
+
+    for (let i = 1; i <= Math.max(currentMonth, maxMonths); i++) {
+      const hasData = availableMonths.includes(i)
+      const isFuture = i > currentMonth
+
       options.push({
         value: i,
-        label: `Tháng ${i} (Tuần ${startWeek}-${endWeek})${i === currentMonth ? ' - Hiện tại' : ''}`
+        label: `Tháng ${i} học kỳ${i === currentMonth ? ' - Hiện tại' : ''}${!hasData && !isFuture ? ' (Chưa có dữ liệu)' : ''}${isFuture ? ' (Chưa đến)' : ''}`,
+        disabled: !hasData || isFuture
       })
     }
     return options
   }
+
+  const loadClasses = useCallback(async () => {
+    setIsLoadingClasses(true)
+    try {
+      const result = await getClassesAction({
+        page: 1,
+        limit: 100,
+        semester_id: currentSemester?.id
+      })
+      if (result.success && result.data) {
+        // Extract just id and name for the dropdown
+        const classOptions = result.data.map(cls => ({
+          id: cls.id,
+          name: cls.name
+        }))
+        setClasses(classOptions)
+      } else {
+        console.error('Lỗi tải danh sách lớp:', result.error)
+        setClasses([])
+      }
+    } catch (error) {
+      console.error('Lỗi tải danh sách lớp:', error)
+      setClasses([])
+    } finally {
+      setIsLoadingClasses(false)
+    }
+  }, [currentSemester?.id])
 
   useEffect(() => {
     loadCurrentSemester()
   }, [])
 
   // Chỉ đặt tháng hiện tại khi semester được tải
+  // Set selectedMonth to current academic month when semester loads
   useEffect(() => {
     if (currentSemester?.start_date) {
-      const start = new Date(currentSemester.start_date)
-      const now = new Date()
-      const diffWeeks = Math.ceil((now.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000))
-      const currentWeek = Math.max(1, diffWeeks)
-      setSelectedMonth(Math.ceil(currentWeek / 4))
+      setSelectedMonth(getCurrentAcademicMonth())
     }
-  }, [currentSemester])
+  }, [currentSemester, getCurrentAcademicMonth])
+
+  // Load classes when current semester is available
+  useEffect(() => {
+    if (currentSemester) {
+      loadClasses()
+    }
+  }, [currentSemester, loadClasses])
 
   const loadCurrentSemester = async () => {
     try {
@@ -94,7 +147,8 @@ export default function MonthlyViolationSummary() {
           setCurrentSemester({
             id: current.id,
             name: current.name,
-            start_date: current.start_date
+            start_date: current.start_date,
+            end_date: current.end_date
           })
         }
       }
@@ -103,6 +157,27 @@ export default function MonthlyViolationSummary() {
     }
   }
 
+
+
+  const loadAvailableMonths = useCallback(async () => {
+    if (!currentSemester) return
+
+    try {
+      // Logic đơn giản: tháng có data = từ tháng 1 đến tháng hiện tại
+      const currentMonth = getCurrentAcademicMonth()
+      const months = []
+
+      // Chỉ enable tháng từ 1 đến current month
+      for (let i = 1; i <= currentMonth; i++) {
+        months.push(i)
+      }
+
+      setAvailableMonths(months)
+    } catch (error) {
+      console.error('Lỗi tải tháng có sẵn:', error)
+    }
+  }, [currentSemester, selectedClass])
+
   const loadMonthlySummaries = useCallback(async () => {
     if (!currentSemester) return
 
@@ -110,8 +185,8 @@ export default function MonthlyViolationSummary() {
     try {
       const result = await getMonthlyRankingAction({
         semester_id: currentSemester.id,
-        month_index: selectedMonth,
-        class_id: selectedClass || undefined
+        academic_month: selectedMonth,
+        class_id: selectedClass === 'all' ? undefined : selectedClass || undefined
       })
 
       if (result.success && result.data) {
@@ -130,8 +205,8 @@ export default function MonthlyViolationSummary() {
           total_violations: item.total_violations,
           total_points_deducted: item.total_points,
           is_flagged: item.total_violations >= 3,
-          is_admin_viewed: false,
-          admin_viewed_at: null
+          is_admin_viewed: item.is_admin_viewed,
+          admin_viewed_at: item.admin_viewed_at
         }))
         setSummaries(transformedData.toSorted((a, b) => b.total_violations - a.total_violations))
       } else {
@@ -145,6 +220,13 @@ export default function MonthlyViolationSummary() {
     }
   }, [currentSemester, selectedMonth, selectedClass])
 
+  // Load available months khi semester/class thay đổi
+  useEffect(() => {
+    if (currentSemester) {
+      loadAvailableMonths()
+    }
+  }, [currentSemester, selectedClass, loadAvailableMonths])
+
   // Load dữ liệu khi tháng/lớp thay đổi
   useEffect(() => {
     if (currentSemester) {
@@ -153,29 +235,24 @@ export default function MonthlyViolationSummary() {
   }, [currentSemester, selectedMonth, selectedClass, loadMonthlySummaries])
 
   const handleMarkAsViewed = async (summaryId: string) => {
-    try {
-      const student = summaries.find(s => s.id === summaryId)?.student
-      if (!student || !currentSemester) return
+    if (!currentSemester) return
 
-      const { markMonthlyAlertSeenAction } = await import('@/features/violations/actions')
-      const res = await markMonthlyAlertSeenAction({
-        student_id: student.id,
+    try {
+      const result = await markMonthlyViolationAsViewedAction({
+        student_id: summaryId,
         semester_id: currentSemester.id,
-        month_index: selectedMonth
+        academic_month: selectedMonth
       })
-      if (res.success) {
+
+      if (result.success) {
         setSummaries(prev => prev.map(summary =>
           summary.id === summaryId
             ? { ...summary, is_admin_viewed: true, admin_viewed_at: new Date().toISOString() }
             : summary
         ))
-
-        // Trigger custom event to refresh violation alert count
-        window.dispatchEvent(new CustomEvent('violation-alert-updated'))
-
         toast.success('Đã đánh dấu đã xem')
       } else {
-        toast.error(res.error || 'Không thể lưu trạng thái đã xem')
+        toast.error(result.error || 'Không thể lưu trạng thái đã xem')
       }
     } catch (error) {
       console.error('Lỗi đánh dấu đã xem:', error)
@@ -292,13 +369,27 @@ export default function MonthlyViolationSummary() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label htmlFor="month-select" className="text-sm font-medium">Tháng học kì</label>
-              <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+              <Select
+                value={selectedMonth.toString()}
+                onValueChange={(value) => {
+                  const monthValue = parseInt(value)
+                  const monthOption = getMonthOptions().find(opt => opt.value === monthValue)
+                  if (!monthOption?.disabled) {
+                    setSelectedMonth(monthValue)
+                  }
+                }}
+              >
                 <SelectTrigger id="month-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {getMonthOptions().map((option) => (
-                    <SelectItem key={option.value} value={option.value.toString()}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value.toString()}
+                      disabled={option.disabled}
+                      className={option.disabled ? 'text-gray-400 cursor-not-allowed' : ''}
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -314,9 +405,15 @@ export default function MonthlyViolationSummary() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả lớp</SelectItem>
-                  <SelectItem value="10A1">10A1</SelectItem>
-                  <SelectItem value="10A2">10A2</SelectItem>
-                  <SelectItem value="10A3">10A3</SelectItem>
+                  {isLoadingClasses ? (
+                    <SelectItem value="loading" disabled>Đang tải lớp...</SelectItem>
+                  ) : (
+                    classes.map((classItem) => (
+                      <SelectItem key={classItem.id} value={classItem.id}>
+                        {classItem.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

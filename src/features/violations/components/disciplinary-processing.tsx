@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -93,27 +93,7 @@ export default function DisciplinaryProcessing() {
     loadClassBlocks()
   }, [])
 
-  useEffect(() => {
-    if (selectedBlock) {
-      loadClassesByBlock()
-    } else {
-      setClasses([])
-      setSelectedClass('')
-    }
-  }, [selectedBlock])
 
-  useEffect(() => {
-    if (selectedClass) {
-      loadStudentsByClass()
-    } else {
-      setStudents([])
-      setSelectedStudent('')
-    }
-  }, [selectedClass])
-
-  useEffect(() => {
-    filterStudents()
-  }, [students, studentSearch])
 
   const loadActionTypes = async () => {
     try {
@@ -164,7 +144,7 @@ export default function DisciplinaryProcessing() {
     }
   }
 
-  const loadClassesByBlock = async () => {
+  const loadClassesByBlock = useCallback(async () => {
     if (!selectedBlock) return
     try {
       const { getClassesByBlockAction } = await import('@/features/violations/actions')
@@ -178,9 +158,9 @@ export default function DisciplinaryProcessing() {
       console.error('Lỗi tải lớp học:', error)
       setClasses([])
     }
-  }
+  }, [selectedBlock])
 
-  const loadStudentsByClass = async () => {
+  const loadStudentsByClass = useCallback(async () => {
     if (!selectedClass) return
     try {
       const { getStudentsByClassAction } = await import('@/features/violations/actions')
@@ -194,9 +174,9 @@ export default function DisciplinaryProcessing() {
       console.error('Lỗi tải học sinh:', error)
       setStudents([])
     }
-  }
+  }, [selectedClass])
 
-  const filterStudents = () => {
+  const filterStudents = useCallback(() => {
     if (!studentSearch.trim()) {
       setFilteredStudents(students)
       return
@@ -207,7 +187,30 @@ export default function DisciplinaryProcessing() {
       student.student_id.toLowerCase().includes(studentSearch.toLowerCase())
     )
     setFilteredStudents(filtered)
-  }
+  }, [students, studentSearch])
+
+  // Effects
+  useEffect(() => {
+    if (selectedBlock) {
+      loadClassesByBlock()
+    } else {
+      setClasses([])
+      setSelectedClass('')
+    }
+  }, [selectedBlock, loadClassesByBlock])
+
+  useEffect(() => {
+    if (selectedClass) {
+      loadStudentsByClass()
+    } else {
+      setStudents([])
+      setSelectedStudent('')
+    }
+  }, [selectedClass, loadStudentsByClass])
+
+  useEffect(() => {
+    filterStudents()
+  }, [students, studentSearch, filterStudents])
 
   // Duplicate handlers removed below. Use single definitions above.
 

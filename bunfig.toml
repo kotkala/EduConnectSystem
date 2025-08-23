@@ -1,0 +1,33 @@
+# Bun Configuration for EduConnect System
+
+[install]
+# Use GitHub Packages for @kotkala scoped packages
+registry = { url = "https://registry.npmjs.org", token = "" }
+
+[install.scopes]
+# Configure GitHub Packages for @kotkala scope
+"@kotkala" = { url = "https://npm.pkg.github.com", token = "$GITHUB_TOKEN" }
+
+[install.cache]
+# Cache configuration
+dir = "~/.bun/install/cache"
+
+[run]
+# Environment variables for development
+env = ".env.local"
+
+[test]
+# Test configuration
+preload = ["./test/setup.ts"]
+
+[build]
+# Build configuration
+target = "node"
+format = "esm"
+outdir = "./dist"
+external = ["react", "react-dom", "next"]
+
+# Package publishing configuration
+[publish]
+registry = "https://npm.pkg.github.com"
+access = "restricted"

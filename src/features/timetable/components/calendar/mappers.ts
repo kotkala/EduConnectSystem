@@ -90,9 +90,7 @@ export function studySlotToCalendarEvent(
   const color = getSubjectColor(slot.subject_category);
 
   // Determine event status and add status indicator
-  const hasSubstitute = !!slot.substitute_teacher_id;
-  const hasExchange = !!slot.exchange_request_id;
-  const status = getEventStatus(targetDate, slot.start_time, slot.end_time, hasSubstitute, hasExchange, feedbackInfo);
+  const status = getEventStatus(targetDate, slot.start_time, slot.end_time, feedbackInfo);
 
   const baseTitle = slot.subject_name || "Môn học";
   const statusIndicator = getStatusIndicator(status);

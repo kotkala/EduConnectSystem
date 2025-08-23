@@ -44,7 +44,7 @@ export default function MonthlyViolationSummary() {
   const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([])
   const [isLoadingClasses, setIsLoadingClasses] = useState(false)
 
-  function getCurrentAcademicMonth(): number {
+  const getCurrentAcademicMonth = useCallback((): number => {
     if (!currentSemester?.start_date) return 1
 
     const semesterStart = new Date(currentSemester.start_date)
@@ -54,7 +54,7 @@ export default function MonthlyViolationSummary() {
     const academicMonth = Math.floor(diffDays / 30.44) + 1
 
     return Math.max(1, Math.min(4, academicMonth)) // Clamp to 1-4 (4 tháng học kỳ)
-  }
+  }, [currentSemester?.start_date])
 
   function getMaxAcademicMonths(): number {
     if (!currentSemester?.start_date || !currentSemester?.end_date) {
@@ -176,7 +176,7 @@ export default function MonthlyViolationSummary() {
     } catch (error) {
       console.error('Lỗi tải tháng có sẵn:', error)
     }
-  }, [currentSemester, selectedClass])
+  }, [currentSemester, getCurrentAcademicMonth])
 
   const loadMonthlySummaries = useCallback(async () => {
     if (!currentSemester) return

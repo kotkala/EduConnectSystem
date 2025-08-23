@@ -167,6 +167,7 @@ export async function getWeeklyGroupedViolationsAction(params: {
       total_violations: number;
       sent_violations: number;
       unsent_violations: number;
+      has_unsent_violations: boolean;
       violations: Array<{
         id: string;
         name: string;
@@ -188,6 +189,7 @@ export async function getWeeklyGroupedViolationsAction(params: {
           total_violations: 0,
           sent_violations: 0,
           unsent_violations: 0,
+          has_unsent_violations: false,
           violations: []
         })
       }
@@ -207,6 +209,7 @@ export async function getWeeklyGroupedViolationsAction(params: {
         agg.sent_violations += 1
       } else {
         agg.unsent_violations += 1
+        agg.has_unsent_violations = true
       }
 
       agg.violations.push({
@@ -546,7 +549,7 @@ export async function markWeeklyReportsAsSentAction(params: {
 
     if (error) throw new Error('Không thể cập nhật trạng thái gửi báo cáo')
 
-    // Mark individual violations as sent
+    // Mark individual violations as sent - ONLY mark violations that exist at the time of sending
     if (currentViolations && currentViolations.length > 0) {
       const violationIds = currentViolations.map(v => v.id)
       const { error: updateError } = await supabase
@@ -561,6 +564,27 @@ export async function markWeeklyReportsAsSentAction(params: {
         console.error('Error marking violations as sent:', updateError)
         // Don't throw error here, report was still created successfully
       }
+    }
+
+    // CRITICAL FIX: Store the list of violation IDs that were sent in this report
+    // This will help us track which violations were included in the sent report
+    const sentViolationIds = currentViolations?.map(v => v.id) || []
+
+    // Update the unified_violation_reports with the specific violation IDs that were sent
+    if (sentViolationIds.length > 0) {
+      await supabase
+        .from('unified_violation_reports')
+        .update({
+          violation_details: {
+            ...violationDetails,
+            sent_violation_ids: sentViolationIds,
+            sent_timestamp: new Date().toISOString()
+          }
+        })
+        .eq('report_type', 'weekly')
+        .eq('report_period', `week_${params.week_index}`)
+        .eq('semester_id', params.semester_id)
+        .eq('class_id', params.class_id || null)
     }
 
     return {

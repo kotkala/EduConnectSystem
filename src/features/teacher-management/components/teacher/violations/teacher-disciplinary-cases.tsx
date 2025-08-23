@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -10,7 +10,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Eye, Calendar, MessageSquare, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions'
+import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions/disciplinary-actions'
 
 interface TeacherDisciplinaryCase {
   id: string
@@ -42,11 +42,7 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [meetingNotes, setMeetingNotes] = useState('')
 
-  useEffect(() => {
-    loadCases()
-  }, [])
-
-  const loadCases = async () => {
+  const loadCases = useCallback(async () => {
     setIsLoading(true)
     try {
       // Only load cases if teacher has a homeroom class
@@ -69,12 +65,16 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [homeroomClass])
+
+  useEffect(() => {
+    loadCases()
+  }, [loadCases])
 
   const handleAcknowledge = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
+        caseId: caseId,
         status: 'acknowledged'
       })
 
@@ -93,7 +93,7 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
   const handleScheduleMeeting = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
+        caseId: caseId,
         status: 'meeting_scheduled'
       })
 
@@ -113,22 +113,26 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
   const handleResolve = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
-        status: 'resolved'
+        caseId: caseId,
+        status: 'resolved',
+        notes: meetingNotes
       })
 
       if (result.success) {
-        toast.success('Đã đánh dấu case đã giải quyết')
+        toast.success('Đã đánh dấu case kỷ luật đã giải quyết')
         loadCases()
         setShowDetailDialog(false)
+        setMeetingNotes('')
       } else {
         toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }
     } catch (error) {
-      console.error('Lỗi giải quyết case:', error)
-      toast.error('Có lỗi xảy ra khi giải quyết case')
+      console.error('Lỗi đánh dấu giải quyết:', error)
+      toast.error('Có lỗi xảy ra khi đánh dấu giải quyết')
     }
   }
+
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -282,16 +286,6 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
                             )}
                           </DialogContent>
                         </Dialog>
-
-                        {caseItem.status === 'sent_to_homeroom' && (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleAcknowledge(caseItem.id)}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>

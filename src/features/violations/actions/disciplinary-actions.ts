@@ -233,7 +233,7 @@ export async function getDisciplinaryCasesAction(filters?: {
  */
 export async function updateDisciplinaryCaseStatusAction(data: {
   caseId: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved';
   notes?: string;
 }) {
   try {
@@ -347,6 +347,6 @@ export async function updateDisciplinaryCaseStatusActionLegacy(params: {
 }) {
   return updateDisciplinaryCaseStatusAction({
     caseId: params.case_id,
-    status: params.status as 'pending' | 'approved' | 'rejected' | 'completed'
+    status: params.status as 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
   })
 }

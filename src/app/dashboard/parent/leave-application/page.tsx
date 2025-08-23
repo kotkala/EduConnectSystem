@@ -49,7 +49,8 @@ export default function LeaveApplicationPage() {
         setError(result.error || 'Không thể tải danh sách đơn xin nghỉ')
         toast.error(result.error || 'Không thể tải danh sách đơn xin nghỉ')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error loading leave applications:', err)
       const errorMessage = 'Có lỗi xảy ra khi tải danh sách đơn xin nghỉ'
       setError(errorMessage)
       toast.error(errorMessage)

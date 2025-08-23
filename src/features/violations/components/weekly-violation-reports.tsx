@@ -178,7 +178,6 @@ export default function WeeklyViolationReports() {
     }, 10000) // 10 giây timeout
 
     return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Load classes when current semester is available
@@ -334,7 +333,7 @@ export default function WeeklyViolationReports() {
                 description: v.description || '',
                 date: v.date || start.toISOString().split('T')[0]
               })),
-              is_sent_to_teacher: statusData?.is_sent_to_teacher || false,
+              is_sent_to_teacher: !item.has_unsent_violations && item.sent_violations > 0,
               sent_at: statusData?.sent_at || null
             }
           })

@@ -40,7 +40,7 @@ async function checkAdminPermissions() {
 }
 
 // Get available students for assignment (not assigned to specific assignment type in academic year)
-export async function getAvailableStudentsAction(classId: string, _assignmentType: "main" | "combined") {
+export async function getAvailableStudentsAction(classId: string) {
   try {
     await checkAdminPermissions()
     const supabase = await createClient()

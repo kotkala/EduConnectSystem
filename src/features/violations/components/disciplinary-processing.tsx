@@ -113,7 +113,7 @@ export default function DisciplinaryProcessing() {
 
   const loadCases = async () => {
     try {
-      const { getDisciplinaryCasesAction } = await import('@/features/violations/actions')
+      const { getDisciplinaryCasesAction } = await import('@/features/violations/actions/disciplinary-actions')
       const result = await getDisciplinaryCasesAction()
       console.log('Load cases result:', result) // Debug log
       if (result.success && result.data) {
@@ -221,8 +221,12 @@ export default function DisciplinaryProcessing() {
 
   const sendCaseToHomeroom = async (caseId: string) => {
     try {
-      const { updateDisciplinaryCaseStatusAction } = await import('@/features/violations/actions')
-      const res = await updateDisciplinaryCaseStatusAction({ case_id: caseId, status: 'sent_to_homeroom' })
+      const { updateDisciplinaryCaseStatusAction } = await import('@/features/violations/actions/disciplinary-actions')
+      const res = await updateDisciplinaryCaseStatusAction({
+        caseId: caseId,
+        status: 'sent_to_homeroom',
+        notes: 'Đã gửi cho giáo viên chủ nhiệm xử lý'
+      })
       if (res.success) {
         setCases(prev => prev.map(c => c.id === caseId ? { ...c, status: 'sent_to_homeroom' as const } : c))
         toast.success('Đã gửi case cho GVCN')

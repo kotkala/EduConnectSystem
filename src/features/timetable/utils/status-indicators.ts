@@ -63,8 +63,6 @@ export function getEventStatus(
   eventDate: Date,
   startTime: string,
   endTime: string,
-  _hasSubstitute: boolean = false,
-  _hasExchange: boolean = false,
   feedbackInfo?: {
     feedbackCount: number;
     totalStudents: number;

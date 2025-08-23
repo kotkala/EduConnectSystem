@@ -172,10 +172,8 @@ export default function TeacherScheduleBigCalendar() {
     endTime.setHours(endHour, endMinute, 0, 0);
 
     // Determine event status and add status indicator with feedback info
-    const hasSubstitute = !!event.substitute_teacher_id;
-    const hasExchange = !!event.exchange_request_id;
     const feedbackInfo = feedbackInfoMap.get(event.id);
-    const status = getEventStatus(eventDate, event.start_time, event.end_time, hasSubstitute, hasExchange, feedbackInfo);
+    const status = getEventStatus(eventDate, event.start_time, event.end_time, feedbackInfo);
 
     const baseTitle = `${event.subject_name || 'Không xác định'} - ${event.class_name || 'Không xác định'}`;
     const statusIndicator = getStatusIndicator(status);

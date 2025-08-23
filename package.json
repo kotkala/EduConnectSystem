@@ -1,12 +1,57 @@
 {
-  "name": "src",
+  "name": "@kotkala/educonnect-system",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "description": "EduConnect Educational Management System - A comprehensive platform for managing students, teachers, grades, violations, and communications",
+  "keywords": ["education", "management", "nextjs", "supabase", "typescript", "school"],
+  "author": "kotkala",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kotkala/EduConnectSystem.git"
+  },
+  "homepage": "https://github.com/kotkala/EduConnectSystem",
+  "bugs": {
+    "url": "https://github.com/kotkala/EduConnectSystem/issues"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "module": "src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "public",
+    "database",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "package:build": "bun run build",
+    "package:publish": "bun run package:build && bun publish",
+    "package:publish-dry": "bun run package:build && bun publish --dry-run",
+    "package:version": "bun version",
+    "package:login": "bun login --registry https://npm.pkg.github.com",
+    "package:test": "node scripts/test-package.js",
+    "package:setup": "node scripts/test-package.js && scripts/setup-github-packages.bat"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

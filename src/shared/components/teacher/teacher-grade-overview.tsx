@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
@@ -24,18 +24,7 @@ interface StudentGrade {
   modifiedBy?: string
 }
 
-interface GradeOverviewStats {
-  totalStudents: number
-  studentsWithGrades: number
-  completionRate: number
-  averageGrade: number | null
-  gradeDistribution: {
-    excellent: number
-    good: number
-    average: number
-    poor: number
-  }
-}
+
 
 interface TeacherGradeOverviewProps {
   readonly periodId: string
@@ -102,97 +91,8 @@ export function TeacherGradeOverview({
     return Math.round((totalScore / totalWeight) * 10) / 10
   }, [])
 
-  // Memoized grade statistics calculation
-  const gradeStatistics = useMemo(() => {
-    if (grades.length === 0) return null
 
-    const totalStudents = grades.length
-    let studentsWithGrades = 0
-    const allGrades: number[] = []
 
-    grades.forEach(student => {
-      const average = calculateSubjectAverage(student)
-      if (average !== null) {
-        studentsWithGrades++
-        allGrades.push(average)
-      }
-    })
-
-    const averageGrade = allGrades.length > 0
-      ? allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length
-      : 0
-
-    return {
-      totalStudents,
-      studentsWithGrades,
-      completionRate: totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0,
-      averageGrade: Math.round(averageGrade * 10) / 10
-    }
-  }, [grades, calculateSubjectAverage])
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const calculateStats = (gradeData: StudentGrade[]): GradeOverviewStats => {
-    const totalStudents = gradeData.length
-    let studentsWithGrades = 0
-    const allGrades: number[] = []
-
-    const gradeDistribution = {
-      excellent: 0, // >= 8
-      good: 0,      // 6.5-7.9
-      average: 0,   // 5-6.4
-      poor: 0       // < 5
-    }
-
-    gradeData.forEach(student => {
-      let hasAnyGrade = false
-
-      // Check regular grades
-      student.regularGrades.forEach(grade => {
-        if (grade !== null) {
-          allGrades.push(grade)
-          hasAnyGrade = true
-        }
-      })
-
-      // Check other grades
-      if (student.midtermGrade !== null && student.midtermGrade !== undefined) {
-        allGrades.push(student.midtermGrade)
-        hasAnyGrade = true
-      }
-
-      if (student.finalGrade !== null && student.finalGrade !== undefined) {
-        allGrades.push(student.finalGrade)
-        hasAnyGrade = true
-      }
-
-      if (hasAnyGrade) {
-        studentsWithGrades++
-      }
-
-      // Calculate grade distribution based on Vietnamese formula or summary grade
-      const representativeGrade = student.summaryGrade || calculateSubjectAverage(student)
-
-      if (representativeGrade !== null) {
-        if (representativeGrade >= 8) gradeDistribution.excellent++
-        else if (representativeGrade >= 6.5) gradeDistribution.good++
-        else if (representativeGrade >= 5) gradeDistribution.average++
-        else gradeDistribution.poor++
-      }
-    })
-
-    const completionRate = totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0
-    const averageGrade = allGrades.length > 0
-      ? Math.round((allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length) * 10) / 10
-      : null
-
-    return {
-      totalStudents,
-      studentsWithGrades,
-      completionRate,
-      averageGrade,
-      gradeDistribution
-    }
-  }
 
   useEffect(() => {
     if (periodId && classId && subjectId) {

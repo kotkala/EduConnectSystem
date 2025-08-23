@@ -16,7 +16,7 @@ export async function syncViolationReportsAction(params: {
   error?: string
 }> {
   try {
-    const { supabase } = await checkAdminPermissions()
+    await checkAdminPermissions()
 
     // For now, this is a placeholder function
     // In a full implementation, this would:
@@ -53,12 +53,14 @@ export async function checkReportSyncStatusAction(params: {
   error?: string
 }> {
   try {
-    const { supabase } = await checkAdminPermissions()
+    await checkAdminPermissions()
 
     // Mock implementation
     // In real app, this would check unified_violation_reports table
     // to see if any reports were sent but data has changed since
-    
+
+    console.log('🔍 Checking report sync status for:', params)
+
     return {
       success: true,
       data: {
@@ -88,7 +90,7 @@ export async function forceResyncReportsAction(params: {
   error?: string
 }> {
   try {
-    const { supabase } = await checkAdminPermissions()
+    await checkAdminPermissions()
 
     // Mock implementation
     // In real app, this would:

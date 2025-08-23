@@ -286,8 +286,8 @@ export async function checkStudySlotConflictsAction(
         class_id,
         subject_id,
         classes!inner(name),
-        subjects!inner(name),
-        profiles!inner(full_name),
+        subjects!inner(name_vietnamese),
+        teacher:profiles!teacher_id(full_name),
         classrooms!inner(name)
       `)
       .eq('day_of_week', dayOfWeek)
@@ -315,7 +315,7 @@ export async function checkStudySlotConflictsAction(
       return {
         success: true,
         hasConflict: true,
-        conflictType: `Phòng học "${conflictClassroom?.name}" đã được sử dụng bởi lớp "${conflictClass?.name}" - môn "${conflictSubject?.name}" vào thời gian này`
+        conflictType: `Phòng học "${conflictClassroom?.name}" đã được sử dụng bởi lớp "${conflictClass?.name}" - môn "${conflictSubject?.name_vietnamese}" vào thời gian này`
       }
     }
 
@@ -324,12 +324,12 @@ export async function checkStudySlotConflictsAction(
     if (teacherConflict) {
       const conflictClass = Array.isArray(teacherConflict.classes) ? teacherConflict.classes[0] : teacherConflict.classes
       const conflictSubject = Array.isArray(teacherConflict.subjects) ? teacherConflict.subjects[0] : teacherConflict.subjects
-      const conflictTeacher = Array.isArray(teacherConflict.profiles) ? teacherConflict.profiles[0] : teacherConflict.profiles
+      const conflictTeacher = Array.isArray(teacherConflict.teacher) ? teacherConflict.teacher[0] : teacherConflict.teacher
 
       return {
         success: true,
         hasConflict: true,
-        conflictType: `Giáo viên "${conflictTeacher?.full_name}" đã được phân công dạy lớp "${conflictClass?.name}" - môn "${conflictSubject?.name}" vào thời gian này`
+        conflictType: `Giáo viên "${conflictTeacher?.full_name}" đã được phân công dạy lớp "${conflictClass?.name}" - môn "${conflictSubject?.name_vietnamese}" vào thời gian này`
       }
     }
 

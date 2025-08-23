@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { AlertTriangle, Clock, User, Filter } from 'lucide-react'
-import { getParentViolationsAction } from '@/features/violations/actions/violation-actions'
+import { getParentViolationsAction } from '@/features/violations/actions'
 import { getParentStudentsAction, type StudentInfo } from '@/features/parent-dashboard/actions/parent-actions'
 import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, violationSeverityLevels } from '@/lib/validations/violation-validations'
 import { getWeekNumberFromDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
@@ -153,9 +153,10 @@ export default function ParentViolationsPageClient() {
           // Calculate week numbers for all violations
           const violationsWithWeeks = result.data.map(v => {
             let weekNumber = null
-            if (v.semester?.start_date) {
-              const semesterStartDate = new Date(v.semester.start_date)
-              const recordedDate = new Date(v.recorded_at)
+            const violation = v as unknown as { semester?: { start_date: string }; recorded_at?: string; violation_date: string } // Type assertion for legacy compatibility
+            if (violation.semester?.start_date) {
+              const semesterStartDate = new Date(violation.semester.start_date)
+              const recordedDate = new Date(violation.recorded_at || violation.violation_date)
               weekNumber = getWeekNumberFromDate(recordedDate, semesterStartDate)
             }
             return { ...v, calculatedWeekNumber: weekNumber }
@@ -173,7 +174,7 @@ export default function ParentViolationsPageClient() {
           const endIndex = startIndex + pageSize
           const paginatedViolations = filteredViolations.slice(startIndex, endIndex)
 
-          setViolations(paginatedViolations)
+          setViolations(paginatedViolations as unknown as StudentViolationWithDetails[])
           setTotalPages(Math.ceil(filteredViolations.length / pageSize))
           setTotalCount(filteredViolations.length)
 

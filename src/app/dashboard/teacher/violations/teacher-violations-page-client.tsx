@@ -39,6 +39,12 @@ interface Semester {
   name: string
   start_date: string
   end_date: string
+  academic_year_id: string
+}
+
+interface AcademicYear {
+  id: string
+  name: string
 }
 
 export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomTeacher, user }: Readonly<TeacherViolationsPageClientProps>) {
@@ -50,13 +56,21 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null)
   const [weekOptions, setWeekOptions] = useState<WeekOption[]>([])
   const [semesters, setSemesters] = useState<Semester[]>([])
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('')
   const [selectedSemester, setSelectedSemester] = useState<string>('')
   const [activeTab, setActiveTab] = useState('violations')
   const supabase = createClient()
 
   useEffect(() => {
-    loadSemesters()
+    loadAcademicYears()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (selectedAcademicYear) {
+      loadSemesters()
+    }
+  }, [selectedAcademicYear]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadViolations()
@@ -72,11 +86,46 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
     }
   }, [selectedSemester]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadSemesters = async () => {
+  const loadAcademicYears = async () => {
     try {
       const { data, error } = await supabase
+        .from('academic_years')
+        .select('id, name')
+        .order('name', { ascending: false })
+
+      if (error) {
+        console.error('Error loading academic years:', error)
+        return
+      }
+
+      setAcademicYears(data || [])
+      // Auto-select current academic year if available
+      if (data && data.length > 0) {
+        setSelectedAcademicYear(data[0].id)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const loadSemesters = async () => {
+    try {
+      if (!selectedAcademicYear) {
+        setSemesters([])
+        setSelectedSemester('')
+        return
+      }
+
+      const { data, error } = await supabase
         .from('semesters')
-        .select('id, name, start_date, end_date')
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          academic_year_id
+        `)
+        .eq('academic_year_id', selectedAcademicYear)
         .order('start_date', { ascending: false })
 
       if (error) {
@@ -88,6 +137,8 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       // Auto-select current semester if available
       if (data && data.length > 0) {
         setSelectedSemester(data[0].id)
+      } else {
+        setSelectedSemester('')
       }
     } catch (error) {
       console.error('Error:', error)
@@ -183,15 +234,15 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       if (selectedWeek && selectedSemester) {
         const selectedWeekOption = weekOptions.find(w => w.number === selectedWeek)
         if (selectedWeekOption) {
-          const startDate = selectedWeekOption.startDate.toISOString()
-          const endDate = selectedWeekOption.endDate.toISOString()
+          const startDate = selectedWeekOption.startDate.toISOString().split('T')[0]
+          const endDate = selectedWeekOption.endDate.toISOString().split('T')[0]
           query = query
-            .gte('recorded_at', startDate)
-            .lte('recorded_at', endDate)
+            .gte('violation_date', startDate)
+            .lte('violation_date', endDate)
         }
       }
 
-      const { data, error } = await query.order('recorded_at', { ascending: false })
+      const { data, error } = await query.order('violation_date', { ascending: false })
 
       if (error) {
         console.error('Error loading violations:', error)
@@ -296,6 +347,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
     setSearchTerm('')
     setSeverityFilter('all')
     setSelectedWeek(null)
+    // Don't clear academic year and semester as they are primary filters
   }
 
   if (loading) {
@@ -398,11 +450,32 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            {/* Academic Year Selection */}
+            <div className="space-y-2">
+              <label htmlFor="academic-year-select" className="text-sm font-medium">Năm Học</label>
+              <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                <SelectTrigger id="academic-year-select">
+                  <SelectValue placeholder="Chọn năm học" />
+                </SelectTrigger>
+                <SelectContent>
+                  {academicYears.map((year) => (
+                    <SelectItem key={year.id} value={year.id}>
+                      {year.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Semester Selection */}
             <div className="space-y-2">
               <label htmlFor="semester-select" className="text-sm font-medium">Học Kỳ</label>
-              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+              <Select
+                value={selectedSemester}
+                onValueChange={setSelectedSemester}
+                disabled={!selectedAcademicYear}
+              >
                 <SelectTrigger id="semester-select">
                   <SelectValue placeholder="Chọn học kỳ" />
                 </SelectTrigger>
@@ -594,7 +667,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         </TabsContent>
 
         <TabsContent value="discipline" className="space-y-6">
-          <TeacherDisciplinaryCases />
+          <TeacherDisciplinaryCases homeroomClass={homeroomClass} />
         </TabsContent>
       </Tabs>
     </div>

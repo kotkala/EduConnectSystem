@@ -38,6 +38,14 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'popyantfytnzfrwbkofs.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
   },
 
   // Compiler optimizations
@@ -60,7 +68,7 @@ const nextConfig: NextConfig = {
 
     // Silence dynamic require warning from @supabase/realtime-js only for the specific file
     config.module.rules.push({
-      test: /node_modules[\\\\\/]@supabase[\\\\\/]realtime-js[\\\\\/]dist[\\\\\/]module[\\\\\/]lib[\\\\\/]websocket-factory\.js$/,
+      test: /node_modules[\\/]@supabase[\\/]realtime-js[\\/]dist[\\/]module[\\/]lib[\\/]websocket-factory\.js$/,
       parser: { exprContextCritical: false },
     });
 

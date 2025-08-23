@@ -5,20 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Plus, Settings, FileText, AlertTriangle } from 'lucide-react'
-import ViolationCategoriesManager from '@/features/admin-management/components/admin/violations/violation-categories-manager'
-import ViolationRecordForm from '@/features/admin-management/components/admin/violations/violation-record-form'
-import SimpleViolationsTable from '@/features/admin-management/components/admin/violations/simple-violations-table'
-import WeeklyViolationReports from '@/features/admin-management/components/admin/violations/weekly-violation-reports'
-import MonthlyViolationSummary from '@/features/admin-management/components/admin/violations/monthly-violation-summary'
-import DisciplinaryProcessing from '@/features/admin-management/components/admin/violations/disciplinary-processing'
-import { getViolationStatsAction } from '@/features/violations/actions/violation-actions'
+import ViolationCategoriesManager from '@/features/violations/components/violation-categories-manager'
+import ViolationRecordForm from '@/features/violations/components/violation-record-form'
+import SimpleViolationsTable from '@/features/violations/components/simple-violations-table'
+import WeeklyViolationReports from '@/features/violations/components/weekly-violation-reports'
+import MonthlyViolationSummary from '@/features/violations/components/monthly-violation-summary'
+import DisciplinaryProcessing from '@/features/violations/components/disciplinary-processing'
+import { getViolationStatsAction } from '@/features/violations/actions'
 
 
 interface ViolationStats {
   totalViolations: number
   thisWeekViolations: number
   totalCategories: number
-  notificationsSent: number
+  totalTypes: number
+  severityBreakdown: Array<{ severity: string; count: number }>
 }
 
 export default function ViolationsPageClient() {
@@ -27,7 +28,8 @@ export default function ViolationsPageClient() {
     totalViolations: 0,
     thisWeekViolations: 0,
     totalCategories: 0,
-    notificationsSent: 0
+    totalTypes: 0,
+    severityBreakdown: []
   })
   const [isLoadingStats, setIsLoadingStats] = useState(true)
 
@@ -115,15 +117,15 @@ export default function ViolationsPageClient() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Thông báo đã gửi</CardTitle>
+                <CardTitle className="text-sm font-medium">Tổng loại vi phạm</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {isLoadingStats ? '...' : stats.notificationsSent}
+                  {isLoadingStats ? '...' : stats.totalTypes}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Gửi phụ huynh tháng này
+                  Đã được định nghĩa
                 </p>
               </CardContent>
             </Card>

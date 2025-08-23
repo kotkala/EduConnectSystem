@@ -473,10 +473,10 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
 
     // Check if student already has assignment of this type
     const { data: existingAssignment } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select("id, class_id")
-      .eq("student_id", validatedData.student_id)
-      .eq("assignment_type", validatedData.assignment_type)
+      .eq("user_id", validatedData.student_id)
+      .eq("assignment_type", "student")
       .single()
 
     if (existingAssignment) {
@@ -488,11 +488,11 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
 
     // Create assignment
     const { error: assignError } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .insert({
-        student_id: validatedData.student_id,
+        user_id: validatedData.student_id,
         class_id: validatedData.class_id,
-        assignment_type: validatedData.assignment_type
+        assignment_type: "student"
       })
 
     if (assignError) {
@@ -537,8 +537,8 @@ export async function removeStudentFromClassAction(assignmentId: string) {
 
     // Get assignment details
     const { data: assignment, error: fetchError } = await supabase
-      .from("student_class_assignments")
-      .select("id, student_id, class_id, assignment_type")
+      .from("class_assignments")
+      .select("id, user_id, class_id, assignment_type")
       .eq("id", assignmentId)
       .single()
 
@@ -558,7 +558,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
 
     // Remove assignment
     const { error: deleteError } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .delete()
       .eq("id", assignmentId)
 
@@ -610,7 +610,7 @@ export async function getStudentsWithClassAssignmentsAction() {
         id,
         full_name,
         student_id,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           id,
           assignment_type,
           class:classes(
@@ -635,7 +635,7 @@ export async function getStudentsWithClassAssignmentsAction() {
 
     // Transform data to include main_class and combined_class
     const studentsWithAssignments = data.map(student => {
-      const assignments = student.student_class_assignments || []
+      const assignments = student.class_assignments || []
       const mainAssignment = assignments.find(a => a.assignment_type === 'main')
       const combinedAssignment = assignments.find(a => a.assignment_type === 'combined')
 
@@ -699,6 +699,229 @@ export async function getHomeroomEnabledTeachersAction() {
   }
 }
 
+// Update homeroom teacher for a class
+export async function updateHomeroomTeacherAction(classId: string, teacherId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Check if class exists
+    const { data: classData, error: fetchError } = await supabase
+      .from("classes")
+      .select("id, name, semester_id")
+      .eq("id", classId)
+      .single()
+
+    if (fetchError || !classData) {
+      return {
+        success: false,
+        error: "Không tìm thấy lớp"
+      }
+    }
+
+    // Validate teacher
+    const { data: teacher } = await supabase
+      .from("profiles")
+      .select("role, homeroom_enabled")
+      .eq("id", teacherId)
+      .eq("role", "teacher")
+      .single()
+
+    if (!teacher) {
+      return {
+        success: false,
+        error: "Không tìm thấy giáo viên chủ nhiệm đã chọn"
+      }
+    }
+
+    if (!teacher.homeroom_enabled) {
+      return {
+        success: false,
+        error: "Giáo viên đã chọn chưa được kích hoạt cho nhiệm vụ chủ nhiệm"
+      }
+    }
+
+    // Check if teacher is already assigned to another class in the same semester
+    const { data: existingAssignment } = await supabase
+      .from("classes")
+      .select("name")
+      .eq("homeroom_teacher_id", teacherId)
+      .eq("semester_id", classData.semester_id)
+      .neq("id", classId)
+      .single()
+
+    if (existingAssignment) {
+      return {
+        success: false,
+        error: `Giáo viên này đã được phân công làm chủ nhiệm cho lớp ${existingAssignment.name}`
+      }
+    }
+
+    // Check for data constraints (students, grades, feedback, etc.)
+    const constraintCheck = await checkHomeroomTeacherConstraints(supabase, classId)
+    if (!constraintCheck.canChange) {
+      return {
+        success: false,
+        error: constraintCheck.reason
+      }
+    }
+
+    // Update homeroom teacher
+    const { error: updateError } = await supabase
+      .from("classes")
+      .update({
+        homeroom_teacher_id: teacherId,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", classId)
+
+    if (updateError) {
+      return {
+        success: false,
+        error: updateError.message
+      }
+    }
+
+    revalidatePath("/dashboard/admin/classes")
+    return {
+      success: true,
+      message: "Cập nhật giáo viên chủ nhiệm thành công"
+    }
+
+  } catch (error) {
+    console.error("Update homeroom teacher error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update homeroom teacher"
+    }
+  }
+}
+
+// Remove homeroom teacher from a class
+export async function removeHomeroomTeacherAction(classId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    // Check if class exists
+    const { data: classData, error: fetchError } = await supabase
+      .from("classes")
+      .select("id, name, homeroom_teacher_id")
+      .eq("id", classId)
+      .single()
+
+    if (fetchError || !classData) {
+      return {
+        success: false,
+        error: "Không tìm thấy lớp"
+      }
+    }
+
+    if (!classData.homeroom_teacher_id) {
+      return {
+        success: false,
+        error: "Lớp này chưa có giáo viên chủ nhiệm"
+      }
+    }
+
+    // Check for data constraints (students, grades, feedback, etc.)
+    const constraintCheck = await checkHomeroomTeacherConstraints(supabase, classId)
+    if (!constraintCheck.canChange) {
+      return {
+        success: false,
+        error: constraintCheck.reason
+      }
+    }
+
+    // Remove homeroom teacher
+    const { error: updateError } = await supabase
+      .from("classes")
+      .update({
+        homeroom_teacher_id: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", classId)
+
+    if (updateError) {
+      return {
+        success: false,
+        error: updateError.message
+      }
+    }
+
+    revalidatePath("/dashboard/admin/classes")
+    return {
+      success: true,
+      message: "Gỡ giáo viên chủ nhiệm thành công"
+    }
+
+  } catch (error) {
+    console.error("Remove homeroom teacher error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to remove homeroom teacher"
+    }
+  }
+}
+
+// Helper function to check data constraints for homeroom teacher changes
+async function checkHomeroomTeacherConstraints(supabase: ReturnType<typeof createAdminClient>, classId: string) {
+  try {
+    // Check if class has students
+    const { data: students } = await supabase
+      .from("class_assignments")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("assignment_type", "student")
+      .eq("is_active", true)
+      .limit(1)
+
+    if (students && students.length > 0) {
+      // Check if there are grades or feedback records
+      const { data: grades } = await supabase
+        .from("grade_submissions")
+        .select("id")
+        .eq("class_id", classId)
+        .limit(1)
+
+      if (grades && grades.length > 0) {
+        return {
+          canChange: false,
+          reason: "Không thể thay đổi giáo viên chủ nhiệm vì lớp đã có dữ liệu điểm số. Vui lòng liên hệ quản trị viên để được hỗ trợ."
+        }
+      }
+
+      const { data: feedback } = await supabase
+        .from("student_feedback")
+        .select(`
+          id,
+          timetable_events!inner(class_id)
+        `)
+        .eq("timetable_events.class_id", classId)
+        .limit(1)
+
+      if (feedback && feedback.length > 0) {
+        return {
+          canChange: false,
+          reason: "Không thể thay đổi giáo viên chủ nhiệm vì lớp đã có dữ liệu phản hồi. Vui lòng liên hệ quản trị viên để được hỗ trợ."
+        }
+      }
+    }
+
+    return {
+      canChange: true,
+      reason: null
+    }
+
+  } catch (error) {
+    console.error("Error checking homeroom teacher constraints:", error)
+    return {
+      canChange: false,
+      reason: "Không thể kiểm tra ràng buộc dữ liệu. Vui lòng thử lại."
+    }
+  }
+}
+
 // Get single class by ID
 export async function getClassByIdAction(classId: string) {
   try {
@@ -748,13 +971,13 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select(`
         id,
-        student_id,
+        user_id,
         assignment_type,
         assigned_at,
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id,
@@ -762,6 +985,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
         )
       `)
       .eq("class_id", classId)
+      .eq("assignment_type", "student")
       .eq("is_active", true)
       .order("assigned_at", { ascending: false })
 
@@ -776,17 +1000,18 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
 
     // Batch fetch other assignments to avoid N+1 queries
     const assignments = data || []
-    const uniqueStudentIds = Array.from(new Set(assignments.map(a => a.student_id)))
+    const uniqueStudentIds = Array.from(new Set(assignments.map(a => a.user_id)))
 
     // Fetch all active assignments for these students (both types)
     const { data: otherAssignments, error: otherErr } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .select(`
-        student_id,
+        user_id,
         assignment_type,
         class:classes(name)
       `)
-      .in("student_id", uniqueStudentIds)
+      .eq("assignment_type", "student")
+      .in("user_id", uniqueStudentIds)
       .eq("is_active", true)
 
     if (otherErr) {
@@ -799,7 +1024,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
       const cls = Array.isArray(oa.class) ? oa.class[0] : oa.class
       const className: string | undefined = cls?.name
       if (!className) continue
-      const bucket = (studentIdToTypeToClass[oa.student_id] ||= {})
+      const bucket = (studentIdToTypeToClass[oa.user_id] ||= {})
       if (oa.assignment_type === "main") bucket.main = className
       else if (oa.assignment_type === "combined") bucket.combined = className
     }
@@ -807,7 +1032,7 @@ export async function getClassStudentsWithDetailsAction(classId: string) {
     const studentsWithOtherClass = assignments.map((assignment) => {
       const student = Array.isArray(assignment.student) ? assignment.student[0] : assignment.student
       const otherType = assignment.assignment_type === "main" ? "combined" : "main"
-      const otherName = studentIdToTypeToClass[assignment.student_id]?.[otherType as "main" | "combined"]
+      const otherName = studentIdToTypeToClass[assignment.user_id]?.[otherType]
       return {
         id: assignment.id,
         student_id: student?.student_id || "",

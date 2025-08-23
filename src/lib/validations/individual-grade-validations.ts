@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // Grade submission status enum
-export const gradeSubmissionStatuses = ['draft', 'submitted', 'sent_to_teacher'] as const
+export const gradeSubmissionStatuses = ['draft', 'submitted', 'sent_to_teacher', 'sent_to_parent'] as const
 
 // Student grade submission validation schemas
 export const studentGradeSubmissionSchema = z.object({

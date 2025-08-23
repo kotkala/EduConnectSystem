@@ -97,14 +97,15 @@ export async function getParentChildrenAction(): Promise<{
 
     // Get class assignments for these students
     const { data: classAssignments, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student_id,
+        user_id,
         classes!inner(
           name
         )
       `)
-      .in('student_id', studentIds)
+      .in('user_id', studentIds)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (classError) {
@@ -114,7 +115,7 @@ export async function getParentChildrenAction(): Promise<{
     // Combine the data
     const childrenList = relationships.map(rel => {
       const profile = rel.profiles as unknown as { id: string; full_name: string; student_id: string; avatar_url: string | null }
-      const classAssignment = classAssignments?.find(ca => ca.student_id === rel.student_id)
+      const classAssignment = classAssignments?.find(ca => ca.user_id === rel.student_id)
       const classInfo = classAssignment?.classes as unknown as { name: string }
 
       return {

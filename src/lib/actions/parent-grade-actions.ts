@@ -1,6 +1,7 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/shared/utils/supabase/admin'
 import { checkParentPermissions, checkParentStudentAccess } from '@/lib/utils/permission-utils'
 
 // Types for detailed grades processing
@@ -29,6 +30,7 @@ interface SubjectGradeData {
     name_vietnamese?: string
     category?: string
   } | undefined
+  regular_grades: number[]
   midterm_grade: number | null
   final_grade: number | null
   average_grade: number | null
@@ -49,6 +51,7 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
       gradesBySubject.set(subjectId, {
         subject_id: subjectId,
         subject: subject,
+        regular_grades: [],
         midterm_grade: null,
         final_grade: null,
         average_grade: null,
@@ -63,11 +66,13 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
   for (const [subjectId, subjectData] of gradesBySubject) {
     const grades = subjectData.grades
 
-    // Find midterm and final grades
+    // Find regular, midterm and final grades
+    // Regular grades can be 'regular', 'regular_1', 'regular_2', etc.
+    const regularGrades = grades.filter((g) => g.component_type.startsWith('regular')).map(g => g.grade_value)
     const midtermGrade = grades.find((g) => g.component_type === 'midterm')
     const finalGrade = grades.find((g) => g.component_type === 'final')
 
-    // Calculate average if both exist
+    // Calculate average if both midterm and final exist
     let averageGrade = null
     if (midtermGrade && finalGrade) {
       averageGrade = Math.round(((midtermGrade.grade_value + finalGrade.grade_value) / 2) * 10) / 10
@@ -75,6 +80,7 @@ function processDetailedGradesToAggregated(detailedGrades: DetailedGrade[]) {
 
     result.push({
       subject_id: subjectId,
+      regular_grades: regularGrades,
       midterm_grade: midtermGrade?.grade_value || null,
       final_grade: finalGrade?.grade_value || null,
       average_grade: averageGrade,
@@ -164,7 +170,7 @@ export async function getChildrenGradeReportsAction() {
         )
       `)
       .in('student_id', studentIds)
-      .eq('status', 'sent_to_teacher')
+      .eq('status', 'sent_to_parent')
       .order('updated_at', { ascending: false })
 
     console.log('ðŸ” [PARENT GRADES] Student submissions query result:', {
@@ -200,7 +206,9 @@ export async function getChildrenGradeReportsAction() {
       }
 
       // Check if there's a grade_submission for this class that has been sent to parents
-      const { data: gradeSubmission, error: gradeSubmissionError } = await supabase
+      // Use admin client to bypass RLS issues for grade submissions that have been sent to parents
+      const adminSupabase = createAdminClient()
+      const { data: gradeSubmission, error: gradeSubmissionError } = await adminSupabase
         .from('grade_submissions')
         .select(`
           id,
@@ -253,7 +261,7 @@ export async function getChildrenGradeReportsAction() {
           : homeroomTeacher
 
         // Get detailed grades for this student and period
-        const { data: detailedGrades } = await supabase
+        const { data: detailedGrades } = await adminSupabase
           .from('student_detailed_grades')
           .select(`
             id,
@@ -270,6 +278,8 @@ export async function getChildrenGradeReportsAction() {
           .eq('student_id', studentSubmission.student_id)
           .eq('class_id', studentSubmission.class_id)
           .eq('period_id', gradeSubmission.period_id)
+
+
 
         // Process detailed grades into aggregated format
         const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])
@@ -364,7 +374,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     }
 
     // Verify that this submission has been sent to parents by checking grade_submissions
-    const { data: gradeSubmission } = await supabase
+    // Use admin client to bypass RLS issues and handle multiple submissions properly
+    const adminSupabase = createAdminClient()
+    const { data: gradeSubmission } = await adminSupabase
       .from('grade_submissions')
       .select(`
         id,
@@ -380,7 +392,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       `)
       .eq('class_id', submission.class_id)
       .not('sent_to_parents_at', 'is', null)
-      .single()
+      .order('sent_to_parents_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
     if (!gradeSubmission) {
       return {
@@ -428,8 +442,31 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Get detailed grades separately with proper filtering
-    const { data: detailedGrades, error: gradesError } = await supabase
+    // CRITICAL FIX: Check if this is a summary period and get grades from component periods
+    const { data: periodInfo } = await adminSupabase
+      .from('grade_reporting_periods')
+      .select('period_type, academic_year_id, semester_id')
+      .eq('id', periodId)
+      .single()
+
+    let gradeQueryPeriods = [periodId]
+
+    // If this is a summary period, get grades from component periods
+    if (periodInfo?.period_type && periodInfo.period_type.includes('summary')) {
+      const { data: componentPeriods } = await adminSupabase
+        .from('grade_reporting_periods')
+        .select('id')
+        .eq('academic_year_id', periodInfo.academic_year_id)
+        .eq('semester_id', periodInfo.semester_id)
+        .not('period_type', 'like', '%summary%')
+
+      if (componentPeriods && componentPeriods.length > 0) {
+        gradeQueryPeriods = [...componentPeriods.map(p => p.id), periodId]
+      }
+    }
+
+    // Get detailed grades from all relevant periods
+    const { data: detailedGrades, error: gradesError } = await adminSupabase
       .from('student_detailed_grades')
       .select(`
         id,
@@ -446,7 +483,7 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       `)
       .eq('student_id', detailedSubmission.student_id)
       .eq('class_id', detailedSubmission.class_id)
-      .eq('period_id', periodId)
+      .in('period_id', gradeQueryPeriods)
 
     if (gradesError) {
       console.error('Error fetching detailed grades:', gradesError)

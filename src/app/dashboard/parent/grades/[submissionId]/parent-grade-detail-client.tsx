@@ -138,10 +138,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
 
   const getGradeColor = (grade: number | null) => {
     if (grade === null) return 'text-gray-400'
-    if (grade >= 8.5) return 'text-green-600'
-    if (grade >= 7.0) return 'text-blue-600'
-    if (grade >= 5.0) return 'text-yellow-600'
-    return 'text-red-600'
+    return 'text-black'
   }
 
   const getGradeBadge = (grade: number | null) => {

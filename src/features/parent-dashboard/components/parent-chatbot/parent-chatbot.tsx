@@ -97,7 +97,7 @@ export function createMessage(
   id?: string
 ): Message {
   return {
-    id: id || Date.now().toString(),
+    id: id || crypto.randomUUID(),
     role,
     content,
     timestamp: new Date(),

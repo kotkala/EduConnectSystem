@@ -1,9 +1,10 @@
 ﻿"use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format, addMinutes } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 
 import {
@@ -56,7 +57,7 @@ const hasValidFilters = (filters: TimetableFiltersType): boolean => {
 };
 
 export default function TimetableCalendar() {
-  const { currentDate } = useCalendarContext();
+  const { currentDate, setCurrentDate } = useCalendarContext();
   const [view, setView] = useState<CalendarView>("week");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [studySlots, setStudySlots] = useState<StudySlot[]>([]);
@@ -86,6 +87,58 @@ export default function TimetableCalendar() {
     teacherAssignments: [],
   });
 
+  const supabase = createClient();
+  const requestIdRef = useRef(0);
+
+  // Helper function to convert slots to calendar events with correct dates
+  const convertSlotsToEvents = useCallback(async (slots: StudySlot[]): Promise<CalendarEvent[]> => {
+    // Get semester start date for correct date calculation
+    const { data: semesterData } = await supabase
+      .from('semesters')
+      .select('start_date')
+      .eq('id', filters.semesterId!)
+      .single();
+
+    const semesterStartDate = semesterData ? new Date(semesterData.start_date) : undefined;
+    return slots.map(slot =>
+      studySlotToCalendarEvent(slot, semesterStartDate, filters.studyWeek)
+    );
+  }, [supabase, filters.semesterId, filters.studyWeek]);
+
+  // Update currentDate when week filter changes
+  useEffect(() => {
+    const updateCurrentDateForWeek = async () => {
+      if (filters.studyWeek && filters.semesterId) {
+        try {
+          // Get semester start date
+          const { data: semesterData, error } = await supabase
+            .from('semesters')
+            .select('start_date')
+            .eq('id', filters.semesterId)
+            .single();
+
+          if (semesterData && !error) {
+            const semesterStart = new Date(semesterData.start_date);
+            // Calculate the start of the selected week
+            const weekOffset = (filters.studyWeek - 1) * 7;
+            const selectedWeekStart = new Date(semesterStart);
+            selectedWeekStart.setDate(selectedWeekStart.getDate() + weekOffset);
+
+            // Set currentDate to the middle of the selected week (Wednesday)
+            const selectedWeekMiddle = new Date(selectedWeekStart);
+            selectedWeekMiddle.setDate(selectedWeekMiddle.getDate() + 2); // Wednesday
+
+            setCurrentDate(selectedWeekMiddle);
+          }
+        } catch (error) {
+          console.error('Error updating current date for week:', error);
+        }
+      }
+    };
+
+    updateCurrentDateForWeek();
+  }, [filters.studyWeek, filters.semesterId, setCurrentDate, supabase]);
+
   // Load dropdown data on mount
   useEffect(() => {
     const loadDropdownData = async () => {
@@ -102,7 +155,6 @@ export default function TimetableCalendar() {
 
   // Load timetable events when filters change
   // Load timetable events when filters change with guard + debounce + request cancel
-  const requestIdRef = useRef(0)
   useEffect(() => {
     if (!filters.classId || !filters.semesterId || !filters.studyWeek ||
         !isValidUUID(filters.classId) || !isValidUUID(filters.semesterId)) {
@@ -126,7 +178,8 @@ export default function TimetableCalendar() {
         if (result.success && result.data) {
           const slots = result.data as StudySlot[]
           setStudySlots(slots)
-          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot))
+
+          const calendarEvents = await convertSlotsToEvents(slots);
           setEvents(calendarEvents)
         } else {
           toast.error("Failed to load timetable events")
@@ -146,7 +199,7 @@ export default function TimetableCalendar() {
     }, 250)
 
     return () => clearTimeout(timer)
-  }, [filters.classId, filters.semesterId, filters.studyWeek])
+  }, [filters.classId, filters.semesterId, filters.studyWeek, convertSlotsToEvents])
 
   // Navigation functions to sync with study week filter
   const navigatePrevious = () => {
@@ -245,7 +298,7 @@ export default function TimetableCalendar() {
         if (reloadResult.success && reloadResult.data) {
           const slots = reloadResult.data as StudySlot[];
           setStudySlots(slots);
-          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot));
+          const calendarEvents = await convertSlotsToEvents(slots);
           setEvents(calendarEvents);
         }
       } else {
@@ -281,7 +334,7 @@ export default function TimetableCalendar() {
         if (reloadResult.success && reloadResult.data) {
           const slots = reloadResult.data as StudySlot[];
           setStudySlots(slots);
-          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot));
+          const calendarEvents = await convertSlotsToEvents(slots);
           setEvents(calendarEvents);
         }
       } else {
@@ -311,7 +364,7 @@ export default function TimetableCalendar() {
         if (reloadResult.success && reloadResult.data) {
           const slots = reloadResult.data as StudySlot[];
           setStudySlots(slots);
-          const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot));
+          const calendarEvents = await convertSlotsToEvents(slots);
           setEvents(calendarEvents);
         }
       } else {
@@ -348,7 +401,7 @@ export default function TimetableCalendar() {
               if (result.success && result.data) {
                 const slots = result.data as StudySlot[];
                 setStudySlots(slots);
-                const calendarEvents = slots.map(slot => studySlotToCalendarEvent(slot));
+                const calendarEvents = await convertSlotsToEvents(slots);
                 setEvents(calendarEvents);
               }
             };

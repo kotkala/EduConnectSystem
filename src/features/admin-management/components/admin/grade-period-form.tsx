@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -9,6 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { type EnhancedGradeReportingPeriod } from "@/lib/validations/enhanced-grade-validations"
 import { createEnhancedGradeReportingPeriodAction } from "@/features/grade-management/actions/enhanced-grade-actions"
+import { createClient } from "@/lib/supabase/client"
+
+interface AcademicYear {
+  id: string
+  name: string
+  is_current: boolean
+}
+
+interface Semester {
+  id: string
+  name: string
+  academic_year_id: string
+  is_current: boolean
+}
 
 interface GradePeriodFormProps {
   period?: EnhancedGradeReportingPeriod
@@ -19,6 +33,66 @@ interface GradePeriodFormProps {
 export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradePeriodFormProps>) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
+  const [semesters, setSemesters] = useState<Semester[]>([])
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('')
+  const [selectedSemester, setSelectedSemester] = useState<string>('')
+  const [dataLoading, setDataLoading] = useState(true)
+
+  // Load academic years and semesters
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const supabase = createClient()
+
+        // Load academic years
+        const { data: academicYearsData, error: ayError } = await supabase
+          .from('academic_years')
+          .select('id, name, is_current')
+          .order('name', { ascending: false })
+
+        if (ayError) {
+          console.error('Error loading academic years:', ayError)
+          setError('Không thể tải danh sách năm học')
+          return
+        }
+
+        // Load semesters
+        const { data: semestersData, error: semError } = await supabase
+          .from('semesters')
+          .select('id, name, academic_year_id, is_current')
+          .order('semester_number')
+
+        if (semError) {
+          console.error('Error loading semesters:', semError)
+          setError('Không thể tải danh sách học kỳ')
+          return
+        }
+
+        setAcademicYears(academicYearsData || [])
+        setSemesters(semestersData || [])
+
+        // Set default values to current academic year and semester
+        const currentAY = academicYearsData?.find(ay => ay.is_current)
+        const currentSemester = semestersData?.find(s => s.is_current)
+
+        if (currentAY) {
+          setSelectedAcademicYear(currentAY.id)
+        }
+        if (currentSemester) {
+          setSelectedSemester(currentSemester.id)
+        }
+
+      } catch (error) {
+        console.error('Error loading data:', error)
+        setError('Không thể tải dữ liệu')
+      } finally {
+        setDataLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -26,6 +100,16 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
     setError(null)
 
     try {
+      // Validate required selections
+      if (!selectedAcademicYear) {
+        setError('Vui lòng chọn năm học')
+        return
+      }
+      if (!selectedSemester) {
+        setError('Vui lòng chọn học kỳ')
+        return
+      }
+
       const formData = new FormData(e.currentTarget)
       const data = {
         name: formData.get('name') as string,
@@ -35,8 +119,8 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
         import_deadline: formData.get('import_deadline') as string,
         edit_deadline: formData.get('edit_deadline') as string,
         description: formData.get('description') as string,
-        academic_year_id: '1', // TODO: Get from context or props
-        semester_id: '1', // TODO: Get from context or props
+        academic_year_id: selectedAcademicYear,
+        semester_id: selectedSemester,
         status: 'open' as const
       }
 
@@ -60,6 +144,17 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
     return period ? 'Cập nhật' : 'Tạo mới'
   }
 
+  if (dataLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
@@ -67,6 +162,42 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="academic_year">Năm học *</Label>
+          <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn năm học" />
+            </SelectTrigger>
+            <SelectContent>
+              {academicYears.map((ay) => (
+                <SelectItem key={ay.id} value={ay.id}>
+                  {ay.name} {ay.is_current && '(Hiện tại)'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="semester">Học kỳ *</Label>
+          <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn học kỳ" />
+            </SelectTrigger>
+            <SelectContent>
+              {semesters
+                .filter(s => s.academic_year_id === selectedAcademicYear)
+                .map((semester) => (
+                  <SelectItem key={semester.id} value={semester.id}>
+                    {semester.name} {semester.is_current && '(Hiện tại)'}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">

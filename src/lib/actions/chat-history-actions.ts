@@ -11,6 +11,7 @@ const createConversationSchema = z.object({
 })
 
 const createMessageSchema = z.object({
+  id: z.string().uuid().optional(),
   conversation_id: z.string().uuid(),
   role: z.enum(['user', 'assistant']),
   content: z.string().min(1, 'Content is required'),
@@ -110,16 +111,23 @@ export async function saveMessage(data: z.infer<typeof createMessageSchema>) {
     const validatedData = createMessageSchema.parse(data)
     const supabase = await createClient()
 
+    const insertData: Record<string, unknown> = {
+      conversation_id: validatedData.conversation_id,
+      role: validatedData.role,
+      content: validatedData.content,
+      context_used: validatedData.context_used,
+      function_calls: validatedData.function_calls,
+      prompt_strength: validatedData.prompt_strength
+    }
+
+    // If ID is provided, use it; otherwise let database generate one
+    if (validatedData.id) {
+      insertData.id = validatedData.id
+    }
+
     const { data: message, error } = await supabase
       .from('chat_messages')
-      .insert({
-        conversation_id: validatedData.conversation_id,
-        role: validatedData.role,
-        content: validatedData.content,
-        context_used: validatedData.context_used,
-        function_calls: validatedData.function_calls,
-        prompt_strength: validatedData.prompt_strength
-      })
+      .insert(insertData)
       .select()
       .single()
 

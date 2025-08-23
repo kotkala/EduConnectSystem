@@ -115,8 +115,8 @@ export async function getGradeReportingPeriodsAction(filters?: Partial<GradeFilt
         import_deadline,
         edit_deadline,
         is_active,
-        academic_year:academic_years!inner(name),
-        semester:semesters!inner(name)
+        academic_year:academic_years(name),
+        semester:semesters(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 
@@ -268,9 +268,9 @@ export async function deleteGradeReportingPeriodAction(id: string) {
 
     // Check if there are existing grades in the NEW system
     const { data: existingGrades } = await supabase
-      .from('individual_subject_grades')
+      .from('student_detailed_grades')
       .select('id')
-      .eq('submission_id', id)
+      .eq('period_id', id)
       .limit(1)
 
     if (existingGrades && existingGrades.length > 0) {
@@ -360,16 +360,16 @@ export async function getStudentsForGradeInputAction(options?: {
     await checkAdminPermissions()
     const supabase = await createClient()
 
-    // Optimized query using student_class_assignments to avoid over-fetching
+    // Optimized query using class_assignments to avoid over-fetching
     let query = supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id
         ),
-        class:classes!student_class_assignments_class_id_fkey(
+        class:classes!class_assignments_class_id_fkeysignments_class_id_fkey(
           id,
           name
         )
@@ -502,8 +502,8 @@ export async function getGradeReportingPeriodsForTeachersAction(filters?: Partia
         import_deadline,
         edit_deadline,
         is_active,
-        academic_year:academic_years!inner(name),
-        semester:semesters!inner(name)
+        academic_year:academic_years(name),
+        semester:semesters(name)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
 

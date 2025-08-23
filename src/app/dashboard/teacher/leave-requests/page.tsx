@@ -263,11 +263,21 @@ export default function TeacherLeaveRequestsPage() {
                         <Badge variant="secondary">{application.leave_type}</Badge>
                       </div>
                     </div>
-                    <div className="text-right text-sm text-muted-foreground">
-                      <div>Gửi: {formatDate(application.created_at)}</div>
-                      {application.responded_at && (
-                        <div>Phản hồi: {formatDate(application.responded_at)}</div>
-                      )}
+                    <div className="flex flex-col items-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/dashboard/leave-application/${application.id}`)}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Xem chi tiết
+                      </Button>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <div>Gửi: {formatDate(application.created_at)}</div>
+                        {application.responded_at && (
+                          <div>Phản hồi: {formatDate(application.responded_at)}</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

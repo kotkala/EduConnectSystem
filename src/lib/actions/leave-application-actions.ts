@@ -29,6 +29,7 @@ export interface LeaveApplication {
   responded_at?: string
   created_at: string
   updated_at: string
+  student_name?: string // For display purposes
   student?: {
     full_name: string
     student_id: string
@@ -65,16 +66,17 @@ export async function createLeaveApplicationAction(data: LeaveApplicationFormDat
 
     // Get student's current class and homeroom teacher
     const { data: currentAssignment } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
         class_id,
-        academic_year_id,
         classes!inner(
           id,
-          homeroom_teacher_id
+          homeroom_teacher_id,
+          academic_year_id
         )
       `)
-      .eq('student_id', data.student_id)
+      .eq('user_id', data.student_id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
       .single()
 
@@ -83,14 +85,15 @@ export async function createLeaveApplicationAction(data: LeaveApplicationFormDat
     }
 
     // Create the leave application
+    const classInfo = currentAssignment.classes as unknown as { homeroom_teacher_id: string; academic_year_id: string }
     const { data: leaveApplication, error } = await supabase
       .from('leave_applications')
       .insert({
         student_id: data.student_id,
         parent_id: user.id,
-        homeroom_teacher_id: (currentAssignment.classes as unknown as { homeroom_teacher_id: string }).homeroom_teacher_id,
+        homeroom_teacher_id: classInfo.homeroom_teacher_id,
         class_id: currentAssignment.class_id,
-        academic_year_id: currentAssignment.academic_year_id,
+        academic_year_id: classInfo.academic_year_id,
         leave_type: data.leave_type,
         start_date: data.start_date,
         end_date: data.end_date,
@@ -136,7 +139,13 @@ export async function getParentLeaveApplicationsAction(): Promise<{ success: boo
       throw new Error(error.message)
     }
 
-    return { success: true, data: applications || [] }
+    // Map student name for display
+    const mappedApplications = applications?.map(app => ({
+      ...app,
+      student_name: (app.student as { full_name?: string })?.full_name || 'Unknown Student'
+    })) || []
+
+    return { success: true, data: mappedApplications }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }
@@ -156,8 +165,8 @@ export async function getTeacherLeaveApplicationsAction(): Promise<{ success: bo
       .from('leave_applications')
       .select(`
         *,
-        student:profiles!leave_applications_student_id_fkey(full_name, student_id),
-        class:classes!leave_applications_class_id_fkey(name)
+        student:profiles!student_id(full_name, student_id),
+        class:classes!class_id(name)
       `)
       .eq('homeroom_teacher_id', user.id)
       .order('created_at', { ascending: false })
@@ -257,6 +266,50 @@ export async function uploadLeaveAttachmentAction(file: File): Promise<{ success
       .getPublicUrl(filePath)
 
     return { success: true, data: { url: publicUrl, path: filePath } }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Get single leave application details
+export async function getLeaveApplicationDetailAction(applicationId: string): Promise<{ success: boolean; data?: LeaveApplication; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Yêu cầu xác thực")
+    }
+
+    const { data: application, error } = await supabase
+      .from('leave_applications')
+      .select(`
+        *,
+        student:profiles!student_id(full_name, student_id),
+        homeroom_teacher:profiles!homeroom_teacher_id(full_name),
+        class:classes!class_id(name)
+      `)
+      .eq('id', applicationId)
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    if (!application) {
+      throw new Error("Không tìm thấy đơn xin nghỉ")
+    }
+
+    // Check permissions - user must be parent, student, or homeroom teacher
+    const isParent = application.parent_id === user.id
+    const isStudent = application.student_id === user.id
+    const isHomeroomTeacher = application.homeroom_teacher_id === user.id
+
+    if (!isParent && !isStudent && !isHomeroomTeacher) {
+      throw new Error("Bạn không có quyền xem đơn xin nghỉ này")
+    }
+
+    return { success: true, data: application }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }

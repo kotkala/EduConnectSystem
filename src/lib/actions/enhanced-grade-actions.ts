@@ -595,6 +595,26 @@ export async function sendFeedbackToParentsAction(
       })
       .eq('id', validatedData.feedback_id)
 
+    // CRITICAL FIX: Update grade_submissions.ai_feedback field so parent page can see the feedback
+    // Find the corresponding grade_submission for this student/class/period
+    const { data: gradeSubmission } = await supabase
+      .from('grade_submissions')
+      .select('id')
+      .eq('class_id', feedback.class_id)
+      .eq('period_id', feedback.period_id)
+      .single()
+
+    if (gradeSubmission) {
+      // Update the ai_feedback field in grade_submissions table
+      await supabase
+        .from('grade_submissions')
+        .update({
+          ai_feedback: feedback.feedback_content,
+          sent_to_parents_at: new Date().toISOString()
+        })
+        .eq('id', gradeSubmission.id)
+    }
+
     // TODO: Implement actual email sending logic here
     // For now, mark as sent
     await supabase

@@ -15,9 +15,10 @@ async function storeSummaryGradeInDatabase(
 
     // Find the class_id for this student
     const { data: classAssignment } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId)
+      .eq('assignment_type', 'student')
       .single()
 
     if (!classAssignment) return
@@ -517,9 +518,9 @@ export async function getStudentDetailedGradesAction(
         id,
         full_name,
         student_id,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           class_id,
-          classes!inner(id, name)
+          classes(id, name)
         )
       `)
       .eq('id', studentId)
@@ -528,7 +529,7 @@ export async function getStudentDetailedGradesAction(
     if (studentError) throw studentError
 
     // Get class assignments for teacher lookup
-    const classAssignments = studentInfo.student_class_assignments as Array<{
+    const classAssignments = studentInfo.class_assignments as Array<{
       class_id: string;
       classes: Array<{ id: string; name: string }>
     }>
@@ -542,7 +543,7 @@ export async function getStudentDetailedGradesAction(
         grade_value,
         created_at,
         updated_at,
-        subjects!inner(id, name_vietnamese)
+        subjects(id, name_vietnamese)
       `)
       .eq('period_id', periodId)
       .eq('student_id', studentId)
@@ -729,7 +730,7 @@ export async function submitStudentGradesToHomeroomAction(
       .select(`
         id,
         full_name,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           class_id,
           classes!inner(id, name, homeroom_teacher_id)
         )
@@ -742,7 +743,7 @@ export async function submitStudentGradesToHomeroomAction(
     const classesByStudent = new Map<string, { classId: string; homeroomTeacherId: string }>()
 
     for (const student of studentData || []) {
-      const classInfo = (student.student_class_assignments as Array<{
+      const classInfo = (student.class_assignments as Array<{
         class_id: string
         classes: Array<{ id: string; name: string; homeroom_teacher_id: string }>
       }>)?.[0]

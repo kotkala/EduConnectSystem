@@ -113,7 +113,7 @@ export function useChatStreaming({
       const reader = validateStreamResponse(response)
 
       // Create initial assistant message
-      const assistantMessageId = Date.now().toString()
+      const assistantMessageId = crypto.randomUUID()
       setMessages(prev => [...prev, createMessage('assistant', '', undefined, assistantMessageId)])
 
       // Process the entire stream
@@ -127,8 +127,9 @@ export function useChatStreaming({
 
       // Save messages to database if conversation and parent IDs are available
       if (conversationId && parentId) {
-        // Save user message
+        // Save user message with its ID
         await saveMessage({
+          id: userMessage.id,
           conversation_id: conversationId,
           role: 'user',
           content: messageText,
@@ -136,8 +137,9 @@ export function useChatStreaming({
           prompt_strength: 0
         })
 
-        // Save assistant message
+        // Save assistant message with its ID
         await saveMessage({
+          id: assistantMessageId,
           conversation_id: conversationId,
           role: 'assistant',
           content: accumulatedText,

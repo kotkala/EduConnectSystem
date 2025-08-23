@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import {
@@ -25,18 +24,7 @@ interface StudentGrade {
   modifiedBy?: string
 }
 
-interface GradeOverviewStats {
-  totalStudents: number
-  studentsWithGrades: number
-  completionRate: number
-  averageGrade: number | null
-  gradeDistribution: {
-    excellent: number
-    good: number
-    average: number
-    poor: number
-  }
-}
+
 
 interface TeacherGradeOverviewProps {
   readonly periodId: string
@@ -57,7 +45,7 @@ export function TeacherGradeOverview({
   const [grades, setGrades] = useState<StudentGrade[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  const loadGradeData = async () => {
+  const loadGradeData = useCallback(async () => {
     if (!periodId || !classId || !subjectId) return
 
     setLoading(true)
@@ -69,13 +57,7 @@ export function TeacherGradeOverview({
 
       if (result.success && result.data) {
         setGrades(result.data)
-
-
-
-        // Pass grade data to parent for PDF export
-        if (onGradeDataChange) {
-          onGradeDataChange(result.data)
-        }
+        // Note: onGradeDataChange is now handled in separate useEffect to prevent circular dependency
       } else {
         setError(result.error || 'Không thể tải dữ liệu điểm số')
       }
@@ -86,11 +68,11 @@ export function TeacherGradeOverview({
     } finally {
       setLoading(false)
     }
-  }
+  }, [periodId, classId, subjectId]) // Remove onGradeDataChange from dependencies
 
-  // Vietnamese grade calculation formula
-  const calculateSubjectAverage = (student: StudentGrade): number | null => {
-    const regularGrades = student.regularGrades.filter(g => g !== null) as number[]
+  // Vietnamese grade calculation formula - memoized for performance
+  const calculateSubjectAverage = useCallback((student: StudentGrade): number | null => {
+    const regularGrades = student.regularGrades.filter((g): g is number => g !== null)
     const midtermGrade = student.midtermGrade
     const finalGrade = student.finalGrade
 
@@ -107,101 +89,23 @@ export function TeacherGradeOverview({
     const totalWeight = regularCount + 5
 
     return Math.round((totalScore / totalWeight) * 10) / 10
-  }
+  }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const calculateStats = (gradeData: StudentGrade[]): GradeOverviewStats => {
-    const totalStudents = gradeData.length
-    let studentsWithGrades = 0
-    const allGrades: number[] = []
 
-    const gradeDistribution = {
-      excellent: 0, // >= 8
-      good: 0,      // 6.5-7.9
-      average: 0,   // 5-6.4
-      poor: 0       // < 5
-    }
 
-    gradeData.forEach(student => {
-      let hasAnyGrade = false
-
-      // Check regular grades
-      student.regularGrades.forEach(grade => {
-        if (grade !== null) {
-          allGrades.push(grade)
-          hasAnyGrade = true
-        }
-      })
-
-      // Check other grades
-      if (student.midtermGrade !== null && student.midtermGrade !== undefined) {
-        allGrades.push(student.midtermGrade)
-        hasAnyGrade = true
-      }
-
-      if (student.finalGrade !== null && student.finalGrade !== undefined) {
-        allGrades.push(student.finalGrade)
-        hasAnyGrade = true
-      }
-
-      if (hasAnyGrade) {
-        studentsWithGrades++
-      }
-
-      // Calculate grade distribution based on Vietnamese formula or summary grade
-      const representativeGrade = student.summaryGrade || calculateSubjectAverage(student)
-
-      if (representativeGrade !== null) {
-        if (representativeGrade >= 8) gradeDistribution.excellent++
-        else if (representativeGrade >= 6.5) gradeDistribution.good++
-        else if (representativeGrade >= 5) gradeDistribution.average++
-        else gradeDistribution.poor++
-      }
-    })
-
-    const completionRate = totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0
-    const averageGrade = allGrades.length > 0
-      ? Math.round((allGrades.reduce((sum, grade) => sum + grade, 0) / allGrades.length) * 10) / 10
-      : null
-
-    return {
-      totalStudents,
-      studentsWithGrades,
-      completionRate,
-      averageGrade,
-      gradeDistribution
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getGradeStatusBadge = (grade: number | null | undefined) => {
-    if (grade === null || grade === undefined) {
-      return <Badge variant="outline" className="text-gray-500">-</Badge>
-    }
-    
-    if (grade >= 8) {
-      return <Badge variant="default" className="bg-green-100 text-green-800">{grade}</Badge>
-    } else if (grade >= 6.5) {
-      return <Badge variant="default" className="bg-blue-100 text-blue-800">{grade}</Badge>
-    } else if (grade >= 5) {
-      return <Badge variant="default" className="bg-yellow-100 text-yellow-800">{grade}</Badge>
-    } else {
-      return <Badge variant="destructive">{grade}</Badge>
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const exportGrades = () => {
-    // TODO: Implement export functionality
-    console.log('Exporting grades...')
-  }
 
   useEffect(() => {
     if (periodId && classId && subjectId) {
       loadGradeData()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodId, classId, subjectId])
+  }, [periodId, classId, subjectId, loadGradeData])
+
+  // Separate effect for grade data change callback to prevent circular dependency
+  useEffect(() => {
+    if (grades.length > 0 && onGradeDataChange) {
+      onGradeDataChange(grades)
+    }
+  }, [grades, onGradeDataChange])
 
   if (!periodId || !classId || !subjectId) {
     return (

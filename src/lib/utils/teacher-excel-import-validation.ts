@@ -258,6 +258,26 @@ export async function validateExcelImport(
       throw new Error('File Excel phải có ít nhất 6 dòng (title + header + dữ liệu)')
     }
 
+    // Validate subject name in Excel file title (row 0)
+    if (data.length > 0 && data[0] && Array.isArray(data[0]) && data[0].length > 0) {
+      const titleRow = data[0][0]?.toString().toLowerCase() || ''
+      const expectedSubjectName = subjectName.toLowerCase()
+
+      // Check if the Excel file contains the expected subject name
+      if (!titleRow.includes(expectedSubjectName)) {
+        // Try to extract subject name from title
+        const titleMatch = titleRow.match(/bảng điểm\s+(.+)/i)
+        const fileSubjectName = titleMatch ? titleMatch[1].trim() : 'không xác định'
+
+        throw new Error(
+          `File Excel không đúng môn học. ` +
+          `Môn học được chọn: "${subjectName}", ` +
+          `nhưng file Excel dành cho môn: "${fileSubjectName}". ` +
+          `Vui lòng tải template đúng cho môn "${subjectName}" và nhập điểm.`
+        )
+      }
+    }
+
     // Find the header row (skip title rows)
     // Template structure: Title (row 0), Class info (row 1), Academic year (row 2), Empty (row 3), Headers (row 4)
     let headerRowIndex = -1

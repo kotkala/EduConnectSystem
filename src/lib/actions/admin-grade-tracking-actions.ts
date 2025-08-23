@@ -17,9 +17,10 @@ async function storeSummaryGradeInDatabase(
 
     // Find the class_id for this student
     const { data: classAssignment } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId)
+      .eq('assignment_type', 'student')
       .single()
 
     if (!classAssignment) return
@@ -551,9 +552,9 @@ export async function getStudentDetailedGradesAction(
         id,
         full_name,
         student_id,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           class_id,
-          classes!inner(id, name)
+          classes(id, name)
         )
       `)
       .eq('id', studentId)
@@ -562,7 +563,7 @@ export async function getStudentDetailedGradesAction(
     if (studentError) throw studentError
 
     // Get class assignments for teacher lookup
-    const classAssignments = studentInfo.student_class_assignments as Array<{
+    const classAssignments = studentInfo.class_assignments as Array<{
       class_id: string;
       classes: Array<{ id: string; name: string }>
     }>
@@ -884,9 +885,9 @@ export async function submitStudentGradesToHomeroomAction(
       .select(`
         id,
         full_name,
-        student_class_assignments!student_class_assignments_student_id_fkey(
+        class_assignments!class_assignments_user_id_fkey(
           class_id,
-          classes!inner(
+          classes(
             id,
             name,
             homeroom_teacher_id,
@@ -902,7 +903,7 @@ export async function submitStudentGradesToHomeroomAction(
     const classesByStudent = new Map<string, { classId: string; homeroomTeacherId: string }>()
 
     for (const student of studentData || []) {
-      const classAssignments = student.student_class_assignments as unknown as Array<{
+      const classAssignments = student.class_assignments as unknown as Array<{
         class_id: string
         classes: { id: string; name: string; homeroom_teacher_id: string; academic_year_id: string }
       }>
@@ -1000,7 +1001,7 @@ export async function submitStudentGradesToHomeroomAction(
           .eq('id', Object.values(classesByStudent)[0]?.classId)
           .single()
 
-        // Send email notification
+        // Send email notification to teacher
         await sendTeacherGradeNotificationEmail({
           teacherEmail: teacherData.email,
           teacherName: teacherData.full_name || 'Giáo viên',
@@ -1012,9 +1013,12 @@ export async function submitStudentGradesToHomeroomAction(
         })
       }
     } catch (emailError) {
-      console.error('Error sending email notification:', emailError)
+      console.error('Error sending teacher email notification:', emailError)
       // Don't fail the entire operation if email fails
     }
+
+    // Note: Parent emails are NOT sent from admin grade tracking
+    // Homeroom teachers will handle sending grades to parents through their own workflow
 
     return {
       success: true,

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -35,11 +35,11 @@ interface FeedbackDialogProps {
 }
 
 const ratingOptions = [
-  { value: 'excellent', label: 'Tuyệt vời', icon: 'â­â­â­â­â­', color: 'text-green-600' },
-  { value: 'good', label: 'Tốt', icon: 'â­â­â­â­', color: 'text-blue-600' },
-  { value: 'average', label: 'Trung bình', icon: 'â­â­â­', color: 'text-yellow-600' },
-  { value: 'poor', label: 'Kém', icon: 'â­â­', color: 'text-orange-600' },
-  { value: 'very_poor', label: 'Rất kém', icon: 'â­', color: 'text-red-600' }
+  { value: 'excellent', label: 'Tuyệt vời', icon: '⭐⭐⭐⭐⭐', color: 'text-green-600' },
+  { value: 'good', label: 'Tốt', icon: '⭐⭐⭐⭐', color: 'text-blue-600' },
+  { value: 'average', label: 'Trung bình', icon: '⭐⭐⭐', color: 'text-yellow-600' },
+  { value: 'poor', label: 'Kém', icon: '⭐⭐', color: 'text-orange-600' },
+  { value: 'very_poor', label: 'Rất kém', icon: '⭐', color: 'text-red-600' }
 ] as const
 
 export function FeedbackDialog({
@@ -155,49 +155,41 @@ export function FeedbackDialog({
             </RadioGroup>
           </div>
 
-          {/* Comment */}
+          {/* Comment Section */}
           <div className="space-y-2">
             <Label htmlFor="comment" className="text-sm font-medium">
               Nhận xét thêm (tùy chọn)
             </Label>
             <Textarea
               id="comment"
-              placeholder="Chia sẻ thêm về trải nghiệm của bạn với AI chatbot..."
+              placeholder="Chia sẻ thêm về trải nghiệm của bạn với trợ lý AI..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              className="resize-none"
+              className="min-h-[80px] resize-none"
+              maxLength={500}
             />
-            <p className="text-xs text-gray-500">
-              Nhận xét của bạn sẽ giúp AI học hỏi và trả lời chính xác hơn trong tương lai.
+            <p className="text-xs text-gray-500 text-right">
+              {comment.length}/500 ký tự
             </p>
           </div>
 
-          {/* Preview of question and answer */}
+          {/* Preview Section */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-            <div className="text-xs text-gray-500 font-medium">Nội dung được đánh giá:</div>
-            <div className="text-sm">
-              <div className="font-medium text-blue-600 mb-1">Câu hỏi:</div>
-              <div className="text-gray-700 mb-2 line-clamp-2">{userQuestion}</div>
-              <div className="font-medium text-purple-600 mb-1">Câu trả lời AI:</div>
-              <div className="text-gray-700 line-clamp-3">{aiResponse}</div>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="font-medium">Xem trước đánh giá</span>
             </div>
-          </div>
-
-          {/* Disclaimer */}
-          <div className="flex items-start space-x-2 bg-blue-50 p-3 rounded-lg">
-            <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-            <div className="text-xs text-blue-700">
-              <div className="font-medium mb-1">Lưu ý quan trọng:</div>
-              <div>
-                Thông tin từ AI mang tính chất tham khảo. Vui lòng liên hệ trực tiếp với giáo viên 
-                hoặc nhà trường để có thông tin chính xác và đầy đủ nhất về tình hình học tập của con em.
-              </div>
+            <div className="text-sm space-y-1">
+              <p><span className="font-medium">Hữu ích:</span> {isHelpful ? 'Có' : 'Không'}</p>
+              <p><span className="font-medium">Đánh giá:</span> {ratingOptions.find(r => r.value === rating)?.label}</p>
+              {comment.trim() && (
+                <p><span className="font-medium">Nhận xét:</span> {comment.trim()}</p>
+              )}
             </div>
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex justify-between">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
@@ -208,11 +200,11 @@ export function FeedbackDialog({
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !rating}
-            className="bg-blue-500 hover:bg-blue-600"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                 Đang gửi...
               </>
             ) : (

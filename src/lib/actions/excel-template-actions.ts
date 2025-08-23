@@ -47,11 +47,11 @@ export async function generateGradeTemplateAction(params: {
       }
     }
 
-    // Get students in the class through student_class_assignments (OPTIMIZED)
+    // Get students in the class through class_assignments (OPTIMIZED)
     const { data: students, error: studentsError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_class_assignments_student_id_fkey(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           student_id,
           full_name
@@ -59,7 +59,7 @@ export async function generateGradeTemplateAction(params: {
       `)
       .eq('class_id', params.class_id)
       .eq('is_active', true)
-      .in('assignment_type', ['main', 'homeroom'])
+      .eq('assignment_type', 'student')
       .order('student(full_name)')
       .limit(100) // Reasonable limit for class size
 
@@ -158,9 +158,10 @@ export async function getTemplateInfoAction(params: {
         .single(),
       
       supabase
-        .from('student_class_assignments')
+        .from('class_assignments')
         .select('id')
         .eq('class_id', params.class_id)
+        .eq('assignment_type', 'student')
         .eq('is_active', true)
     ])
 

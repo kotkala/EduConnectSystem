@@ -28,6 +28,13 @@ export interface TeacherScheduleEvent {
   semester_name: string
   academic_year_name: string
   student_count?: number // Optional field for feedback functionality
+  // Feedback status fields
+  feedback_status: string // 'Chưa tạo phản hồi' | 'Đã tạo phản hồi' | 'Đã chỉnh sửa'
+  feedback_count: number
+  can_edit_feedback: boolean
+  // Actual lesson date fields
+  actual_lesson_date: string
+  semester_start_date: string
 }
 
 export interface TeacherScheduleFilters {
@@ -86,7 +93,7 @@ export async function getTeacherScheduleAction(
 
     // Use optimized RPC function following Context7 pattern for complex queries
     const { data: events, error } = await supabase
-      .rpc('get_teacher_schedule_with_students', rpcParams)
+      .rpc('get_teacher_schedule_with_feedback_status', rpcParams)
 
     if (error) {
       throw new Error(error.message)
@@ -118,6 +125,11 @@ export async function getTeacherScheduleAction(
       semester_name: string;
       academic_year_name: string;
       student_count: number;
+      feedback_status: string;
+      feedback_count: number;
+      can_edit_feedback: boolean;
+      actual_lesson_date: string;
+      semester_start_date: string;
     }) => ({
       id: event.id,
       class_id: event.class_id,
@@ -142,7 +154,12 @@ export async function getTeacherScheduleAction(
       room_type: event.room_type,
       semester_name: event.semester_name,
       academic_year_name: event.academic_year_name,
-      student_count: event.student_count
+      student_count: event.student_count,
+      feedback_status: event.feedback_status,
+      feedback_count: event.feedback_count,
+      can_edit_feedback: event.can_edit_feedback,
+      actual_lesson_date: event.actual_lesson_date,
+      semester_start_date: event.semester_start_date
     })) || []
 
     return { success: true, data: formattedEvents }
@@ -278,8 +295,7 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
       .select(`
         id,
         name,
-        academic_years!inner(name),
-        student_class_assignments!inner(count)
+        academic_years!inner(name)
       `)
       .eq('homeroom_teacher_id', user.id)
       .eq('is_active', true)
@@ -296,11 +312,12 @@ export async function getTeacherHomeroomInfoAction(): Promise<{
       }
     }
 
-    // Get student count for the homeroom class
+    // Get student count for the homeroom class using the correct table
     const { count: studentCount } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('*', { count: 'exact', head: true })
       .eq('class_id', homeroomClass.id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     return {

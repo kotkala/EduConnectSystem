@@ -513,7 +513,7 @@ export async function sendTeacherGradeNotificationEmail(data: TeacherGradeNotifi
             </div>
             ` : ''}
 
-            <p>Ban Giám Hiệu đã gửi bảng điểm cho lớp ${data.className} của bạn. Vui lòng đăng nhập vào hệ thống để xem chi tiết và thực hiện các thao tác cần thiết.</p>
+            <p>Ban Giám Hiệu đã gửi bảng điểm cho lớp ${data.className} của bạn. Vui lòng đăng nhập vào hệ thống để xem chi tiết và <strong>tổng hợp lại để gửi cho phụ huynh</strong>.</p>
 
             <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/teacher/grade-reports" class="button">
@@ -521,11 +521,12 @@ export async function sendTeacherGradeNotificationEmail(data: TeacherGradeNotifi
                 </a>
             </div>
 
-            <p><strong>Lưu ý:</strong></p>
+            <p><strong>Nhiệm vụ của giáo viên chủ nhiệm:</strong></p>
             <ul>
-                <li>Vui lòng kiểm tra và xác nhận nhận bảng điểm trong hệ thống</li>
+                <li><strong>Kiểm tra và xác nhận</strong> nhận bảng điểm trong hệ thống</li>
+                <li><strong>Tổng hợp bảng điểm</strong> của tất cả học sinh trong lớp</li>
+                <li><strong>Gửi bảng điểm cho phụ huynh</strong> thông qua hệ thống</li>
                 <li>Nếu có thắc mắc, vui lòng liên hệ với Ban Giám Hiệu</li>
-                <li>Bảng điểm này cần được xử lý trong thời gian sớm nhất</li>
             </ul>
         </div>
 

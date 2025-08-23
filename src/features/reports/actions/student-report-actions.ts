@@ -90,20 +90,21 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
     // Uses proper column selection to reduce over-fetching
     // Adds pagination to prevent loading too much data
     const { data: studentsData, error } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student:profiles!student_id(
+        student:profiles!class_assignments_user_id_fkey(
           id,
           full_name,
           student_id,
           email
         ),
-        class:classes!class_id(
+        class:classes!class_assignments_class_id_fkey(
           id,
           name,
           homeroom_teacher_id
         )
       `)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
       .eq('classes.homeroom_teacher_id', userId)
       .limit(100) // Pagination: Limit to 100 students max for performance
@@ -260,40 +261,62 @@ export async function getStudentForReportAction(studentId: string, reportPeriodI
     const { userId } = await checkHomeroomTeacherPermissions()
     const supabase = await createClient()
 
-    // Get student with class assignment data (following same pattern as getStudentsForReportAction)
-    const { data: studentData, error: studentError } = await supabase
-      .from('student_class_assignments')
-      .select(`
-        student:profiles!student_id(
-          id,
-          full_name,
-          student_id,
-          email
-        ),
-        class:classes!class_id(
-          id,
-          name,
-          homeroom_teacher_id
-        )
-      `)
+    // Get student with class assignment data - use separate queries for reliability
+    const { data: assignmentData, error: assignmentError } = await supabase
+      .from('class_assignments')
+      .select('user_id, class_id')
       .eq('is_active', true)
-      .eq('student_id', studentId)
-      .eq('classes.homeroom_teacher_id', userId)
+      .eq('assignment_type', 'student')
+      .eq('user_id', studentId)
       .single()
 
-    if (studentError) {
+    if (assignmentError) {
+      console.error('Assignment query error:', assignmentError)
       return {
         success: false,
-        error: 'Không tìm thấy học sinh hoặc bạn không có quyền truy cập'
+        error: `Assignment error: ${assignmentError.message}`
       }
     }
 
-    if (!studentData || !studentData.student || !studentData.class) {
+    // Get student profile
+    const { data: studentProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, full_name, student_id, email')
+      .eq('id', studentId)
+      .single()
+
+    if (profileError) {
+      console.error('Profile query error:', profileError)
       return {
         success: false,
-        error: 'Không tìm thấy thông tin học sinh'
+        error: `Profile error: ${profileError.message}`
       }
     }
+
+    // Get class info and verify homeroom teacher
+    const { data: classInfo, error: classError } = await supabase
+      .from('classes')
+      .select('id, name, homeroom_teacher_id')
+      .eq('id', assignmentData.class_id)
+      .eq('homeroom_teacher_id', userId)
+      .single()
+
+    if (classError) {
+      console.error('Class query error:', classError)
+      return {
+        success: false,
+        error: `Class error: ${classError.message}`
+      }
+    }
+
+    const studentData = {
+      user_id: assignmentData.user_id,
+      class_id: assignmentData.class_id,
+      profiles: studentProfile,
+      classes: classInfo
+    }
+
+    console.log('Student data received:', JSON.stringify(studentData, null, 2))
 
     // Get existing report for this student and period
     const { data: existingReport } = await supabase
@@ -305,8 +328,8 @@ export async function getStudentForReportAction(studentId: string, reportPeriodI
       .single()
 
     // Format the response to match StudentForReport type
-    const student = Array.isArray(studentData.student) ? studentData.student[0] : studentData.student
-    const classData = Array.isArray(studentData.class) ? studentData.class[0] : studentData.class
+    const student = studentData.profiles
+    const classData = studentData.classes
 
     const formattedStudent: StudentForReport = {
       id: student.id,
@@ -542,9 +565,10 @@ export async function saveStudentReportAction(formData: StudentReportFormData) {
 
     // Get student's class
     const { data: studentClass, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', validatedData.student_id)
+      .eq('user_id', validatedData.student_id)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
       .single()
 

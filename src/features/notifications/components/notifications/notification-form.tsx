@@ -9,20 +9,27 @@ import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
-import { Upload, X, Send, Loader2 } from 'lucide-react'
-import { 
-  createNotificationAction, 
+import { Upload, X, Send, Loader2, FileText, Image as ImageIcon } from 'lucide-react'
+import {
+  createNotificationAction,
   getNotificationTargetOptions,
   uploadNotificationImageAction,
-  type NotificationFormData 
+  uploadNotificationAttachmentsAction,
+  editNotificationAction,
+  getNotificationForEditAction,
+  deleteNotificationAttachmentAction,
+  type NotificationFormData,
+  type NotificationAttachment
 } from '@/features/notifications/actions/notification-actions'
 
 interface NotificationFormProps {
   readonly onSuccess?: () => void
   readonly onCancel?: () => void
+  readonly editNotificationId?: string
+  readonly isEditMode?: boolean
 }
 
-export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps) {
+export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEditMode }: NotificationFormProps) {
   const [formData, setFormData] = useState<NotificationFormData>({
     title: '',
     content: '',
@@ -35,21 +42,60 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
   }>({ roles: [], classes: [] })
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [existingAttachments, setExistingAttachments] = useState<NotificationAttachment[]>([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(isEditMode || false)
 
   useEffect(() => {
     loadTargetOptions()
-  }, [])
+    if (isEditMode && editNotificationId) {
+      loadNotificationForEdit()
+    }
+  }, [isEditMode, editNotificationId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTargetOptions = async () => {
     const result = await getNotificationTargetOptions()
     if (result.success && result.data) {
       setTargetOptions(result.data)
     } else {
-      setError(result.error || 'Failed to load target options')
+      setError(result.error || 'Không thể tải tùy chọn đối tượng')
+    }
+  }
+
+  const loadNotificationForEdit = async () => {
+    if (!editNotificationId) return
+
+    setInitialLoading(true)
+    try {
+      const result = await getNotificationForEditAction(editNotificationId)
+      if (result.success && result.data) {
+        const notification = result.data
+        setFormData({
+          title: notification.title,
+          content: notification.content,
+          image_url: notification.image_url,
+          target_roles: notification.target_roles,
+          target_classes: notification.target_classes || []
+        })
+
+        if (notification.image_url) {
+          setImagePreview(notification.image_url)
+        }
+
+        if (notification.attachments) {
+          setExistingAttachments(notification.attachments)
+        }
+      } else {
+        setError(result.error || 'Không thể tải thông báo để chỉnh sửa')
+      }
+    } catch {
+      setError('Không thể tải thông báo để chỉnh sửa')
+    } finally {
+      setInitialLoading(false)
     }
   }
 
@@ -69,6 +115,46 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
     setSelectedImage(null)
     setImagePreview(null)
     setFormData(prev => ({ ...prev, image_url: undefined }))
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files) {
+      const newFiles = Array.from(files)
+      setSelectedFiles(prev => [...prev, ...newFiles])
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const removeExistingAttachment = async (attachmentId: string) => {
+    try {
+      const result = await deleteNotificationAttachmentAction(attachmentId)
+      if (result.success) {
+        setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId))
+      } else {
+        setError(result.error || 'Không thể xóa tệp đính kèm')
+      }
+    } catch {
+      setError('Không thể xóa tệp đính kèm')
+    }
+  }
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.startsWith('image/')) {
+      return <ImageIcon className="w-4 h-4" />
+    }
+    return <FileText className="w-4 h-4" />
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
   const handleRoleChange = (role: string, checked: boolean) => {
@@ -102,35 +188,61 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
         setUploading(true)
         const uploadResult = await uploadNotificationImageAction(selectedImage)
         setUploading(false)
-        
+
         if (uploadResult.success && uploadResult.data) {
           imageUrl = uploadResult.data.url
         } else {
-          throw new Error(uploadResult.error || 'Failed to upload image')
+          throw new Error(uploadResult.error || 'Không thể tải lên hình ảnh')
         }
       }
 
-      // Create notification
-      const result = await createNotificationAction({
-        ...formData,
-        image_url: imageUrl
-      })
+      // Upload new file attachments if any
+      let newAttachments: NotificationAttachment[] = []
+      if (selectedFiles.length > 0) {
+        setUploading(true)
+        const uploadResult = await uploadNotificationAttachmentsAction(selectedFiles)
+        setUploading(false)
+
+        if (uploadResult.success && uploadResult.data) {
+          newAttachments = uploadResult.data
+        } else {
+          throw new Error(uploadResult.error || 'Không thể tải lên tệp đính kèm')
+        }
+      }
+
+      let result
+      if (isEditMode && editNotificationId) {
+        // Edit existing notification
+        result = await editNotificationAction(editNotificationId, {
+          ...formData,
+          image_url: imageUrl
+        }, newAttachments)
+      } else {
+        // Create new notification
+        result = await createNotificationAction({
+          ...formData,
+          image_url: imageUrl
+        }, newAttachments)
+      }
 
       if (result.success) {
-        setSuccess('Notification sent successfully!')
-        setFormData({
-          title: '',
-          content: '',
-          target_roles: [],
-          target_classes: []
-        })
-        removeImage()
+        setSuccess(isEditMode ? 'Cập nhật thông báo thành công!' : 'Gửi thông báo thành công!')
+        if (!isEditMode) {
+          setFormData({
+            title: '',
+            content: '',
+            target_roles: [],
+            target_classes: []
+          })
+          removeImage()
+          setSelectedFiles([])
+        }
         onSuccess?.()
       } else {
         throw new Error(result.error)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi')
     } finally {
       setLoading(false)
       setUploading(false)
@@ -139,17 +251,29 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'teacher': return 'Teachers'
-      case 'student': return 'Students'
-      case 'parent': return 'Parents'
+      case 'admin': return 'Quản trị viên'
+      case 'teacher': return 'Giáo viên'
+      case 'student': return 'Học sinh'
+      case 'parent': return 'Phụ huynh'
       default: return role
     }
+  }
+
+  if (initialLoading) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="flex items-center justify-center p-8">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="ml-2">Đang tải thông báo...</span>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Gửi thông báo</CardTitle>
+        <CardTitle>{isEditMode ? 'Chỉnh sửa thông báo' : 'Gửi thông báo'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -228,6 +352,96 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
             </div>
           </div>
 
+          {/* File Attachments */}
+          <div className="space-y-2">
+            <Label>File Attachments (Optional)</Label>
+            <div className="space-y-4">
+              {/* File Upload */}
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="file-upload"
+                  multiple
+                />
+                <Label
+                  htmlFor="file-upload"
+                  className="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                >
+                  <Upload className="w-4 h-4" />
+                  Chọn tệp đính kèm
+                </Label>
+                <span className="text-sm text-gray-500">
+                  Hỗ trợ: Hình ảnh, PDF, Word, Excel, Text (tối đa 10MB mỗi tệp)
+                </span>
+              </div>
+
+              {/* Existing Attachments (Edit Mode) */}
+              {existingAttachments.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Tệp đính kèm hiện tại</Label>
+                  <div className="space-y-2">
+                    {existingAttachments.map((attachment) => (
+                      <div key={attachment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getFileIcon(attachment.mime_type)}
+                          <div>
+                            <p className="text-sm font-medium">{attachment.file_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(attachment.file_size)} • {attachment.file_type}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="w-6 h-6 p-0"
+                          onClick={() => removeExistingAttachment(attachment.id)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New Selected Files */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Tệp mới được chọn</Label>
+                  <div className="space-y-2">
+                    {selectedFiles.map((file, index) => (
+                      <div key={`${file.name}-${file.size}-${index}`} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getFileIcon(file.type)}
+                          <div>
+                            <p className="text-sm font-medium">{file.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.size)} • {file.type.startsWith('image/') ? 'Hình ảnh' : 'Tài liệu'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="w-6 h-6 p-0"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <Label>Target Audience</Label>
             
@@ -286,7 +500,7 @@ export function NotificationForm({ onSuccess, onCancel }: NotificationFormProps)
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Gửi thông báo
+                  {isEditMode ? 'Cập nhật thông báo' : 'Gửi thông báo'}
                 </>
               )}
             </Button>

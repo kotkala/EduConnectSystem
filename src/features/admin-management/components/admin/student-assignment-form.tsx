@@ -70,7 +70,7 @@ export default function StudentAssignmentForm({
     setError(null)
 
     try {
-      const result = await getAvailableStudentsAction(classId, watchAssignmentType)
+      const result = await getAvailableStudentsAction(classId)
 
       if (result.success) {
         setAvailableStudents(result.data)
@@ -87,7 +87,7 @@ export default function StudentAssignmentForm({
     } finally {
       setLoadingStudents(false)
     }
-  }, [classId, watchAssignmentType])
+  }, [classId])
 
   // Load available students when assignment type changes
   useEffect(() => {

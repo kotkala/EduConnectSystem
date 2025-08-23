@@ -49,16 +49,17 @@ export async function getStudentTimetableAction(filters: StudentTimetableFilters
 
     // Get student's class assignments (both main and combined)
     const { data: classAssignments, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
         class_id,
         assignment_type,
-        classes!student_class_assignments_class_id_fkey(
+        classes!class_assignments_class_id_fkey(
           id,
           name
         )
       `)
-      .eq('student_id', userId)
+      .eq('user_id', userId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (classError) {
@@ -154,9 +155,10 @@ export async function getStudentGradesAction() {
 
     // Get student's class assignments to get class IDs
     const { data: classAssignments, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', userId)
+      .eq('user_id', userId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (classError) {
@@ -226,9 +228,10 @@ export async function getStudentGradeSummaryAction() {
 
     // Get student's class assignments
     const { data: classAssignments, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select('class_id')
-      .eq('student_id', userId)
+      .eq('user_id', userId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (classError) {

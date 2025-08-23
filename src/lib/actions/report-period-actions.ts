@@ -294,9 +294,10 @@ export async function getClassProgressAction(reportPeriodId: string, classBlockI
       // Fallback: compute counts with two lightweight queries
       const [{ data: studentCounts }, { data: sentCounts }] = await Promise.all([
         supabase
-          .from('student_class_assignments')
+          .from('class_assignments')
           .select('class_id, count:class_id', { head: false, count: 'exact' })
           .in('class_id', classIds)
+          .eq('assignment_type', 'student')
           .eq('is_active', true),
         supabase
           .from('student_reports')
@@ -760,15 +761,15 @@ export async function generateStudentReportsAction(reportPeriodId: string) {
     // Get all students in these classes
     const classIds = classes.map(c => c.id)
     const { data: studentAssignments, error: studentError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
-        student_id,
+        user_id,
         class_id,
         assignment_type,
-        student:profiles!student_id(full_name)
+        student:profiles!class_assignments_user_id_fkey(full_name)
       `)
       .in('class_id', classIds)
-      .eq('assignment_type', 'main') // Only main class assignments
+      .eq('assignment_type', 'student') // Only student assignments
       .eq('is_active', true)
 
     if (studentError) {
@@ -780,7 +781,7 @@ export async function generateStudentReportsAction(reportPeriodId: string) {
     }
 
     // Check for existing reports to avoid duplicates
-    const studentIds = studentAssignments.map(sa => sa.student_id)
+    const studentIds = studentAssignments.map(sa => sa.user_id)
     const { data: existingReports } = await supabase
       .from('student_reports')
       .select('student_id')
@@ -791,12 +792,12 @@ export async function generateStudentReportsAction(reportPeriodId: string) {
 
     // Create draft reports for students who don't have reports yet
     const reportsToCreate = studentAssignments
-      .filter(sa => !existingStudentIds.has(sa.student_id))
+      .filter(sa => !existingStudentIds.has(sa.user_id))
       .map(sa => {
         const classInfo = classes.find(c => c.id === sa.class_id)
         return {
           report_period_id: reportPeriodId,
-          student_id: sa.student_id,
+          student_id: sa.user_id,
           class_id: sa.class_id,
           homeroom_teacher_id: classInfo?.homeroom_teacher_id,
           strengths: '', // Will be filled by teachers

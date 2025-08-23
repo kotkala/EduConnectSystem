@@ -10,6 +10,20 @@ export interface NotificationFormData {
   image_url?: string
   target_roles: string[]
   target_classes?: string[]
+  attachments?: File[]
+}
+
+export interface NotificationAttachment {
+  id: string
+  notification_id: string
+  file_name: string
+  file_type: string
+  file_size: number
+  storage_path: string
+  public_url: string
+  mime_type: string
+  created_at: string
+  updated_at: string
 }
 
 
@@ -25,12 +39,14 @@ export interface Notification {
   is_active: boolean
   created_at: string
   updated_at: string
+  edited_at?: string
   sender?: {
     full_name: string
     role: string
   }
   is_read?: boolean
   unread_count?: number
+  attachments?: NotificationAttachment[]
 }
 
 // Helper function to check notification permissions
@@ -172,7 +188,7 @@ export async function getNotificationTargetOptions(): Promise<{ success: boolean
 }
 
 // Create a new notification
-export async function createNotificationAction(data: NotificationFormData) {
+export async function createNotificationAction(data: NotificationFormData, attachments?: NotificationAttachment[]) {
   try {
     const { userId } = await checkNotificationPermissions()
     const supabase = await createClient()
@@ -192,6 +208,29 @@ export async function createNotificationAction(data: NotificationFormData) {
 
     if (error) {
       throw new Error(error.message)
+    }
+
+    // Save attachments if provided
+    if (attachments && attachments.length > 0) {
+      const attachmentRecords = attachments.map(attachment => ({
+        notification_id: notification.id,
+        file_name: attachment.file_name,
+        file_type: attachment.file_type,
+        file_size: attachment.file_size,
+        storage_path: attachment.storage_path,
+        public_url: attachment.public_url,
+        mime_type: attachment.mime_type
+      }))
+
+      const { error: attachmentError } = await supabase
+        .from('notification_attachments')
+        .insert(attachmentRecords)
+
+      if (attachmentError) {
+        // If attachment save fails, we should clean up the notification
+        await supabase.from('notifications').delete().eq('id', notification.id)
+        throw new Error(`Failed to save attachments: ${attachmentError.message}`)
+      }
     }
 
     revalidatePath('/dashboard')
@@ -229,9 +268,20 @@ export async function getUserNotificationsAction(page?: number, limit?: number):
     let query = supabase
       .from('notifications')
       .select(`
-        *,
+        id,
+        title,
+        content,
+        image_url,
+        sender_id,
+        target_roles,
+        target_classes,
+        is_active,
+        created_at,
+        updated_at,
+        edited_at,
         sender:profiles!notifications_sender_id_fkey(full_name, role),
-        notification_reads!left(user_id, read_at)
+        notification_reads!left(user_id, read_at),
+        attachments:notification_attachments(id, notification_id, file_name, file_type, file_size, storage_path, public_url, mime_type, created_at, updated_at)
       `)
       .eq('is_active', true)
 
@@ -259,9 +309,10 @@ export async function getUserNotificationsAction(page?: number, limit?: number):
       throw new Error(error.message)
     }
 
-    // Add read status to each notification
+    // Add read status to each notification and fix sender type
     const notificationsWithReadStatus = notifications?.map(notification => ({
       ...notification,
+      sender: Array.isArray(notification.sender) ? notification.sender[0] : notification.sender,
       is_read: notification.notification_reads.some((read: { user_id: string }) => read.user_id === user.id)
     })) || []
 
@@ -362,15 +413,29 @@ export async function getUnreadNotificationCountAction(): Promise<{ success: boo
 export async function markNotificationAsReadAction(notificationId: string) {
   try {
     const supabase = await createClient()
-    
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       throw new Error("Yêu cầu xác thực")
     }
 
+    // Check if already marked as read
+    const { data: existingRead } = await supabase
+      .from('notification_reads')
+      .select('id')
+      .eq('notification_id', notificationId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (existingRead) {
+      // Already marked as read
+      return { success: true }
+    }
+
+    // Insert new read record
     const { error } = await supabase
       .from('notification_reads')
-      .upsert({
+      .insert({
         notification_id: notificationId,
         user_id: user.id
       })
@@ -386,7 +451,7 @@ export async function markNotificationAsReadAction(notificationId: string) {
   }
 }
 
-// Upload notification image
+// Upload notification image (legacy function - kept for backward compatibility)
 export async function uploadNotificationImageAction(file: File): Promise<{ success: boolean; data?: { url: string; path: string }; error?: string }> {
   try {
     const { userId } = await checkNotificationPermissions()
@@ -409,6 +474,298 @@ export async function uploadNotificationImageAction(file: File): Promise<{ succe
       .getPublicUrl(filePath)
 
     return { success: true, data: { url: publicUrl, path: filePath } }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Upload notification attachments (supports multiple files and types)
+export async function uploadNotificationAttachmentsAction(
+  files: File[]
+): Promise<{ success: boolean; data?: NotificationAttachment[]; error?: string }> {
+  try {
+    const { userId } = await checkNotificationPermissions()
+    const supabase = await createClient()
+    const uploadedAttachments: NotificationAttachment[] = []
+
+    for (const file of files) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`)
+      }
+
+      // Validate file type
+      const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain'
+      ]
+
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`File type ${file.type} is not supported for ${file.name}`)
+      }
+
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      const filePath = `attachments/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('notifications')
+        .upload(filePath, file)
+
+      if (uploadError) {
+        throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`)
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('notifications')
+        .getPublicUrl(filePath)
+
+      // Create attachment record (will be saved to DB when notification is created)
+      const attachment: Partial<NotificationAttachment> = {
+        file_name: file.name,
+        file_type: file.type.startsWith('image/') ? 'image' : 'document',
+        file_size: file.size,
+        storage_path: filePath,
+        public_url: publicUrl,
+        mime_type: file.type
+      }
+
+      uploadedAttachments.push(attachment as NotificationAttachment)
+    }
+
+    return { success: true, data: uploadedAttachments }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Edit notification
+export async function editNotificationAction(
+  notificationId: string,
+  data: NotificationFormData,
+  newAttachments?: NotificationAttachment[]
+) {
+  try {
+    const { userId } = await checkNotificationPermissions()
+    const supabase = await createClient()
+
+    // Check if user can edit this notification (must be sender or admin)
+    const { data: existingNotification, error: fetchError } = await supabase
+      .from('notifications')
+      .select('sender_id')
+      .eq('id', notificationId)
+      .single()
+
+    if (fetchError) {
+      throw new Error('Notification not found')
+    }
+
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (!profile) {
+      throw new Error('User profile not found')
+    }
+
+    // Check permissions: must be sender or admin
+    if (existingNotification.sender_id !== userId && profile.role !== 'admin') {
+      throw new Error('You do not have permission to edit this notification')
+    }
+
+    // Update notification with edited_at timestamp
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .update({
+        title: data.title,
+        content: data.content,
+        image_url: data.image_url,
+        target_roles: data.target_roles,
+        target_classes: data.target_classes || [],
+        edited_at: new Date().toISOString()
+      })
+      .eq('id', notificationId)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    // Add new attachments if provided
+    if (newAttachments && newAttachments.length > 0) {
+      const attachmentRecords = newAttachments.map(attachment => ({
+        notification_id: notificationId,
+        file_name: attachment.file_name,
+        file_type: attachment.file_type,
+        file_size: attachment.file_size,
+        storage_path: attachment.storage_path,
+        public_url: attachment.public_url,
+        mime_type: attachment.mime_type
+      }))
+
+      const { error: attachmentError } = await supabase
+        .from('notification_attachments')
+        .insert(attachmentRecords)
+
+      if (attachmentError) {
+        throw new Error(`Failed to save new attachments: ${attachmentError.message}`)
+      }
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true, data: notification }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Delete notification attachment
+export async function deleteNotificationAttachmentAction(attachmentId: string) {
+  try {
+    const { userId } = await checkNotificationPermissions()
+    const supabase = await createClient()
+
+    // Get attachment details and check permissions
+    const { data: attachment, error: fetchError } = await supabase
+      .from('notification_attachments')
+      .select(`
+        *,
+        notification:notifications!inner(sender_id)
+      `)
+      .eq('id', attachmentId)
+      .single()
+
+    if (fetchError) {
+      throw new Error('Attachment not found')
+    }
+
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (!profile) {
+      throw new Error('User profile not found')
+    }
+
+    // Check permissions: must be sender or admin
+    if (attachment.notification.sender_id !== userId && profile.role !== 'admin') {
+      throw new Error('You do not have permission to delete this attachment')
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('notifications')
+      .remove([attachment.storage_path])
+
+    if (storageError) {
+      console.error('Failed to delete file from storage:', storageError)
+      // Continue with database deletion even if storage deletion fails
+    }
+
+    // Delete from database
+    const { error: deleteError } = await supabase
+      .from('notification_attachments')
+      .delete()
+      .eq('id', attachmentId)
+
+    if (deleteError) {
+      throw new Error(deleteError.message)
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Get single notification for viewing (no permission check - handled by RLS)
+export async function getNotificationForViewAction(notificationId: string) {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      throw new Error("Yêu cầu xác thực")
+    }
+
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .select(`
+        *,
+        sender:profiles!notifications_sender_id_fkey(full_name, role),
+        attachments:notification_attachments(*),
+        notification_reads!left(user_id, read_at)
+      `)
+      .eq('id', notificationId)
+      .eq('is_active', true)
+      .single()
+
+    if (error) {
+      throw new Error('Không tìm thấy thông báo')
+    }
+
+    // Add read status
+    const notificationWithReadStatus = {
+      ...notification,
+      is_read: notification.notification_reads.some((read: { user_id: string }) => read.user_id === user.id)
+    }
+
+    return { success: true, data: notificationWithReadStatus }
+  } catch (error: unknown) {
+    return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
+  }
+}
+
+// Get single notification for editing (with permission check)
+export async function getNotificationForEditAction(notificationId: string) {
+  try {
+    const { userId } = await checkNotificationPermissions()
+    const supabase = await createClient()
+
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .select(`
+        *,
+        sender:profiles!notifications_sender_id_fkey(full_name, role),
+        attachments:notification_attachments(*)
+      `)
+      .eq('id', notificationId)
+      .eq('is_active', true)
+      .single()
+
+    if (error) {
+      throw new Error('Không tìm thấy thông báo')
+    }
+
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (!profile) {
+      throw new Error('Không tìm thấy hồ sơ người dùng')
+    }
+
+    // Check permissions: must be sender or admin
+    if (notification.sender_id !== userId && profile.role !== 'admin') {
+      throw new Error('Bạn không có quyền chỉnh sửa thông báo này')
+    }
+
+    return { success: true, data: notification }
   } catch (error: unknown) {
     return { success: false, error: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn' }
   }

@@ -144,7 +144,7 @@ export async function getGradeHistoryAction(
         created_at,
         updated_at,
         student_id,
-        students!inner(student_number, full_name),
+        students(student_number, full_name),
         grade_audit_logs(
           id,
           old_value,

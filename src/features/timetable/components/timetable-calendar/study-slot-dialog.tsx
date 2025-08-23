@@ -109,7 +109,7 @@ export function StudySlotDialog({
   teachers,
   classrooms,
   teacherAssignments,
-}: StudySlotDialogProps) {
+}: Readonly<StudySlotDialogProps>) {
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [selectedClassroomId, setSelectedClassroomId] = useState("");
@@ -372,7 +372,11 @@ export function StudySlotDialog({
                   <RiCalendarLine size={16} className="shrink-0" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
+              <PopoverContent
+                className="w-auto p-2"
+                align="start"
+                style={{ zIndex: 1400 }}
+              >
                 <Calendar
                   mode="single"
                   selected={selectedDate}

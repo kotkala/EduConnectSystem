@@ -54,8 +54,8 @@ export async function getHomeroomClassInfoAction(): Promise<{
       .select(`
         id,
         name,
-        academic_years!inner(name),
-        semesters!inner(name)
+        academic_years(name),
+        semesters(name)
       `)
       .eq('homeroom_teacher_id', userId)
       .single()

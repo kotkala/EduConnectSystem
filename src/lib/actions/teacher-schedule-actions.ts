@@ -353,12 +353,12 @@ export async function getTeacherSubjectAssignmentsAction(): Promise<{
       .select(`
         subject_id,
         class_id,
-        subjects!inner(
+        subjects(
           id,
           code,
           name_vietnamese
         ),
-        classes!inner(
+        classes(
           id,
           name
         )

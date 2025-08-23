@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -10,9 +10,9 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Eye, Calendar, MessageSquare, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
-import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions/violation-actions'
+import { getDisciplinaryCasesAction, updateDisciplinaryCaseStatusAction } from '@/features/violations/actions/disciplinary-actions'
 
-interface DisciplinaryCase {
+interface TeacherDisciplinaryCase {
   id: string
   student_id: string
   class_id: string
@@ -23,45 +23,58 @@ interface DisciplinaryCase {
   notes: string
   status: 'draft' | 'sent_to_homeroom' | 'acknowledged' | 'meeting_scheduled' | 'resolved'
   created_at: string
-  student: { full_name: string; student_id: string }
-  class: { name: string }
-  action_type: { name: string }
+  student: { id: string; full_name: string; student_id: string } | null
+  class: { id: string; name: string } | null
+  action_type: { id: string; name: string } | null
 }
 
-export default function TeacherDisciplinaryCases() {
-  const [cases, setCases] = useState<DisciplinaryCase[]>([])
+interface TeacherDisciplinaryCasesProps {
+  homeroomClass?: {
+    id: string
+    name: string
+  } | null
+}
+
+export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<TeacherDisciplinaryCasesProps>) {
+  const [cases, setCases] = useState<TeacherDisciplinaryCase[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCase, setSelectedCase] = useState<DisciplinaryCase | null>(null)
+  const [selectedCase, setSelectedCase] = useState<TeacherDisciplinaryCase | null>(null)
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [meetingNotes, setMeetingNotes] = useState('')
 
-  useEffect(() => {
-    loadCases()
-  }, [])
-
-  const loadCases = async () => {
+  const loadCases = useCallback(async () => {
     setIsLoading(true)
     try {
-      // Lấy các case được gửi đến GVCN (status = 'sent_to_homeroom')
+      // Only load cases if teacher has a homeroom class
+      if (!homeroomClass) {
+        setCases([])
+        return
+      }
+
+      // Lấy các case được gửi đến GVCN cho lớp chủ nhiệm của giáo viên
       const result = await getDisciplinaryCasesAction({
-        status: 'sent_to_homeroom'
-        // TODO: Filter by homeroom classes của teacher hiện tại
+        status: 'sent_to_homeroom',
+        class_id: homeroomClass.id
       })
 
       if (result.success && result.data) {
-        setCases(result.data)
+        setCases(result.data as unknown as TeacherDisciplinaryCase[])
       }
     } catch (error) {
       console.error('Lỗi tải case kỷ luật:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [homeroomClass])
+
+  useEffect(() => {
+    loadCases()
+  }, [loadCases])
 
   const handleAcknowledge = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
+        caseId: caseId,
         status: 'acknowledged'
       })
 
@@ -80,7 +93,7 @@ export default function TeacherDisciplinaryCases() {
   const handleScheduleMeeting = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
+        caseId: caseId,
         status: 'meeting_scheduled'
       })
 
@@ -100,22 +113,26 @@ export default function TeacherDisciplinaryCases() {
   const handleResolve = async (caseId: string) => {
     try {
       const result = await updateDisciplinaryCaseStatusAction({
-        case_id: caseId,
-        status: 'resolved'
+        caseId: caseId,
+        status: 'resolved',
+        notes: meetingNotes
       })
 
       if (result.success) {
-        toast.success('Đã đánh dấu case đã giải quyết')
+        toast.success('Đã đánh dấu case kỷ luật đã giải quyết')
         loadCases()
         setShowDetailDialog(false)
+        setMeetingNotes('')
       } else {
         toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }
     } catch (error) {
-      console.error('Lỗi giải quyết case:', error)
-      toast.error('Có lỗi xảy ra khi giải quyết case')
+      console.error('Lỗi đánh dấu giải quyết:', error)
+      toast.error('Có lỗi xảy ra khi đánh dấu giải quyết')
     }
   }
+
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -165,12 +182,12 @@ export default function TeacherDisciplinaryCases() {
                   <TableRow key={caseItem.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{caseItem.student.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{caseItem.student.student_id}</div>
+                        <div className="font-medium">{caseItem.student?.full_name || 'Không xác định'}</div>
+                        <div className="text-sm text-muted-foreground">{caseItem.student?.student_id || 'N/A'}</div>
                       </div>
                     </TableCell>
-                    <TableCell>{caseItem.class.name}</TableCell>
-                    <TableCell>{caseItem.action_type.name}</TableCell>
+                    <TableCell>{caseItem.class?.name || 'Không xác định'}</TableCell>
+                    <TableCell>{caseItem.action_type?.name || 'Không xác định'}</TableCell>
                     <TableCell>
                       <Badge variant="outline">Tuần {caseItem.week_index}</Badge>
                     </TableCell>
@@ -200,17 +217,17 @@ export default function TeacherDisciplinaryCases() {
                                   <div>
                                     <Label className="text-sm font-medium">Học sinh</Label>
                                     <div className="mt-1">
-                                      <div className="font-medium">{selectedCase.student.full_name}</div>
-                                      <div className="text-sm text-muted-foreground">{selectedCase.student.student_id}</div>
+                                      <div className="font-medium">{selectedCase.student?.full_name || 'Không xác định'}</div>
+                                      <div className="text-sm text-muted-foreground">{selectedCase.student?.student_id || 'N/A'}</div>
                                     </div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Lớp</Label>
-                                    <div className="mt-1 font-medium">{selectedCase.class.name}</div>
+                                    <div className="mt-1 font-medium">{selectedCase.class?.name || 'Không xác định'}</div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Hình thức kỷ luật</Label>
-                                    <div className="mt-1 font-medium">{selectedCase.action_type.name}</div>
+                                    <div className="mt-1 font-medium">{selectedCase.action_type?.name || 'Không xác định'}</div>
                                   </div>
                                   <div>
                                     <Label className="text-sm font-medium">Tuần vi phạm</Label>
@@ -269,16 +286,6 @@ export default function TeacherDisciplinaryCases() {
                             )}
                           </DialogContent>
                         </Dialog>
-
-                        {caseItem.status === 'sent_to_homeroom' && (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleAcknowledge(caseItem.id)}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </TableCell>
                   </TableRow>

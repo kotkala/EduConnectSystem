@@ -40,7 +40,7 @@ async function checkAdminPermissions() {
 }
 
 // Get available students for assignment (not assigned to specific assignment type in academic year)
-export async function getAvailableStudentsAction(classId: string, assignmentType: "main" | "combined") {
+export async function getAvailableStudentsAction(classId: string) {
   try {
     await checkAdminPermissions()
     const supabase = await createClient()
@@ -62,13 +62,12 @@ export async function getAvailableStudentsAction(classId: string, assignmentType
 
     // First, get student IDs already assigned to this assignment type in this academic year
     const { data: assignedStudents } = await supabase
-      .from("student_class_assignments")
-      .select("student_id")
-      .eq("assignment_type", assignmentType)
-      .eq("academic_year_id", classData.academic_year_id)
+      .from("class_assignments")
+      .select("user_id")
+      .eq("assignment_type", "student")
       .eq("is_active", true)
 
-    const assignedStudentIds = assignedStudents?.map(s => s.student_id) || []
+    const assignedStudentIds = assignedStudents?.map(s => s.user_id) || []
 
     // Get students who are NOT already assigned to this assignment type
     let query = supabase
@@ -121,27 +120,33 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
 
     // Check if student is already assigned to this assignment type in the academic year
     const { data: existingAssignment } = await supabase
-      .from("student_class_assignments_view")
-      .select("id, class_name, assignment_type")
-      .eq("student_id", validatedData.student_id)
-      .eq("assignment_type", validatedData.assignment_type)
+      .from("class_assignments")
+      .select(`
+        id,
+        assignment_type,
+        classes(name)
+      `)
+      .eq("user_id", validatedData.student_id)
+      .eq("assignment_type", "student")
       .eq("class_id", validatedData.class_id)
       .single()
 
     if (existingAssignment) {
+      const classes = existingAssignment.classes as { name: string }[] | { name: string } | null
+      const className = Array.isArray(classes) ? classes[0]?.name : classes?.name
       return {
         success: false,
-        error: `Student is already assigned to ${existingAssignment.class_name} as ${existingAssignment.assignment_type} class`
+        error: `Student is already assigned to ${className || 'this class'} as ${existingAssignment.assignment_type} class`
       }
     }
 
     // Insert assignment
     const { data, error } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .insert({
-        student_id: validatedData.student_id,
+        user_id: validatedData.student_id,
         class_id: validatedData.class_id,
-        assignment_type: validatedData.assignment_type,
+        assignment_type: "student",
         assigned_by: user.id,
         is_active: true
       })
@@ -190,16 +195,16 @@ export async function bulkAssignStudentsToClassAction(formData: BulkStudentAssig
 
     // Prepare assignments
     const assignments = validatedData.student_ids.map(studentId => ({
-      student_id: studentId,
+      user_id: studentId,
       class_id: validatedData.class_id,
-      assignment_type: validatedData.assignment_type,
+      assignment_type: "student",
       assigned_by: user.id,
       is_active: true
     }))
 
     // Insert assignments
     const { data, error } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .insert(assignments)
       .select()
 
@@ -244,8 +249,27 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
     const validatedFilters = filters ? classAssignmentFiltersSchema.parse(filters) : { page: 1, limit: 10 }
 
     let query = supabase
-      .from("student_class_assignments_view")
-      .select("*")
+      .from("class_assignments")
+      .select(`
+        id,
+        user_id,
+        class_id,
+        assignment_type,
+        is_active,
+        assigned_at,
+        assigned_by,
+        profiles!class_assignments_user_id_fkey(
+          id,
+          full_name,
+          email,
+          student_id
+        ),
+        classes(
+          id,
+          name
+        )
+      `)
+      .eq("assignment_type", "student")
 
     // Apply filters
     if (validatedFilters.class_id) {
@@ -266,8 +290,9 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
 
     // Get total count
     const { count } = await supabase
-      .from("student_class_assignments_view")
+      .from("class_assignments")
       .select("*", { count: "exact", head: true })
+      .eq("assignment_type", "student")
 
     // Apply pagination and ordering
     const { data, error } = await query
@@ -288,9 +313,22 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
       }
     }
 
+    // Transform data to match StudentClassAssignment interface
+    const transformedData: StudentClassAssignment[] = data.map(item => ({
+      id: item.id,
+      student_id: item.user_id, // Map user_id to student_id for compatibility
+      class_id: item.class_id,
+      assignment_type: item.assignment_type as "main" | "combined",
+      assigned_at: item.assigned_at,
+      assigned_by: item.assigned_by,
+      is_active: item.is_active,
+      student: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
+      class: Array.isArray(item.classes) ? item.classes[0] : item.classes
+    }))
+
     return {
       success: true,
-      data: data as StudentClassAssignment[],
+      data: transformedData,
       total: count || 0,
       page: validatedFilters.page
     }
@@ -313,7 +351,7 @@ export async function removeStudentFromClassAction(assignmentId: string) {
     const supabase = await createClient()
 
     const { error } = await supabase
-      .from("student_class_assignments")
+      .from("class_assignments")
       .update({ is_active: false })
       .eq("id", assignmentId)
 

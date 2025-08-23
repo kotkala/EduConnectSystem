@@ -317,7 +317,17 @@ export async function checkTimetableConflictsAction(
 
     let query = supabase
       .from('timetable_events')
-      .select('id, classroom_id, teacher_id')
+      .select(`
+        id,
+        classroom_id,
+        teacher_id,
+        class_id,
+        subject_id,
+        classes!inner(name),
+        subjects!inner(name),
+        profiles!inner(full_name),
+        classrooms!inner(name)
+      `)
       .eq('day_of_week', dayOfWeek)
       .eq('start_time', startTime)
       .eq('week_number', weekNumber)
@@ -336,20 +346,28 @@ export async function checkTimetableConflictsAction(
     // Check for classroom conflicts
     const classroomConflict = conflicts?.find(c => c.classroom_id === classroomId)
     if (classroomConflict) {
+      const conflictClass = Array.isArray(classroomConflict.classes) ? classroomConflict.classes[0] : classroomConflict.classes
+      const conflictSubject = Array.isArray(classroomConflict.subjects) ? classroomConflict.subjects[0] : classroomConflict.subjects
+      const conflictClassroom = Array.isArray(classroomConflict.classrooms) ? classroomConflict.classrooms[0] : classroomConflict.classrooms
+
       return {
         success: true,
         hasConflict: true,
-        conflictType: 'Classroom is already booked at this time'
+        conflictType: `Phòng học "${conflictClassroom?.name}" đã được sử dụng bởi lớp "${conflictClass?.name}" - môn "${conflictSubject?.name}" vào thời gian này`
       }
     }
 
     // Check for teacher conflicts
     const teacherConflict = conflicts?.find(c => c.teacher_id === teacherId)
     if (teacherConflict) {
+      const conflictClass = Array.isArray(teacherConflict.classes) ? teacherConflict.classes[0] : teacherConflict.classes
+      const conflictSubject = Array.isArray(teacherConflict.subjects) ? teacherConflict.subjects[0] : teacherConflict.subjects
+      const conflictTeacher = Array.isArray(teacherConflict.profiles) ? teacherConflict.profiles[0] : teacherConflict.profiles
+
       return {
         success: true,
         hasConflict: true,
-        conflictType: 'Teacher is already assigned at this time'
+        conflictType: `Giáo viên "${conflictTeacher?.full_name}" đã được phân công dạy lớp "${conflictClass?.name}" - môn "${conflictSubject?.name}" vào thời gian này`
       }
     }
 

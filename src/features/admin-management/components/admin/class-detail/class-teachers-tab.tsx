@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
+import { Input } from "@/shared/components/ui/input"
 import { UserPlus, Trash2, Loader2, GraduationCap, BookOpen } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import {
@@ -67,6 +68,8 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
   // Add teacher form state
   const [availableSubjects, setAvailableSubjects] = useState<AvailableSubject[]>([])
   const [availableTeachers, setAvailableTeachers] = useState<AvailableTeacher[]>([])
+  const [filteredTeachers, setFilteredTeachers] = useState<AvailableTeacher[]>([])
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState("")
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>("")
   const [assigning, setAssigning] = useState(false)
@@ -110,11 +113,27 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
       const result = await getAvailableTeachersForSubjectAction(subjectId)
       if (result.success) {
         setAvailableTeachers(result.data)
+        setFilteredTeachers(result.data)
+        setTeacherSearchTerm("")
       }
     } catch (err) {
       console.error("Failed to fetch available teachers:", err)
     }
   }
+
+  // Filter teachers based on search term
+  useEffect(() => {
+    if (!teacherSearchTerm.trim()) {
+      setFilteredTeachers(availableTeachers)
+    } else {
+      const filtered = availableTeachers.filter(teacher =>
+        teacher.teacher_name.toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
+        teacher.teacher_email.toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
+        (teacher.employee_id && teacher.employee_id.toLowerCase().includes(teacherSearchTerm.toLowerCase()))
+      )
+      setFilteredTeachers(filtered)
+    }
+  }, [teacherSearchTerm, availableTeachers])
 
   const handleAddTeacher = async () => {
     setShowAddDialog(true)
@@ -125,7 +144,9 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
     setSelectedSubjectId(subjectId)
     setSelectedTeacherId("")
     setAvailableTeachers([])
-    
+    setFilteredTeachers([])
+    setTeacherSearchTerm("")
+
     if (subjectId) {
       await fetchAvailableTeachers(subjectId)
     }
@@ -177,6 +198,8 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
         setSelectedTeacherId("")
         setAvailableSubjects([])
         setAvailableTeachers([])
+        setFilteredTeachers([])
+        setTeacherSearchTerm("")
         await fetchTeacherAssignments()
       } else {
         console.error("Assignment failed:", result.error)
@@ -354,22 +377,56 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
 
             <div className="space-y-2">
               <label htmlFor="teacher-select" className="text-sm font-medium">Teacher</label>
+
+              {/* Teacher Search */}
+              {selectedSubjectId && availableTeachers.length > 0 && (
+                <Input
+                  placeholder="Tìm kiếm giáo viên theo tên, email hoặc mã nhân viên..."
+                  value={teacherSearchTerm}
+                  onChange={(e) => setTeacherSearchTerm(e.target.value)}
+                  className="mb-2"
+                />
+              )}
+
               <Select
                 value={selectedTeacherId}
                 onValueChange={setSelectedTeacherId}
                 disabled={!selectedSubjectId}
               >
                 <SelectTrigger id="teacher-select">
-                  <SelectValue placeholder="Select a teacher" />
+                  <SelectValue placeholder={
+                    !selectedSubjectId
+                      ? "Chọn môn học trước"
+                      : filteredTeachers.length === 0
+                        ? "Không có giáo viên phù hợp"
+                        : "Chọn giáo viên"
+                  } />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableTeachers.map((teacher) => (
+                  {filteredTeachers.map((teacher) => (
                     <SelectItem key={teacher.teacher_id} value={teacher.teacher_id}>
-                      {teacher.teacher_name}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{teacher.teacher_name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {teacher.employee_id && `ID: ${teacher.employee_id} • `}{teacher.teacher_email}
+                        </span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {selectedSubjectId && filteredTeachers.length === 0 && availableTeachers.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Không tìm thấy giáo viên phù hợp với từ khóa &quot;{teacherSearchTerm}&quot;
+                </p>
+              )}
+
+              {selectedSubjectId && availableTeachers.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Không có giáo viên nào có chuyên ngành phù hợp với môn học này
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>

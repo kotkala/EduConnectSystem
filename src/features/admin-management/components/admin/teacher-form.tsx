@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Loader2, Save, X } from "lucide-react"
 import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
 import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
+import TeacherSpecializationForm from "@/features/teacher-management/components/teacher-specialization-form"
 
 interface TeacherFormProps {
   readonly teacher?: TeacherProfile
@@ -207,6 +208,16 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
             <p className="text-sm text-blue-600">
               This teacher will be available for homeroom class assignments.
             </p>
+          )}
+
+          {/* Teacher Specializations - Only show for editing existing teachers */}
+          {isEditing && teacher?.id && (
+            <div className="space-y-4 border-t pt-6">
+              <TeacherSpecializationForm
+                teacherId={teacher.id}
+                disabled={isSubmitting}
+              />
+            </div>
           )}
 
           {/* Error/Success Messages */}

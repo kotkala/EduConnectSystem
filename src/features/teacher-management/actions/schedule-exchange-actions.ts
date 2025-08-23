@@ -64,6 +64,7 @@ export interface EligibleTeacher {
   teacher_id: string
   teacher_name: string
   teacher_email: string
+  employee_id?: string
 }
 
 // Get teacher's own timetable events for exchange requests

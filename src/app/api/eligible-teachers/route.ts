@@ -51,38 +51,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'You can only request exchanges for your own teaching slots' }, { status: 403 })
     }
 
-    // Get teachers who teach the same subject (excluding the requesting teacher)
-    const { data: eligibleAssignments, error: assignmentError } = await supabase
-      .from('teacher_class_assignments')
+    // Get teachers who have specialization for this subject (excluding the requesting teacher)
+    const { data: eligibleTeachers, error: teacherError } = await supabase
+      .from('teacher_specializations')
       .select(`
         teacher_id,
-        profiles!teacher_class_assignments_teacher_id_fkey(
-          id,
-          full_name,
-          email
-        )
+        profiles!inner(id, full_name, email, employee_id)
       `)
-      .eq('subject_id', timetableEvent.subject_id)
+      .contains('subjects', [timetableEvent.subject_id])
       .neq('teacher_id', requestingTeacherId)
 
-    if (assignmentError) {
-      console.error('Error fetching eligible teachers:', assignmentError)
+    if (teacherError) {
+      console.error('Error fetching eligible teachers:', teacherError)
       return NextResponse.json({ success: false, error: 'Failed to fetch eligible teachers' }, { status: 500 })
     }
 
-    if (!eligibleAssignments || eligibleAssignments.length === 0) {
+    if (!eligibleTeachers || eligibleTeachers.length === 0) {
       return NextResponse.json({ success: true, data: [] })
     }
 
     // Transform data to match expected interface
-    const transformedData = eligibleAssignments
-      .filter((assignment: Record<string, unknown>) => assignment.profiles) // Filter out null profiles
-      .map((assignment: Record<string, unknown>) => {
-        const profile = assignment.profiles as Record<string, unknown>
+    const transformedData = eligibleTeachers
+      .filter((teacher: Record<string, unknown>) => teacher.profiles) // Filter out null profiles
+      .map((teacher: Record<string, unknown>) => {
+        const profile = Array.isArray(teacher.profiles) ? teacher.profiles[0] : teacher.profiles as Record<string, unknown>
         return {
-          teacher_id: assignment.teacher_id,
+          teacher_id: teacher.teacher_id,
           teacher_name: profile.full_name || 'Unknown',
-          teacher_email: profile.email || 'Unknown'
+          teacher_email: profile.email || 'Unknown',
+          employee_id: profile.employee_id || ''
         }
       })
 

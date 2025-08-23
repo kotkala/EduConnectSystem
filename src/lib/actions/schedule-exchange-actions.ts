@@ -64,6 +64,7 @@ export interface EligibleTeacher {
   teacher_id: string
   teacher_name: string
   teacher_email: string
+  employee_id?: string
 }
 
 // Get teacher's own timetable events for exchange requests
@@ -129,15 +130,14 @@ export async function getEligibleTeachersForExchangeAction(
       return { success: false, error: 'Timetable event not found' }
     }
 
-    // Get teachers who teach the same subject (excluding the requesting teacher)
+    // Get teachers who have specialization for this subject (excluding the requesting teacher)
     const { data, error } = await supabase
-      .from('teachers_for_subjects')
+      .from('teacher_specializations')
       .select(`
         teacher_id,
-        teacher_name,
-        teacher_email
+        profiles!inner(id, full_name, email, employee_id)
       `)
-      .eq('subject_id', eventData.subject_id)
+      .contains('subjects', [eventData.subject_id])
       .neq('teacher_id', requestingTeacherId)
 
     if (error) {
@@ -145,7 +145,18 @@ export async function getEligibleTeachersForExchangeAction(
       return { success: false, error: 'Failed to fetch eligible teachers' }
     }
 
-    return { success: true, data: data || [] }
+    // Transform data to match expected interface
+    const teachers = data?.map(item => {
+      const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+      return {
+        teacher_id: item.teacher_id,
+        teacher_name: profile?.full_name || '',
+        teacher_email: profile?.email || '',
+        employee_id: profile?.employee_id || ''
+      }
+    }) || []
+
+    return { success: true, data: teachers }
   } catch (error) {
     console.error('Error in getEligibleTeachersForExchangeAction:', error)
     return { success: false, error: 'Đã xảy ra lỗi không mong muốn' }

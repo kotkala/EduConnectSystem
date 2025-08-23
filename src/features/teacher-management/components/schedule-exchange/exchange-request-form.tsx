@@ -253,7 +253,12 @@ export function ExchangeRequestForm({ teacherId, semesterId, onSuccess }: Exchan
                     <SelectContent>
                       {eligibleTeachers.map((teacher) => (
                         <SelectItem key={teacher.teacher_id} value={teacher.teacher_id}>
-                          {teacher.teacher_name} ({teacher.teacher_email})
+                          <div className="flex flex-col">
+                            <span className="font-medium">{teacher.teacher_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {teacher.employee_id && `ID: ${teacher.employee_id} • `}{teacher.teacher_email}
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

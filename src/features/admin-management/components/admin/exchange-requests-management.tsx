@@ -185,7 +185,7 @@ export function ExchangeRequestsManagement() {
             <div>
               <CardTitle>Yêu cầu đổi lịch</CardTitle>
               <CardDescription>
-                Quản lý yêu cầu đổi lịch giảng dạy của giáo viên
+                Quản lý yêu cầu đổi lịch giảng dạy của giáo viên. Giáo viên thay thế được lọc theo chuyên ngành phù hợp.
               </CardDescription>
             </div>
             <Button

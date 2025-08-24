@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -40,9 +40,10 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 import { Input } from "@/shared/components/ui/input"
-import { UserPlus, Trash2, Loader2, GraduationCap, BookOpen } from "lucide-react"
+import { UserPlus, Trash2, GraduationCap, BookOpen } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   getClassTeacherAssignmentsAction,
   removeTeacherAssignmentAction,
   assignTeacherToClassSubjectAction,
@@ -236,7 +237,7 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span>Loading teacher assignments...</span>
           </div>
         </CardContent>
@@ -314,7 +315,7 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
                               className="text-red-600 hover:text-red-700"
                             >
                               {removingAssignmentId === assignment.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Skeleton className="h-32 w-full rounded-lg" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
                               )}
@@ -439,7 +440,7 @@ export default function ClassTeachersTab({ classId, classData }: ClassTeachersTa
             >
               {assigning ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   Assigning...
                 </>
               ) : (

@@ -66,7 +66,7 @@ export const gradeReportingPeriodSchema = z.object({
 export type GradeReportingPeriodFormData = z.infer<typeof gradeReportingPeriodSchema>
 
 // Update grade reporting period schema
-export const updateGradeReportingPeriodSchema = gradeReportingPeriodSchema.extend({
+export const updateGradeReportingPeriodSchema = gradeReportingPeriodSchema.safeExtend({
   id: z.string().uuid("ID kỳ báo cáo không hợp lệ")
 })
 

@@ -10,7 +10,8 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   getLeaveApplicationDetailAction,
   respondToLeaveApplicationAction,
   type LeaveApplication 
@@ -98,7 +99,7 @@ export default function LeaveApplicationDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-20 md:w-24 lg:w-280">
           <Clock className="w-3 h-3 mr-1" />
           Đang chờ
         </Badge>
@@ -143,7 +144,7 @@ export default function LeaveApplicationDetailPage() {
         <div className="p-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <Skeleton className="h-32 w-full rounded-lg" />
               <p className="text-gray-600">Đang tải thông tin đơn xin nghỉ...</p>
             </div>
           </div>
@@ -157,7 +158,7 @@ export default function LeaveApplicationDetailPage() {
       <SidebarLayout role={profile?.role || 'parent'} title="Chi tiết đơn xin nghỉ">
         <div className="p-6">
           <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <AlertCircle className="h-16 w-16 text-red-500" />
+            <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
             <h2 className="text-2xl font-bold text-gray-900">Lỗi</h2>
             <p className="text-gray-600 text-center">{error || 'Không tìm thấy đơn xin nghỉ'}</p>
             <Button onClick={() => router.push(getBackUrl())}>

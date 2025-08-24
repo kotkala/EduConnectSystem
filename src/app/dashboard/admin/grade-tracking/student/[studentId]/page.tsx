@@ -23,7 +23,8 @@ import {
 } from "@/lib/actions/admin-grade-tracking-actions"
 import { AdminStudentGradeTable } from "@/shared/components/admin/admin-student-grade-table"
 
-export default function StudentGradeDetailPage() {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";export default function StudentGradeDetailPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const studentId = params.studentId as string
@@ -147,7 +148,7 @@ export default function StudentGradeDetailPage() {
         </div>
         <div className="ml-auto">
           <Button variant="outline" onClick={handleRefreshGrades} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <Skeleton className="h-32 w-full rounded-lg" />
             Làm mới
           </Button>
         </div>
@@ -198,7 +199,7 @@ export default function StudentGradeDetailPage() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <p className="text-lg">Đang tải dữ liệu điểm số...</p>
           </div>
         </div>
@@ -233,7 +234,7 @@ export default function StudentGradeDetailPage() {
               <CardContent>
                 {historyLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+                    <Skeleton className="h-32 w-full rounded-lg" />
                     Đang tải lịch sử...
                   </div>
                 ) : gradeHistory.length === 0 ? (
@@ -304,7 +305,7 @@ export default function StudentGradeDetailPage() {
       {!loading && !studentData && !error && (
         <Card>
           <CardContent className="text-center py-12">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <BookOpen className="mx-auto h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">Chưa có dữ liệu điểm</h3>
             <p className="text-muted-foreground mb-4">
               Chưa có dữ liệu điểm số cho học sinh này trong kỳ báo cáo đã chọn

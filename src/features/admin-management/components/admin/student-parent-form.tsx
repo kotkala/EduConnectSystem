@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
@@ -12,12 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Separator } from "@/shared/components/ui/separator"
 import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Loader2, Save, X, User, Users, RefreshCw } from "lucide-react"
-import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
+import { Save, X, User, Users, RefreshCw } from "lucide-react";import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
 import { createStudentWithParentAction, updateStudentParentAction, generateNextStudentIdAction } from "@/features/admin-management/actions/user-actions"
 import { EmailSuggestionInput } from "@/features/admin-management/components/admin/email-suggestion-input"
 
-interface StudentParentFormProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentParentFormProps {
   editMode?: boolean
   initialData?: StudentWithParent
   onSuccess?: () => void
@@ -136,7 +136,7 @@ function StudentInfoSection({
                 className="h-11 px-3"
               >
                 {generatingId ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
@@ -538,11 +538,11 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-200"
+              className="flex-1 h-12 md:h-14 lg:h-16 text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-200"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   {editMode ? "Đang cập nhật Học sinh & Phụ huynh..." : "Đang tạo Học sinh & Phụ huynh..."}
                 </>
               ) : (
@@ -559,7 +559,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
                 variant="outline"
                 onClick={onCancel}
                 disabled={isSubmitting}
-                className="h-12 px-8 text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
+                className="h-12 md:h-14 lg:h-16 px-8 text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
                 <X className="mr-2 h-5 w-5" />
                 Hủy

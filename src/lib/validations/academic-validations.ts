@@ -22,7 +22,7 @@ export const academicYearSchema = z.object({
   path: ["end_date"]
 })
 
-export const updateAcademicYearSchema = academicYearSchema.extend({
+export const updateAcademicYearSchema = academicYearSchema.safeExtend({
   id: z.string().uuid("Invalid academic year ID")
 })
 
@@ -56,7 +56,7 @@ export const semesterSchema = z.object({
   path: ["end_date"]
 })
 
-export const updateSemesterSchema = semesterSchema.extend({
+export const updateSemesterSchema = semesterSchema.safeExtend({
   id: z.string().uuid("Invalid semester ID")
 })
 

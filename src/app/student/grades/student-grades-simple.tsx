@@ -6,7 +6,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getStudentGradeSubmissionsAction } from '@/lib/actions/student-grade-actions'
 
@@ -114,7 +114,7 @@ export default function StudentGradesSimple() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <LoadingSpinner size="lg" />
+        <SandyLoading size="lg" />
         <span className="ml-2 text-muted-foreground">Đang tải bảng điểm...</span>
       </div>
     )

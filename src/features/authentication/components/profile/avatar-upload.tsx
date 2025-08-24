@@ -1,11 +1,12 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/shared/utils/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
-import { toast } from 'sonner'
-import { Camera, Loader2 } from 'lucide-react'
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { toast } from 'sonner'
+import { Camera,  } from 'lucide-react'
 
 interface AvatarUploadProps {
   readonly uid: string
@@ -101,13 +102,13 @@ export default function AvatarUpload({
       <Button
         size="sm"
         variant="outline"
-        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+        className="absolute -bottom-2 -right-2 h-8 md:h-9 lg:h-10 w-8 rounded-full p-0"
         disabled={uploading}
         asChild
       >
         <label htmlFor="avatar-upload" className="cursor-pointer">
           {uploading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
           ) : (
             <Camera className="w-4 h-4" />
           )}

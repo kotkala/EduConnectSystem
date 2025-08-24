@@ -82,7 +82,7 @@ export const studentParentSchema = z.object({
 })
 
 // Update schemas for editing
-export const updateTeacherSchema = teacherSchema.partial().extend({
+export const updateTeacherSchema = teacherSchema.partial().safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Invalid teacher ID")
 })
 

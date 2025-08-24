@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback } from 'react'
 import { useMediaQuery } from '@/shared/hooks/use-mobile'
@@ -8,11 +8,12 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { clientAuth } from '@/lib/auth'
 import { toast } from 'sonner'
-import { Mail, ArrowLeft, Loader2 } from 'lucide-react'
+import { Mail, ArrowLeft,  } from 'lucide-react'
 import { GoogleOAuthButton } from '@/features/authentication/components/auth/google-oauth-button'
 import { OtpInput } from '@/shared/components/ui/otp-input'
 
-interface AuthModalProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface AuthModalProps {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
 }
@@ -85,7 +86,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-4 sm:p-6">
           <DialogHeader className="text-center space-y-3 sm:space-y-4">
-            <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <DialogTitle className="text-lg sm:text-xl md:text-2xl font-semibold">
@@ -112,7 +113,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             )}
             {step === 'email' && (
               <div className="pt-2">
-                <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12" />
+                <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12 md:h-14 lg:h-16" />
               </div>
             )}
           </div>
@@ -125,8 +126,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-[95vw] max-w-sm sm:max-w-md p-4 sm:p-6">
         <DialogHeader className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6">
-          <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+          <div className="mx-auto w-12 h-12 md:h-14 lg:h-16 sm:w-16 md:w-20 lg:w-24 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Mail className="h-6 w-6 sm:h-8 md:h-9 lg:h-10 sm:w-8 text-white" />
           </div>
           <div className="space-y-2 sm:space-y-3">
             <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
@@ -154,7 +155,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           )}
           {step === 'email' && (
             <div className="pt-2">
-              <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12" />
+              <GoogleOAuthButton className="w-full h-10 sm:h-11 md:h-12 md:h-14 lg:h-16" />
             </div>
           )}
         </div>
@@ -191,7 +192,7 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
             placeholder="student@university.edu"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-8 sm:pl-11 h-10 sm:h-11 md:h-12 text-sm sm:text-base border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
+            className="pl-8 sm:pl-11 h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400"
             required
             disabled={loading}
             autoFocus
@@ -202,12 +203,12 @@ function EmailStep({ onSubmit, loading }: EmailStepProps) {
 
       <Button
         type="submit"
-        className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+        className="w-full h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base font-medium bg-gray-900 hover:bg-gray-800 text-white dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
         disabled={loading || !email.trim()}
       >
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             Sending code...
           </>
         ) : (
@@ -251,7 +252,7 @@ function OtpStep({ email, onSubmit, onBack, loading }: OtpStepProps) {
 
         {loading && (
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             Verifying...
           </div>
         )}

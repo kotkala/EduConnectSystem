@@ -7,7 +7,8 @@ import { Textarea } from '@/shared/components/ui/textarea'
 
 import { Badge } from '@/shared/components/ui/badge'
 import { Input } from '@/shared/components/ui/input'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,7 +19,6 @@ import {
   MessageSquare,
   Users,
   User,
-  Loader2,
   ArrowLeft,
   Edit,
   Save,
@@ -30,8 +30,7 @@ import {
   getClassStudentsAction,
   createStudentFeedbackAction,
   type StudentInfo,
-  type FeedbackData,
-  type CreateFeedbackRequest
+  type FeedbackData
 } from '@/features/teacher-management/actions/teacher-feedback-actions'
 
 interface TimetableEvent {
@@ -212,14 +211,12 @@ export function TeacherFeedbackForm({
 
     setIsSubmitting(true)
     try {
-      const request: CreateFeedbackRequest = {
+      const result = await createStudentFeedbackAction({
         timetable_event_id: timetableEvent.id,
         class_id: timetableEvent.class_id,
         subject_id: timetableEvent.subject_id,
         feedback_data: feedbackData
-      }
-
-      const result = await createStudentFeedbackAction(request)
+      })
 
       if (result.success) {
         const action = hasExistingFeedback ? 'cập nhật' : 'tạo'
@@ -296,7 +293,7 @@ export function TeacherFeedbackForm({
         <div className="space-y-6">
           {/* Header skeleton */}
           <div className="space-y-2">
-            <div className="h-8 bg-gray-200 rounded animate-pulse w-3/4"></div>
+            <div className="h-8 md:h-9 lg:h-10 bg-gray-200 rounded animate-pulse w-3/4"></div>
             <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
           </div>
 
@@ -319,7 +316,7 @@ export function TeacherFeedbackForm({
             </div>
             <div className="space-y-4">
               <div className="h-6 bg-gray-200 rounded animate-pulse w-1/3"></div>
-              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-32 md:h-40 lg:h-48 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
             </div>
           </div>
@@ -405,7 +402,7 @@ export function TeacherFeedbackForm({
                         {getFeedbackModeText(existingFeedback[0]?.feedback_type as FeedbackMode)}
                       </Badge>
                       {existingFeedback[0]?.rating && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-20 md:w-24 lg:w-280">
                           {existingFeedback[0].rating}/5 ⭐
                         </Badge>
                       )}
@@ -452,7 +449,7 @@ export function TeacherFeedbackForm({
             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 md:h-14 lg:h-16 bg-white/20 rounded-full flex items-center justify-center">
                     <MessageSquare className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -780,7 +777,7 @@ export function TeacherFeedbackForm({
                     disabled={isSubmitting || !canSubmit}
                     className="px-6 bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
                     <Save className="h-4 w-4 mr-2" />
                     {hasExistingFeedback ? 'Cập nhật phản hồi' : 'Gửi phản hồi'}
                   </Button>

@@ -1,13 +1,12 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Plus, GraduationCap, Users, BookOpen, RefreshCw } from "lucide-react"
+import { Plus, GraduationCap, Users, BookOpen,  } from "lucide-react"
 import { ClassTable } from "@/features/admin-management/components/admin/class-table"
 import { ClassForm } from "@/features/admin-management/components/admin/class-form"
 import { getClassesAction, getHomeroomEnabledTeachersAction } from "@/features/admin-management/actions/class-actions"
@@ -18,6 +17,9 @@ import {
 } from "@/lib/validations/class-validations"
 import { type AcademicYear, type Semester } from "@/lib/validations/academic-validations"
 
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 // Simple teacher interface for dropdown
 interface SimpleTeacher {
   id: string
@@ -26,9 +28,8 @@ interface SimpleTeacher {
 }
 
 export default function ClassManagementPage() {
-  // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+  // Loading States
+  const { isLoading: isLoadingClasses, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách lớp học...")
   
   // Classes State
   const [classes, setClasses] = useState<ClassWithDetails[]>([])
@@ -47,8 +48,7 @@ export default function ClassManagementPage() {
 
   // Fetch Classes
   const fetchClasses = useCallback(async () => {
-    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải danh sách lớp học...")
+    startLoading()
     setClassesError(null)
 
     try {
@@ -70,7 +70,7 @@ export default function ClassManagementPage() {
     } finally {
       stopLoading()
     }
-  }, [classesFilters, startPageTransition, stopLoading])
+  }, [classesFilters, startLoading, stopLoading])
 
   // Fetch Form Data with optimized loading
   const fetchFormData = useCallback(async () => {
@@ -144,11 +144,56 @@ export default function ClassManagementPage() {
     }
   }, [classes])
 
-  if (coordinatedLoading.isLoading && classes.length === 0) {
+  // Show loading skeleton when initially loading classes
+  if (isLoadingClasses && classes.length === 0) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-        <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin" />
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-80" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Stats Cards Skeleton */}
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Table Skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-4 w-4" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -254,7 +299,6 @@ export default function ClassManagementPage() {
         limit={classesFilters.limit}
         onPageChange={handleClassPageChange}
         onFiltersChange={handleClassFiltersChange}
-
         onRefresh={handleRefresh}
         academicYears={academicYears}
         semesters={semesters}

@@ -7,12 +7,12 @@ import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import {
   Users,
   AlertTriangle,
-  RefreshCw,
   Edit
 } from "lucide-react"
 import { getGradeOverviewAction } from "@/lib/actions/teacher-grade-import-actions"
 
-interface StudentGrade {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentGrade {
   id: string
   studentId: string
   studentName: string
@@ -112,7 +112,7 @@ export function TeacherGradeOverview({
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <div className="text-center text-muted-foreground">
-            <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <Users className="mx-auto h-12 md:h-14 lg:h-16 w-12 mb-4 opacity-50" />
             <p>Vui lòng chọn kỳ báo cáo, lớp học và môn học để xem điểm số</p>
           </div>
         </CardContent>
@@ -142,7 +142,7 @@ export function TeacherGradeOverview({
                 onClick={loadGradeData}
                 disabled={loading}
               >
-                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 Làm mới
               </Button>
               <Button variant="outline" size="sm" onClick={onImportClick}>
@@ -165,7 +165,7 @@ export function TeacherGradeOverview({
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p>Đang tải dữ liệu điểm số...</p>
               </div>
             </div>
@@ -261,7 +261,7 @@ export function TeacherGradeOverview({
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <Users className="mx-auto h-12 md:h-14 lg:h-16 w-12 mb-4 opacity-50" />
               <p>Chưa có dữ liệu điểm số</p>
               <Button variant="outline" className="mt-4" onClick={onImportClick}>
                 <Edit className="mr-2 h-4 w-4" />

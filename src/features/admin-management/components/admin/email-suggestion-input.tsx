@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useRef } from "react"
 import { Input } from "@/shared/components/ui/input"
@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/features/admin-management/actions/user-actions"
 
-interface EmailSuggestionInputProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface EmailSuggestionInputProps {
   readonly id: string
   readonly label: string
   readonly placeholder?: string
@@ -162,7 +163,7 @@ export function EmailSuggestionInput({
         />
         {loading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+            <Skeleton className="h-32 w-full rounded-lg" />
           </div>
         )}
       </div>
@@ -210,7 +211,7 @@ export function EmailSuggestionInput({
                       </div>
                     </div>
                   </div>
-                  <div className="h-8 w-8 flex items-center justify-center text-green-600">
+                  <div className="h-8 md:h-9 lg:h-10 w-8 flex items-center justify-center text-green-600">
                     <Check className="h-4 w-4" />
                   </div>
                 </div>

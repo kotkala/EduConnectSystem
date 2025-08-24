@@ -1,8 +1,7 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 
@@ -32,6 +31,10 @@ import {
 import { getAcademicYearsLightAction } from "@/features/admin-management/actions/academic-actions"
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
+
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { useGlobalLoading, useSectionLoading, useComponentLoading } from "@/shared/hooks/use-loading-coordinator"
+
 export default function ReportPeriodsPage() {
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
@@ -40,26 +43,24 @@ export default function ReportPeriodsPage() {
   const [classBlocks, setClassBlocks] = useState<Array<{ id: string; name: string }>>([])
   const [selectedClassBlock, setSelectedClassBlock] = useState<string>("all-blocks")
   const [selectedCompletionStatus, setSelectedCompletionStatus] = useState<string>("all")
-  // ðŸš€ MIGRATION: Replace scattered loading with coordinated system  
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+  // Loading States
+  const [isLoadingInitial, setIsLoadingInitial] = useState(false)
+  const { startLoading: startGlobalLoading, stopLoading: stopGlobalLoading } = useGlobalLoading("Đang tải thông tin kỳ báo cáo...")
   
   const [error, setError] = useState<string | null>(null)
   // ðŸ“Š Section loading for non-blocking components
-  const [sectionLoading, setSectionLoading] = useState({
-    progress: false, // For class progress loading (non-blocking)
-  })
-  const [sendingNotifications, setSendingNotifications] = useState(false)
-  const [bulkSending, setBulkSending] = useState(false)
-  const [generatingReports, setGeneratingReports] = useState(false)
-  const [resettingReports, setResettingReports] = useState(false)
+  const { isLoading: isProgressLoading, startLoading: startProgressLoading, stopLoading: stopProgressLoading } = useSectionLoading("Đang tải tiến độ lớp...")
+  const { isLoading: isSendingNotifications, startLoading: startSendingNotifications, stopLoading: stopSendingNotifications } = useComponentLoading()
+  const { isLoading: isBulkSending, startLoading: startBulkSending, stopLoading: stopBulkSending } = useComponentLoading()
+  const { isLoading: isGeneratingReports, startLoading: startGeneratingReports, stopLoading: stopGeneratingReports } = useComponentLoading()
+  const { isLoading: isResettingReports, startLoading: startResettingReports, stopLoading: stopResettingReports } = useComponentLoading()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadInitialData = useCallback(async () => {
-    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải thông tin kỳ báo cáo...")
+    startGlobalLoading()
+    setIsLoadingInitial(true)
     try {
       setError(null)
 
@@ -89,16 +90,17 @@ export default function ReportPeriodsPage() {
       console.error('Error loading initial data:', error)
       setError('Failed to load data')
     } finally {
-      stopLoading()
+      setIsLoadingInitial(false)
+      stopGlobalLoading()
     }
-  }, [startPageTransition, stopLoading])
+  }, [startGlobalLoading, stopGlobalLoading])
 
   const loadClassProgress = useCallback(async () => {
     if (!selectedPeriod) return
 
     try {
       // ðŸ“Š Use section loading for non-blocking progress loading
-      setSectionLoading(prev => ({ ...prev, progress: true }))
+      startProgressLoading()
       const classBlockFilter = selectedClassBlock === "all-blocks" ? undefined : selectedClassBlock
       const result = await getClassProgressAction(
         selectedPeriod,
@@ -114,9 +116,9 @@ export default function ReportPeriodsPage() {
       console.error('Error loading class progress:', error)
       toast.error('Failed to load class progress')
     } finally {
-      setSectionLoading(prev => ({ ...prev, progress: false }))
+      stopProgressLoading()
     }
-  }, [selectedPeriod, selectedClassBlock])
+  }, [selectedPeriod, selectedClassBlock, startProgressLoading, stopProgressLoading])
 
   const handleCreateSuccess = useCallback(async () => {
     setShowCreateForm(false)
@@ -170,7 +172,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    setSendingNotifications(true)
+    startSendingNotifications()
     try {
       const result = await sendTeacherRemindersAction(selectedPeriod, incompleteClasses)
 
@@ -183,9 +185,9 @@ export default function ReportPeriodsPage() {
       console.error('Error sending notifications:', error)
       toast.error('Có lỗi xảy ra khi gửi thông báo')
     } finally {
-      setSendingNotifications(false)
+      stopSendingNotifications()
     }
-  }, [incompleteClasses, selectedPeriod])
+  }, [incompleteClasses, selectedPeriod, startSendingNotifications, stopSendingNotifications])
 
   const handleBulkSendReports = useCallback(async () => {
     if (!selectedPeriod) {
@@ -202,7 +204,7 @@ export default function ReportPeriodsPage() {
       }
     }
 
-    setBulkSending(true)
+    startBulkSending()
     try {
       const result = await adminBulkSendReportsAction(selectedPeriod)
 
@@ -216,9 +218,9 @@ export default function ReportPeriodsPage() {
       console.error('Error bulk sending reports:', error)
       toast.error('Có lỗi xảy ra khi gửi báo cáo')
     } finally {
-      setBulkSending(false)
+      stopBulkSending()
     }
-  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress])
+  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress, startBulkSending, stopBulkSending])
 
   // Generate student reports handler
   const handleGenerateReports = useCallback(async () => {
@@ -227,7 +229,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    setGeneratingReports(true)
+    startGeneratingReports()
     try {
       const result = await generateStudentReportsAction(selectedPeriod)
 
@@ -241,9 +243,9 @@ export default function ReportPeriodsPage() {
       console.error('Error generating reports:', error)
       toast.error('Có lỗi xảy ra khi tạo báo cáo học sinh')
     } finally {
-      setGeneratingReports(false)
+      stopGeneratingReports()
     }
-  }, [selectedPeriod, loadClassProgress])
+  }, [selectedPeriod, loadClassProgress, startGeneratingReports, stopGeneratingReports])
 
   // Reset reports to draft handler (for testing)
   const handleResetReports = useCallback(async () => {
@@ -252,7 +254,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    setResettingReports(true)
+    startResettingReports()
     try {
       const result = await resetReportsToDraftAction(selectedPeriod)
 
@@ -266,9 +268,9 @@ export default function ReportPeriodsPage() {
       console.error('Error resetting reports:', error)
       toast.error('Có lỗi xảy ra khi reset báo cáo')
     } finally {
-      setResettingReports(false)
+      stopResettingReports()
     }
-  }, [selectedPeriod, loadClassProgress])
+  }, [selectedPeriod, loadClassProgress, startResettingReports, stopResettingReports])
 
   // Memoized toggle handler to prevent unnecessary re-renders
   const handleTestModeToggle = useCallback((checked: boolean) => {
@@ -297,7 +299,7 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, selectedClassBlock, loadClassProgress])
 
-  if (coordinatedLoading.isLoading && reportPeriods.length === 0) {
+  if (isLoadingInitial && reportPeriods.length === 0) {
     return (
       <div className="p-6">
         <div className="space-y-6">
@@ -309,7 +311,7 @@ export default function ReportPeriodsPage() {
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
                   <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-8 md:h-9 lg:h-10 bg-gray-200 rounded w-1/2"></div>
                 </CardContent>
               </Card>
             ))}
@@ -457,12 +459,12 @@ export default function ReportPeriodsPage() {
                   </div>
                   <Button
                     onClick={handleBulkSendReports}
-                    disabled={bulkSending || stats.total === 0 || (!testModeEnabled && stats.incomplete > 0)}
+                    disabled={isBulkSending || stats.total === 0 || (!testModeEnabled && stats.incomplete > 0)}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {bulkSending ? (
+                    {isBulkSending ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <Skeleton className="h-4 w-4 rounded-full" />
                         Đang gửi...
                       </>
                     ) : (
@@ -482,12 +484,12 @@ export default function ReportPeriodsPage() {
                     </div>
                     <Button
                       onClick={handleGenerateReports}
-                      disabled={generatingReports}
+                      disabled={isGeneratingReports}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      {generatingReports ? (
+                      {isGeneratingReports ? (
                         <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          <Skeleton className="h-4 w-4 rounded-full" />
                           Đang tạo...
                         </>
                       ) : (
@@ -508,12 +510,12 @@ export default function ReportPeriodsPage() {
                     </div>
                     <Button
                       onClick={handleResetReports}
-                      disabled={resettingReports}
+                      disabled={isResettingReports}
                       className="bg-yellow-600 hover:bg-yellow-700"
                     >
-                      {resettingReports ? (
+                      {isResettingReports ? (
                         <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          <Skeleton className="h-4 w-4 rounded-full" />
                           Đang reset...
                         </>
                       ) : (
@@ -534,13 +536,13 @@ export default function ReportPeriodsPage() {
                     </div>
                     <Button
                       onClick={handleSendNotifications}
-                      disabled={sendingNotifications}
+                      disabled={isSendingNotifications}
                       variant="outline"
                       className="text-orange-600 border-orange-600 hover:bg-orange-50"
                     >
-                      {sendingNotifications ? (
+                      {isSendingNotifications ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                          <Skeleton className="h-4 w-4 rounded-full" />
                           Đang gửi...
                         </>
                       ) : (
@@ -567,7 +569,7 @@ export default function ReportPeriodsPage() {
                     <p className="text-sm font-medium text-muted-foreground">Tổng số lớp</p>
                     <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
-                  <Users className="h-8 w-8 text-blue-500" />
+                  <Users className="h-8 md:h-9 lg:h-10 w-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
@@ -579,7 +581,7 @@ export default function ReportPeriodsPage() {
                     <p className="text-sm font-medium text-muted-foreground">Hoàn thành</p>
                     <p className="text-2xl font-bold text-green-600">{stats.complete}</p>
                   </div>
-                  <CheckCircle className="h-8 w-8 text-green-500" />
+                  <CheckCircle className="h-8 md:h-9 lg:h-10 w-8 text-green-500" />
                 </div>
               </CardContent>
             </Card>
@@ -591,7 +593,7 @@ export default function ReportPeriodsPage() {
                     <p className="text-sm font-medium text-muted-foreground">Chưa hoàn thành</p>
                     <p className="text-2xl font-bold text-red-600">{stats.incomplete}</p>
                   </div>
-                  <AlertCircle className="h-8 w-8 text-red-500" />
+                  <AlertCircle className="h-8 md:h-9 lg:h-10 w-8 text-red-500" />
                 </div>
               </CardContent>
             </Card>
@@ -607,7 +609,7 @@ export default function ReportPeriodsPage() {
             <CardContent>
               <ClassProgressTable
                 data={filteredClassProgress}
-                loading={sectionLoading.progress}
+                loading={isProgressLoading}
               />
             </CardContent>
           </Card>

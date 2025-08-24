@@ -1,31 +1,37 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Plus, Users, UserPlus, RefreshCw, GraduationCap, Edit } from "lucide-react"
+import { Plus, Users, UserPlus, GraduationCap, Edit, Calendar } from "lucide-react"
 import { UserTable } from "@/features/admin-management/components/admin/user-table"
 import { StudentParentForm } from "@/features/admin-management/components/admin/student-parent-form"
 import { getStudentsWithParentsAction } from "@/features/admin-management/actions/user-actions"
 import { type StudentWithParent, type UserFilters, type TeacherProfile } from "@/lib/validations/user-validations"
 
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 export default function StudentsPageClient() {
   const [students, setStudents] = useState<StudentWithParent[]>([])
-  const [loading, setLoading] = useState(true)
+  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách học sinh...")
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<UserFilters>({ page: 1, limit: 10 })
-
+  
   // Dialog states
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingStudent, setEditingStudent] = useState<StudentWithParent | null>(null)
 
   const fetchStudents = useCallback(async () => {
-    setLoading(true)
+    // Chỉ start loading nếu chưa có data
+    if (students.length === 0) {
+      startLoading()
+    }
     setError(null)
 
     try {
@@ -41,9 +47,9 @@ export default function StudentsPageClient() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách học sinh")
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [filters])
+  }, [filters, startLoading, stopLoading, students.length])
 
   useEffect(() => {
     fetchStudents()
@@ -91,8 +97,48 @@ export default function StudentsPageClient() {
 
   if (loading && students.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-end">
+          <Skeleton className="h-10 w-48" />
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-40" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Table Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -102,7 +148,7 @@ export default function StudentsPageClient() {
       {/* Thanh công cụ */}
       <div className="flex items-center justify-end">
         <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
-          <UserPlus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           Thêm Học sinh & Phụ huynh
         </Button>
       </div>
@@ -155,12 +201,12 @@ export default function StudentsPageClient() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Mới trong tháng</CardTitle>
-            <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">
-              {newThisMonth.length}
-            </div>
+                         <div className="text-lg sm:text-2xl font-bold">
+               {newThisMonth.length}
+             </div>
             <p className="text-xs text-muted-foreground">
               Học sinh được thêm trong tháng này
             </p>
@@ -186,16 +232,16 @@ export default function StudentsPageClient() {
       )}
 
       {/* Students Table */}
-      <UserTable
-        users={students}
-        userType="student"
-        total={total}
-        currentPage={currentPage}
-        limit={filters.limit}
-        onPageChange={handlePageChange}
-        onFiltersChange={handleFiltersChange}
-        onEdit={handleEdit}
-      />
+             <UserTable
+         users={students}
+         userType="student"
+         total={total}
+         currentPage={currentPage}
+         limit={filters.limit}
+         onPageChange={handlePageChange}
+         onFiltersChange={handleFiltersChange}
+         onEdit={handleEdit}
+       />
 
       {/* Create Student & Parent Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -203,10 +249,10 @@ export default function StudentsPageClient() {
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Add New Student & Parent</DialogTitle>
           </DialogHeader>
-          <StudentParentForm
-            onSuccess={handleCreateSuccess}
-            onCancel={() => setShowCreateDialog(false)}
-          />
+                     <StudentParentForm
+             onSuccess={handleCreateSuccess}
+             onCancel={() => setShowCreateDialog(false)}
+           />
         </DialogContent>
       </Dialog>
 
@@ -220,15 +266,15 @@ export default function StudentsPageClient() {
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (
-            <StudentParentForm
-              editMode={true}
-              initialData={editingStudent}
-              onSuccess={handleEditSuccess}
-              onCancel={() => {
-                setShowEditDialog(false)
-                setEditingStudent(null)
-              }}
-            />
+                         <StudentParentForm
+               editMode={true}
+               initialData={editingStudent}
+               onSuccess={handleEditSuccess}
+               onCancel={() => {
+                 setShowEditDialog(false)
+                 setEditingStudent(null)
+               }}
+             />
           )}
         </DialogContent>
       </Dialog>

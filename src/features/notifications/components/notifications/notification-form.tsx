@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -9,7 +9,8 @@ import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
-import { Upload, X, Send, Loader2, FileText, Image as ImageIcon } from 'lucide-react'
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { Upload, X, Send, FileText, Image as ImageIcon } from 'lucide-react'
 import {
   createNotificationAction,
   getNotificationTargetOptions,
@@ -263,7 +264,7 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
     return (
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="flex items-center justify-center p-8">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
           <span className="ml-2">Đang tải thông báo...</span>
         </CardContent>
       </Card>
@@ -336,7 +337,7 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
                     alt="Xem trước"
                     width={80}
                     height={80}
-                    className="w-20 h-20 object-cover rounded-lg"
+                    className="w-20 md:w-24 lg:w-28 h-20 object-cover rounded-lg"
                   />
                   <Button
                     type="button"
@@ -494,7 +495,7 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
             >
               {loading || uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   {uploading ? 'Đang tải lên...' : 'Đang gửi...'}
                 </>
               ) : (

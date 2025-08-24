@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -10,11 +10,12 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 import { Button } from "@/shared/components/ui/button"
-import { CalendarDays, RefreshCw } from "lucide-react"
+import { CalendarDays,  } from "lucide-react"
 import { format, endOfWeek } from 'date-fns'
 import { getWeekStartDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
 
-// Shared types for academic filters
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Shared types for academic filters
 export interface AcademicYear {
   id: string
   name: string
@@ -200,7 +201,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
           </CardTitle>
           {showRefreshButton && onRefresh && (
             <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading || isLoadingData}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${(loading || isLoadingData) ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
           )}

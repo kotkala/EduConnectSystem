@@ -1,11 +1,6 @@
 import { cn } from "@/lib/utils"
-import { memo } from "react"
 
-interface SkeletonProps extends React.ComponentProps<"div"> {
-  readonly className?: string
-}
-
-const Skeleton = memo<SkeletonProps>(({ className, ...props }) => {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"
@@ -13,8 +8,6 @@ const Skeleton = memo<SkeletonProps>(({ className, ...props }) => {
       {...props}
     />
   )
-})
-
-Skeleton.displayName = "Skeleton"
+}
 
 export { Skeleton }

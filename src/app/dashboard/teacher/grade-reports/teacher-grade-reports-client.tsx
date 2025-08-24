@@ -1,8 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -12,7 +11,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Send, Users, FileText, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getHomeroomSubmittedGradesAction, sendGradeReportsToParentsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
@@ -65,9 +64,7 @@ interface GradeReportingPeriod {
 }
 
 export default function TeacherGradeReportsClient() {
-  // 🚀 MIGRATION: Replace loading state with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
 
   const [students, setStudents] = useState<StudentRecord[]>([])
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
@@ -172,7 +169,7 @@ export default function TeacherGradeReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [selectedPeriod, students.length, startPageTransition, stopLoading])
+  }, [selectedPeriod, students.length])
 
   // Load periods on mount
   useEffect(() => {
@@ -249,7 +246,7 @@ export default function TeacherGradeReportsClient() {
     if (coordinatedLoading.isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <LoadingSpinner size="lg" />
+          <SandyLoading size="lg" />
           <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
         </div>
       )
@@ -359,7 +356,7 @@ export default function TeacherGradeReportsClient() {
         >
           {sectionLoading.sendingToAllParents ? (
             <>
-              <LoadingSpinner size="sm" />
+              <SandyLoading size="sm" />
               Đang gửi...
             </>
           ) : (

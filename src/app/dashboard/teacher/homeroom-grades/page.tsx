@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Label } from "@/shared/components/ui/label"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   RefreshCw,
   Users,
   BookOpen,
@@ -244,7 +245,7 @@ export default function HomeroomGradesPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadGradeData} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <Skeleton className="h-32 w-full rounded-lg" />
             Làm mới
           </Button>
           <Button 
@@ -295,7 +296,7 @@ export default function HomeroomGradesPage() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <p className="text-lg">Đang tải dữ liệu điểm số...</p>
           </div>
         </div>
@@ -430,7 +431,7 @@ export default function HomeroomGradesPage() {
       {!loading && gradeData.length === 0 && !error && (
         <Card>
           <CardContent className="text-center py-12">
-            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <BookOpen className="mx-auto h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">Chưa có dữ liệu điểm</h3>
             <p className="text-muted-foreground mb-4">
               Chưa có dữ liệu điểm số cho kỳ báo cáo đã chọn

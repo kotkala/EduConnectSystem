@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -8,9 +8,9 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Loader2 } from "lucide-react"
 import { createAcademicYearAction, updateAcademicYearAction } from "@/features/admin-management/actions/academic-actions"
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   academicYearSchema, 
   updateAcademicYearSchema,
   type AcademicYearFormData,
@@ -219,7 +219,7 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
           disabled={isSubmitting}
           className="flex-1 h-10 sm:h-11"
         >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
           <span className="text-sm sm:text-base">
             {isEditing ? "Cập nhật niên khóa" : "Tạo niên khóa"}
           </span>

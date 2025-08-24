@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
@@ -7,14 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Plus, Calendar, Clock, RefreshCw, BookOpen, AlertCircle } from "lucide-react"
+import { Plus, Calendar, Clock, BookOpen, AlertCircle } from "lucide-react"
 import { AcademicTable } from "@/features/admin-management/components/admin/academic-table"
 import { AcademicYearForm } from "@/features/admin-management/components/admin/academic-year-form"
 import { SemesterForm } from "@/features/admin-management/components/admin/semester-form"
 
 import { useAuth } from "@/features/authentication/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,
@@ -166,7 +167,7 @@ export default function AcademicManagementPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <Skeleton className="h-32 w-full rounded-lg" />
         </div>
       </div>
     )
@@ -177,7 +178,7 @@ export default function AcademicManagementPage() {
     return (
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
           <p className="text-gray-600">Bạn không có quyền truy cập khu vực Niên khóa.</p>
           <Button onClick={() => router.push('/dashboard/admin')}>
@@ -192,7 +193,7 @@ export default function AcademicManagementPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
         </div>
       </div>
     )

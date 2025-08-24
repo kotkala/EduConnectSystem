@@ -15,7 +15,7 @@ export const studentGradeSubmissionSchema = z.object({
   notes: z.string().max(500, "Notes must be 500 characters or less").optional()
 })
 
-export const updateStudentGradeSubmissionSchema = studentGradeSubmissionSchema.extend({
+export const updateStudentGradeSubmissionSchema = studentGradeSubmissionSchema.safeExtend({
   id: z.string().uuid("Invalid submission ID"),
   status: z.enum(gradeSubmissionStatuses).optional()
 })

@@ -20,7 +20,7 @@ import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
 // ðŸš€ MIGRATION: Replace LoadingFallback with coordinated system
-import { usePageTransition, useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 
 interface Profile {
   id: string
@@ -57,8 +57,7 @@ interface RecentActivity {
 
 export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: Profile }>) {
   // ðŸš€ MIGRATION: Replace useState loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
   
   const [stats, setStats] = useState<WeeklyStats>({
     totalClasses: 0,
@@ -226,7 +225,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
     } finally {
       stopLoading()
     }
-  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startPageTransition, stopLoading])
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities])
 
   useEffect(() => {
     loadDashboardData()

@@ -21,7 +21,8 @@ import {
 } from '@/features/notifications/actions/notification-actions'
 import { NotificationForm } from '@/features/notifications/components/notifications/notification-form'
 
-export default function NotificationDetailPage() {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";export default function NotificationDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { user, profile } = useAuth()
@@ -100,7 +101,7 @@ export default function NotificationDetailPage() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span className="ml-2">Đang tải thông báo...</span>
           </div>
         </div>
@@ -186,7 +187,7 @@ export default function NotificationDetailPage() {
           {/* Header */}
           <div className="p-8 border-b border-gray-100">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-12 md:h-14 lg:h-16 w-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Bell className="h-6 w-6 text-orange-600" />
               </div>
               <div className="flex-1">

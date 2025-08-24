@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -23,9 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
-import { UserCheck, UserPlus, Loader2, Mail, Phone, MapPin } from "lucide-react"
+import { UserCheck, UserPlus, Mail, Phone, MapPin } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   getHomeroomEnabledTeachersAction,
   updateHomeroomTeacherAction
 } from "@/features/admin-management/actions/class-actions"
@@ -142,7 +143,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
             <div className="space-y-6">
               {/* Current Homeroom Teacher Info */}
               <div className="flex items-start gap-4 p-4 border rounded-lg bg-green-50">
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-16 w-16 md:w-20 lg:w-24">
                   <AvatarImage src="" alt={currentHomeroomTeacher} />
                   <AvatarFallback className="text-lg font-bold bg-green-100 text-green-700">
                     {currentHomeroomTeacher.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -186,7 +187,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
             </div>
           ) : (
             <div className="text-center py-12">
-              <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <UserCheck className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 No Homeroom Teacher Assigned
               </h3>
@@ -235,7 +236,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               </Select>
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   Loading teachers...
                 </div>
               )}
@@ -254,7 +255,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                   const loadingText = currentHomeroomTeacher ? "Changing..." : "Assigning..."
                   return (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       {loadingText}
                     </>
                   )

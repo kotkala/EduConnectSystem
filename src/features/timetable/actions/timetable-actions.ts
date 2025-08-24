@@ -18,7 +18,7 @@ const timetableEventSchema = z.object({
   notes: z.string().optional()
 })
 
-const updateTimetableEventSchema = timetableEventSchema.partial().extend({
+const updateTimetableEventSchema = timetableEventSchema.partial().safeExtend({
   id: z.string().min(1)
 })
 

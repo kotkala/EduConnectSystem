@@ -6,9 +6,11 @@ import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   getParentLeaveApplicationsAction,
   type LeaveApplication
 } from '@/lib/actions/leave-application-actions'
@@ -98,7 +100,13 @@ export default function LeaveApplicationPage() {
     return (
       <SidebarLayout role="parent" title="Đơn xin nghỉ">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+              <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+            </div>
+          </div>
         </div>
       </SidebarLayout>
     )
@@ -109,7 +117,7 @@ export default function LeaveApplicationPage() {
     return (
       <SidebarLayout role="parent" title="Từ chối truy cập">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
           <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/parent')}>
@@ -157,11 +165,17 @@ export default function LeaveApplicationPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+                    <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+                  </div>
+                </div>
               </div>
             ) : leaveApplications.length === 0 ? (
               <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <FileText className="h-12 md:h-14 lg:h-16 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ nào</h3>
                 <p className="text-gray-500 mb-4">Bạn chưa tạo đơn xin nghỉ nào cho con em mình.</p>
                 <Button onClick={handleCreateNew} className="flex items-center gap-2">

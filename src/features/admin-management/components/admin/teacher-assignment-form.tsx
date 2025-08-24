@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
@@ -6,8 +6,8 @@ import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
-import { Loader2, UserPlus } from 'lucide-react'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { UserPlus } from "lucide-react";import {
   getAvailableSubjectsForClassAction,
   getAvailableTeachersForSubjectAction,
   assignTeacherToClassSubjectAction,
@@ -316,7 +316,7 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
           >
             {submitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <span className="text-sm sm:text-base">Assigning Teacher...</span>
               </>
             ) : (

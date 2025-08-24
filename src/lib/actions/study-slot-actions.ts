@@ -18,7 +18,7 @@ const studySlotSchema = z.object({
   notes: z.string().optional()
 })
 
-const updateStudySlotSchema = studySlotSchema.partial().extend({
+const updateStudySlotSchema = studySlotSchema.partial().safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i)
 })
 

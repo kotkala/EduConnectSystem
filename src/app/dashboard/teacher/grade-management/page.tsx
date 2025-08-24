@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useMemo, useCallback } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Download,
   Upload,
-  RefreshCw,
   Eye,
   Send
 } from "lucide-react"
@@ -21,7 +20,8 @@ import { TeacherGradeImportDialog } from "@/shared/components/teacher/teacher-gr
 import { TeacherGradeTrackingDialog } from "@/shared/components/teacher/teacher-grade-tracking-dialog"
 import { TeacherGradeOverview } from "@/shared/components/teacher/teacher-grade-overview"
 
-// Import StudentGrade type from the overview component
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Import StudentGrade type from the overview component
 interface StudentGrade {
   id: string
   studentId: string
@@ -327,7 +327,7 @@ export default function TeacherGradeManagementPage() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
             <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
           </div>

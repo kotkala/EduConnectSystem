@@ -1,21 +1,23 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Plus, Building, Users, Settings, RefreshCw } from "lucide-react"
+import { Plus, Building2, Users, Monitor } from "lucide-react"
 import { ClassroomTable } from "@/features/admin-management/components/admin/classroom-table"
 import { ClassroomForm } from "@/features/admin-management/components/admin/classroom-form"
+import { getClassroomsAction } from "@/features/admin-management/actions/classroom-actions"
+import { type Classroom, type ClassroomFilters } from "@/lib/validations/classroom-validations"
 
-import { getClassroomsAction, type Classroom } from "@/features/admin-management/actions/classroom-actions"
-import { type ClassroomFilters } from "@/lib/validations/timetable-validations"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
 
 export default function ClassroomsPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách phòng học...")
   const [error, setError] = useState<string | null>(null)
   
   // Dialog states
@@ -28,10 +30,8 @@ export default function ClassroomsPage() {
     limit: 10
   })
 
-
-
   const loadClassrooms = useCallback(async () => {
-    setLoading(true)
+    startLoading()
     setError(null)
     
     try {
@@ -45,9 +45,9 @@ export default function ClassroomsPage() {
     } catch {
       setError('Không thể tải danh sách phòng học')
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [filters])
+  }, [filters, startLoading, stopLoading])
 
   useEffect(() => {
     loadClassrooms()
@@ -101,7 +101,7 @@ export default function ClassroomsPage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span className="hidden sm:inline">Làm mới</span>
             <span className="sm:hidden">Làm mới</span>
           </Button>
@@ -117,7 +117,7 @@ export default function ClassroomsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">Tổng số phòng học</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+            <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{total}</div>
@@ -143,7 +143,7 @@ export default function ClassroomsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">Loại phòng</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{roomTypes}</div>

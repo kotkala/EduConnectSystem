@@ -21,7 +21,7 @@ const reportPeriodSchema = z.object({
   path: ["end_date"]
 })
 
-const updateReportPeriodSchema = reportPeriodSchema.extend({
+const updateReportPeriodSchema = reportPeriodSchema.safeExtend({
   id: z.string().uuid('Invalid report period ID')
 })
 

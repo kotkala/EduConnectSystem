@@ -1,10 +1,11 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -18,7 +19,6 @@ import {
   MapPin,
   User,
   Users,
-  Loader2,
   Eye,
   CheckCircle
 } from 'lucide-react'
@@ -145,7 +145,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -155,7 +155,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       return (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Calendar className="h-12 w-12 text-gray-400 mb-4" />
+            <Calendar className="h-12 md:h-14 lg:h-16 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lịch họp</h3>
             <p className="text-gray-600 text-center">
               Bạn chưa nhận được lịch họp nào từ giáo viên chủ nhiệm
@@ -274,7 +274,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
           </p>
         </div>
         <Button onClick={loadMeetingSchedules} disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
           Làm mới
         </Button>
       </div>

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -13,7 +13,7 @@ import {
   CheckCircle,
   XCircle,
   RotateCcw,
-  RefreshCw
+  
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -21,7 +21,8 @@ import { GradePeriodTable } from "@/shared/components/admin/grade-period-table"
 import { GradePeriodForm } from "@/shared/components/admin/grade-period-form"
 import { GradePeriodStatusDialog } from "@/shared/components/admin/grade-period-status-dialog"
 
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   getEnhancedGradeReportingPeriodsAction,
   updateGradeReportingPeriodStatusAction
 } from "@/lib/actions/enhanced-grade-actions"
@@ -174,7 +175,7 @@ export default function GradePeriodsPage() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
             <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
             <Button onClick={handleCreatePeriod} className="w-full sm:w-auto">

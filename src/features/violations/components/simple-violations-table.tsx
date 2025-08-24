@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -19,7 +19,8 @@ import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSeverityLevels } from '@/lib/validations/violation-validations'
 
-// Simple types matching database structure
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Simple types matching database structure
 interface ViolationRecord {
   id: string
   student_id: string
@@ -67,7 +68,7 @@ function renderViolationsContent(
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <Skeleton className="h-32 w-full rounded-lg" />
         <p className="text-muted-foreground">Đang tải vi phạm...</p>
       </div>
     )
@@ -76,7 +77,7 @@ function renderViolationsContent(
   if (violations.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <FileText className="h-12 md:h-14 lg:h-16 w-12 mx-auto mb-4 opacity-50" />
         <p>Chưa có vi phạm nào được ghi nhận</p>
       </div>
     )

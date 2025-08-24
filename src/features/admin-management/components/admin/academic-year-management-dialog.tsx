@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
 import {
@@ -18,7 +18,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  RefreshCw,
   AlertCircle,
   BookOpen
 } from 'lucide-react'
@@ -26,7 +25,8 @@ import {
 import { AcademicYearForm } from '@/features/admin-management/components/admin/academic-year-form'
 import { SemesterForm } from '@/features/admin-management/components/admin/semester-form'
 import { AcademicDeleteDialog } from '@/features/admin-management/components/admin/academic-delete-dialog'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   getAcademicYearsAction,
   getSemestersAction
 } from '@/features/admin-management/actions/academic-actions'
@@ -244,7 +244,7 @@ export function AcademicYearManagementDialog({
               disabled={loading}
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
           </div>

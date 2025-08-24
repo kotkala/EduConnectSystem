@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
-import { AlertTriangle, RefreshCw, Send } from 'lucide-react'
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { AlertTriangle, RefreshCw, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface OutdatedReportsAlertProps {
@@ -79,7 +80,7 @@ export default function OutdatedReportsAlert({
   if (isLoading) {
     return (
       <Alert className="border-blue-200 bg-blue-50">
-        <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
+        <Skeleton className="h-32 w-full rounded-lg" />
         <AlertTitle className="text-blue-800">Đang kiểm tra báo cáo cần cập nhật...</AlertTitle>
         <AlertDescription className="text-blue-700">
           Vui lòng đợi trong giây lát
@@ -125,7 +126,7 @@ export default function OutdatedReportsAlert({
               className="flex items-center gap-2"
             >
               {isResending ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
               ) : (
                 <Send className="h-4 w-4" />
               )}

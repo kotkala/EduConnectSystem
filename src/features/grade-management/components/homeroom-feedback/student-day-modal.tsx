@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import {
@@ -21,12 +21,13 @@ import {
   Sparkles,
   Eye,
   EyeOff,
-  Loader2
+  
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Label } from "@/shared/components/ui/label"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { toast } from "sonner"
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { toast } from "sonner"
 import {
   getStudentDayScheduleWithFeedbackAction,
   type StudentWeeklySchedule,
@@ -328,7 +329,7 @@ export function StudentDayModal({
           {loading && (
             <Card>
               <CardContent className="py-8 text-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="mt-2 text-sm text-muted-foreground">Đang tải lịch học...</p>
               </CardContent>
             </Card>
@@ -448,7 +449,7 @@ export function StudentDayModal({
               <CardContent className="py-12 text-center">
                 <div className="space-y-4">
                   <div className="p-4 bg-muted/50 rounded-full w-fit mx-auto">
-                    <Calendar className="h-8 w-8 text-muted-foreground" />
+                    <Calendar className="h-8 md:h-9 lg:h-10 w-8 text-muted-foreground" />
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold">Không Có Tiết Học</h3>
@@ -480,7 +481,7 @@ export function StudentDayModal({
                     >
                       {generatingAiSummary ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <Skeleton className="h-32 w-full rounded-lg" />
                           Đang tạo...
                         </>
                       ) : (
@@ -572,7 +573,7 @@ export function StudentDayModal({
                 >
                   {sendingDailyFeedback ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       Đang gửi...
                     </>
                   ) : (

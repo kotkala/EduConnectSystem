@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 // ðŸš€ MIGRATION: Add coordinated loading system
-import { usePageTransition /* , useCoordinatedLoading */ } from '@/shared/hooks/use-coordinated-loading'
+
 import { 
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
@@ -36,8 +36,7 @@ export default function TeacherLeaveRequestsPage() {
   const { user, profile } = useAuth()
   
   // ðŸš€ MIGRATION: Replace isLoading with coordinated system  
-  const { startPageTransition, stopLoading } = usePageTransition()
-  // const coordinatedLoading = useCoordinatedLoading() // Unused variable
+
   
   const [applications, setApplications] = useState<LeaveApplication[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +78,7 @@ export default function TeacherLeaveRequestsPage() {
     } finally {
       stopLoading()
     }
-  }, [currentPage, pageSize, startPageTransition, stopLoading]) // âœ… Add all dependencies
+  }, [currentPage, pageSize]) // âœ… Add all dependencies
 
   useEffect(() => {
     if (user && profile?.role === 'teacher') {

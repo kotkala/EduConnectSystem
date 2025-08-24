@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -11,7 +11,8 @@ import { type EnhancedGradeReportingPeriod } from "@/lib/validations/enhanced-gr
 import { createEnhancedGradeReportingPeriodAction } from "@/features/grade-management/actions/enhanced-grade-actions"
 import { createClient } from "@/lib/supabase/client"
 
-interface AcademicYear {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface AcademicYear {
   id: string
   name: string
   is_current: boolean
@@ -148,7 +149,7 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <Skeleton className="h-32 w-full rounded-lg" />
           <p>Đang tải dữ liệu...</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -35,7 +35,8 @@ import { toast } from "sonner"
 import { format, endOfWeek } from 'date-fns'
 import { getWeekStartDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
 
-interface WeekOption {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface WeekOption {
   number: number
   startDate: Date
   endDate: Date
@@ -399,7 +400,7 @@ export default function ParentFeedbackDashboard() {
       {loading && (
         <Card>
           <CardContent className="py-8 text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+            <Skeleton className="h-32 w-full rounded-lg" />
             <p className="mt-2 text-sm text-muted-foreground">Đang tải phản hồi...</p>
           </CardContent>
         </Card>
@@ -422,7 +423,7 @@ export default function ParentFeedbackDashboard() {
               {/* Student Header */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-6 border border-blue-200/50 dark:border-blue-800/50">
                 <div className="flex items-center space-x-4">
-                  <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
+                  <Avatar className="h-16 w-16 md:w-20 lg:w-24 border-4 border-white shadow-lg">
                     <AvatarImage src={student.student_avatar_url || undefined} alt={student.student_name} />
                     <AvatarFallback className="text-xl font-bold bg-blue-500 text-white">
                       {getInitials(student.student_name)}
@@ -590,7 +591,7 @@ export default function ParentFeedbackDashboard() {
                           </div>
                         ) : (
                           <div className="text-center py-8">
-                            <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                            <MessageSquare className="h-12 md:h-14 lg:h-16 w-12 text-gray-300 mx-auto mb-3" />
                             <p className="text-gray-500 text-sm">Chưa có phản hồi</p>
                           </div>
                         )}
@@ -609,7 +610,7 @@ export default function ParentFeedbackDashboard() {
         <div className="text-center py-16">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-12 max-w-md mx-auto">
             <div className="bg-blue-100 dark:bg-blue-900/50 rounded-full p-6 w-fit mx-auto mb-6">
-              <MessageSquare className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+              <MessageSquare className="h-12 md:h-14 lg:h-16 w-12 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               Chưa Có Phản Hồi

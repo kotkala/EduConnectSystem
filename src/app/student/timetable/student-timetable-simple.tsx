@@ -4,22 +4,21 @@ import { useState, useEffect, useCallback } from 'react'
 import dynamic from "next/dynamic"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
-import { Calendar, AlertCircle, RefreshCw } from 'lucide-react'
+import { Calendar, AlertCircle,  } from 'lucide-react'
 import { toast } from 'sonner'
-import { LoadingFallback } from "@/shared/components/ui/loading-fallback"
+import { SandyLoading } from "@/shared/components/ui/sandy-loading"
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "@/features/timetable/components/timetable-calendar/timetable-filters"
 import { getTimetableEventsAction } from "@/features/timetable/actions/timetable-actions"
 import { type CalendarEvent } from "@/features/timetable/components/calendar"
 import { studySlotToCalendarEvent } from "@/features/timetable/components/calendar/mappers"
 
-const EventCalendar = dynamic(
+
+import { Skeleton } from "@/shared/components/ui/skeleton";const EventCalendar = dynamic(
   () => import("@/features/timetable/components/calendar").then((mod) => ({ default: mod.EventCalendar })),
   {
     ssr: false,
     loading: () => (
-      <LoadingFallback size="lg" className="flex items-center justify-center">
-        <span className="sr-only">Loading calendar...</span>
-      </LoadingFallback>
+      <SandyLoading size="lg" message="Đang tải lịch học..." showMessage />
     ),
   }
 )
@@ -142,7 +141,7 @@ export function StudentTimetableSimple() {
           disabled={isLoading}
           className="flex items-center gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Skeleton className="h-32 w-full rounded-lg" />
           Làm mới
         </Button>
       </div>
@@ -181,7 +180,7 @@ export function StudentTimetableSimple() {
         <CardContent>
           {!studentClassInfo ? (
             <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <AlertCircle className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Không thể tải thông tin lớp học</p>
               <Button 
                 onClick={loadStudentClass}

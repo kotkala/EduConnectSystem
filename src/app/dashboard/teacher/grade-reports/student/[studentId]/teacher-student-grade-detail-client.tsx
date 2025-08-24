@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
 
 import { toast } from 'sonner'
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 
 import { getSubmittedStudentGradeDetailsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { createAIFeedbackAction, getAIFeedbackForStudentAction, updateGradeSubmissionFeedbackAction } from '@/lib/actions/enhanced-grade-actions'
@@ -319,7 +319,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <LoadingSpinner size="lg" />
+        <SandyLoading size="lg" />
         <span className="ml-2 text-muted-foreground">Đang tải thông tin học sinh...</span>
       </div>
     )
@@ -385,7 +385,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
         {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <LoadingSpinner />
+            <SandyLoading />
             <span className="ml-2">Đang tải dữ liệu...</span>
           </div>
         )}
@@ -561,7 +561,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isGeneratingFeedback ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <SandyLoading size="sm" />
                   Đang tạo...
                 </>
               ) : (
@@ -579,7 +579,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
               <label className="text-sm font-medium">Nội dung đánh giá</label>
               {isLoadingFeedback && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <LoadingSpinner size="sm" />
+                  <SandyLoading size="sm" />
                   Đang tải...
                 </div>
               )}
@@ -607,7 +607,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isSavingFeedback ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <SandyLoading size="sm" />
                   Đang lưu...
                 </>
               ) : (

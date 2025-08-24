@@ -14,13 +14,11 @@ const EventCalendar = dynamic(
   {
     ssr: false,
     loading: () => (
-      <LoadingFallback size="lg" className="flex items-center justify-center">
-        <span className="sr-only">Loading calendar...</span>
-      </LoadingFallback>
+      <SandyLoading size="lg" message="Đang tải lịch học..." showMessage />
     ),
   }
 );
-import { LoadingFallback } from "@/shared/components/ui/loading-fallback"
+import { SandyLoading } from "@/shared/components/ui/sandy-loading"
 import { useCalendarContext } from "@/features/timetable/components/calendar";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-calendar/timetable-filters";
 import {

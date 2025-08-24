@@ -2,5 +2,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "educonnect",
         "projectKey": "kotkala_EduConnectSystem"
-    }
+    },
+    "git.ignoreLimitWarning": true
 }

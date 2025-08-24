@@ -14,7 +14,7 @@ export const classBlockSchema = z.object({
   sort_order: z.number().int().min(0).default(0)
 })
 
-export const updateClassBlockSchema = classBlockSchema.partial().extend({
+export const updateClassBlockSchema = classBlockSchema.partial().safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Invalid class block ID')
 })
 

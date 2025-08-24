@@ -26,7 +26,8 @@ import {
 import { toast } from "sonner"
 import { submitFeedback } from "@/lib/actions/chat-history-actions"
 
-interface FeedbackDialogProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface FeedbackDialogProps {
   messageId: string
   parentId: string
   userQuestion: string
@@ -99,7 +100,7 @@ export function FeedbackDialog({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+          className="h-8 md:h-9 lg:h-10 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
         >
           <MessageSquare className="h-3 w-3 mr-1" />
           Đánh giá
@@ -204,7 +205,7 @@ export function FeedbackDialog({
           >
             {isSubmitting ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 Đang gửi...
               </>
             ) : (

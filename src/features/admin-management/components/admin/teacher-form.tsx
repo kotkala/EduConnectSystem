@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -11,12 +11,12 @@ import { Textarea } from "@/shared/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Loader2, Save, X } from "lucide-react"
-import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
+import { Save, X } from "lucide-react";import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
 import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
 import TeacherSpecializationForm from "@/features/teacher-management/components/teacher-specialization-form"
 
-interface TeacherFormProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherFormProps {
   readonly teacher?: TeacherProfile
   readonly onSuccess?: () => void
   readonly onCancel?: () => void
@@ -97,7 +97,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               id="employee_id"
               {...form.register("employee_id")}
               placeholder="VD: EMP001"
-              className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
+              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
             />
             {form.formState.errors.employee_id && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
@@ -111,7 +111,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               id="full_name"
               {...form.register("full_name")}
               placeholder="Nhập họ và tên"
-              className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
+              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
             />
             {form.formState.errors.full_name && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.full_name.message}</p>
@@ -256,7 +256,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
                 </>
               ) : (

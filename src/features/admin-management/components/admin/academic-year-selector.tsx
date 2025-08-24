@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState, memo, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
@@ -17,13 +17,14 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { Badge } from '@/shared/components/ui/badge'
-import { Calendar, ChevronDown, Plus, Settings, Loader2 } from 'lucide-react'
+import { Calendar, ChevronDown, Plus, Settings,  } from 'lucide-react'
 import { useAcademicYear } from '@/providers/academic-year-context'
 import { AcademicYearForm } from '@/features/admin-management/components/admin/academic-year-form'
 import { AcademicYearManagementDialog } from '@/features/admin-management/components/admin/academic-year-management-dialog'
 import { cn } from '@/lib/utils'
 
-interface AcademicYearSelectorProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface AcademicYearSelectorProps {
   className?: string
 }
 
@@ -56,7 +57,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
   if (loading) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Skeleton className="h-32 w-full rounded-lg" />
         <span className="text-sm text-muted-foreground">Đang tải...</span>
       </div>
     )

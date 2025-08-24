@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
@@ -120,7 +121,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <Skeleton className="h-32 w-full rounded-lg" />
             <p className="text-muted-foreground">Đang tải danh sách yêu cầu...</p>
           </div>
         </div>
@@ -140,7 +141,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       {requests.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+            <CheckCircle className="mx-auto h-12 md:h-14 lg:h-16 w-12 text-green-500 mb-4" />
             <h3 className="text-lg font-medium mb-2">Không có yêu cầu nào</h3>
             <p className="text-muted-foreground">
               Hiện tại không có yêu cầu ghi đè điểm nào cần phê duyệt

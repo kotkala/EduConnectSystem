@@ -1,13 +1,14 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,7 +30,6 @@ import {
   GraduationCap,
   CheckCircle,
   AlertCircle,
-  Loader2,
   ThumbsUp,
   ThumbsDown,
   Send,
@@ -59,7 +59,7 @@ interface ReportPeriodOption {
 
 export default function ParentReportsClient() {
   // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
+
   // ðŸ§¹ CLEANUP: Removed unused coordinatedLoading
   
   const [notifications, setNotifications] = useState<ParentReportNotification[]>([])
@@ -150,7 +150,7 @@ export default function ParentReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [pagination.limit, startPageTransition, stopLoading])
+  }, [pagination.limit])
 
   // Load data on component mount
   useEffect(() => {
@@ -247,8 +247,8 @@ export default function ParentReportsClient() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-center h-32 text-red-600">
-            <AlertCircle className="h-8 w-8 mr-2" />
+          <div className="flex items-center justify-center h-32 md:h-40 lg:h-48 text-red-600">
+            <AlertCircle className="h-8 md:h-9 lg:h-10 w-8 mr-2" />
             <span>{error}</span>
           </div>
           <div className="flex justify-center mt-4">
@@ -319,8 +319,8 @@ export default function ParentReportsClient() {
       {filteredNotifications.length === 0 ? (
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-center h-32 text-gray-500">
-              <BookOpen className="h-8 w-8 mr-2" />
+            <div className="flex items-center justify-center h-32 md:h-40 lg:h-48 text-gray-500">
+              <BookOpen className="h-8 md:h-9 lg:h-10 w-8 mr-2" />
               <span>Chưa có báo cáo nào</span>
             </div>
           </CardContent>
@@ -367,7 +367,7 @@ export default function ParentReportsClient() {
                       variant={pageNum === pagination.page ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNum)}
-                      className="w-8 h-8 p-0"
+                      className="w-8 h-8 md:h-9 lg:h-10 p-0"
                     >
                       {pageNum}
                     </Button>
@@ -928,7 +928,7 @@ const ResponseDialog = React.memo(({
             disabled={submitting || !responseForm.agreement_status}
           >
             {submitting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Skeleton className="h-32 w-full rounded-lg" />
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}

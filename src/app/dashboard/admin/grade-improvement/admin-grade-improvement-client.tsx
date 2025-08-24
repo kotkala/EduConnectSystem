@@ -1,8 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -65,7 +64,8 @@ import {
 } from '@/lib/validations/grade-improvement-validations'
 import { getGradeReportingPeriodsAction } from '@/lib/actions/grade-management-actions'
 
-interface GradeReportingPeriod {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeReportingPeriod {
   id: string
   name: string
   start_date: string
@@ -74,8 +74,7 @@ interface GradeReportingPeriod {
 
 export function AdminGradeImprovementClient() {
   // ðŸš€ COORDINATED LOADING: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
 
   // State management
   const [periods, setPeriods] = useState<GradeImprovementPeriod[]>([])
@@ -173,7 +172,7 @@ export function AdminGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [filters, requests.length, startPageTransition, stopLoading])
+  }, [filters, requests.length])
 
   // Initial data loading
   useEffect(() => {
@@ -204,7 +203,7 @@ export function AdminGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [startPageTransition, stopLoading, loadPeriods])
+  }, [loadPeriods])
 
   // Memoized status badge component to prevent re-renders
   const StatusBadge = useMemo(() => {
@@ -385,13 +384,13 @@ export function AdminGradeImprovementClient() {
           {coordinatedLoading.isLoading && periods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : periods.length === 0 ? (
             <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <Calendar className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Chưa có kỳ cải thiện điểm nào</p>
             </div>
           ) : (
@@ -504,13 +503,13 @@ export function AdminGradeImprovementClient() {
           {coordinatedLoading.isLoading && requests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : requests.length === 0 ? (
             <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <MessageSquare className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Không có đơn yêu cầu nào</p>
             </div>
           ) : (

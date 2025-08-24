@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -26,11 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/components/ui/alert-dialog"
-import { UserPlus, Trash2, Search, Loader2, Users } from "lucide-react"
+import { UserPlus, Trash2, Search, Users } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import StudentAssignmentForm from "@/features/admin-management/components/admin/student-assignment-form"
 
-interface ClassStudentsTabProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassStudentsTabProps {
   readonly classId: string
   readonly classData: ClassWithDetails
 }
@@ -119,7 +120,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span>Loading students...</span>
           </div>
         </CardContent>
@@ -226,7 +227,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
                               className="text-red-600 hover:text-red-700"
                             >
                               {removingStudentId === student.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Skeleton className="h-32 w-full rounded-lg" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
                               )}

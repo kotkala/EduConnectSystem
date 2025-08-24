@@ -1,10 +1,16 @@
-export default function Loading() {
-  return (
-    <div className="flex items-center justify-center py-12">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-200 border-t-orange-600"></div>
-        <p className="text-sm text-muted-foreground">Đang tải dashboard...</p>
-      </div>
-    </div>
-  )
+'use client'
+
+import { RouteSandyLoading } from '@/shared/components/ui/sandy-loading'
+import { useLoading } from '@/shared/components/ui/loading-provider'
+
+export default function DashboardLoading() {
+  const { isLoading: isGlobalLoading } = useLoading()
+  
+  // Chỉ hiển thị route loading nếu không có global loading active
+  // Tránh xung đột với global SandyLoading
+  if (isGlobalLoading) {
+    return null
+  }
+  
+  return <RouteSandyLoading message="Đang tải bảng điều khiển..." />
 }

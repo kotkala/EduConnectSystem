@@ -1,13 +1,13 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   CalendarDays,
-  RefreshCw,
   Users,
   BookOpen,
   MessageSquare
@@ -133,7 +133,7 @@ export function HomeroomFeedbackDashboard() {
           </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto" disabled={loading || !hasValidFilters(filters)}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <Skeleton className="h-32 w-full rounded-lg" />
           Làm mới
         </Button>
       </div>
@@ -208,7 +208,7 @@ export function HomeroomFeedbackDashboard() {
       {hasValidFilters(filters) && !loading && !error && students.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <Users className="h-12 md:h-14 lg:h-16 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Không Có Dữ Liệu</h3>
             <p className="text-muted-foreground">
               Không có dữ liệu học sinh cho tuần đã chọn.
@@ -221,7 +221,7 @@ export function HomeroomFeedbackDashboard() {
       {!hasValidFilters(filters) && (
         <Card>
           <CardContent className="py-12 text-center">
-            <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <CalendarDays className="h-12 md:h-14 lg:h-16 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Chọn Bộ Lọc</h3>
             <p className="text-muted-foreground">
               Vui lòng chọn năm học, học kỳ và tuần để xem phản hồi học sinh.

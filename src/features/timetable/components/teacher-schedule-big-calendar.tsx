@@ -10,12 +10,10 @@ import { createClient } from "@/lib/supabase/client";
 const EventCalendar = dynamic(() => import("@/features/timetable/components/calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
-    <LoadingFallback size="lg" className="flex items-center justify-center">
-      <span className="sr-only">Loading calendar...</span>
-    </LoadingFallback>
+          <SandyLoading size="lg" message="Đang tải lịch học..." showMessage />
   )
 });
-import { LoadingFallback } from "@/shared/components/ui/loading-fallback"
+import { SandyLoading } from "@/shared/components/ui/sandy-loading"
 
 // Exchange request components removed
 

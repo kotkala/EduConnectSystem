@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
@@ -11,13 +11,14 @@ import {
   Clock,
   FileText,
   MapPin,
-  Loader2
+  
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { HomeroomMeetingDialog } from '@/features/timetable/components/teacher-timetable/homeroom-meeting-dialog'
 import { getTeacherMeetingSchedulesAction } from '@/features/meetings'
 
-interface TeacherMeetingSchedule {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherMeetingSchedule {
   id: string
   title: string
   description?: string
@@ -104,7 +105,7 @@ export default function TeacherMeetingsPage() {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -113,7 +114,7 @@ export default function TeacherMeetingsPage() {
     if (meetingSchedules.length === 0) {
       return (
         <div className="text-center py-8 text-muted-foreground">
-          <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <Calendar className="h-12 md:h-14 lg:h-16 w-12 mx-auto mb-4 opacity-50" />
           <p>Chưa có lịch họp nào được tạo</p>
           <p className="text-sm">Nhấn &quot;Tạo Lịch Họp&quot; để bắt đầu</p>
         </div>
@@ -294,7 +295,7 @@ export default function TeacherMeetingsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Lịch Họp Đã Tạo</CardTitle>
           <Button variant="outline" onClick={loadMeetingSchedules} disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
             Làm mới
           </Button>
         </CardHeader>

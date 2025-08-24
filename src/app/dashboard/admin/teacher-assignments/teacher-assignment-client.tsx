@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { UserPlus, Users, Calendar } from 'lucide-react'
 import TeacherAssignmentForm from '@/features/admin-management/components/admin/teacher-assignment-form'
 import TeacherAssignmentTable from '@/features/admin-management/components/admin/teacher-assignment-table'
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   getAllTeacherAssignmentsAction,
   type TeacherAssignment
 } from '@/features/teacher-management/actions/teacher-assignment-actions'
@@ -173,7 +174,7 @@ export default function TeacherAssignmentClient({ currentUserId }: TeacherAssign
             <Card>
               <CardContent className="py-8">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   <p className="text-muted-foreground">Loading teacher assignments...</p>
                 </div>
               </CardContent>

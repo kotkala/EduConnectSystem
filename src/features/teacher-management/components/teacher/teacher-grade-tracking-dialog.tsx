@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -16,13 +16,13 @@ import {
   TrendingUp,
   Eye,
   Download,
-  RefreshCw,
   History,
   Clock
 } from "lucide-react"
 import { getGradeHistoryAction } from "@/lib/actions/grade-override-actions"
 
-interface GradeTrackingData {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeTrackingData {
   id: string
   studentId: string
   studentName: string
@@ -327,7 +327,7 @@ export function TeacherGradeTrackingDialog({
           {/* Action Buttons */}
           <div className="flex justify-between items-center">
             <Button variant="outline" onClick={loadGradeData} disabled={loading}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
             <Button variant="outline" onClick={exportGradeData}>
@@ -348,7 +348,7 @@ export function TeacherGradeTrackingDialog({
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p>Đang tải dữ liệu điểm số...</p>
               </div>
             </div>
@@ -567,7 +567,7 @@ export function TeacherGradeTrackingDialog({
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Lịch sử thay đổi điểm</h3>
                   <Button variant="outline" onClick={loadGradeHistory} disabled={historyLoading}>
-                    <RefreshCw className={`mr-2 h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`} />
+                    <Skeleton className="h-32 w-full rounded-lg" />
                     Làm mới
                   </Button>
                 </div>
@@ -575,7 +575,7 @@ export function TeacherGradeTrackingDialog({
                 {historyLoading && (
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
-                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       <p>Đang tải lịch sử thay đổi...</p>
                     </div>
                   </div>
@@ -583,7 +583,7 @@ export function TeacherGradeTrackingDialog({
 
                 {!historyLoading && gradeHistory.length === 0 && (
                   <div className="text-center py-8">
-                    <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <Clock className="mx-auto h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">Chưa có lịch sử thay đổi</h3>
                     <p className="text-muted-foreground">
                       Lịch sử thay đổi điểm sẽ được hiển thị ở đây khi có cập nhật

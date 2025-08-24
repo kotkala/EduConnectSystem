@@ -1,19 +1,22 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Plus, Users, RefreshCw } from "lucide-react"
+import { Plus, Users, GraduationCap, Calendar } from "lucide-react"
 import { UserTable } from "@/features/admin-management/components/admin/user-table"
 import { IntegratedTeacherForm } from "@/features/admin-management/components/admin/integrated-teacher-form"
 import { getTeachersAction, getTeacherStatsAction } from "@/features/admin-management/actions/user-actions"
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
 
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 export default function TeachersPageClient() {
   const [teachers, setTeachers] = useState<TeacherProfile[]>([])
-  const [loading, setLoading] = useState(true)
+  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách giáo viên...")
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -26,8 +29,14 @@ export default function TeachersPageClient() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState<TeacherProfile | null>(null)
 
+  // Debug: Check if this is triggering global loading
+  console.log('🔍 TeachersPage - Loading state:', loading)
+
   const fetchTeachers = useCallback(async () => {
-    setLoading(true)
+    // Chỉ start loading nếu chưa có data
+    if (teachers.length === 0) {
+      startLoading()
+    }
     setError(null)
 
     try {
@@ -51,9 +60,9 @@ export default function TeachersPageClient() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
     } finally {
-      setLoading(false)
+      stopLoading()
     }
-  }, [filters])
+  }, [filters, startLoading, stopLoading, teachers.length])
 
   useEffect(() => {
     fetchTeachers()
@@ -88,10 +97,52 @@ export default function TeachersPageClient() {
 
   if (loading && teachers.length === 0) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          <Skeleton className="h-10 w-36" />
         </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-40" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Table Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

@@ -9,7 +9,8 @@ import { toast } from 'sonner'
 import { getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
 import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
 
-interface GradeSubmission {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeSubmission {
   id: string
   submission_name: string
   student_id: string
@@ -152,7 +153,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <Skeleton className="h-32 w-full rounded-lg" />
         <span className="ml-2 text-muted-foreground">Đang tải chi tiết...</span>
       </div>
     )
@@ -173,7 +174,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -190,7 +191,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
             >
               {downloading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   Đang tải...
                 </>
               ) : (

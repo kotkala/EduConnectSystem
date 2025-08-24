@@ -26,10 +26,11 @@ import {
 } from 'lucide-react'
 
 // Lazy-load framer-motion to keep initial bundle small
-import { LoadingFallback } from '@/shared/components/ui/loading-fallback'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+
 const MotionDiv = nextDynamic(() => import('framer-motion').then(mod => mod.motion.div), {
   ssr: false,
-  loading: () => <LoadingFallback size="sm" />,
+      loading: () => <Skeleton className="h-4 w-4 rounded-full"  aria-label="Loading content" role="status" />,
 })
 
 const roleConfig = {
@@ -138,7 +139,13 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="space-y-4">
+          <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto"  aria-label="Loading content" role="status" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[200px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
       </div>
     )
   }

@@ -1,8 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -27,7 +26,7 @@ interface ChartProps {
   readonly colors?: readonly string[]
 }
 
-import { LoadingFallback } from '@/shared/components/ui/loading-fallback'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   default: ({ data }: ChartProps) => (
     <mod.ResponsiveContainer width="100%" height={300}>
@@ -42,7 +41,7 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading size="lg" />
 })
 
 const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -69,7 +68,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading size="lg" />
 })
 
 const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -87,7 +86,7 @@ const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading size="lg" />
 })
 import {
   getOverallGradeStatsAction,
@@ -192,8 +191,7 @@ function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats
 
 export default function AnalyticsClient() {
   // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
   
   const [overallStats, setOverallStats] = useState<OverallStats | null>(null)
   const [gradeDistribution, setGradeDistribution] = useState<GradeDistribution[]>([])
@@ -257,7 +255,7 @@ export default function AnalyticsClient() {
     } finally {
       stopLoading()
     }
-  }, [startPageTransition, stopLoading, lastFetch, overallStats, CACHE_DURATION])
+  }, [lastFetch, overallStats, CACHE_DURATION])
 
   useEffect(() => {
     loadAllAnalytics()

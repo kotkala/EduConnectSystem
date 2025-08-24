@@ -15,7 +15,7 @@ const classroomSchema = z.object({
   is_active: z.boolean().default(true)
 })
 
-const updateClassroomSchema = classroomSchema.partial().extend({
+const updateClassroomSchema = classroomSchema.partial().safeExtend({
   id: z.string().min(1, 'ID là bắt buộc')
 })
 

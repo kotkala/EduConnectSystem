@@ -6,9 +6,11 @@ import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   getParentLeaveApplicationsAction,
   type LeaveApplication 
 } from '@/lib/actions/leave-application-actions'
@@ -93,7 +95,13 @@ export default function ParentLeaveStatusPage() {
       <SidebarLayout role="parent" title="Trạng thái đơn xin nghỉ">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <div className="space-y-4">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
             <p className="mt-2 text-gray-600">Đang tải danh sách đơn xin nghỉ...</p>
           </div>
         </div>
@@ -106,7 +114,7 @@ export default function ParentLeaveStatusPage() {
     return (
       <SidebarLayout role="parent" title="Từ chối truy cập">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
           <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/parent')}>
@@ -205,7 +213,7 @@ export default function ParentLeaveStatusPage() {
           {applications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mb-4" />
+                <FileText className="h-12 md:h-14 lg:h-16 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ</h3>
                 <p className="text-gray-600 text-center mb-4">
                   Bạn chưa gửi đơn xin nghỉ nào.
@@ -282,7 +290,7 @@ export default function ParentLeaveStatusPage() {
                   )}
 
                   {application.status === 'pending' && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="bg-yellow-50 border border-yellow-20 md:w-24 lg:w-280 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-yellow-800">
                         <Clock className="h-4 w-4" />
                         <span className="text-sm font-medium">Awaiting Teacher Review</span>

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
@@ -13,7 +13,8 @@ import {
 } from "lucide-react"
 import { type StudentWeeklySchedule } from "@/features/grade-management/actions/homeroom-feedback-actions"
 
-interface StudentWeeklyGridProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentWeeklyGridProps {
   readonly students: StudentWeeklySchedule[]
   readonly onStudentDayClick: (student: StudentWeeklySchedule, dayOfWeek: number) => void
   readonly loading?: boolean
@@ -73,7 +74,7 @@ export function StudentWeeklyGrid({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <Skeleton className="h-32 w-full rounded-lg" />
           <p className="mt-4 text-muted-foreground">Đang tải dữ liệu...</p>
         </CardContent>
       </Card>
@@ -84,7 +85,7 @@ export function StudentWeeklyGrid({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <User className="h-12 md:h-14 lg:h-16 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Không Có Học Sinh</h3>
           <p className="text-muted-foreground">
             Không có học sinh nào trong lớp chủ nhiệm cho tuần đã chọn.
@@ -100,7 +101,7 @@ export function StudentWeeklyGrid({
         <Card key={student.student_id} className="overflow-hidden">
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-4">
-              <Avatar className="h-12 w-12">
+              <Avatar className="h-12 md:h-14 lg:h-16 w-12">
                 <AvatarImage src={student.student_avatar_url || undefined} alt={student.student_name} />
                 <AvatarFallback>{getInitials(student.student_name)}</AvatarFallback>
               </Avatar>

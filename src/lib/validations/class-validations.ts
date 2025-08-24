@@ -97,7 +97,7 @@ export const classSchema = z.object({
   path: ["subject_combination_variant"]
 })
 
-export const updateClassSchema = classSchema.extend({
+export const updateClassSchema = classSchema.safeExtend({
   id: z.string().uuid("Invalid class ID")
 })
 

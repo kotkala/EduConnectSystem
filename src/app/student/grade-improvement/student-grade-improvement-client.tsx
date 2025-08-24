@@ -1,15 +1,16 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
-import {
+import { Skeleton } from '@/shared/components/ui/skeleton'
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Select,
   SelectContent,
   SelectItem,
@@ -59,8 +60,7 @@ interface Subject {
 
 export function StudentGradeImprovementClient() {
   // ðŸš€ COORDINATED LOADING: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
 
   // State management
   const [activePeriods, setActivePeriods] = useState<GradeImprovementPeriod[]>([])
@@ -120,7 +120,7 @@ export function StudentGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [myRequests.length, startPageTransition, stopLoading])
+  }, [myRequests.length])
 
   const loadSubjects = useCallback(async () => {
     try {
@@ -395,13 +395,19 @@ export function StudentGradeImprovementClient() {
           {coordinatedLoading.isLoading && activePeriods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <div className="space-y-4 mb-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+                    <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+                  </div>
+                </div>
                 <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : activePeriods.length === 0 ? (
             <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <AlertCircle className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Hiện tại không có kỳ cải thiện điểm nào đang mở</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Vui lòng liên hệ với giáo viên hoặc ban giám hiệu để biết thêm thông tin
@@ -452,13 +458,19 @@ export function StudentGradeImprovementClient() {
           {coordinatedLoading.isLoading && myRequests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <div className="space-y-4 mb-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+                    <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+                  </div>
+                </div>
                 <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : myRequests.length === 0 ? (
             <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <FileText className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Bạn chưa nộp đơn cải thiện điểm nào</p>
               {activePeriods.length > 0 && (
                 <p className="text-sm text-muted-foreground mt-2">

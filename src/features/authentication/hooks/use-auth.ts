@@ -126,6 +126,10 @@ export function useAuth() {
         full_name?: string | null
         avatar_url?: string | null
         role?: 'admin' | 'teacher' | 'student' | 'parent'
+        phone_number?: string | null
+        gender?: string | null
+        date_of_birth?: string | null
+        address?: string | null
       } = {}
 
       if (updates.full_name !== undefined) {
@@ -136,6 +140,18 @@ export function useAuth() {
       }
       if (updates.role !== undefined) {
         filteredUpdates.role = updates.role
+      }
+      if (updates.phone_number !== undefined) {
+        filteredUpdates.phone_number = updates.phone_number
+      }
+      if (updates.gender !== undefined) {
+        filteredUpdates.gender = updates.gender
+      }
+      if (updates.date_of_birth !== undefined) {
+        filteredUpdates.date_of_birth = updates.date_of_birth
+      }
+      if (updates.address !== undefined) {
+        filteredUpdates.address = updates.address
       }
 
       const updatedProfile = await clientAuth.updateUserProfile(user.id, filteredUpdates)

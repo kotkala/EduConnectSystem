@@ -49,8 +49,8 @@ export default function StudentAssignmentForm({
   const [error, setError] = useState<string | null>(null)
 
   // Context7 pattern: useForm with validation
-  // Set assignment type based on current class type
-  const defaultAssignmentType = isSubjectCombination ? "combined" : "main"
+  // All student assignments are now type 'student'
+  const defaultAssignmentType = "student"
 
   const form = useForm<BulkStudentAssignmentFormData>({
     resolver: zodResolver(bulkStudentAssignmentSchema),
@@ -151,7 +151,7 @@ export default function StudentAssignmentForm({
             Assign Students to {className}
           </DialogTitle>
           <DialogDescription>
-            Select students to assign to this class. Each student can only be in 1 Main class and 1 Combined class per academic year.
+            Select students to assign to this class. Each student can only be assigned to one class per academic year.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,10 +162,10 @@ export default function StudentAssignmentForm({
             <div className="p-3 bg-muted rounded-md border">
               <div className="flex items-center gap-2">
                 <span className="font-medium">
-                  {isSubjectCombination ? "Combined Class (Subject Combination)" : "Main Class"}
+                  {isSubjectCombination ? "Subject Combination Class" : "Regular Class"}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  - Students will be assigned to this {isSubjectCombination ? "combined" : "main"} class
+                  - Students will be assigned to this class
                 </span>
               </div>
             </div>

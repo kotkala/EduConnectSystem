@@ -20,6 +20,7 @@ import {
   addTeacherSpecializationAction,
   updateTeacherSpecializationAction,
   removeTeacherSpecializationAction,
+  getTeacherAssignedSubjectsAction,
   type SpecializationOption,
   type TeacherSpecialization
 } from '../actions/teacher-specialization-actions'
@@ -36,6 +37,7 @@ export default function TeacherSpecializationForm({ teacherId, disabled = false 
   const [selectedType, setSelectedType] = useState<string>('')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [isAdding, setIsAdding] = useState(false)
+  const [assignedSubjects, setAssignedSubjects] = useState<string[]>([])
 
   useEffect(() => {
     loadData()
@@ -44,9 +46,10 @@ export default function TeacherSpecializationForm({ teacherId, disabled = false 
   const loadData = async () => {
     setLoading(true)
     try {
-      const [optionsResult, specializationsResult] = await Promise.all([
+      const [optionsResult, specializationsResult, assignedResult] = await Promise.all([
         getSpecializationOptionsAction(),
-        getTeacherSpecializationsAction(teacherId)
+        getTeacherSpecializationsAction(teacherId),
+        getTeacherAssignedSubjectsAction(teacherId)
       ])
 
       if (optionsResult.success) {
@@ -55,6 +58,10 @@ export default function TeacherSpecializationForm({ teacherId, disabled = false 
 
       if (specializationsResult.success) {
         setSpecializations(specializationsResult.data || [])
+      }
+
+      if (assignedResult.success) {
+        setAssignedSubjects(assignedResult.data || [])
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -187,28 +194,42 @@ export default function TeacherSpecializationForm({ teacherId, disabled = false 
             <div className="space-y-3">
               <div className="text-sm text-muted-foreground">Môn học:</div>
               <div className="grid grid-cols-2 gap-2">
-                {getSubjectsForType(spec.specialization_type).map((subject) => (
-                  <div key={subject.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${spec.id}-${subject.id}`}
-                      checked={spec.subjects.includes(subject.id)}
-                      onCheckedChange={(checked) => {
-                        if (disabled) return
-                        const newSubjects = checked
-                          ? [...spec.subjects, subject.id]
-                          : spec.subjects.filter(s => s !== subject.id)
-                        handleUpdateSpecialization(spec.id, newSubjects)
-                      }}
-                      disabled={disabled}
-                    />
-                    <label
-                      htmlFor={`${spec.id}-${subject.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      {subject.name}
-                    </label>
-                  </div>
-                ))}
+                {getSubjectsForType(spec.specialization_type).map((subject) => {
+                  const isAssigned = assignedSubjects.includes(subject.id)
+                  const isChecked = spec.subjects.includes(subject.id)
+                  return (
+                    <div key={subject.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`${spec.id}-${subject.id}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          if (disabled) return
+                          // Prevent unchecking if subject is assigned to classes
+                          if (!checked && isAssigned) {
+                            toast.error('Không thể bỏ chọn môn học đã được phân công giảng dạy')
+                            return
+                          }
+                          const newSubjects = checked
+                            ? [...spec.subjects, subject.id]
+                            : spec.subjects.filter(s => s !== subject.id)
+                          handleUpdateSpecialization(spec.id, newSubjects)
+                        }}
+                        disabled={disabled}
+                      />
+                      <label
+                        htmlFor={`${spec.id}-${subject.id}`}
+                        className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                          isAssigned ? 'text-orange-600' : ''
+                        }`}
+                      >
+                        {subject.name}
+                        {isAssigned && (
+                          <span className="ml-1 text-xs text-orange-600">(đã phân công)</span>
+                        )}
+                      </label>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </CardContent>

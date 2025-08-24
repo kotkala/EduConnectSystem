@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
-import { Checkbox } from '@/shared/components/ui/checkbox'
+
 import { Badge } from '@/shared/components/ui/badge'
+import { Input } from '@/shared/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -21,7 +22,8 @@ import {
   ArrowLeft,
   Edit,
   Save,
-  X
+  X,
+  Search
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -89,6 +91,7 @@ export function TeacherFeedbackForm({
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isEditing, setIsEditing] = useState(!hasExistingFeedback)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const loadStudents = useCallback(async () => {
     setIsLoading(true)
@@ -125,15 +128,7 @@ export function TeacherFeedbackForm({
     }
   }, [hasExistingFeedback, existingFeedback])
 
-  const handleStudentSelect = (studentId: string, checked: boolean) => {
-    const newSelected = new Set(selectedStudents)
-    if (checked) {
-      newSelected.add(studentId)
-    } else {
-      newSelected.delete(studentId)
-    }
-    setSelectedStudents(newSelected)
-  }
+
 
   const handleSelectAll = () => {
     if (selectedStudents.size === students.length) {
@@ -154,6 +149,16 @@ export function TeacherFeedbackForm({
     const remaining = total - completed
     return { completed, total, remaining }
   }, [studentsWithFeedback.length, students.length])
+
+  // Filtered students based on search term
+  const filteredStudents = useMemo(() => {
+    if (!searchTerm.trim()) return students
+    const term = searchTerm.toLowerCase()
+    return students.filter(student =>
+      student.full_name.toLowerCase().includes(term) ||
+      student.student_id.toLowerCase().includes(term)
+    )
+  }, [students, searchTerm])
 
   const canSubmit = useMemo(() => {
     if (feedbackMode === 'individual') {
@@ -477,21 +482,14 @@ export function TeacherFeedbackForm({
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Chọn cách gửi phản hồi</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  <button
+                    type="button"
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all w-full text-left ${
                       feedbackMode === 'individual'
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                     onClick={() => setFeedbackMode('individual')}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        setFeedbackMode('individual')
-                      }
-                    }}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -511,10 +509,11 @@ export function TeacherFeedbackForm({
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     )}
-                  </div>
+                  </button>
 
-                  <div
-                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  <button
+                    type="button"
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all w-full text-left ${
                       feedbackMode === 'group'
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -539,10 +538,11 @@ export function TeacherFeedbackForm({
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     )}
-                  </div>
+                  </button>
 
-                  <div
-                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  <button
+                    type="button"
+                    className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all w-full text-left ${
                       feedbackMode === 'class'
                         ? 'border-purple-500 bg-purple-50'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
@@ -567,153 +567,121 @@ export function TeacherFeedbackForm({
                         <div className="w-2 h-2 bg-white rounded-full"></div>
                       </div>
                     )}
-                  </div>
+                  </button>
                 </div>
               </div>
 
-            {/* Two Column Layout - Context7 Pattern */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - Student List */}
-              <div className="space-y-4">
+            {/* Full Width Layout - Student list removed for better UX */}
+            <div className="space-y-4">
+              {/* Summary information without student list */}
+              {feedbackMode === 'class' && (
+                <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md border border-blue-200">
+                  ✓ Tất cả {students.length} học sinh trong lớp sẽ nhận phản hồi
+                </div>
+              )}
+
+              {feedbackMode === 'individual' && (
+                <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
+                  ✓ Mỗi học sinh sẽ có phản hồi riêng biệt. Nhập phản hồi ở phần dưới.
+                </div>
+              )}
+
+              {feedbackMode === 'group' && (
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">
-                    {feedbackMode === 'individual' ? 'Danh sách học sinh (tất cả sẽ có phản hồi riêng)' : 'Danh sách học sinh'}
-                  </h3>
-                  {feedbackMode === 'group' && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAll}
-                    >
-                      {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-                    </Button>
-                  )}
+                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200 flex-1">
+                    {selectedStudents.size > 0 ? (
+                      <>✓ Đã chọn {selectedStudents.size}/{students.length} học sinh</>
+                    ) : (
+                      <>Chưa chọn học sinh nào. Sử dụng chế độ &quot;Phản hồi cá nhân&quot; để chọn từng học sinh.</>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="ml-3"
+                  >
+                    {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                  </Button>
                 </div>
+              )}
 
-                {feedbackMode === 'class' && (
-                  <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md border border-blue-200">
-                    ✓ Tất cả {students.length} học sinh trong lớp sẽ nhận phản hồi
-                  </div>
-                )}
-
-                {feedbackMode === 'individual' && (
-                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
-                    ✓ Mỗi học sinh sẽ có phản hồi riêng biệt. Nhập phản hồi ở cột bên phải.
-                  </div>
-                )}
-
-                <div className="border rounded-lg">
-                  <div className="max-h-96 overflow-y-auto">
-                    {students.map((student, index) => {
-                      const hasIndividualFeedback = feedbackMode === 'individual' &&
-                        getIndividualFeedback(student.id).feedbackText.trim().length > 0
-
-                      return (
-                        <div
-                          key={student.id}
-                          className={`flex items-center p-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors ${
-                            feedbackMode === 'class' || selectedStudents.has(student.id) || hasIndividualFeedback ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          {feedbackMode === 'group' && (
-                            <Checkbox
-                              checked={selectedStudents.has(student.id)}
-                              onCheckedChange={(checked) => handleStudentSelect(student.id, !!checked)}
-                              className="mr-3"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{student.full_name}</div>
-                            <div className="text-xs text-muted-foreground">MSSV: {student.student_id}</div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {feedbackMode === 'individual' && hasIndividualFeedback && (
-                              <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                ✓ Có phản hồi
-                              </div>
-                            )}
-                            <div className="text-xs text-muted-foreground">#{index + 1}</div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {feedbackMode === 'group' && selectedStudents.size > 0 && (
-                  <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md border border-green-200">
-                    ✓ Đã chọn {selectedStudents.size} học sinh
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column - Feedback Content */}
+              {/* Feedback Content - Full Width */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">
                   {feedbackMode === 'individual' ? 'Phản hồi cá nhân cho từng học sinh' : 'Nội dung phản hồi'}
                 </h3>
 
                 {feedbackMode === 'individual' ? (
-                  /* Individual Feedback Mode - Each student gets their own input */
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {students.map((student, index) => {
-                      const feedback = getIndividualFeedback(student.id)
-                      return (
-                        <div key={student.id} className="border rounded-lg p-4 bg-white">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h4 className="font-medium text-sm">{student.full_name}</h4>
-                              <p className="text-xs text-muted-foreground">MSSV: {student.student_id}</p>
-                            </div>
-                            <div className="text-xs text-muted-foreground">#{index + 1}</div>
-                          </div>
+                  /* Simplified Individual Feedback Mode - Horizontal rows */
+                  <div className="space-y-4">
+                    {/* Search bar */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Tìm kiếm học sinh theo tên hoặc MSSV..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
 
-                          <div className="space-y-3">
-                            <div>
-                              <label className="text-sm font-medium block mb-1">
-                                Phản hồi cho {student.full_name}:
-                              </label>
-                              <Textarea
-                                placeholder={`Nhập phản hồi cá nhân cho ${student.full_name}...`}
-                                value={feedback.feedbackText}
-                                onChange={(e) => updateIndividualFeedback(student.id, 'feedbackText', e.target.value)}
-                                rows={3}
-                                className="resize-none text-sm"
-                              />
-                            </div>
-
-                            <div>
-                              <label htmlFor={`rating-${student.id}`} className="text-sm font-medium block mb-1">Đánh giá:</label>
-                              <Select
-                                value={feedback.rating?.toString() || ''}
-                                onValueChange={(value) => updateIndividualFeedback(student.id, 'rating', value ? parseInt(value) : undefined)}
-                              >
-                                <SelectTrigger id={`rating-${student.id}`} className="w-full">
-                                  <SelectValue placeholder="Chọn mức đánh giá" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="1">⭐ 1 - Cần cải thiện</SelectItem>
-                                  <SelectItem value="2">⭐⭐ 2 - Khá</SelectItem>
-                                  <SelectItem value="3">⭐⭐⭐ 3 - Tốt</SelectItem>
-                                  <SelectItem value="4">⭐⭐⭐⭐ 4 - Rất tốt</SelectItem>
-                                  <SelectItem value="5">⭐⭐⭐⭐⭐ 5 - Xuất sắc</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-
-                    {/* Summary for individual mode - Optimized with memoized values */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium mb-2">Tóm tắt phản hồi cá nhân:</h4>
+                    {/* Summary stats */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <div className="text-sm text-blue-800">
-                        <strong>Tổng số học sinh:</strong> {feedbackCompletionStats.total}<br/>
-                        <strong>Đã có phản hồi:</strong> {feedbackCompletionStats.completed}<br/>
-                        <strong>Chưa có phản hồi:</strong> {feedbackCompletionStats.remaining}
+                        <strong>Tổng số học sinh:</strong> {feedbackCompletionStats.total} |
+                        <strong> Đã có phản hồi:</strong> {feedbackCompletionStats.completed} |
+                        <strong> Chưa có phản hồi:</strong> {feedbackCompletionStats.remaining}
                       </div>
+                    </div>
+
+                    {/* Student feedback list - simplified horizontal rows */}
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {filteredStudents.map((student) => {
+                        const feedback = getIndividualFeedback(student.id)
+                        return (
+                          <div key={student.id} className="border rounded-lg p-3 bg-white hover:bg-gray-50">
+                            <div className="grid grid-cols-12 gap-3 items-center">
+                              {/* Student info */}
+                              <div className="col-span-3">
+                                <div className="font-medium text-sm">{student.full_name}</div>
+                                <div className="text-xs text-gray-500">{student.student_id}</div>
+                              </div>
+
+                              {/* Feedback input */}
+                              <div className="col-span-6">
+                                <Textarea
+                                  placeholder={`Phản hồi cho ${student.full_name}...`}
+                                  value={feedback.feedbackText}
+                                  onChange={(e) => updateIndividualFeedback(student.id, 'feedbackText', e.target.value)}
+                                  rows={2}
+                                  className="resize-none text-sm"
+                                />
+                              </div>
+
+                              {/* Rating */}
+                              <div className="col-span-3">
+                                <Select
+                                  value={feedback.rating?.toString() || ''}
+                                  onValueChange={(value) => updateIndividualFeedback(student.id, 'rating', value ? parseInt(value) : undefined)}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Đánh giá" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1">⭐ 1</SelectItem>
+                                    <SelectItem value="2">⭐⭐ 2</SelectItem>
+                                    <SelectItem value="3">⭐⭐⭐ 3</SelectItem>
+                                    <SelectItem value="4">⭐⭐⭐⭐ 4</SelectItem>
+                                    <SelectItem value="5">⭐⭐⭐⭐⭐ 5</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 ) : (
@@ -781,13 +749,15 @@ export function TeacherFeedbackForm({
               {/* Modern Action Buttons */}
               <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  {feedbackMode === 'individual' ? (
-                    `${feedbackCompletionStats.completed}/${feedbackCompletionStats.total} học sinh đã có phản hồi`
-                  ) : feedbackMode === 'group' ? (
-                    `${selectedStudents.size} học sinh được chọn`
-                  ) : (
-                    `Gửi cho tất cả ${students.length} học sinh`
-                  )}
+                  {(() => {
+                    if (feedbackMode === 'individual') {
+                      return `${feedbackCompletionStats.completed}/${feedbackCompletionStats.total} học sinh đã có phản hồi`
+                    }
+                    if (feedbackMode === 'group') {
+                      return `${selectedStudents.size} học sinh được chọn`
+                    }
+                    return `Gửi cho tất cả ${students.length} học sinh`
+                  })()}
                 </div>
                 <div className="flex gap-3">
                   <Button

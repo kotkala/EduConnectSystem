@@ -55,7 +55,8 @@ import {
   createGradeImprovementPeriodAction,
   getGradeImprovementPeriodsAction,
   getGradeImprovementRequestsAction,
-  respondToGradeImprovementRequestAction
+  respondToGradeImprovementRequestAction,
+  updateGradeImprovementPeriodAction
 } from '@/lib/actions/grade-improvement-actions'
 import {
   type GradeImprovementPeriod,
@@ -183,6 +184,27 @@ export function AdminGradeImprovementClient() {
   useEffect(() => {
     loadRequests()
   }, [loadRequests])
+
+  // Handle toggle period status
+  const handleTogglePeriodStatus = useCallback(async (periodId: string, currentStatus: boolean) => {
+    try {
+      startPageTransition()
+
+      const result = await updateGradeImprovementPeriodAction(periodId, !currentStatus)
+
+      if (result.success) {
+        toast.success(result.message)
+        loadPeriods()
+      } else {
+        toast.error(result.error)
+      }
+    } catch (error) {
+      console.error('Error toggling period status:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
+    } finally {
+      stopLoading()
+    }
+  }, [startPageTransition, stopLoading, loadPeriods])
 
   // Memoized status badge component to prevent re-renders
   const StatusBadge = useMemo(() => {
@@ -394,6 +416,13 @@ export function AdminGradeImprovementClient() {
                         <Badge variant={period.is_active ? 'default' : 'secondary'}>
                           {period.is_active ? 'Đang hoạt động' : 'Không hoạt động'}
                         </Badge>
+                        <Button
+                          onClick={() => handleTogglePeriodStatus(period.id, period.is_active)}
+                          variant={period.is_active ? 'outline' : 'default'}
+                          size="sm"
+                        >
+                          {period.is_active ? 'Đóng' : 'Mở'}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>

@@ -65,15 +65,15 @@ function renderViolationsContent(
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">{violation.student.full_name}</h4>
-                      <Badge variant="outline">{violation.student.student_id}</Badge>
-                      <Badge variant="outline">{violation.class.name}</Badge>
+                      <h4 className="font-semibold">{violation.student?.full_name || 'Không xác định'}</h4>
+                      <Badge variant="outline">{violation.student?.student_id || 'N/A'}</Badge>
+                      <Badge variant="outline">{violation.class?.name || 'N/A'}</Badge>
                       <Badge className={getSeverityColor(violation.severity)}>
                         {getSeverityLabel(violation.severity)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {violation.violation_type.category.name} â€¢ {violation.violation_type.name}
+                      {violation.violation_type?.category?.name || 'N/A'} • {violation.violation_type?.name || 'N/A'}
                     </p>
                     {violation.description && (
                       <p className="text-sm">{violation.description}</p>
@@ -83,7 +83,11 @@ function renderViolationsContent(
                         <Clock className="h-3 w-3" />
                         {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
                       </span>
-                      <span>Người ghi nhận: {violation.recorded_by.full_name}</span>
+                      <span>Người ghi nhận: {
+                        violation.recorded_by_user?.full_name ||
+                        violation.recorded_by?.full_name ||
+                        'Không xác định'
+                      }</span>
                     </div>
                   </div>
                 </div>

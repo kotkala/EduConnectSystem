@@ -46,8 +46,8 @@ import {
   getStudentSubjectsForImprovementAction
 } from '@/lib/actions/grade-improvement-actions'
 import {
-  type GradeImprovementPeriod,
-  type GradeImprovementRequest
+  type GradeImprovementRequest,
+  type GradeImprovementPeriod
 } from '@/lib/validations/grade-improvement-validations'
 
 interface Subject {

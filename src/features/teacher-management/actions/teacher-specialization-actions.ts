@@ -251,3 +251,30 @@ export async function getTeachersBySubjectAction(subjectId: string) {
     return { success: false, error: 'Failed to load teachers by subject' }
   }
 }
+
+/**
+ * Check if teacher is assigned to specific subjects
+ */
+export async function getTeacherAssignedSubjectsAction(teacherId: string) {
+  try {
+    const supabase = await createClient()
+
+    const { data: assignments, error } = await supabase
+      .from('teacher_class_assignments')
+      .select('subject_id')
+      .eq('teacher_id', teacherId)
+      .eq('is_active', true)
+
+    if (error) {
+      return { success: false, error: error.message, data: [] }
+    }
+
+    // Return unique subject IDs
+    const assignedSubjectIds = [...new Set(assignments?.map(a => a.subject_id) || [])]
+
+    return { success: true, data: assignedSubjectIds }
+  } catch (error) {
+    console.error('Error in getTeacherAssignedSubjectsAction:', error)
+    return { success: false, error: 'Failed to load teacher assigned subjects', data: [] }
+  }
+}

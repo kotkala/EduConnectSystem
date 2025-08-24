@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Plus, Users, RefreshCw } from "lucide-react"
 import { UserTable } from "@/features/admin-management/components/admin/user-table"
-import { TeacherForm } from "@/features/admin-management/components/admin/teacher-form"
+import { IntegratedTeacherForm } from "@/features/admin-management/components/admin/integrated-teacher-form"
 import { getTeachersAction, getTeacherStatsAction } from "@/features/admin-management/actions/user-actions"
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
 
@@ -189,7 +189,7 @@ export default function TeachersPageClient() {
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Add New Teacher</DialogTitle>
           </DialogHeader>
-          <TeacherForm
+          <IntegratedTeacherForm
             onSuccess={handleCreateSuccess}
             onCancel={() => setShowCreateDialog(false)}
           />
@@ -203,7 +203,7 @@ export default function TeachersPageClient() {
             <DialogTitle className="text-lg sm:text-xl">Edit Teacher</DialogTitle>
           </DialogHeader>
           {editingTeacher && (
-            <TeacherForm
+            <IntegratedTeacherForm
               teacher={editingTeacher}
               onSuccess={handleEditSuccess}
               onCancel={() => {

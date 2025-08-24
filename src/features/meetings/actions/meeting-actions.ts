@@ -1,6 +1,7 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { sendMeetingNotificationEmail } from '@/lib/services/email-service'
 
 // Types for meeting schedule system
 export interface MeetingScheduleData {
@@ -235,7 +236,7 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
     // Verify user is the homeroom teacher for this class
     const { data: classInfo } = await supabase
       .from('classes')
-      .select('homeroom_teacher_id')
+      .select('homeroom_teacher_id, name')
       .eq('id', request.class_id)
       .single()
 
@@ -294,12 +295,74 @@ export async function createMeetingScheduleAction(request: CreateMeetingSchedule
       }
     }
 
-    return { 
-      success: true, 
-      data: { 
-        meeting_id: meetingSchedule.id, 
-        recipients_count: recipients.length 
-      } 
+    // Send email notifications to parents
+    if (recipients.length > 0) {
+      try {
+        // Get teacher info for email
+        const { data: teacherProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single()
+
+        // Get parent and student details for email
+        const { data: parentDetails } = await supabase
+          .from('parent_student_relationships')
+          .select('parent_id, student_id')
+          .in('student_id', request.student_ids)
+
+        if (parentDetails && teacherProfile) {
+          // Get unique parent IDs
+          const parentIds = [...new Set(parentDetails.map(p => p.parent_id))]
+
+          // Get parent profiles
+          const { data: parentProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', parentIds)
+
+          // Get student profiles
+          const { data: studentProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', request.student_ids)
+
+          if (parentProfiles && studentProfiles) {
+            // Send email to each parent
+            for (const parentDetail of parentDetails) {
+              const parent = parentProfiles.find(p => p.id === parentDetail.parent_id)
+              const student = studentProfiles.find(s => s.id === parentDetail.student_id)
+
+              if (parent?.email && student) {
+                await sendMeetingNotificationEmail({
+                  parentEmail: parent.email,
+                  parentName: parent.full_name || 'Phụ huynh',
+                  studentName: student.full_name || 'Học sinh',
+                  meetingTitle: request.meeting_data.title,
+                  meetingDescription: request.meeting_data.description,
+                  meetingDate: request.meeting_data.meeting_date,
+                  meetingLocation: request.meeting_data.meeting_location,
+                  durationMinutes: request.meeting_data.duration_minutes || 60,
+                  teacherName: teacherProfile.full_name || 'Giáo viên',
+                  className: classInfo.name
+                })
+              }
+            }
+          }
+          console.log(`✅ Sent meeting notification emails to ${parentDetails.length} parents`)
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send meeting notification emails:', emailError)
+        // Don't fail the entire operation if email fails
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        meeting_id: meetingSchedule.id,
+        recipients_count: recipients.length
+      }
     }
   } catch (error: unknown) {
     console.error("Create meeting schedule error:", error)

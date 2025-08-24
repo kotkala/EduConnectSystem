@@ -325,7 +325,8 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
     )
   }
 
-  if (!studentData) {
+  // Only show "no data" message if not loading and no data after period is selected
+  if (!loading && !studentData && selectedPeriod) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
@@ -338,6 +339,56 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             </Button>
           </Link>
         </div>
+      </div>
+    )
+  }
+
+  // Show loading or period selection state
+  if (loading || !selectedPeriod || !studentData) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Chi tiết điểm số học sinh</h1>
+            <p className="text-muted-foreground">Xem chi tiết điểm số của học sinh theo kỳ báo cáo</p>
+          </div>
+          <Link href="/dashboard/teacher/grade-reports">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Quay lại
+            </Button>
+          </Link>
+        </div>
+
+        {/* Period Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Chọn kỳ báo cáo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn kỳ báo cáo để xem điểm" />
+              </SelectTrigger>
+              <SelectContent>
+                {periods.map((period) => (
+                  <SelectItem key={period.id} value={period.id}>
+                    {period.name} - {period.academic_year?.name} - {period.semester?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <LoadingSpinner />
+            <span className="ml-2">Đang tải dữ liệu...</span>
+          </div>
+        )}
       </div>
     )
   }

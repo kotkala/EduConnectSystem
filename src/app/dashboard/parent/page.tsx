@@ -273,7 +273,11 @@ export default function ParentDashboard() {
 
                 return (
                   <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-                    {students.map((student) => (
+                    {students
+                      .filter((student, index, self) =>
+                        index === self.findIndex(s => s.id === student.id)
+                      )
+                      .map((student) => (
                       <div key={student.id} className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/50 p-6 shadow-lg shadow-gray-500/5 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-300">
                         <div className="flex items-start gap-4">
                           <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">

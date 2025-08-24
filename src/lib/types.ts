@@ -10,6 +10,13 @@ export interface UserProfile {
   full_name: string | null
   avatar_url: string | null
   role: UserRole
+  phone_number: string | null
+  gender: string | null
+  date_of_birth: string | null
+  address: string | null
+  employee_id: string | null
+  student_id: string | null
+  homeroom_enabled: boolean | null
   created_at: string
   updated_at: string
 }

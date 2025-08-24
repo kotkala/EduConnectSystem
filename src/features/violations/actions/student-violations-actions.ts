@@ -18,7 +18,8 @@ import {
   type StudentViolationFormData,
   type BulkStudentViolationFormData,
   type UpdateStudentViolationFormData,
-  type ViolationFilters
+  type ViolationFilters,
+  type StudentViolationWithDetails
 } from '@/lib/validations/violation-validations'
 
 // Simple type for violation data returned from Supabase
@@ -313,7 +314,7 @@ export async function getParentViolationsAction(
   }
 ): Promise<{
   success: boolean;
-  data?: ViolationData[];
+  data?: StudentViolationWithDetails[];
   total?: number;
   error?: string;
 }> {
@@ -354,7 +355,25 @@ export async function getParentViolationsAction(
 
     let query = supabase
       .from('student_violations')
-      .select(STUDENT_VIOLATION_WITH_DETAILS_FIELDS, { count: 'exact' })
+      .select(`
+        id,
+        student_id,
+        class_id,
+        violation_type_id,
+        severity,
+        description,
+        recorded_by,
+        recorded_at,
+        violation_date,
+        student:profiles!student_id(id, full_name, student_id),
+        class:classes!class_id(id, name),
+        violation_type:violation_types!violation_type_id(
+          id,
+          name,
+          category:violation_categories!category_id(id, name)
+        ),
+        recorded_by_user:profiles!recorded_by(id, full_name)
+      `, { count: 'exact' })
       .in('student_id', targetStudentIds)
 
     // Apply filters
@@ -382,7 +401,7 @@ export async function getParentViolationsAction(
 
     return {
       success: true,
-      data: (violations || []) as unknown as ViolationData[],
+      data: (violations || []) as unknown as StudentViolationWithDetails[],
       total: count || 0
     }
   } catch (error) {

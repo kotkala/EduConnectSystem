@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { StudentGradesClient } from './student-grades-client'
+import StudentGradesSimple from './student-grades-simple'
 
 export const metadata: Metadata = {
   title: 'Bảng điểm cá nhân',
@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 }
 
 export default function StudentGradesPage() {
-  return <StudentGradesClient />
+  return <StudentGradesSimple />
 }
 
 

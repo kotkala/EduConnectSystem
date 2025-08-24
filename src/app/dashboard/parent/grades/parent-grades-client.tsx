@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { Download, Users, FileText, Eye, Award } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { Users, Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getChildrenGradeReportsAction } from '@/lib/actions/parent-grade-actions'
-import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
 
 
 
@@ -70,6 +70,8 @@ export default function ParentGradesClient() {
   const [loading, setLoading] = useState(true)
   const [submissions, setSubmissions] = useState<GradeSubmission[]>([])
   const [students, setStudents] = useState<StudentRecord[]>([])
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
+  const [availablePeriods, setAvailablePeriods] = useState<Array<{id: string, name: string}>>([])
 
   // Load grade reports
   const loadGradeReports = useCallback(async () => {
@@ -80,41 +82,18 @@ export default function ParentGradesClient() {
         const submissionsData = result.data as GradeSubmission[]
         setSubmissions(submissionsData)
 
-        // Transform submissions into student records similar to teacher interface
-        const studentMap = new Map<string, StudentRecord>()
-
-        submissionsData.forEach((submission) => {
-          const studentUUID = submission.student.id
-          if (!studentMap.has(studentUUID)) {
-            studentMap.set(studentUUID, {
-              id: studentUUID,
-              full_name: submission.student.full_name,
-              student_id: submission.student.student_id,
-              class_name: submission.class.name,
-              total_grades: 0,
-              submissions: [],
-              subjects: []
+        // Extract unique periods
+        const periodsMap = new Map<string, {id: string, name: string}>()
+        submissionsData.forEach(submission => {
+          if (submission.semester?.name && !periodsMap.has(submission.semester.name)) {
+            periodsMap.set(submission.semester.name, {
+              id: submission.semester.name,
+              name: submission.semester.name
             })
           }
-
-          const student = studentMap.get(studentUUID)!
-          student.submissions.push(submission)
-          student.total_grades += submission.grades.length
-
-          // Add unique subjects
-          submission.grades.forEach((grade) => {
-            const subjectExists = student.subjects.some(s => s.code === grade.subject.code)
-            if (!subjectExists) {
-              student.subjects.push({
-                id: grade.subject.id,
-                name_vietnamese: grade.subject.name_vietnamese,
-                code: grade.subject.code
-              })
-            }
-          })
         })
-
-        setStudents(Array.from(studentMap.values()))
+        const periods = Array.from(periodsMap.values())
+        setAvailablePeriods(periods)
       } else {
         toast.error(result.error || "Không thể tải bảng điểm")
         setStudents([])
@@ -131,40 +110,54 @@ export default function ParentGradesClient() {
     loadGradeReports()
   }, [loadGradeReports])
 
-  // Handle download Excel
-  const handleDownloadExcel = useCallback(async (submission: GradeSubmission) => {
-    try {
-      // Prepare data for Excel export
-      const subjects = submission.grades.map(grade => ({
-        id: grade.subject.id,
-        code: grade.subject.code,
-        name_vietnamese: grade.subject.name_vietnamese,
-        name_english: grade.subject.name_vietnamese, // Use Vietnamese as fallback
-        category: grade.subject.category
-      }))
+  // Filter submissions by selected period
+  const filteredSubmissions = selectedPeriod === 'all'
+    ? submissions
+    : submissions.filter(submission => submission.semester.name === selectedPeriod)
 
-      const exportData: IndividualGradeExportData = {
-        student: {
-          id: submission.student.id,
+  // Process filtered submissions into student records
+  const processStudentRecords = useCallback((submissionsData: GradeSubmission[]) => {
+    const studentMap = new Map<string, StudentRecord>()
+
+    submissionsData.forEach((submission) => {
+      const studentUUID = submission.student.id
+      if (!studentMap.has(studentUUID)) {
+        studentMap.set(studentUUID, {
+          id: studentUUID,
           full_name: submission.student.full_name,
           student_id: submission.student.student_id,
-          email: '' // Not needed for parent view
-        },
-        subjects,
-        className: submission.class.name,
-        academicYear: submission.academic_year.name,
-        semester: submission.semester.name
+          class_name: submission.class.name,
+          total_grades: 0,
+          submissions: [],
+          subjects: []
+        })
       }
 
-      const excelBuffer = await createIndividualGradeTemplate(exportData)
-      const filename = `BangDiem_${submission.student.student_id}_${submission.student.full_name}_${submission.semester.name}.xlsx`
+      const student = studentMap.get(studentUUID)!
+      student.submissions.push(submission)
+      student.total_grades += submission.grades.length
 
-      downloadExcelFile(excelBuffer, filename)
-      toast.success(`Đã tải bảng điểm của ${submission.student.full_name}`)
-    } catch {
-      toast.error("Có lỗi xảy ra khi tải file Excel")
-    }
+      // Add unique subjects
+      submission.grades.forEach((grade) => {
+        const subjectExists = student.subjects.some(s => s.code === grade.subject.code)
+        if (!subjectExists) {
+          student.subjects.push({
+            id: grade.subject.id,
+            name_vietnamese: grade.subject.name_vietnamese,
+            code: grade.subject.code
+          })
+        }
+      })
+    })
+
+    return Array.from(studentMap.values())
   }, [])
+
+  // Update students when filtered submissions change
+  useEffect(() => {
+    const processedStudents = processStudentRecords(filteredSubmissions)
+    setStudents(processedStudents)
+  }, [filteredSubmissions, processStudentRecords])
 
   // Handle view submission
   const handleViewSubmission = useCallback((submission: GradeSubmission) => {
@@ -245,15 +238,6 @@ export default function ParentGradesClient() {
                         <Eye className="h-4 w-4" />
                         {submission.semester.name}
                       </Button>
-                      <Button
-                        onClick={() => handleDownloadExcel(submission)}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Excel
-                      </Button>
                     </div>
                   ))}
                 </div>
@@ -275,6 +259,28 @@ export default function ParentGradesClient() {
         </div>
       </div>
 
+      {/* Period Filter */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label htmlFor="period-select" className="text-sm font-medium">
+            Kỳ báo cáo:
+          </label>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Chọn kỳ báo cáo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả kỳ</SelectItem>
+              {availablePeriods.map((period) => (
+                <SelectItem key={period.id} value={period.id}>
+                  {period.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -292,7 +298,7 @@ export default function ParentGradesClient() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-green-600" />
+              <Award className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Bảng điểm</p>
                 <p className="text-2xl font-bold">{submissions.length}</p>

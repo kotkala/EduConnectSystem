@@ -179,7 +179,6 @@ export async function getStudentGradesAction() {
         id,
         grade_value,
         component_type,
-        notes,
         created_at,
         subject:subjects!student_detailed_grades_subject_id_fkey(
           id,

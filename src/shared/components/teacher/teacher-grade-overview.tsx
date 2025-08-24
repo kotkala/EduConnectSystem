@@ -248,10 +248,7 @@ export function TeacherGradeOverview({
                         </td>
                         <td className="p-3 text-center text-sm text-gray-600">
                           {student.lastModified ? (
-                            <div className="space-y-1">
-                              <div>{new Date(student.lastModified).toLocaleDateString('vi-VN')}</div>
-                              <div className="text-xs">{student.modifiedBy || 'Hệ thống'}</div>
-                            </div>
+                            <div>{new Date(student.lastModified).toLocaleDateString('vi-VN')}</div>
                           ) : (
                             '-'
                           )}

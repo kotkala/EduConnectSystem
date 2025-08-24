@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import { StudentTimetableClient } from './student-timetable-client'
+import { CalendarProvider } from "@/features/timetable/components/event-calendar/calendar-context";
+import { StudentTimetableSimple } from './student-timetable-simple'
 
 export const metadata: Metadata = {
   title: 'Thời khóa biểu',
@@ -7,5 +8,13 @@ export const metadata: Metadata = {
 }
 
 export default function StudentTimetablePage() {
-  return <StudentTimetableClient />
+  return (
+    <div className="p-6">
+      <CalendarProvider>
+        <div className="flex flex-1 flex-col gap-4">
+          <StudentTimetableSimple />
+        </div>
+      </CalendarProvider>
+    </div>
+  )
 }

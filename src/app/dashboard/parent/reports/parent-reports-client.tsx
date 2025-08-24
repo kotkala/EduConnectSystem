@@ -398,10 +398,10 @@ export default function ParentReportsClient() {
       )}
 
       {/* Report Detail Dialog */}
-      {selectedReport && (
+      {selectedReport && !showResponseDialog && (
         <ReportDetailDialog
           report={selectedReport}
-          open={!!selectedReport}
+          open={!!selectedReport && !showResponseDialog}
           onOpenChange={(open) => !open && setSelectedReport(null)}
           formatDate={formatDate}
         />
@@ -410,7 +410,12 @@ export default function ParentReportsClient() {
       {/* Response Dialog */}
       <ResponseDialog
         open={showResponseDialog}
-        onOpenChange={setShowResponseDialog}
+        onOpenChange={(open) => {
+          setShowResponseDialog(open)
+          if (!open) {
+            setSelectedReport(null)
+          }
+        }}
         responseForm={responseForm}
         setResponseForm={setResponseForm}
         onSubmit={handleSubmitResponse}
@@ -685,7 +690,7 @@ const ReportDetailDialog = React.memo(({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto z-[50]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
@@ -863,7 +868,7 @@ const ResponseDialog = React.memo(({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md z-[60]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />

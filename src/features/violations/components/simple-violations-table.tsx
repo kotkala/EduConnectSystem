@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table'
-import { FileText, Clock, User, Search, Filter, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { FileText, Clock, User, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSeverityLevels } from '@/lib/validations/violation-validations'
@@ -60,7 +60,6 @@ interface ViolationRecord {
 function renderViolationsContent(
   loading: boolean,
   violations: ViolationRecord[],
-  sendToHomeroom: (violation: ViolationRecord) => Promise<void>,
   currentPage: number,
   totalPages: number,
   setCurrentPage: (page: number) => void
@@ -94,7 +93,6 @@ function renderViolationsContent(
             <TableHead>Severity</TableHead>
             <TableHead>Ngày</TableHead>
             <TableHead>Người ghi nhận</TableHead>
-            <TableHead className="w-[120px]">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,17 +136,6 @@ function renderViolationsContent(
                 <User className="h-3 w-3" />
                 {violation.recorded_by_user?.full_name || 'Không xác định'}
               </div>
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => sendToHomeroom(violation)}
-                className="flex items-center gap-1"
-              >
-                <Send className="h-3 w-3" />
-                Gửi GVCN
-              </Button>
             </TableCell>
           </TableRow>
           ))}
@@ -416,15 +403,7 @@ export default function SimpleViolationsTable() {
 
   const totalPages = Math.ceil(total / pageSize)
 
-  const sendToHomeroom = async (violation: ViolationRecord) => {
-    try {
-      // Send violation to homeroom teacher - implementation completed
-      toast.success(`Violation sent to homeroom teacher for ${violation.student?.full_name}`)
-    } catch (error) {
-      console.error('Error sending to homeroom:', error)
-      toast.error('Failed to send violation to homeroom teacher')
-    }
-  }
+
 
   return (
     <div className="space-y-4">
@@ -538,7 +517,7 @@ export default function SimpleViolationsTable() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {renderViolationsContent(loading, violations, sendToHomeroom, currentPage, totalPages, setCurrentPage)}
+          {renderViolationsContent(loading, violations, currentPage, totalPages, setCurrentPage)}
         </CardContent>
     </Card>
     </div>

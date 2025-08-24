@@ -5,6 +5,7 @@ import { createAdminClient } from '@/shared/utils/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { checkAdminPermissions } from '@/lib/utils/permission-utils'
 import { GoogleGenAI } from '@google/genai'
+import { logGradeUpdateAudit, logGradeCreateAudit } from '@/lib/utils/audit-utils'
 import {
   detailedGradeSchema,
   bulkDetailedGradeSchema,
@@ -59,6 +60,13 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
 
     let result
     if (existingGrade) {
+      // Get the old grade value for audit logging
+      const { data: oldGrade } = await supabase
+        .from('student_detailed_grades')
+        .select('grade_value')
+        .eq('id', existingGrade.id)
+        .single()
+
       // Update existing grade
       const { data: grade, error } = await supabase
         .from('student_detailed_grades')
@@ -95,6 +103,28 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
 
       if (error) throw new Error(error.message)
       result = grade
+
+      // Log the grade update to audit logs
+      try {
+        const studentData = grade.student as { full_name?: string }
+        const subjectData = grade.subject as { name_vietnamese?: string }
+        const studentName = studentData?.full_name
+        const subjectName = subjectData?.name_vietnamese
+
+        await logGradeUpdateAudit(
+          grade.id,
+          userId,
+          oldGrade?.grade_value || null,
+          validatedData.grade_value,
+          `Cập nhật điểm ${validatedData.component_type}`,
+          validatedData.component_type,
+          studentName,
+          subjectName
+        )
+      } catch (auditError) {
+        console.error('Error logging grade update audit:', auditError)
+        // Don't fail the main operation if audit logging fails
+      }
     } else {
       // Create new grade
       const { data: grade, error } = await supabase
@@ -131,6 +161,27 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
 
       if (error) throw new Error(error.message)
       result = grade
+
+      // Log the grade creation to audit logs
+      try {
+        const studentData = grade.student as { full_name?: string }
+        const subjectData = grade.subject as { name_vietnamese?: string }
+        const studentName = studentData?.full_name
+        const subjectName = subjectData?.name_vietnamese
+
+        await logGradeCreateAudit(
+          grade.id,
+          userId,
+          validatedData.grade_value,
+          `Tạo điểm ${validatedData.component_type}`,
+          validatedData.component_type,
+          studentName,
+          subjectName
+        )
+      } catch (auditError) {
+        console.error('Error logging grade create audit:', auditError)
+        // Don't fail the main operation if audit logging fails
+      }
     }
 
     revalidatePath('/dashboard/admin/grade-periods')

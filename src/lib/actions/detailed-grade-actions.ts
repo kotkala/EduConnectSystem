@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/shared/utils/supabase/admin'
 import { createClient } from "@/lib/supabase/server"
 import { checkAdminPermissions, checkTeacherPermissions } from '@/lib/utils/permission-utils'
+import { logGradeUpdateAudit, logGradeCreateAudit } from '@/lib/utils/audit-utils'
 import { GoogleGenAI } from '@google/genai'
 import {
   detailedGradeSchema,
@@ -49,7 +50,7 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
     // Check if grade already exists for this combination
     const { data: existingGrade } = await supabase
       .from('student_detailed_grades')
-      .select('id')
+      .select('id, grade_value')
       .eq('period_id', validatedData.period_id)
       .eq('student_id', validatedData.student_id)
       .eq('subject_id', validatedData.subject_id)
@@ -95,6 +96,20 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
 
       if (error) throw new Error(error.message)
       result = grade
+
+      // Log grade update to audit system
+      const studentData = Array.isArray(grade.student) ? grade.student[0] : grade.student
+      const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+      await logGradeUpdateAudit(
+        grade.id,
+        userId,
+        existingGrade.grade_value,
+        validatedData.grade_value,
+        `Cập nhật điểm ${validatedData.component_type}`,
+        validatedData.component_type,
+        studentData?.full_name,
+        subjectData?.name_vietnamese
+      )
     } else {
       // Create new grade
       const { data: grade, error } = await supabase
@@ -131,6 +146,19 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
 
       if (error) throw new Error(error.message)
       result = grade
+
+      // Log grade creation to audit system
+      const studentData = Array.isArray(grade.student) ? grade.student[0] : grade.student
+      const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+      await logGradeCreateAudit(
+        grade.id,
+        userId,
+        validatedData.grade_value,
+        `Tạo điểm ${validatedData.component_type}`,
+        validatedData.component_type,
+        studentData?.full_name,
+        subjectData?.name_vietnamese
+      )
     }
 
     revalidatePath('/dashboard/admin/grade-periods')
@@ -468,8 +496,19 @@ export async function updateDetailedGradeAction(data: {
   grade_value: number
 }) {
   try {
-    await checkAdminPermissions()
+    const { userId } = await checkAdminPermissions()
     const supabase = createAdminClient()
+
+    // Get existing grade for audit logging
+    const { data: existingGrade, error: existingError } = await supabase
+      .from('student_detailed_grades')
+      .select('grade_value, component_type')
+      .eq('id', data.grade_id)
+      .single()
+
+    if (existingError) {
+      throw new Error(`Không thể tìm thấy điểm: ${existingError.message}`)
+    }
 
     const { data: updatedGrade, error } = await supabase
       .from('student_detailed_grades')
@@ -506,6 +545,20 @@ export async function updateDetailedGradeAction(data: {
     if (error) {
       throw new Error(error.message)
     }
+
+    // Log grade update to audit system
+    const studentData = Array.isArray(updatedGrade.student) ? updatedGrade.student[0] : updatedGrade.student
+    const subjectData = Array.isArray(updatedGrade.subject) ? updatedGrade.subject[0] : updatedGrade.subject
+    await logGradeUpdateAudit(
+      updatedGrade.id,
+      userId,
+      existingGrade.grade_value,
+      data.grade_value,
+      `Cập nhật điểm ${existingGrade.component_type}`,
+      existingGrade.component_type,
+      studentData?.full_name,
+      subjectData?.name_vietnamese
+    )
 
     revalidatePath('/dashboard/admin/grade-periods')
     revalidatePath('/dashboard/teacher/grade-reports')

@@ -14,6 +14,7 @@ import {
   subWeeks,
 } from "date-fns";
 import {
+  CalendarIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -44,6 +45,12 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
+import { Calendar } from "@/shared/components/ui/calendar";
 
 export interface EventCalendarProps {
   readonly events?: CalendarEvent[];
@@ -71,6 +78,7 @@ export function EventCalendar({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null,
   );
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -300,6 +308,29 @@ export function EventCalendar({
               >
                 Today
               </Button>
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="max-sm:h-8 max-sm:px-2.5!"
+                  >
+                    <CalendarIcon size={16} className="mr-1" />
+                    <span className="max-sm:hidden">Pick Date</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={currentDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setCurrentDate(date);
+                        setIsDatePickerOpen(false);
+                      }
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="flex items-center justify-between gap-2">
               <DropdownMenu>

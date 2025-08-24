@@ -229,6 +229,10 @@ export interface StudentViolationWithDetails {
     id: string
     full_name: string
   }
+  recorded_by_user?: {
+    id: string
+    full_name: string
+  }
   academic_year: {
     id: string
     name: string

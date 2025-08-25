@@ -31,7 +31,7 @@ interface SimpleTeacher {
   employee_id: string
 }
 import { createClassAction, updateClassAction, getHomeroomEnabledTeachersAction } from "@/features/admin-management/actions/class-actions"
-import { getSemestersAction, getAcademicYearsAction } from "@/features/admin-management/actions/academic-actions"
+import { getAcademicYearsAction } from "@/features/admin-management/actions/academic-actions"
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 import { useSelectedAcademicYearId } from "@/providers/academic-year-context"
 
@@ -76,26 +76,7 @@ function getInitialFormValues(isEditing: boolean, classData?: Class) {
   };
 }
 
-// Helper function to load form data (excluding academic years - now from global context)
-// Optimized with reasonable limits to prevent over-fetching
-async function loadFormData(selectedAcademicYearId?: string) {
-  const [semestersResult, teachersResult, classBlocksResult] = await Promise.all([
-    getSemestersAction({
-      page: 1,
-      limit: 20, // Reduced from 100 to prevent over-fetching
-      // Filter semesters by selected academic year if available
-      ...(selectedAcademicYearId && { academic_year_id: selectedAcademicYearId })
-    }),
-    getHomeroomEnabledTeachersAction(), // This already has reasonable limits
-    getActiveClassBlocksAction() // This already has reasonable limits
-  ]);
 
-  return {
-    semesters: semestersResult.success ? semestersResult.data : [],
-    teachers: teachersResult.success ? teachersResult.data : [],
-    classBlocks: classBlocksResult.success ? classBlocksResult.data as ClassBlockDropdownData[] : []
-  };
-}
 
 // Helper function to generate class name
 function generateClassName(
@@ -300,7 +281,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
       }
       loadSemesters()
     }
-  }, [form.watch("academic_year_id")])
+  }, [form])
 
   // Reset subject combination fields when checkbox is unchecked
   useEffect(() => {

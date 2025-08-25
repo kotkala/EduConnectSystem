@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { checkAdminPermissions } from '@/lib/utils/permission-utils'
 
 // Types for teacher assignment
 export interface AvailableSubject {
@@ -273,6 +274,7 @@ export async function getClassTeacherAssignmentsAction(classId: string) {
 // Remove teacher assignment
 export async function removeTeacherAssignmentAction(assignmentId: string) {
   try {
+    await checkAdminPermissions()
     const supabase = await createClient()
 
     const { error } = await supabase

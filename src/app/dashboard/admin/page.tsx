@@ -30,38 +30,7 @@ function TrendIndicator({ value, isPositive }: { readonly value: number; readonl
   )
 }
 
-// Quick Action Card Component
-function QuickActionCard({
-  icon: Icon,
-  title,
-  description,
-  onClick
-}: {
-  readonly icon: React.ComponentType<{ className?: string }>;
-  readonly title: string;
-  readonly description: string;
-  readonly onClick?: () => void
-}) {
-  return (
-    <button
-      type="button"
-      className="cursor-pointer hover:scale-[1.02] transition-transform duration-200 w-full text-left"
-      onClick={onClick}
-    >
-      <Card className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Icon className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm">{title}</h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
-        </div>
-      </Card>
-    </button>
-  )
-}
+
 
 // Helper functions
 function getTimeAgo(dateString: string): string {

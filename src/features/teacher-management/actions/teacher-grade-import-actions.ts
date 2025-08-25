@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
 import type { ValidatedGradeData } from "@/lib/utils/teacher-excel-import-validation"
-import { logGradeUpdateAuditPending, logGradeCreateAudit, type GradeUpdateAuditData, type GradeCreateAuditData } from "@/lib/utils/audit-utils"
+import { logGradeUpdateAuditPending } from "@/lib/utils/audit-utils"
 
 export interface GradeImportResult {
   success: boolean

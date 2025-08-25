@@ -340,7 +340,17 @@ function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
       subject_id: string
       component_type: string
       grade_value: string
-      subject: unknown
+      subject: {
+        id: string
+        code: string
+        name_vietnamese: string
+        category: string
+      } | {
+        id: string
+        code: string
+        name_vietnamese: string
+        category: string
+      }[]
     }
     const subjectId = grade.subject_id
     const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
@@ -358,22 +368,22 @@ function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
 
     const subjectGrades = gradesBySubject.get(subjectId)
 
-    console.log('🔍 [GRADE PROCESSING] Processing grade:', (grade.subject as any)?.code, grade.component_type, grade.grade_value)
+    console.log('🔍 [GRADE PROCESSING] Processing grade:', subjectData?.code, grade.component_type, grade.grade_value)
 
     if (grade.component_type.startsWith('regular')) {
       // Handle regular_1, regular_2, regular_3, regular_4, etc.
       subjectGrades.regular_grades.push(parseFloat(grade.grade_value))
-      console.log('✅ [GRADE PROCESSING] Added regular grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
+      console.log('✅ [GRADE PROCESSING] Added regular grade:', grade.grade_value, 'to', subjectData?.code)
     } else if (grade.component_type === 'midterm') {
       subjectGrades.midterm_grade = parseFloat(grade.grade_value)
-      console.log('✅ [GRADE PROCESSING] Added midterm grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
+      console.log('✅ [GRADE PROCESSING] Added midterm grade:', grade.grade_value, 'to', subjectData?.code)
     } else if (grade.component_type === 'final') {
       subjectGrades.final_grade = parseFloat(grade.grade_value)
-      console.log('✅ [GRADE PROCESSING] Added final grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
+      console.log('✅ [GRADE PROCESSING] Added final grade:', grade.grade_value, 'to', subjectData?.code)
     } else if (grade.component_type === 'summary' || grade.component_type.includes('summary') || grade.component_type.includes('semester')) {
       // Handle summary, semester_1, semester_2, etc.
       subjectGrades.average_grade = parseFloat(grade.grade_value)
-      console.log('✅ [GRADE PROCESSING] Added average grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
+      console.log('✅ [GRADE PROCESSING] Added average grade:', grade.grade_value, 'to', subjectData?.code)
     }
   }
 

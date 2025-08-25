@@ -7,7 +7,7 @@ import { Badge } from '@/shared/components/ui/badge'
 
 import {
   UserCheck, GraduationCap, BookOpen, Heart, TrendingUp, TrendingDown,
-  Plus, Bell, FileText, Settings, Activity, Database,
+  Bell, Activity, Database,
   Users, Calendar, BarChart3, CheckCircle
 } from 'lucide-react'
 
@@ -69,14 +69,14 @@ function getTimeAgo(dateString: string): string {
   const date = new Date(dateString)
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
 
-  if (diffInMinutes < 1) return 'Just now'
-  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`
+  if (diffInMinutes < 1) return 'Vừa xong'
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`
 
   const diffInHours = Math.floor(diffInMinutes / 60)
-  if (diffInHours < 24) return `${diffInHours} hours ago`
+  if (diffInHours < 24) return `${diffInHours} giờ trước`
 
   const diffInDays = Math.floor(diffInHours / 24)
-  return `${diffInDays} days ago`
+  return `${diffInDays} ngày trước`
 }
 
 function getRoleIcon(role: string) {
@@ -185,7 +185,7 @@ export default async function AdminDashboard() {
   const roleConfig = [
     {
       role: 'admin',
-      label: 'Administrators',
+      label: 'Quản trị viên',
       icon: UserCheck,
       gradient: 'from-red-500 to-red-600',
       trend: { value: 5, isPositive: true }
@@ -213,13 +213,7 @@ export default async function AdminDashboard() {
     },
   ]
 
-  // Quick actions configuration
-  const quickActions = [
-    { icon: Plus, title: 'Thêm người dùng', description: 'Tạo tài khoản mới' },
-    { icon: Bell, title: 'Gửi thông báo', description: 'Gửi thông điệp đến mọi người' },
-    { icon: FileText, title: 'Tạo báo cáo', description: 'Xuất dữ liệu phân tích' },
-    { icon: Settings, title: 'Cài đặt hệ thống', description: 'Cấu hình nền tảng' },
-  ]
+  
 
   // Get current time for greeting
   const currentHour = new Date().getHours()
@@ -275,20 +269,7 @@ export default async function AdminDashboard() {
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h3 className="text-lg font-semibold text-gray-900">Thao tác nhanh</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
-              <QuickActionCard
-                key={action.title}
-                icon={action.icon}
-                title={action.title}
-                description={action.description}
-              />
-            ))}
-          </div>
-        </div>
+        
 
         {/* Analytics Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -332,11 +313,11 @@ export default async function AdminDashboard() {
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                       <div className="text-lg font-bold text-blue-600">{totalStudentsEnrolled}</div>
-                      <div className="text-xs text-muted-foreground">Students Enrolled</div>
+                      <div className="text-xs text-muted-foreground">Học sinh đã ghi danh</div>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-emerald-600">{totalCapacity}</div>
-                      <div className="text-xs text-muted-foreground">Total Capacity</div>
+                      <div className="text-xs text-muted-foreground">Tổng sức chứa</div>
                     </div>
                   </div>
                 </div>
@@ -348,10 +329,10 @@ export default async function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-emerald-600" />
-                System Health
+                Tình trạng hệ thống
               </CardTitle>
               <CardDescription>
-                Real-time system status
+                Trạng thái hệ thống theo thời gian thực
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -359,48 +340,48 @@ export default async function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Database</span>
+                    <span className="text-sm">Cơ sở dữ liệu</span>
                   </div>
                   <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
                     <CheckCircle className="w-3 h-3 mr-1" />
-                    Connected
+                    Đã kết nối
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Total Users</span>
+                    <span className="text-sm">Tổng người dùng</span>
                   </div>
                   <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                    {Object.values(stats).reduce((sum, count) => sum + count, 0)} Active
+                    {Object.values(stats).reduce((sum, count) => sum + count, 0)} đang hoạt động
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Subjects</span>
+                    <span className="text-sm">Môn học</span>
                   </div>
                   <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    {activeSubjects}/{totalSubjects} Active
+                    {activeSubjects}/{totalSubjects} đang hoạt động
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <GraduationCap className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Classes</span>
+                    <span className="text-sm">Lớp học</span>
                   </div>
                   <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    {activeClasses}/{totalClasses} Active
+                    {activeClasses}/{totalClasses} đang hoạt động
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Bell className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm">Notifications</span>
+                    <span className="text-sm">Thông báo</span>
                   </div>
                   <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
                     <CheckCircle className="w-3 h-3 mr-1" />
-                    {systemHealth ? 'Active' : 'Inactive'}
+                    {systemHealth ? 'Hoạt động' : 'Không hoạt động'}
                   </Badge>
                 </div>
               </div>
@@ -414,17 +395,17 @@ export default async function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" />
-                Recent Activity
+                Hoạt động gần đây
               </CardTitle>
               <CardDescription>
-                Latest user registrations and platform activities
+                Đăng ký người dùng mới và hoạt động trên nền tảng
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {recentActivity && recentActivity.length > 0 ? recentActivity.slice(0, 4).map((activity, index) => {
                   const isNewUser = new Date(activity.created_at).getTime() === new Date(activity.updated_at).getTime()
-                  const actionText = isNewUser ? 'New account created' : 'Profile updated'
+                  const actionText = isNewUser ? 'Tạo tài khoản mới' : 'Cập nhật hồ sơ'
                   const timeAgo = getTimeAgo(activity.updated_at)
                   const roleIcon = getRoleIcon(activity.role)
                   const roleColor = getRoleColor(activity.role)
@@ -440,13 +421,13 @@ export default async function AdminDashboard() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">{actionText}</p>
-                        <p className="text-xs text-muted-foreground">{activity.full_name || 'Unknown User'} â€¢ {timeAgo}</p>
+                        <p className="text-xs text-muted-foreground">{activity.full_name || 'Người dùng không xác định'} • {timeAgo}</p>
                       </div>
                     </div>
                   )
                 }) : (
                   <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-sm">No recent activity</p>
+                    <p className="text-sm">Không có hoạt động gần đây</p>
                   </div>
                 )}
               </div>
@@ -457,10 +438,10 @@ export default async function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-purple-600" />
-                Upcoming Events
+                Sự kiện sắp tới
               </CardTitle>
               <CardDescription>
-                Important dates and scheduled activities
+                Ngày quan trọng và hoạt động đã lên lịch
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -487,14 +468,14 @@ export default async function AdminDashboard() {
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">{meeting.title}</p>
                         <p className="text-xs text-muted-foreground">
-                          {meeting.meeting_type.replace('_', ' ').toUpperCase()} â€¢ {formattedDate}
+                          {meeting.meeting_type.replace('_', ' ').toUpperCase()} • {formattedDate}
                         </p>
                       </div>
                     </div>
                   )
                 }) : (
                   <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-sm">No upcoming meetings</p>
+                    <p className="text-sm">Không có cuộc họp sắp tới</p>
                   </div>
                 )}
               </div>

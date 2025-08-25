@@ -211,7 +211,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
           {/* Logo Icon - Modern Minimalist Design */}
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-100 shrink-0">
             <Image
-              src="/Edu Connect.svg"
+              src="/Edu icon.svg"
               alt="EduConnect Logo"
               width={24}
               height={24}

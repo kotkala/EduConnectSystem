@@ -330,6 +330,8 @@ export async function getChildrenGradeReportsAction() {
 
 // Helper function to process detailed grades into aggregated format
 function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
+  console.log('🔍 [GRADE PROCESSING] Starting with', detailedGrades.length, 'detailed grades')
+
   const gradesBySubject = new Map()
 
   // Group grades by subject
@@ -356,16 +358,22 @@ function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
 
     const subjectGrades = gradesBySubject.get(subjectId)
 
+    console.log('🔍 [GRADE PROCESSING] Processing grade:', (grade.subject as any)?.code, grade.component_type, grade.grade_value)
+
     if (grade.component_type.startsWith('regular')) {
       // Handle regular_1, regular_2, regular_3, regular_4, etc.
       subjectGrades.regular_grades.push(parseFloat(grade.grade_value))
+      console.log('✅ [GRADE PROCESSING] Added regular grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
     } else if (grade.component_type === 'midterm') {
       subjectGrades.midterm_grade = parseFloat(grade.grade_value)
+      console.log('✅ [GRADE PROCESSING] Added midterm grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
     } else if (grade.component_type === 'final') {
       subjectGrades.final_grade = parseFloat(grade.grade_value)
+      console.log('✅ [GRADE PROCESSING] Added final grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
     } else if (grade.component_type === 'summary' || grade.component_type.includes('summary') || grade.component_type.includes('semester')) {
       // Handle summary, semester_1, semester_2, etc.
       subjectGrades.average_grade = parseFloat(grade.grade_value)
+      console.log('✅ [GRADE PROCESSING] Added average grade:', grade.grade_value, 'to', (grade.subject as any)?.code)
     }
   }
 
@@ -459,7 +467,9 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       .eq('period_id', submission.period_id)
 
     // Process detailed grades
+    console.log('🔍 [PARENT GRADE DETAIL] Processing', (detailedGrades || []).length, 'detailed grades')
     const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])
+    console.log('🔍 [PARENT GRADE DETAIL] Processed grades result:', processedGrades.length, 'subjects')
 
     // Fix data structure
     const student = Array.isArray(submission.student) ? submission.student[0] : submission.student

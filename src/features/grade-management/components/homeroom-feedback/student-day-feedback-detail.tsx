@@ -16,7 +16,8 @@ import {
   User,
   GraduationCap,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Send
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -25,12 +26,16 @@ import {
   type HomeroomFeedbackFilters,
   type StudentDaySchedule
 } from "@/features/grade-management/actions/homeroom-feedback-actions"
+import {
+  sendDailyFeedbackToParentsAction,
+  checkDailyFeedbackSentStatusAction
+} from "@/lib/actions/feedback-notification-actions"
 
 interface StudentDayFeedbackDetailProps {
-  studentId: string
-  dayOfWeek: number
-  filters: HomeroomFeedbackFilters
-  studentName?: string
+  readonly studentId: string
+  readonly dayOfWeek: number
+  readonly filters: HomeroomFeedbackFilters
+  readonly studentName?: string
 }
 
 export function StudentDayFeedbackDetail({
@@ -45,11 +50,20 @@ export function StudentDayFeedbackDetail({
   const [error, setError] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [dailySummary, setDailySummary] = useState<string | null>(null)
+  const [sendingToParents, setSendingToParents] = useState(false)
+  const [sentToParents, setSentToParents] = useState(false)
 
   // Get day name in Vietnamese
   const getDayName = (dayOfWeek: number): string => {
     const days = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
     return days[dayOfWeek] || 'Không xác định'
+  }
+
+  // Get send button text
+  const getSendButtonText = (): string => {
+    if (sendingToParents) return "Đang gửi..."
+    if (sentToParents) return "Đã gửi"
+    return "Gửi cho phụ huynh"
   }
 
   // Load student day data
@@ -67,6 +81,19 @@ export function StudentDayFeedbackDetail({
 
         if (result.success && result.data) {
           setStudentData(result.data)
+
+          // Check if feedback has already been sent to parents
+          const sentStatus = await checkDailyFeedbackSentStatusAction(
+            studentId,
+            dayOfWeek,
+            filters.academic_year_id,
+            filters.semester_id,
+            filters.week_number
+          )
+
+          if (sentStatus.success && sentStatus.data?.sent) {
+            setSentToParents(true)
+          }
         } else {
           setError(result.error || "Failed to load student feedback data")
         }
@@ -106,6 +133,34 @@ export function StudentDayFeedbackDetail({
       toast.error("An unexpected error occurred")
     } finally {
       setSummaryLoading(false)
+    }
+  }
+
+  // Send daily feedback to parents
+  const handleSendToParents = async () => {
+    if (!studentData) return
+
+    setSendingToParents(true)
+    try {
+      const result = await sendDailyFeedbackToParentsAction(
+        studentId,
+        dayOfWeek,
+        filters.academic_year_id,
+        filters.semester_id,
+        filters.week_number
+      )
+
+      if (result.success) {
+        setSentToParents(true)
+        toast.success(result.message || "Đã gửi phản hồi cho phụ huynh thành công")
+      } else {
+        toast.error(result.error || "Failed to send feedback to parents")
+      }
+    } catch (err) {
+      console.error("Send to parents error:", err)
+      toast.error("An unexpected error occurred")
+    } finally {
+      setSendingToParents(false)
     }
   }
 
@@ -196,14 +251,28 @@ export function StudentDayFeedbackDetail({
             </p>
           </div>
         </div>
-        <Button 
-          onClick={handleGenerateSummary} 
-          disabled={summaryLoading || totalLessons === 0}
-          className="w-full sm:w-auto"
-        >
-          <Sparkles className="h-4 w-4 mr-2" />
-          {summaryLoading ? "Đang tạo..." : "Tóm tắt AI"}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={handleGenerateSummary}
+            disabled={summaryLoading || totalLessons === 0}
+            className="w-full sm:w-auto"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {summaryLoading ? "Đang tạo..." : "Tóm tắt AI"}
+          </Button>
+
+          {dailySummary && (
+            <Button
+              onClick={handleSendToParents}
+              disabled={sendingToParents || sentToParents}
+              variant={sentToParents ? "secondary" : "default"}
+              className="w-full sm:w-auto"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {getSendButtonText()}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Statistics */}
@@ -283,8 +352,8 @@ export function StudentDayFeedbackDetail({
           </Card>
         ) : (
           <div className="grid gap-4">
-            {studentData.lessons.map((lesson, index) => (
-              <Card key={index}>
+            {studentData.lessons.map((lesson) => (
+              <Card key={`lesson-${lesson.period}-${lesson.subject_name}`}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">

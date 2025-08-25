@@ -583,17 +583,18 @@ async function getAcademicAnalysis(supabase: Awaited<ReturnType<typeof createCli
   try {
     // Get comprehensive data for analysis
     const [gradesResult, feedbackResult, violationsResult] = await Promise.all([
-      // Get grades from last 3 months
+      // Get grades from last 3 months using NEW system
       supabase
-        .from('submission_grades')
+        .from('student_detailed_grades')
         .select(`
-          grade,
-          submission_date,
-          subjects(name_vietnamese, name_english)
+          grade_value,
+          component_type,
+          created_at,
+          subject:subjects(name_vietnamese, name_english)
         `)
         .eq('student_id', student.student_id)
-        .gte('submission_date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
-        .order('submission_date', { ascending: false }),
+        .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false }),
 
       // Get teacher feedback from last 3 months
       supabase
@@ -645,11 +646,14 @@ async function getAcademicAnalysis(supabase: Awaited<ReturnType<typeof createCli
     let analysis: Record<string, unknown> = {}
 
     if (analysisType === 'overall' || analysisType === 'comparison') {
-      // Overall academic performance analysis
+      // Overall academic performance analysis (updated for new system)
       const gradesBySubject = grades.reduce((acc: Record<string, number[]>, grade: any) => {
-        const subject = grade.subjects?.name_vietnamese || 'Unknown'
+        const subject = grade.subject?.name_vietnamese || 'Unknown'
         if (!acc[subject]) acc[subject] = []
-        acc[subject].push(grade.grade)
+        const gradeValue = parseFloat(grade.grade_value)
+        if (!isNaN(gradeValue)) {
+          acc[subject].push(gradeValue)
+        }
         return acc
       }, {})
 
@@ -661,8 +665,9 @@ async function getAcademicAnalysis(supabase: Awaited<ReturnType<typeof createCli
         lowest: Math.min(...gradeList)
       }))
 
-      const overallAverage = grades.length > 0
-        ? (grades.reduce((sum: number, g: any) => sum + g.grade, 0) / grades.length).toFixed(2)
+      const validGrades = grades.map((g: any) => parseFloat(g.grade_value)).filter((g: number) => !isNaN(g))
+      const overallAverage = validGrades.length > 0
+        ? (validGrades.reduce((sum: number, grade: number) => sum + grade, 0) / validGrades.length).toFixed(2)
         : 'N/A'
 
       // Feedback analysis
@@ -1077,34 +1082,31 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
       semesterFilter = semester as string
     }
 
-    // Query student grade submissions (official semester grades)
+    // Query homeroom parent submissions (NEW system)
     let query = supabase
-      .from('student_grade_submissions')
+      .from('homeroom_parent_submissions')
       .select(`
         id,
-        submission_name,
         status,
-        created_at,
-        academic_year:academic_years(name),
-        semester:semesters(name),
-        class:classes(
+        submitted_at,
+        class_id,
+        period_id,
+        class:classes!class_id(
+          id,
           name,
           homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(full_name)
         ),
-        detailed_grades:student_detailed_grades(
-          subject_id,
-          component_type,
-          grade_value,
-          subject:subjects(
-            code,
-            name_vietnamese,
-            category
-          )
+        period:grade_reporting_periods!period_id(
+          id,
+          name,
+          period_type,
+          academic_year:academic_years(name),
+          semester:semesters(name)
         )
       `)
       .eq('student_id', student.student_id)
-      .eq('status', 'sent_to_teacher')
-      .order('created_at', { ascending: false })
+      .eq('status', 'submitted')
+      .order('submitted_at', { ascending: false })
 
     if (semesterFilter) {
       // Add semester filter if specified
@@ -1137,34 +1139,55 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
       const latestSubmission = gradeSubmissions[0]
 
       result.latestGradeReport = {
-        submissionName: latestSubmission.submission_name,
-        academicYear: latestSubmission.academic_year?.[0]?.name,
-        semester: latestSubmission.semester?.[0]?.name,
+        submissionName: latestSubmission.period?.[0]?.name || 'Kỳ báo cáo',
+        academicYear: latestSubmission.period?.[0]?.academic_year?.[0]?.name,
+        semester: latestSubmission.period?.[0]?.semester?.[0]?.name,
         className: latestSubmission.class?.[0]?.name,
         homeroomTeacher: latestSubmission.class?.[0]?.homeroom_teacher?.[0]?.full_name,
-        submittedAt: new Date(latestSubmission.created_at).toLocaleDateString('vi-VN'),
-        subjects: latestSubmission.detailed_grades?.map((grade: any) => ({
+        submittedAt: new Date(latestSubmission.submitted_at).toLocaleDateString('vi-VN'),
+        subjects: [] // Will be populated separately from student_detailed_grades
+      }
+
+      // Get detailed grades for this submission
+      const { data: detailedGrades } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          component_type,
+          grade_value,
+          subject:subjects(
+            code,
+            name_vietnamese,
+            category
+          )
+        `)
+        .eq('student_id', student.student_id)
+        .eq('class_id', latestSubmission.class_id)
+        .eq('period_id', latestSubmission.period_id)
+
+      if (detailedGrades && detailedGrades.length > 0) {
+        // Add subjects to the result
+        (result.latestGradeReport as any).subjects = detailedGrades.map((grade: any) => ({
           subjectCode: grade.subject?.code,
           subjectName: grade.subject?.name_vietnamese,
           category: grade.subject?.category,
           componentType: grade.component_type,
-          gradeValue: grade.grade_value
-        })) || []
-      }
+          gradeValue: parseFloat(grade.grade_value)
+        }))
 
-      // Calculate statistics from detailed grades
-      const finalGrades = latestSubmission.detailed_grades?.filter((g: any) => g.component_type === 'final') || []
-      if (finalGrades.length > 0) {
-        const averages = finalGrades.map((g: any) => g.grade_value)
-        result.statistics = {
-          totalSubjects: finalGrades.length,
-          overallAverage: (averages.reduce((sum: number, grade: number) => sum + grade, 0) / averages.length).toFixed(2),
-          highestGrade: Math.max(...averages),
-          lowestGrade: Math.min(...averages),
-          excellentCount: averages.filter(g => g >= 8).length,
-          goodCount: averages.filter(g => g >= 6.5 && g < 8).length,
-          averageCount: averages.filter(g => g >= 5 && g < 6.5).length,
-          belowAverageCount: averages.filter(g => g < 5).length
+        // Calculate statistics from final grades
+        const finalGrades = detailedGrades.filter((g: any) => g.component_type === 'final')
+        if (finalGrades.length > 0) {
+          const averages = finalGrades.map((g: any) => parseFloat(g.grade_value))
+          result.statistics = {
+            totalSubjects: finalGrades.length,
+            overallAverage: (averages.reduce((sum: number, grade: number) => sum + grade, 0) / averages.length).toFixed(2),
+            highestGrade: Math.max(...averages),
+            lowestGrade: Math.min(...averages),
+            excellentCount: averages.filter((g: number) => g >= 8).length,
+            goodCount: averages.filter((g: number) => g >= 6.5 && g < 8).length,
+            averageCount: averages.filter((g: number) => g >= 5 && g < 6.5).length,
+            belowAverageCount: averages.filter((g: number) => g < 5).length
+          }
         }
       }
     }

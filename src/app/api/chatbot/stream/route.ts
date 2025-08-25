@@ -109,18 +109,20 @@ export async function POST(request: NextRequest) {
       supabase.from('semesters').select('id, name, semester_number, start_date, end_date, is_current').eq('is_current', true).single()
     ])
 
-    // Get grade data for context
+    // Get grade data for context from NEW homeroom system
     const { data: gradeData } = await supabase
-      .from('submission_grades')
+      .from('student_detailed_grades')
       .select(`
-        grade,
-        submission_date,
+        grade_value,
+        component_type,
+        created_at,
         subject_id,
-        student_id
+        student_id,
+        subject:subjects(name_vietnamese)
       `)
       .in('student_id', studentIds)
-      .gte('submission_date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('submission_date', { ascending: false })
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false })
       .limit(30)
 
     // Get official grade submissions (semester reports)

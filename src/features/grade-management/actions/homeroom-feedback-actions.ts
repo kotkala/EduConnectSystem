@@ -252,32 +252,27 @@ export async function getStudentDayFeedbackAction({
   try {
     const supabase = await createClient()
 
-    // Get student basic info and class
-    const { data: student, error: studentError } = await supabase
-      .from('profiles')
+    // Get student basic info and class using the correct view
+    const { data: studentAssignment, error: studentError } = await supabase
+      .from('student_class_assignments_view')
       .select(`
-        full_name,
         student_id,
-        student_class_assignments (
-          class_id,
-          classes (
-            id,
-            name
-          )
-        )
+        student_name,
+        student_number,
+        class_id,
+        class_name
       `)
-      .eq('id', studentId)
+      .eq('student_id', studentId)
+      .eq('assignment_type', 'student')
+      .eq('is_active', true)
       .single()
 
     if (studentError) {
       throw new Error(studentError.message)
     }
 
-    // Get the student's current class
-    const classAssignment = student.student_class_assignments?.[0]
-    const studentClass = Array.isArray(classAssignment?.classes) ? classAssignment.classes[0] : classAssignment?.classes
-    if (!studentClass) {
-      throw new Error('Student class not found')
+    if (!studentAssignment) {
+      throw new Error('Student class assignment not found')
     }
 
     // Get timetable events for the specific day and join with feedback
@@ -306,7 +301,7 @@ export async function getStudentDayFeedbackAction({
           created_at
         )
       `)
-      .eq('class_id', studentClass.id)
+      .eq('class_id', studentAssignment.class_id)
       .eq('day_of_week', dayOfWeek)
       .eq('semester_id', semester_id)
       .eq('week_number', week_number)
@@ -352,8 +347,8 @@ export async function getStudentDayFeedbackAction({
 
     const result: StudentDaySchedule = {
       student_id: studentId,
-      student_name: student.full_name,
-      student_code: student.student_id,
+      student_name: studentAssignment.student_name,
+      student_code: studentAssignment.student_number,
       day_of_week: dayOfWeek,
       lessons: formattedLessons
     }

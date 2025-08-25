@@ -35,8 +35,8 @@ import {
   getStudentsForReportAction,
   type StudentForReport
 } from "@/features/reports"
-// ðŸš€ MIGRATION: Add coordinated loading system
-import { usePageTransition /* , useCoordinatedLoading */ } from '@/shared/hooks/use-coordinated-loading'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+
 // Removed StudentReportModal import - now using dedicated page
 
 // Utility function to format date range for dropdown
@@ -79,6 +79,32 @@ const StudentItem = memo(function StudentItem({
         <p className="text-sm text-gray-500">
           Mã HS: {student.student_id} â€¢ Lớp: {student.class_name}
         </p>
+        {/* Parent Feedback Display */}
+        {student.parent_feedback?.responded_at && (
+          <div className="mt-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Phụ huynh:</span>
+              {student.parent_feedback.agreement_status === 'agree' ? (
+                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                  Đồng ý
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                  Không đồng ý
+                </Badge>
+              )}
+            </div>
+            {student.parent_feedback.comments && (
+              <div className="text-xs text-gray-600">
+                <span className="font-medium">Nhận xét: </span>
+                <span>
+                  {student.parent_feedback.comments.substring(0, 60)}
+                  {student.parent_feedback.comments.length > 60 ? '...' : ''}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-3">
         {getStatusBadge(student)}
@@ -151,8 +177,7 @@ function TeacherReportsClient() {
   const searchParams = useSearchParams()
   
   // ðŸš€ MIGRATION: Replace loading state with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  // const coordinatedLoading = useCoordinatedLoading() // Unused variable
+
   
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>("")
@@ -164,6 +189,9 @@ function TeacherReportsClient() {
   // Remove modal state - we'll navigate to dedicated page instead
   const [currentPage, setCurrentPage] = useState(1)
   const [bulkSending, setBulkSending] = useState(false)
+
+  // Global loading for initial data loads
+  const { startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
@@ -211,10 +239,15 @@ function TeacherReportsClient() {
       }
     }
 
-    // Filter by parent feedback (placeholder for future implementation)
+    // Filter by parent feedback
     if (parentFeedbackFilter !== "all") {
-      // TODO: Add parent feedback filtering logic when parent feedback is implemented
-      // For now, this is a placeholder
+      if (parentFeedbackFilter === "agree") {
+        filtered = filtered.filter(student => student.parent_feedback?.agreement_status === 'agree')
+      } else if (parentFeedbackFilter === "disagree") {
+        filtered = filtered.filter(student => student.parent_feedback?.agreement_status === 'disagree')
+      } else if (parentFeedbackFilter === "no_response") {
+        filtered = filtered.filter(student => !student.parent_feedback?.responded_at)
+      }
     }
 
     return filtered
@@ -234,7 +267,7 @@ function TeacherReportsClient() {
   const loadReportPeriods = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startPageTransition("Đang tải danh sách kỳ báo cáo...")
+      startLoading()
       setError(null)
 
       const result = await getReportPeriodsAction()
@@ -250,7 +283,7 @@ function TeacherReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [startPageTransition, stopLoading])
+  }, [startLoading, stopLoading])
 
   const loadStudents = useCallback(async () => {
     if (!selectedPeriod) return
@@ -487,6 +520,7 @@ function TeacherReportsClient() {
                     <SelectItem value="all">Tất cả ý kiến</SelectItem>
                     <SelectItem value="agree">Phụ huynh đồng ý</SelectItem>
                     <SelectItem value="disagree">Phụ huynh không đồng ý</SelectItem>
+                    <SelectItem value="no_response">Chưa có phản hồi</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

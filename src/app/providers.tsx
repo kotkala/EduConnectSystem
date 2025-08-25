@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/shared/components/ui/sonner'
-import { GlobalLoadingProvider } from '@/shared/components/ui/global-loading-provider'
-import { CoordinatedLoadingOverlay } from '@/shared/components/ui/coordinated-loading-overlay'
+
 import { AuthErrorBoundary } from '@/shared/components/ui/auth-error-boundary'
+import { LoadingProvider } from '@/shared/components/ui/loading-provider'
+import { useLoadingDebug } from '@/shared/hooks/use-loading-debug'
 
 export default function Providers({ children }: { readonly children: React.ReactNode }) {
   // Create QueryClient with optimized defaults for performance
@@ -29,16 +30,22 @@ export default function Providers({ children }: { readonly children: React.React
           defaultTheme="system"
           enableSystem
         >
-          <GlobalLoadingProvider>
-            {children}
-            {/* ðŸŽ¯ COORDINATED LOADING: Single overlay for all loading conflicts */}
-            <CoordinatedLoadingOverlay />
-            <Toaster position="top-center" />
-          </GlobalLoadingProvider>
+          <LoadingProvider>
+            <LoadingDebugWrapper>
+              {children}
+              <Toaster position="top-center" />
+            </LoadingDebugWrapper>
+          </LoadingProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </AuthErrorBoundary>
   )
+}
+
+// Wrapper component to use debug hook
+function LoadingDebugWrapper({ children }: { children: React.ReactNode }) {
+  useLoadingDebug()
+  return <>{children}</>
 }
 
 

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -15,17 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/components/ui/alert-dialog"
+
 import {
   Select,
   SelectContent,
@@ -33,12 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select"
-import { UserCheck, UserPlus, Trash2, Loader2, Mail, Phone, MapPin } from "lucide-react"
+import { UserCheck, UserPlus, Mail, Phone, MapPin } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   getHomeroomEnabledTeachersAction,
-  updateHomeroomTeacherAction,
-  removeHomeroomTeacherAction
+  updateHomeroomTeacherAction
 } from "@/features/admin-management/actions/class-actions"
 
 // Simple teacher interface for dropdown
@@ -60,7 +50,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>("")
   const [assigning, setAssigning] = useState(false)
-  const [removing, setRemoving] = useState(false)
+
 
   useEffect(() => {
     fetchAvailableTeachers()
@@ -116,28 +106,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
     }
   }
 
-  const handleRemoveHomeroom = async () => {
-    try {
-      setRemoving(true)
-      setError(null)
 
-      const result = await removeHomeroomTeacherAction(classId)
-
-      if (result.success) {
-        toast.success(result.message || "Gỡ giáo viên chủ nhiệm thành công")
-        // Refresh the page to show updated data
-        window.location.reload()
-      } else {
-        setError(result.error || "Failed to remove homeroom teacher")
-        toast.error(result.error || "Không thể gỡ giáo viên chủ nhiệm")
-      }
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove homeroom teacher")
-    } finally {
-      setRemoving(false)
-    }
-  }
 
   const currentHomeroomTeacher = classData.homeroom_teacher?.full_name
 
@@ -157,46 +126,10 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               <CardTitle>Homeroom Teacher for {classData.name}</CardTitle>
             </div>
             {currentHomeroomTeacher ? (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleAssignHomeroom}>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Change Teacher
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="text-red-600 hover:text-red-700">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove Homeroom Teacher</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to remove <strong>{currentHomeroomTeacher}</strong> as the homeroom teacher for this class? 
-                        This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleRemoveHomeroom}
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={removing}
-                      >
-                        {removing ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Removing...
-                          </>
-                        ) : (
-                          "Remove Teacher"
-                        )}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+              <Button variant="outline" onClick={handleAssignHomeroom}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Change Teacher
+              </Button>
             ) : (
               <Button onClick={handleAssignHomeroom}>
                 <UserPlus className="mr-2 h-4 w-4" />
@@ -210,7 +143,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
             <div className="space-y-6">
               {/* Current Homeroom Teacher Info */}
               <div className="flex items-start gap-4 p-4 border rounded-lg bg-green-50">
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-16 w-16 md:w-20 lg:w-24">
                   <AvatarImage src="" alt={currentHomeroomTeacher} />
                   <AvatarFallback className="text-lg font-bold bg-green-100 text-green-700">
                     {currentHomeroomTeacher.split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -254,7 +187,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
             </div>
           ) : (
             <div className="text-center py-12">
-              <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <UserCheck className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 No Homeroom Teacher Assigned
               </h3>
@@ -303,7 +236,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               </Select>
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   Loading teachers...
                 </div>
               )}
@@ -322,7 +255,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                   const loadingText = currentHomeroomTeacher ? "Changing..." : "Assigning..."
                   return (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       {loadingText}
                     </>
                   )

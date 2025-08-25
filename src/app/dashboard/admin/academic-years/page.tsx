@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -6,14 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Plus, Calendar, Clock, RefreshCw, BookOpen, AlertCircle, Edit, Trash2 } from "lucide-react"
+import { Plus, Calendar, Clock, BookOpen, AlertCircle, Edit, Trash2 } from "lucide-react"
 import { Badge } from "@/shared/components/ui/badge"
 import { AcademicYearForm } from "@/features/admin-management/components/admin/academic-year-form"
 import { SemesterForm } from "@/features/admin-management/components/admin/semester-form"
 import { AcademicDeleteDialog } from "@/features/admin-management/components/admin/academic-delete-dialog"
 import { useAcademicYear } from "@/providers/academic-year-context"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,
@@ -195,7 +196,7 @@ export default function AcademicYearsManagementPage() {
               disabled={academicYearsLoading || semestersLoading}
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${(academicYearsLoading || semestersLoading) ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
           </div>
@@ -284,8 +285,8 @@ export default function AcademicYearsManagementPage() {
 
           <TabsContent value="years" className="space-y-4">
             {academicYearsLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <RefreshCw className="h-8 w-8 animate-spin" />
+              <div className="flex items-center justify-center h-32 md:h-40 lg:h-48">
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <span className="ml-2">Đang tải năm học...</span>
               </div>
             ) : (
@@ -336,8 +337,8 @@ export default function AcademicYearsManagementPage() {
 
           <TabsContent value="semesters" className="space-y-4">
             {semestersLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <RefreshCw className="h-8 w-8 animate-spin" />
+              <div className="flex items-center justify-center h-32 md:h-40 lg:h-48">
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <span className="ml-2">Đang tải học kỳ...</span>
               </div>
             ) : (

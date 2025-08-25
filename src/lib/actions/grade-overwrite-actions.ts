@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { checkTeacherPermissions } from "@/lib/utils/permission-utils"
 import { revalidateTag } from "next/cache"
+import { logGradeUpdateAuditPending, logGradeUpdateAudit } from "@/lib/utils/audit-utils"
 
 export interface GradeOverwriteData {
   periodId: string
@@ -27,7 +28,7 @@ export async function validateGradeOverwriteAction(
 ): Promise<GradeOverwriteResult> {
   try {
     const supabase = await createClient()
-    const { /* userId */ } = await checkTeacherPermissions() // userId not used
+    await checkTeacherPermissions() // userId not used in this function
 
     // Get period information to check semester
     const { data: periodInfo, error: periodError } = await supabase
@@ -155,7 +156,29 @@ export async function executeGradeOverwriteAction(
       .eq('component_type', data.componentType)
       .single()
 
-    // Update or insert the grade
+    // CRITICAL FIX: DO NOT UPDATE GRADES IMMEDIATELY
+    // Instead, create a pending audit log that requires admin approval
+
+    // For midterm and final grades, create pending audit log
+    if (data.componentType === 'midterm' || data.componentType === 'final') {
+      await logGradeUpdateAuditPending({
+        gradeId: existingGrade?.id || 'new-grade-pending',
+        userId: userId,
+        oldValue: existingGrade?.grade_value || null,
+        newValue: data.newGradeValue,
+        reason: data.overwriteReason || 'Không có lý do',
+        componentType: data.componentType,
+        studentName: 'Học sinh',
+        subjectName: 'Môn học'
+      })
+
+      return {
+        success: true,
+        message: 'Yêu cầu thay đổi điểm đã được gửi cho admin phê duyệt'
+      }
+    }
+
+    // For regular grades, update immediately with audit log
     const { data: updatedGrade, error: updateError } = await supabase
       .from('student_detailed_grades')
       .upsert({
@@ -167,7 +190,7 @@ export async function executeGradeOverwriteAction(
         grade_value: data.newGradeValue,
         previous_grade_value: existingGrade?.grade_value || null,
         overwrite_reason: data.overwriteReason,
-        is_overwrite: existingGrade ? true : false,
+        is_overwrite: Boolean(existingGrade),
         created_by: userId,
         updated_at: new Date().toISOString()
       }, {
@@ -182,6 +205,18 @@ export async function executeGradeOverwriteAction(
         error: `Lỗi cập nhật điểm: ${updateError.message}`
       }
     }
+
+    // Create regular audit log for non-midterm/final grades
+    await logGradeUpdateAudit({
+      gradeId: updatedGrade.id,
+      userId: userId,
+      oldValue: existingGrade?.grade_value || null,
+      newValue: data.newGradeValue,
+      reason: data.overwriteReason || 'Không có lý do',
+      componentType: data.componentType,
+      studentName: 'Học sinh',
+      subjectName: 'Môn học'
+    })
 
     // Record in grade history
     if (existingGrade) {

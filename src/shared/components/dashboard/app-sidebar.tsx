@@ -11,7 +11,7 @@ import {
   Heart,
   FileText,
   Calendar,
-  MessageSquare,
+  // MessageSquare removed
   Award,
   Building,
   Bell,
@@ -19,7 +19,7 @@ import {
   ChevronUp,
   User2,
   BarChart3,
-  ArrowLeftRight,
+  // ArrowLeftRight removed
   ClipboardList,
   Bot,
   AlertTriangle,
@@ -29,6 +29,8 @@ import {
   BookCheck,
   Calculator,
   TrendingUp,
+  CalendarClock,
+  CheckCircle,
 } from "lucide-react"
 import {
   Sidebar,
@@ -56,7 +58,7 @@ import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
 // Note: ExtendedUserProfile import removed as no longer needed
 
-import { useExchangeRequestsCount } from '@/shared/hooks/use-exchange-requests-count'
+// Exchange requests hook removed
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
 import { Badge } from '@/shared/components/ui/badge'
 import dynamic from 'next/dynamic'
@@ -88,11 +90,13 @@ const platformItems: Record<string, PlatformItem[]> = {
 
     // Schedule & Timetable
     { title: "Thời khóa biểu", url: "/dashboard/admin/timetable", icon: Clock },
-    { title: "Yêu cầu đổi lịch", url: "/dashboard/admin/exchange-requests", icon: ArrowLeftRight },
+    { title: "Đơn thay đổi lịch", url: "/dashboard/admin/schedule-change", icon: CalendarClock },
+    // Exchange requests menu item removed
 
     // Academic Performance
     { title: "Kỳ báo cáo điểm", url: "/dashboard/admin/grade-periods", icon: Calculator },
     { title: "Theo dõi điểm số", url: "/dashboard/admin/grade-tracking", icon: BarChart3 },
+    { title: "Phê duyệt ghi đè điểm", url: "/dashboard/admin/grade-overwrite-approvals", icon: CheckCircle },
     { title: "Báo cáo học tập", url: "/dashboard/admin/report-periods", icon: FileBarChart },
     { title: "Cải thiện điểm số", url: "/dashboard/admin/grade-improvement", icon: TrendingUp },
 
@@ -104,6 +108,7 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Tổng quan", url: "/dashboard/teacher", icon: Home },
     { title: "Thông báo", url: "/dashboard/teacher/notifications", icon: Bell },
     { title: "Lịch giảng dạy", url: "/dashboard/teacher/schedule", icon: Calendar },
+    { title: "Đơn thay đổi lịch", url: "/dashboard/teacher/schedule-change", icon: CalendarClock },
     { title: "Nhập điểm số", url: "/dashboard/teacher/grade-management", icon: Calculator },
     { title: "Bảng điểm", url: "/dashboard/teacher/grade-reports", icon: ClipboardList },
     { title: "Báo cáo học tập", url: "/dashboard/teacher/reports", icon: BookCheck },
@@ -131,9 +136,6 @@ const platformItems: Record<string, PlatformItem[]> = {
     { title: "Vi phạm con em", url: "/dashboard/parent/violations", icon: AlertTriangle },
     { title: "Lịch họp", url: "/dashboard/parent/meetings", icon: Calendar },
     { title: "Đơn xin nghỉ", url: "/dashboard/parent/leave-application", icon: FileText },
-    { title: "Trạng thái nghỉ", url: "/parent/leave-status", icon: Clock },
-    { title: "Con của tôi", url: "/parent/children", icon: Heart },
-    { title: "Tin nhắn", url: "/parent/messages", icon: MessageSquare },
   ],
 }
 
@@ -147,7 +149,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   const baseItems = platformItems[role] || []
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
-  const { counts } = useExchangeRequestsCount(role, user?.id)
+  // Exchange requests count removed
   const { counts: notificationCounts } = useNotificationCount(role, user?.id)
 
   // Chatbot state for parent role
@@ -159,10 +161,10 @@ export function AppSidebar({ role }: AppSidebarProps) {
   // Add feedback and violations links for all teachers (always visible)
   const items: PlatformItem[] = role === 'teacher'
     ? [
-        ...baseItems.slice(0, 5), // Keep first 5 items (Dashboard, Notifications, Schedule, Grade Management, Grade Reports)
+        ...baseItems.slice(0, 6), // Keep first 6 items (Dashboard, Notifications, Schedule, Schedule Change, Grade Management, Grade Reports)
         { title: "Phản Hồi Học Sinh", url: "/dashboard/teacher/feedback", icon: BarChart3 },
         { title: "Vi Phạm Học Sinh", url: "/dashboard/teacher/violations", icon: AlertTriangle },
-        ...baseItems.slice(5) // Add remaining items
+        ...baseItems.slice(6) // Add remaining items
       ]
     : baseItems
 
@@ -304,12 +306,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
                       <Link href={item.url}>
                         <item.icon />
                         <span className="font-medium">{item.title}</span>
-                        {/* Exchange request badge */}
-                        {(item.url.includes('/exchange-requests') && counts.pending > 0) && (
-                          <Badge variant="destructive" className="ml-auto h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
-                            {counts.pending > 99 ? '99+' : counts.pending}
-                          </Badge>
-                        )}
+                        {/* Exchange request badge removed */}
                       </Link>
                     </SidebarMenuButton>
                   )}

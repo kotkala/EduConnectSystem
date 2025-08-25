@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { checkTeacherPermissions } from '@/lib/utils/permission-utils'
+import { logGradeAuditAction } from '@/lib/utils/audit-utils'
 import { revalidatePath } from 'next/cache'
 
 export interface TeacherGradeSubmissionData {
@@ -124,13 +125,34 @@ export async function submitTeacherGradesToAdminAction(
       result = newSubmission
     }
 
+    // Log the submission to audit logs
+    try {
+      await logGradeAuditAction({
+        record_id: result.id,
+        action: existingSubmission ? 'UPDATE' : 'INSERT',
+        user_id: userId,
+        old_values: existingSubmission ? { status: existingSubmission.status } : undefined,
+        new_values: {
+          status: 'submitted',
+          submission_reason: data.submissionReason,
+          class_name: data.className,
+          subject_name: data.subjectName,
+          period_name: data.periodName
+        },
+        changes_summary: `${existingSubmission ? 'Cập nhật và gửi lại' : 'Gửi'} bảng điểm ${data.subjectName} lớp ${data.className} - ${data.periodName}. Lý do: ${data.submissionReason}`
+      })
+    } catch (auditError) {
+      console.error('Error logging submission audit:', auditError)
+      // Don't fail the main operation if audit logging fails
+    }
+
     // Revalidate relevant paths
     revalidatePath('/dashboard/teacher/grade-management')
     revalidatePath('/dashboard/admin/grade-tracking')
 
     return {
       success: true,
-      message: existingSubmission 
+      message: existingSubmission
         ? 'Cập nhật và gửi lại bảng điểm cho admin thành công!'
         : 'Gửi bảng điểm cho admin thành công!',
       submissionId: result.id

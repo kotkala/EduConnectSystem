@@ -30,6 +30,19 @@ interface TeacherReminderEmailData {
   deadline: string
 }
 
+interface MeetingNotificationEmailData {
+  parentEmail: string
+  parentName: string
+  studentName: string
+  meetingTitle: string
+  meetingDescription?: string
+  meetingDate: string
+  meetingLocation?: string
+  durationMinutes: number
+  teacherName: string
+  className: string
+}
+
 interface GradeNotificationEmailData {
   parentEmail: string
   parentName: string
@@ -424,7 +437,7 @@ Thông tin chi tiết:
 
 Điểm số mới của con em đã được cập nhật trong hệ thống. Quý phụ huynh vui lòng đăng nhập vào hệ thống để xem chi tiết.
 
-Đăng nhập tại: https://edu-connect-system.vercel.app/auth/login
+Đăng nhập tại: https://edu-connect-system.vercel
 
 Nếu có thắc mắc, vui lòng liên hệ với giáo viên hoặc nhà trường.
 
@@ -461,6 +474,178 @@ Email này được gửi tự động từ hệ thống EduConnect. Vui lòng k
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send grade notification email'
+    }
+  }
+}
+
+/**
+ * Send meeting notification email to parent
+ */
+export async function sendMeetingNotificationEmail(data: MeetingNotificationEmailData) {
+  try {
+    const supabase = await createClient()
+
+    // Format meeting date for display
+    const meetingDate = new Date(data.meetingDate).toLocaleString('vi-VN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    const subject = `[EduConnect] Thông báo lịch họp - ${data.meetingTitle}`
+
+    // HTML email template
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo lịch họp</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 300; }
+        .content { padding: 30px; }
+        .highlight { background-color: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; margin: 20px 0; transition: transform 0.3s ease; }
+        .button:hover { transform: translateY(-2px); }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 14px; }
+        .meeting-details { background-color: #e8f5e8; border: 1px solid #c3e6c3; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .meeting-details h3 { color: #2d5a2d; margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Thông báo lịch họp</h1>
+        </div>
+
+        <div class="content">
+            <p>Kính gửi <strong>${data.parentName}</strong>,</p>
+
+            <p>Giáo viên chủ nhiệm <strong>${data.teacherName}</strong> xin thông báo lịch họp phụ huynh như sau:</p>
+
+            <div class="meeting-details">
+                <h3>📋 Thông tin cuộc họp</h3>
+                <p><strong>Tiêu đề:</strong> ${data.meetingTitle}</p>
+                <p><strong>Lớp:</strong> ${data.className}</p>
+                <p><strong>Học sinh:</strong> ${data.studentName}</p>
+                <p><strong>Thời gian:</strong> ${meetingDate}</p>
+                <p><strong>Thời lượng:</strong> ${data.durationMinutes} phút</p>
+                ${data.meetingLocation ? `<p><strong>Địa điểm:</strong> ${data.meetingLocation}</p>` : ''}
+                <p><strong>Giáo viên:</strong> ${data.teacherName}</p>
+            </div>
+
+            ${data.meetingDescription ? `
+            <div class="highlight">
+                <h3>📝 Nội dung cuộc họp</h3>
+                <p>${data.meetingDescription}</p>
+            </div>
+            ` : ''}
+
+            <p>Quý phụ huynh vui lòng sắp xếp thời gian tham dự cuộc họp. Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ trực tiếp với giáo viên chủ nhiệm.</p>
+
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://edu-connect-system.vercel.app'}/dashboard/parent/meetings" class="button">📅 Xem chi tiết trong hệ thống</a>
+
+            <p>Cảm ơn quý phụ huynh đã quan tâm và hỗ trợ việc học tập của con em.</p>
+        </div>
+
+        <div class="footer">
+            <p>Trân trọng,<br><strong>Giáo viên ${data.teacherName}</strong></p>
+            <p><em>Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.</em></p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim()
+
+    // Plain text version
+    const textContent = `
+Kính gửi ${data.parentName},
+
+Giáo viên chủ nhiệm ${data.teacherName} xin thông báo lịch họp phụ huynh như sau:
+
+THÔNG TIN CUỘC HỌP:
+- Tiêu đề: ${data.meetingTitle}
+- Lớp: ${data.className}
+- Học sinh: ${data.studentName}
+- Thời gian: ${meetingDate}
+- Thời lượng: ${data.durationMinutes} phút
+${data.meetingLocation ? `- Địa điểm: ${data.meetingLocation}` : ''}
+- Giáo viên: ${data.teacherName}
+
+${data.meetingDescription ? `
+NỘI DUNG CUỘC HỌP:
+${data.meetingDescription}
+` : ''}
+
+Quý phụ huynh vui lòng sắp xếp thời gian tham dự cuộc họp. Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ trực tiếp với giáo viên chủ nhiệm.
+
+Xem chi tiết trong hệ thống: ${process.env.NEXT_PUBLIC_APP_URL || 'https://edu-connect-system.vercel.app'}/dashboard/parent/meetings
+
+Cảm ơn quý phụ huynh đã quan tâm và hỗ trợ việc học tập của con em.
+
+Trân trọng,
+Giáo viên ${data.teacherName}
+
+---
+Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.
+    `.trim()
+
+    // Send email using SMTP (Gmail)
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const emailResult = await transporter.sendMail({
+          from: process.env.EMAIL_FROM || 'EduConnect <noreply@gmail.com>',
+          to: data.parentEmail,
+          subject: subject,
+          html: htmlContent,
+          text: textContent,
+        })
+
+        console.log('✅ Meeting notification email sent successfully via SMTP:', emailResult.messageId)
+      } catch (smtpError) {
+        console.error('❌ Failed to send meeting notification email via SMTP:', smtpError)
+        // Don't fail the entire operation if email fails
+      }
+    } else {
+      console.log('📧 SMTP not configured, skipping meeting notification email')
+    }
+
+    // Store email in database for tracking
+    try {
+      const { error: emailError } = await supabase
+        .from('email_notifications')
+        .insert({
+          recipient_email: data.parentEmail,
+          recipient_name: data.parentName,
+          subject: subject,
+          content: textContent,
+          type: 'meeting_notification',
+          status: 'sent',
+          sent_at: new Date().toISOString()
+        })
+
+      if (emailError) {
+        console.error('Error storing meeting notification email:', emailError)
+        // Don't fail the operation if email storage fails
+      }
+    } catch (tableError) {
+      console.log('Email notifications table not found, skipping storage:', tableError)
+      // Continue without storing - this is not critical
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending meeting notification email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send meeting notification email'
     }
   }
 }

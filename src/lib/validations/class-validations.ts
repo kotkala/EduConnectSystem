@@ -97,7 +97,7 @@ export const classSchema = z.object({
   path: ["subject_combination_variant"]
 })
 
-export const updateClassSchema = classSchema.extend({
+export const updateClassSchema = classSchema.safeExtend({
   id: z.string().uuid("Invalid class ID")
 })
 
@@ -105,9 +105,7 @@ export const updateClassSchema = classSchema.extend({
 export const studentAssignmentSchema = z.object({
   student_id: z.string().uuid("Invalid student ID"),
   class_id: z.string().uuid("Invalid class ID"),
-  assignment_type: z.enum(['main', 'combined'], {
-    message: "Assignment type must be either 'main' or 'combined'"
-  })
+  assignment_type: z.literal("student")
 })
 
 export const bulkStudentAssignmentSchema = z.object({

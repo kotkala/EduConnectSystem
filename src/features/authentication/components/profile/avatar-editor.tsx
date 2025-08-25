@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
@@ -8,10 +8,11 @@ import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { Camera, Upload, Trash2, Loader2, ZoomIn, ZoomOut } from 'lucide-react'
+import { Camera, Upload, Trash2, ZoomIn, ZoomOut } from 'lucide-react'
 import { Slider } from '@/shared/components/ui/slider'
 
-interface AvatarEditorProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface AvatarEditorProps {
   readonly uid: string
   readonly url: string | null
   readonly size?: number
@@ -321,7 +322,7 @@ export default function AvatarEditor({
               <Button onClick={handleSaveAvatar} disabled={uploading} className="bg-blue-600 hover:bg-blue-700">
                 {uploading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Skeleton className="h-32 w-full rounded-lg" />
                     Saving...
                   </>
                 ) : (

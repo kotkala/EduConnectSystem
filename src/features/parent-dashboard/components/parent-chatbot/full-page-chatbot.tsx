@@ -259,7 +259,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
 
                     <div className="prose max-w-none">
                       <p
-                        className="text-gray-800 whitespace-pre-wrap leading-relaxed"
+                        className="text-gray-800 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere"
                         style={{ fontSize: `${fontSize[0]}px` }}
                       >
                         {message.content}

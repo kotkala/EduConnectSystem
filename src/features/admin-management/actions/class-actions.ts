@@ -456,20 +456,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
       }
     }
 
-    // Validate assignment type matches class type
-    if (validatedData.assignment_type === 'main' && classData.is_subject_combination) {
-      return {
-        success: false,
-        error: "Không thể phân học sinh vào lớp tổ hợp làm lớp chính"
-      }
-    }
-
-    if (validatedData.assignment_type === 'combined' && !classData.is_subject_combination) {
-      return {
-        success: false,
-        error: "Không thể phân học sinh vào lớp thường làm lớp tổ hợp"
-      }
-    }
+    // Note: All student assignments are now type 'student' regardless of class type
 
     // Check if student already has assignment of this type
     const { data: existingAssignment } = await supabase
@@ -482,7 +469,7 @@ export async function assignStudentToClassAction(formData: StudentAssignmentForm
     if (existingAssignment) {
       return {
         success: false,
-        error: `Học sinh đã có phân công lớp dạng ${validatedData.assignment_type}`
+        error: "Học sinh đã được phân công vào lớp học"
       }
     }
 

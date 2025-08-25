@@ -14,7 +14,7 @@ export const classBlockSchema = z.object({
   sort_order: z.number().int().min(0).default(0)
 })
 
-export const updateClassBlockSchema = classBlockSchema.partial().extend({
+export const updateClassBlockSchema = classBlockSchema.partial().safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, 'Invalid class block ID')
 })
 
@@ -51,17 +51,13 @@ export interface ClassBlockWithStats extends ClassBlock {
 export const studentAssignmentSchema = z.object({
   student_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid student ID"),
   class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid class ID"),
-  assignment_type: z.enum(["main", "combined"], {
-    message: "Assignment type is required"
-  })
+  assignment_type: z.literal("student")
 })
 
 export const bulkStudentAssignmentSchema = z.object({
   student_ids: z.array(z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)).min(1, "At least one student must be selected"),
   class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid class ID"),
-  assignment_type: z.enum(["main", "combined"], {
-    message: "Assignment type is required"
-  })
+  assignment_type: z.literal("student")
 })
 
 export type StudentAssignmentFormData = z.infer<typeof studentAssignmentSchema>
@@ -71,7 +67,7 @@ export interface StudentClassAssignment {
   id: string
   student_id: string
   class_id: string
-  assignment_type: "main" | "combined"
+  assignment_type: "student"
   assigned_at: string
   assigned_by?: string
   is_active: boolean
@@ -94,7 +90,7 @@ export interface StudentClassAssignment {
 // Class Assignment Filters
 export const classAssignmentFiltersSchema = z.object({
   class_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).optional(),
-  assignment_type: z.enum(["main", "combined"]).optional(),
+  assignment_type: z.enum(["student"]).optional(),
   is_active: z.boolean().optional(),
   search: z.string().optional(), // Search by student name or ID
   page: z.number().int().min(1).default(1),

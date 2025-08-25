@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
-import { ArrowLeft, GraduationCap, Users, UserCheck, Loader2, Edit, Trash2 } from "lucide-react"
+import { ArrowLeft, GraduationCap, Users, UserCheck, Edit, Trash2 } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import { getClassByIdAction, deleteClassAction } from "@/features/admin-management/actions/class-actions"
 import {
@@ -32,7 +32,8 @@ import ClassStudentsTab from "@/features/admin-management/components/admin/class
 import ClassTeachersTab from "@/features/admin-management/components/admin/class-detail/class-teachers-tab"
 import ClassHomeroomTab from "@/features/admin-management/components/admin/class-detail/class-homeroom-tab"
 
-export default function ClassDetailPage() {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";export default function ClassDetailPage() {
   const params = useParams()
   const router = useRouter()
   const classId = params.id as string
@@ -122,7 +123,7 @@ export default function ClassDetailPage() {
       <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span>Loading class details...</span>
           </div>
         </div>
@@ -186,7 +187,7 @@ export default function ClassDetailPage() {
                 >
                   {deleting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       Deleting...
                     </>
                   ) : (
@@ -205,7 +206,7 @@ export default function ClassDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-100 rounded-lg">
-                <GraduationCap className="h-8 w-8 text-blue-600" />
+                <GraduationCap className="h-8 md:h-9 lg:h-10 w-8 text-blue-600" />
               </div>
               <div>
                 <CardTitle className="text-2xl">{classData.name}</CardTitle>

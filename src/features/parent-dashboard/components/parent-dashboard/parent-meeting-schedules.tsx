@@ -1,10 +1,11 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -18,7 +19,6 @@ import {
   MapPin,
   User,
   Users,
-  Loader2,
   Eye,
   CheckCircle
 } from 'lucide-react'
@@ -145,7 +145,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -155,7 +155,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       return (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Calendar className="h-12 w-12 text-gray-400 mb-4" />
+            <Calendar className="h-12 md:h-14 lg:h-16 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có lịch họp</h3>
             <p className="text-gray-600 text-center">
               Bạn chưa nhận được lịch họp nào từ giáo viên chủ nhiệm
@@ -170,67 +170,74 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
         {processedMeetings.map((meeting) => (
           <Card key={meeting.id} className={`cursor-pointer transition-colors hover:bg-gray-50 ${!meeting.is_read ? 'border-blue-200 bg-blue-50' : ''}`}>
             <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg">{meeting.title}</h3>
+              <div className="flex items-center justify-between gap-6">
+                {/* Left section - Meeting info in horizontal layout */}
+                <div className="flex items-center gap-6 flex-1">
+                  {/* Title and badges */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h3 className="font-semibold text-lg truncate">{meeting.title}</h3>
                     {!meeting.is_read && (
-                      <Badge variant="default" className="text-xs">
+                      <Badge variant="default" className="text-xs shrink-0">
                         Mới
                       </Badge>
                     )}
                     {meeting.isUpcoming && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs shrink-0">
                         Sắp diễn ra
                       </Badge>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
+                  {/* Meeting details in horizontal layout */}
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      {meeting.formattedDate}
+                      <span className="whitespace-nowrap">{meeting.formattedDate}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      {meeting.formattedDuration}
+                      <span className="whitespace-nowrap">{meeting.formattedDuration}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {meeting.teacher_name}
+                      <span className="whitespace-nowrap">{meeting.teacher_name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      {meeting.class_name}
+                      <span className="whitespace-nowrap">{meeting.class_name}</span>
                     </div>
                     {meeting.meeting_location && (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        {meeting.meeting_location}
+                        <span className="whitespace-nowrap">{meeting.meeting_location}</span>
                       </div>
                     )}
                   </div>
-
-                  {meeting.description && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      {meeting.description.length > 100
-                        ? `${meeting.description.substring(0, 100)}...`
-                        : meeting.description
-                      }
-                    </p>
-                  )}
                 </div>
 
+                {/* Right section - Action button */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleViewMeeting(meeting)}
-                  className="ml-4"
+                  className="shrink-0"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   Xem chi tiết
                 </Button>
               </div>
+
+              {/* Description below if exists */}
+              {meeting.description && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-600">
+                    {meeting.description.length > 150
+                      ? `${meeting.description.substring(0, 150)}...`
+                      : meeting.description
+                    }
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -267,7 +274,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
           </p>
         </div>
         <Button onClick={loadMeetingSchedules} disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
           Làm mới
         </Button>
       </div>

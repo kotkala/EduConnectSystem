@@ -25,7 +25,7 @@ export const classroomSchema = z.object({
   is_active: z.boolean().default(true)
 })
 
-export const updateClassroomSchema = classroomSchema.partial().extend({
+export const updateClassroomSchema = classroomSchema.partial().safeExtend({
   id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid classroom ID')
 })
 
@@ -71,7 +71,7 @@ export const timetableEventSchema = z.object({
   path: ['end_time']
 })
 
-export const updateTimetableEventSchema = timetableEventSchema.partial().extend({
+export const updateTimetableEventSchema = timetableEventSchema.partial().safeExtend({
   id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'Invalid event ID')
 })
 

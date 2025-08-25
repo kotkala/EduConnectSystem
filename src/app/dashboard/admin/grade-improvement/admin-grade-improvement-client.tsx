@@ -1,8 +1,7 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -55,7 +54,8 @@ import {
   createGradeImprovementPeriodAction,
   getGradeImprovementPeriodsAction,
   getGradeImprovementRequestsAction,
-  respondToGradeImprovementRequestAction
+  respondToGradeImprovementRequestAction,
+  updateGradeImprovementPeriodAction
 } from '@/lib/actions/grade-improvement-actions'
 import {
   type GradeImprovementPeriod,
@@ -63,6 +63,8 @@ import {
   type GradeImprovementRequestFilters
 } from '@/lib/validations/grade-improvement-validations'
 import { getGradeReportingPeriodsAction } from '@/lib/actions/grade-management-actions'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface GradeReportingPeriod {
   id: string
@@ -73,8 +75,7 @@ interface GradeReportingPeriod {
 
 export function AdminGradeImprovementClient() {
   // ðŸš€ COORDINATED LOADING: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
 
   // State management
   const [periods, setPeriods] = useState<GradeImprovementPeriod[]>([])
@@ -121,6 +122,9 @@ export function AdminGradeImprovementClient() {
     respondingToRequest: false
   })
 
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
   // Load data functions
   const loadPeriods = useCallback(async () => {
     try {
@@ -153,7 +157,7 @@ export function AdminGradeImprovementClient() {
       const isInitialLoad = requests.length === 0 && filters.page === 1
       
       if (isInitialLoad) {
-        startPageTransition("Đang tải danh sách đơn cải thiện điểm...")
+        startLoading()
       }
 
       const result = await getGradeImprovementRequestsAction(filters)
@@ -172,7 +176,7 @@ export function AdminGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [filters, requests.length, startPageTransition, stopLoading])
+  }, [filters, requests.length, startLoading, stopLoading])
 
   // Initial data loading
   useEffect(() => {
@@ -183,6 +187,27 @@ export function AdminGradeImprovementClient() {
   useEffect(() => {
     loadRequests()
   }, [loadRequests])
+
+  // Handle toggle period status
+  const handleTogglePeriodStatus = useCallback(async (periodId: string, currentStatus: boolean) => {
+    try {
+      startLoading()
+
+      const result = await updateGradeImprovementPeriodAction(periodId, !currentStatus)
+
+      if (result.success) {
+        toast.success(result.message)
+        loadPeriods()
+      } else {
+        toast.error(result.error)
+      }
+    } catch (error) {
+      console.error('Error toggling period status:', error)
+      toast.error('Có lỗi xảy ra khi cập nhật trạng thái')
+    } finally {
+      stopLoading()
+    }
+  }, [loadPeriods, startLoading, stopLoading])
 
   // Memoized status badge component to prevent re-renders
   const StatusBadge = useMemo(() => {
@@ -360,16 +385,16 @@ export function AdminGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && periods.length === 0 ? (
+          {isLoading && periods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : periods.length === 0 ? (
             <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <Calendar className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Chưa có kỳ cải thiện điểm nào</p>
             </div>
           ) : (
@@ -394,6 +419,13 @@ export function AdminGradeImprovementClient() {
                         <Badge variant={period.is_active ? 'default' : 'secondary'}>
                           {period.is_active ? 'Đang hoạt động' : 'Không hoạt động'}
                         </Badge>
+                        <Button
+                          onClick={() => handleTogglePeriodStatus(period.id, period.is_active)}
+                          variant={period.is_active ? 'outline' : 'default'}
+                          size="sm"
+                        >
+                          {period.is_active ? 'Đóng' : 'Mở'}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -472,16 +504,16 @@ export function AdminGradeImprovementClient() {
           </div>
 
           {/* Requests Table */}
-          {coordinatedLoading.isLoading && requests.length === 0 ? (
+          {isLoading && requests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : requests.length === 0 ? (
             <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <MessageSquare className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Không có đơn yêu cầu nào</p>
             </div>
           ) : (
@@ -629,19 +661,7 @@ export function AdminGradeImprovementClient() {
                   </div>
                 </div>
                 
-                {selectedRequest.current_grade !== null && (
-                  <div>
-                    <Label className="text-sm font-medium">Điểm hiện tại</Label>
-                    <div className="mt-1 font-medium">{selectedRequest.current_grade}</div>
-                  </div>
-                )}
-                
-                {selectedRequest.target_grade !== null && (
-                  <div>
-                    <Label className="text-sm font-medium">Điểm mục tiêu</Label>
-                    <div className="mt-1 font-medium">{selectedRequest.target_grade}</div>
-                  </div>
-                )}
+
               </div>
               
               <div>

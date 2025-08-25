@@ -53,6 +53,11 @@ export interface StudentForReport {
   class_id: string
   class_name: string
   report?: StudentReport
+  parent_feedback?: {
+    agreement_status: 'agree' | 'disagree' | null
+    comments: string | null
+    responded_at: string | null
+  }
 }
 
 // Helper function to check homeroom teacher permissions
@@ -130,6 +135,24 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
       .eq('homeroom_teacher_id', userId)
       .in('student_id', studentIds)
 
+    // PERFORMANCE OPTIMIZATION: Get parent feedback for existing reports
+    const reportIds = existingReports?.map(r => r.id).filter(Boolean) || []
+    let parentFeedback: Array<{
+      student_report_id: string
+      agreement_status: 'agree' | 'disagree' | null
+      comments: string | null
+      responded_at: string | null
+    }> = []
+
+    if (reportIds.length > 0) {
+      const { data: feedbackData } = await supabase
+        .from('parent_report_responses')
+        .select('student_report_id, agreement_status, comments, responded_at')
+        .in('student_report_id', reportIds)
+
+      parentFeedback = feedbackData || []
+    }
+
     // PERFORMANCE OPTIMIZATION: Efficient data transformation with minimal processing
     const studentsWithReports: StudentForReport[] = studentsData
       .filter(item => item.student && item.class) // Filter out invalid records
@@ -146,6 +169,9 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
         const classData = Array.isArray(item.class) ? item.class[0] : item.class
         const report = existingReports?.find(r => r.student_id === student.id)
 
+        // Find parent feedback for this report
+        const feedback = report ? parentFeedback.find(f => f.student_report_id === report.id) : null
+
         return {
           id: student.id,
           full_name: student.full_name,
@@ -153,7 +179,12 @@ export async function getStudentsForReportAction(reportPeriodId: string) {
           email: student.email,
           class_id: classData.id,
           class_name: classData.name,
-          report: report
+          report: report,
+          parent_feedback: feedback ? {
+            agreement_status: feedback.agreement_status,
+            comments: feedback.comments,
+            responded_at: feedback.responded_at
+          } : undefined
         }
       })
 

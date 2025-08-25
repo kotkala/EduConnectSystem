@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { SandyLoading } from "@/shared/components/ui/sandy-loading";
 
 
 import { type CalendarEvent } from "@/features/timetable/components/calendar";
@@ -14,13 +15,10 @@ const EventCalendar = dynamic(
   {
     ssr: false,
     loading: () => (
-      <LoadingFallback size="lg" className="flex items-center justify-center">
-        <span className="sr-only">Loading calendar...</span>
-      </LoadingFallback>
+      <SandyLoading message="Đang tải lịch học..." />
     ),
   }
 );
-import { LoadingFallback } from "@/shared/components/ui/loading-fallback"
 import { useCalendarContext } from "@/features/timetable/components/calendar";
 import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "./timetable-calendar/timetable-filters";
 import {

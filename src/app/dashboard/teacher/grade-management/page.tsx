@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useMemo, useCallback } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
@@ -11,19 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Download,
   Upload,
-  RefreshCw,
   Eye,
-  Send,
-  FileText
+  Send
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { TeacherGradeImportDialog } from "@/shared/components/teacher/teacher-grade-import-dialog"
 import { TeacherGradeTrackingDialog } from "@/shared/components/teacher/teacher-grade-tracking-dialog"
 import { TeacherGradeOverview } from "@/shared/components/teacher/teacher-grade-overview"
-import { downloadGradePDF, type GradeExportData, type GradeExportOptions } from "@/lib/utils/pdf-grade-export"
 
-// Import StudentGrade type from the overview component
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Import StudentGrade type from the overview component
 interface StudentGrade {
   id: string
   studentId: string
@@ -64,8 +62,8 @@ export default function TeacherGradeManagementPage() {
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [trackingDialogOpen, setTrackingDialogOpen] = useState(false)
 
-  // Grade data for PDF export
-  const [currentGradeData, setCurrentGradeData] = useState<GradeExportData[]>([])
+  // Grade data state
+  const [currentGradeData, setCurrentGradeData] = useState<StudentGrade[]>([])
 
   // Optimized refresh function using TanStack Query
   const handleRefresh = () => {
@@ -305,58 +303,11 @@ export default function TeacherGradeManagementPage() {
   }
 
   const handleGradeDataChange = useCallback((grades: StudentGrade[]) => {
-    // Convert grade data to export format
-    const exportData: GradeExportData[] = grades.map(grade => ({
-      studentId: grade.studentId,
-      studentName: grade.studentName,
-      regularGrades: grade.regularGrades,
-      midtermGrade: grade.midtermGrade,
-      finalGrade: grade.finalGrade,
-      summaryGrade: grade.summaryGrade,
-      lastModified: grade.lastModified,
-      modifiedBy: grade.modifiedBy
-    }))
-    setCurrentGradeData(exportData)
+    // Store grade data for submission
+    setCurrentGradeData(grades)
   }, []) // Empty dependency array since this function doesn't depend on any props or state
 
-  const handleExportPDF = async () => {
-    if (!selectedPeriod || !selectedClass || !selectedSubject) {
-      toast.error('Vui lòng chọn đầy đủ kỳ báo cáo, lớp học và môn học')
-      return
-    }
 
-    if (currentGradeData.length === 0) {
-      toast.error('Không có dữ liệu điểm để xuất. Vui lòng chọn lớp và môn học có điểm.')
-      return
-    }
-
-    try {
-      toast.info('Đang tạo file PDF...')
-
-      const selectedClassData = classes.find(c => c.id === selectedClass)
-      const selectedSubjectData = subjects.find(s => s.id === selectedSubject)
-      const selectedPeriodData = periods.find(p => p.id === selectedPeriod)
-
-      const exportOptions: GradeExportOptions = {
-        className: selectedClassData?.name || 'Unknown Class',
-        subjectName: selectedSubjectData?.name_vietnamese || 'Unknown Subject',
-        subjectCode: selectedSubjectData?.code,
-        periodName: selectedPeriodData?.name || 'Unknown Period',
-        academicYear: '2024-2025',
-        semester: 'HK1',
-        teacherName: 'Giáo viên', // TODO: Get from user profile
-        schoolName: 'TRƯỜNG TRUNG HỌC PHỔ THÔNG',
-        exportDate: new Date(),
-        includeFormula: true
-      }
-
-      downloadGradePDF(currentGradeData, exportOptions)
-      toast.success('Xuất file PDF thành công!')
-    } catch (error) {
-      console.error('Error exporting PDF:', error)
-      toast.error('Lỗi khi xuất file PDF')
-    }
-  }
 
   const selectedPeriodData = useMemo(() =>
     periods.find(p => p.id === selectedPeriod),
@@ -376,7 +327,7 @@ export default function TeacherGradeManagementPage() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
             <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <Skeleton className="h-32 w-full rounded-lg" />
               Làm mới
             </Button>
           </div>
@@ -526,10 +477,6 @@ export default function TeacherGradeManagementPage() {
                 <Button onClick={handleTrackGrades} variant="secondary">
                   <Eye className="mr-2 h-4 w-4" />
                   Theo dõi điểm số
-                </Button>
-                <Button onClick={handleExportPDF} className="bg-red-600 hover:bg-red-700">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Xuất PDF
                 </Button>
                 <Button onClick={handleSubmitGradesToAdmin} className="bg-green-600 hover:bg-green-700">
                   <Send className="mr-2 h-4 w-4" />

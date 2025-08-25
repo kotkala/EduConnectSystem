@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -36,7 +36,8 @@ import {
 import { HomeroomStudentCard } from "@/features/grade-management/components/homeroom/homeroom-student-card"
 import { HomeroomStudentDetail } from "@/features/grade-management/components/homeroom/homeroom-student-detail"
 
-export default function HomeroomStudentsPage() {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";export default function HomeroomStudentsPage() {
   const [classInfo, setClassInfo] = useState<HomeroomClass | null>(null)
   const [students, setStudents] = useState<HomeroomStudent[]>([])
   const [filteredStudents, setFilteredStudents] = useState<HomeroomStudent[]>([])
@@ -179,7 +180,7 @@ export default function HomeroomStudentsPage() {
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin" />
+          <Skeleton className="h-32 w-full rounded-lg" />
         </div>
       </div>
     )
@@ -228,14 +229,14 @@ export default function HomeroomStudentsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
-                <Users className="h-8 w-8 text-blue-500" />
+                <Users className="h-8 md:h-9 lg:h-10 w-8 text-blue-500" />
                 <div>
                   <p className="text-2xl font-bold">{classInfo.student_count}</p>
                   <p className="text-sm text-muted-foreground">Tổng số học sinh</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <UserCheck className="h-8 w-8 text-green-500" />
+                <UserCheck className="h-8 md:h-9 lg:h-10 w-8 text-green-500" />
                 <div>
                   <p className="text-2xl font-bold">
                     {students.filter(s => s.parents.length > 0).length}
@@ -244,7 +245,7 @@ export default function HomeroomStudentsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <User className="h-8 w-8 text-orange-500" />
+                <User className="h-8 md:h-9 lg:h-10 w-8 text-orange-500" />
                 <div>
                   <p className="text-2xl font-bold">
                     {students.filter(s => s.parents.length === 0).length}
@@ -335,8 +336,8 @@ export default function HomeroomStudentsPage() {
         </Alert>
       )}
 
-      {/* Students Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Students List - Horizontal Layout */}
+      <div className="space-y-4">
         {paginatedStudents.map((student) => (
           <HomeroomStudentCard
             key={student.id}
@@ -359,7 +360,7 @@ export default function HomeroomStudentsPage() {
       {filteredStudents.length === 0 && !loading && (
         <Card>
           <CardContent className="py-12 text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <Users className="h-12 md:h-14 lg:h-16 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
             <p className="text-muted-foreground">
               {students.length === 0

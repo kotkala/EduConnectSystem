@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, useId } from "react";
 import { Button } from "@/shared/components/ui/button";
@@ -11,12 +11,13 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { Badge } from "@/shared/components/ui/badge";
-import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight,  } from "lucide-react";
 import { format, addWeeks, startOfWeek, endOfWeek } from "date-fns";
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions";
 import { getClassesAction } from "@/features/admin-management/actions/class-actions";
 
-// Types for filter data
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Types for filter data
 interface AcademicYear {
   id: string;
   name: string;
@@ -305,7 +306,7 @@ export function TimetableFilters({
             <span>Timetable Filters</span>
           </CardTitle>
           <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading} className="w-full sm:w-auto">
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <Skeleton className="h-32 w-full rounded-lg" />
             Refresh
           </Button>
         </div>

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, memo } from "react"
 import { useForm } from "react-hook-form"
@@ -10,8 +10,7 @@ import { Textarea } from "@/shared/components/ui/textarea"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Loader2, Save, X } from "lucide-react"
-import {
+import { Save, X } from "lucide-react";import {
   classSchema,
   updateClassSchema,
   SUBJECT_COMBINATIONS,
@@ -36,7 +35,8 @@ import { getSemestersAction } from "@/features/admin-management/actions/academic
 import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 import { useAcademicYear, useSelectedAcademicYearId } from "@/providers/academic-year-context"
 
-interface ClassFormProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassFormProps {
   class?: Class
   onSuccess: () => void
   onCancel: () => void
@@ -303,7 +303,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
   if (loadingData) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       </div>
     )
   }
@@ -517,7 +517,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
                 {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (

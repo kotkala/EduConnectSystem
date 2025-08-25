@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
 
 import { toast } from 'sonner'
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 
 import { getSubmittedStudentGradeDetailsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { createAIFeedbackAction, getAIFeedbackForStudentAction, updateGradeSubmissionFeedbackAction } from '@/lib/actions/enhanced-grade-actions'
@@ -319,13 +319,13 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <LoadingSpinner size="lg" />
-        <span className="ml-2 text-muted-foreground">Đang tải thông tin học sinh...</span>
+        <SandyLoading message="Đang tải thông tin học sinh..." />
       </div>
     )
   }
 
-  if (!studentData) {
+  // Only show "no data" message if not loading and no data after period is selected
+  if (!loading && !studentData && selectedPeriod) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
@@ -338,6 +338,56 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             </Button>
           </Link>
         </div>
+      </div>
+    )
+  }
+
+  // Show loading or period selection state
+  if (loading || !selectedPeriod || !studentData) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Chi tiết điểm số học sinh</h1>
+            <p className="text-muted-foreground">Xem chi tiết điểm số của học sinh theo kỳ báo cáo</p>
+          </div>
+          <Link href="/dashboard/teacher/grade-reports">
+            <Button variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Quay lại
+            </Button>
+          </Link>
+        </div>
+
+        {/* Period Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Chọn kỳ báo cáo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn kỳ báo cáo để xem điểm" />
+              </SelectTrigger>
+              <SelectContent>
+                {periods.map((period) => (
+                  <SelectItem key={period.id} value={period.id}>
+                    {period.name} - {period.academic_year?.name} - {period.semester?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <SandyLoading />
+            <span className="ml-2">Đang tải dữ liệu...</span>
+          </div>
+        )}
       </div>
     )
   }
@@ -510,7 +560,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isGeneratingFeedback ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Đang tạo...
                 </>
               ) : (
@@ -528,7 +578,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
               <label className="text-sm font-medium">Nội dung đánh giá</label>
               {isLoadingFeedback && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <LoadingSpinner size="sm" />
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400"></div>
                   Đang tải...
                 </div>
               )}
@@ -556,7 +606,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isSavingFeedback ? (
                 <>
-                  <LoadingSpinner size="sm" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Đang lưu...
                 </>
               ) : (

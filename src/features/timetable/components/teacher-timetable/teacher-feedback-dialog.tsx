@@ -1,11 +1,12 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,15 +25,14 @@ import {
   MessageSquare,
   Users,
   User,
-  Loader2
+  
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getClassStudentsAction,
   createStudentFeedbackAction,
   type StudentInfo,
-  type FeedbackData,
-  type CreateFeedbackRequest
+  type FeedbackData
 } from '@/features/teacher-management/actions/teacher-feedback-actions'
 
 // Helper function to get feedback mode text
@@ -128,7 +128,7 @@ function StudentSelectionSection({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-4">
-        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        <Skeleton className="h-32 w-full rounded-lg" />
         Đang tải danh sách học sinh...
       </div>
     );
@@ -264,14 +264,12 @@ export function TeacherFeedbackDialog({
         group_id: undefined // Server will generate UUID if needed
       }))
 
-      const request: CreateFeedbackRequest = {
+      const result = await createStudentFeedbackAction({
         timetable_event_id: timetableEvent.id,
         class_id: timetableEvent.class_id,
         subject_id: timetableEvent.subject_id,
         feedback_data: feedbackData
-      }
-
-      const result = await createStudentFeedbackAction(request)
+      })
       
       if (result.success) {
         const action = editingFeedback ? 'cập nhật' : 'tạo'
@@ -400,7 +398,7 @@ export function TeacherFeedbackDialog({
             onClick={handleSubmitFeedback}
             disabled={isSubmitting || !feedbackText.trim()}
           >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
             {editingFeedback ? 'Cập Nhật Phản Hồi' : 'Tạo Phản Hồi'}
           </Button>
         </DialogFooter>

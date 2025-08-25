@@ -100,7 +100,7 @@ export const SubjectFormSchema = z.object({
 export type SubjectFormData = z.infer<typeof SubjectFormSchema>
 
 // Subject update form validation (partial)
-export const SubjectUpdateFormSchema = SubjectFormSchema.partial().extend({
+export const SubjectUpdateFormSchema = SubjectFormSchema.partial().safeExtend({
   id: z.string().uuid('Invalid subject ID'),
 })
 

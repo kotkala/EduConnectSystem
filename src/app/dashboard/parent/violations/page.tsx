@@ -1,6 +1,8 @@
 ﻿import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+
 import ParentViolationsPageClient from './parent-violations-page-client'
 
 export default async function ParentViolationsPage() {
@@ -26,7 +28,13 @@ export default async function ParentViolationsPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <Suspense fallback={
           <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-4"></div>
+            <div className="space-y-4 mb-4">
+          <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto"  aria-label="Loading content" role="status" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[200px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
             <p className="text-gray-600 font-medium">Đang tải thông tin vi phạm...</p>
           </div>
         }>

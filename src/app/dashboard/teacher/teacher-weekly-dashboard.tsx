@@ -19,8 +19,8 @@ import {
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-// ðŸš€ MIGRATION: Replace LoadingFallback with coordinated system
-import { usePageTransition, useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+import { useSectionLoading } from '@/shared/hooks/use-loading-coordinator'
+import { CardSkeleton, ListSkeleton } from '@/shared/components/ui/skeleton-utils'
 
 interface Profile {
   id: string
@@ -57,8 +57,7 @@ interface RecentActivity {
 
 export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: Profile }>) {
   // ðŸš€ MIGRATION: Replace useState loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
   
   const [stats, setStats] = useState<WeeklyStats>({
     totalClasses: 0,
@@ -72,6 +71,9 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
 
   const supabase = createClient()
+
+  // Section loading for dashboard data
+  const { isLoading, startLoading, stopLoading } = useSectionLoading("Đang tải dữ liệu dashboard...")
 
   const loadWeeklyStats = useCallback(async () => {
     try {
@@ -212,8 +214,8 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   }, [profile.id, supabase])
 
   const loadDashboardData = useCallback(async () => {
-    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải bảng điều khiển giáo viên...")
+    // ðŸŽ¯ UX IMPROVEMENT: Use section loading for non-blocking experience
+    startLoading()
     try {
       await Promise.all([
         loadWeeklyStats(),
@@ -226,7 +228,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
     } finally {
       stopLoading()
     }
-  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startPageTransition, stopLoading])
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startLoading, stopLoading])
 
   useEffect(() => {
     loadDashboardData()
@@ -250,10 +252,35 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
     }
   }
 
-  // ðŸš€ MIGRATION: Loading now handled by CoordinatedLoadingOverlay
-  // Show placeholder content during initial load
-  const isInitialLoading = coordinatedLoading.isLoading && 
+  // 🚀 MIGRATION: Use skeleton loading for better UX
+  // Show skeleton content during initial load
+  const isInitialLoading = isLoading &&
     stats.totalClasses === 0 && upcomingClasses.length === 0 && recentActivities.length === 0
+
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="space-y-2">
+          <div className="h-8 w-80 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }, (_, i) => (
+            <CardSkeleton key={`teacher-dashboard-stats-${i}`} />
+          ))}
+        </div>
+
+        {/* Content Sections Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ListSkeleton itemCount={4} />
+          <ListSkeleton itemCount={3} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -263,7 +290,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
           Chào mừng trở lại, {profile.full_name}!
         </h1>
         <p className="text-muted-foreground">
-          {isInitialLoading ? 'Đang tải dữ liệu...' : 'Tổng quan hoạt động giảng dạy trong tuần'}
+          Tổng quan hoạt động giảng dạy trong tuần
         </p>
       </div>
 

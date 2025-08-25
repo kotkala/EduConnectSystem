@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { startOfWeek, endOfWeek, addWeeks, format } from 'date-fns'
@@ -8,7 +8,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
-import { CalendarDays, Users, AlertTriangle, Send, FileText, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { CalendarDays, Users, AlertTriangle, Send, FileText, ChevronLeft, ChevronRight,  } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { toast } from 'sonner'
 import {
@@ -18,7 +18,8 @@ import {
 } from '@/features/violations/actions'
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
 import { getClassesAction } from '@/features/admin-management/actions/class-actions'
-import OutdatedReportsAlert from './outdated-reports-alert'
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import OutdatedReportsAlert from './outdated-reports-alert'
 
 interface WeeklyViolationReport {
   id: string
@@ -411,7 +412,7 @@ export default function WeeklyViolationReports() {
           <CardContent>
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="text-muted-foreground">Đang khởi tạo báo cáo tuần...</p>
               </div>
             </div>
@@ -598,7 +599,7 @@ export default function WeeklyViolationReports() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Trạng thái</CardTitle>
-            <RefreshCw className={`h-4 w-4 text-muted-foreground ${syncInfo?.needs_resync ? 'animate-spin text-amber-500' : ''}`} />
+            <Skeleton className="h-32 w-full rounded-lg" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">

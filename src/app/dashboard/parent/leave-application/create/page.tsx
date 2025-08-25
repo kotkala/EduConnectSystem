@@ -8,11 +8,12 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-import { 
+import {
   getParentStudentsAction,
-  type StudentInfo 
+  type StudentInfo
 } from '@/features/parent-dashboard/actions/parent-actions'
 import { 
   createLeaveApplicationAction,
@@ -162,7 +163,13 @@ export default function CreateLeaveApplicationPage() {
     return (
       <SidebarLayout role="parent" title="Tạo đơn xin nghỉ">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="space-y-4">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
         </div>
       </SidebarLayout>
     )
@@ -173,7 +180,7 @@ export default function CreateLeaveApplicationPage() {
     return (
       <SidebarLayout role="parent" title="Từ chối truy cập">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
           <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard/parent')}>
@@ -188,8 +195,8 @@ export default function CreateLeaveApplicationPage() {
     return (
       <SidebarLayout role="parent" title="Đơn xin nghỉ">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <FileText className="w-8 h-8 text-green-600" />
+          <div className="w-16 md:w-20 lg:w-24 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <FileText className="w-8 h-8 md:h-9 lg:h-10 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Đã gửi đơn thành công!</h2>
           <p className="text-gray-600 text-center">
@@ -323,7 +330,7 @@ export default function CreateLeaveApplicationPage() {
                 {selectedFile ? (
                   <div className="space-y-4">
                     {previewUrl && (
-                      <div className="relative w-32 h-32 mx-auto">
+                      <div className="relative w-32 h-32 md:h-40 lg:h-48 mx-auto">
                         <Image
                           src={previewUrl}
                           alt="Xem trước"
@@ -346,7 +353,7 @@ export default function CreateLeaveApplicationPage() {
                   </div>
                 ) : (
                   <div className="text-center">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <Upload className="w-8 h-8 md:h-9 lg:h-10 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-600 mb-2">
                       Tải lên giấy khám bệnh, thư xác nhận hoặc tài liệu liên quan khác
                     </p>

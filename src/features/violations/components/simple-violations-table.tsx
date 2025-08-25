@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -14,12 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table'
-import { FileText, Clock, User, Search, Filter, ChevronLeft, ChevronRight, Send } from 'lucide-react'
+import { FileText, Clock, User, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSeverityLevels } from '@/lib/validations/violation-validations'
 
-// Simple types matching database structure
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Simple types matching database structure
 interface ViolationRecord {
   id: string
   student_id: string
@@ -60,7 +61,6 @@ interface ViolationRecord {
 function renderViolationsContent(
   loading: boolean,
   violations: ViolationRecord[],
-  sendToHomeroom: (violation: ViolationRecord) => Promise<void>,
   currentPage: number,
   totalPages: number,
   setCurrentPage: (page: number) => void
@@ -68,7 +68,7 @@ function renderViolationsContent(
   if (loading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <Skeleton className="h-32 w-full rounded-lg" />
         <p className="text-muted-foreground">Đang tải vi phạm...</p>
       </div>
     )
@@ -77,7 +77,7 @@ function renderViolationsContent(
   if (violations.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <FileText className="h-12 md:h-14 lg:h-16 w-12 mx-auto mb-4 opacity-50" />
         <p>Chưa có vi phạm nào được ghi nhận</p>
       </div>
     )
@@ -94,7 +94,6 @@ function renderViolationsContent(
             <TableHead>Severity</TableHead>
             <TableHead>Ngày</TableHead>
             <TableHead>Người ghi nhận</TableHead>
-            <TableHead className="w-[120px]">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,17 +137,6 @@ function renderViolationsContent(
                 <User className="h-3 w-3" />
                 {violation.recorded_by_user?.full_name || 'Không xác định'}
               </div>
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => sendToHomeroom(violation)}
-                className="flex items-center gap-1"
-              >
-                <Send className="h-3 w-3" />
-                Gửi GVCN
-              </Button>
             </TableCell>
           </TableRow>
           ))}
@@ -416,15 +404,7 @@ export default function SimpleViolationsTable() {
 
   const totalPages = Math.ceil(total / pageSize)
 
-  const sendToHomeroom = async (violation: ViolationRecord) => {
-    try {
-      // Send violation to homeroom teacher - implementation completed
-      toast.success(`Violation sent to homeroom teacher for ${violation.student?.full_name}`)
-    } catch (error) {
-      console.error('Error sending to homeroom:', error)
-      toast.error('Failed to send violation to homeroom teacher')
-    }
-  }
+
 
   return (
     <div className="space-y-4">
@@ -538,7 +518,7 @@ export default function SimpleViolationsTable() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {renderViolationsContent(loading, violations, sendToHomeroom, currentPage, totalPages, setCurrentPage)}
+          {renderViolationsContent(loading, violations, currentPage, totalPages, setCurrentPage)}
         </CardContent>
     </Card>
     </div>

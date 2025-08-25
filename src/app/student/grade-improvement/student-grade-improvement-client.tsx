@@ -1,14 +1,14 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
-import { Input } from '@/shared/components/ui/input'
+
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -46,9 +46,10 @@ import {
   getStudentSubjectsForImprovementAction
 } from '@/lib/actions/grade-improvement-actions'
 import {
-  type GradeImprovementPeriod,
-  type GradeImprovementRequest
+  type GradeImprovementRequest,
+  type GradeImprovementPeriod
 } from '@/lib/validations/grade-improvement-validations'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface Subject {
   id: string
@@ -59,8 +60,7 @@ interface Subject {
 
 export function StudentGradeImprovementClient() {
   // ðŸš€ COORDINATED LOADING: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
 
   // State management
   const [activePeriods, setActivePeriods] = useState<GradeImprovementPeriod[]>([])
@@ -74,15 +74,16 @@ export function StudentGradeImprovementClient() {
   const [requestForm, setRequestForm] = useState({
     improvement_period_id: '',
     subject_id: '',
-    reason: '',
-    current_grade: '',
-    target_grade: ''
+    reason: ''
   })
   
   // ðŸ“Š Section loading for non-blocking operations
   const [sectionLoading, setSectionLoading] = useState({
     creatingRequest: false
   })
+
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
 
   // Load data functions
   const loadActivePeriods = useCallback(async () => {
@@ -105,7 +106,7 @@ export function StudentGradeImprovementClient() {
       const isInitialLoad = myRequests.length === 0
       
       if (isInitialLoad) {
-        startPageTransition("Đang tải danh sách đơn của bạn...")
+        startLoading()
       }
 
       const result = await getStudentGradeImprovementRequestsAction()
@@ -120,7 +121,7 @@ export function StudentGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [myRequests.length, startPageTransition, stopLoading])
+  }, [myRequests.length, startLoading, stopLoading])
 
   const loadSubjects = useCallback(async () => {
     try {
@@ -254,35 +255,7 @@ export function StudentGradeImprovementClient() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="current-grade">Điểm hiện tại (tùy chọn)</Label>
-                    <Input
-                      id="current-grade"
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={requestForm.current_grade}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, current_grade: e.target.value }))}
-                      placeholder="VD: 6.5"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="target-grade">Điểm mục tiêu (tùy chọn)</Label>
-                    <Input
-                      id="target-grade"
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={requestForm.target_grade}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, target_grade: e.target.value }))}
-                      placeholder="VD: 8.0"
-                    />
-                  </div>
-                </div>
+
                 
                 <div>
                   <Label htmlFor="reason">Lý do yêu cầu cải thiện điểm</Label>
@@ -307,9 +280,7 @@ export function StudentGradeImprovementClient() {
                       setRequestForm({
                         improvement_period_id: '',
                         subject_id: '',
-                        reason: '',
-                        current_grade: '',
-                        target_grade: ''
+                        reason: ''
                       })
                     }}
                     disabled={sectionLoading.creatingRequest}
@@ -328,23 +299,14 @@ export function StudentGradeImprovementClient() {
                         return
                       }
                       
-                      if (requestForm.current_grade && requestForm.target_grade) {
-                        const current = parseFloat(requestForm.current_grade)
-                        const target = parseFloat(requestForm.target_grade)
-                        if (target <= current) {
-                          toast.error('Điểm mục tiêu phải cao hơn điểm hiện tại')
-                          return
-                        }
-                      }
+
                       
                       setSectionLoading(prev => ({ ...prev, creatingRequest: true }))
                       try {
                         const formData = {
                           improvement_period_id: requestForm.improvement_period_id,
                           subject_id: requestForm.subject_id,
-                          reason: requestForm.reason,
-                          current_grade: requestForm.current_grade ? parseFloat(requestForm.current_grade) : undefined,
-                          target_grade: requestForm.target_grade ? parseFloat(requestForm.target_grade) : undefined
+                          reason: requestForm.reason
                         }
                         
                         const result = await createGradeImprovementRequestAction(formData)
@@ -354,9 +316,7 @@ export function StudentGradeImprovementClient() {
                           setRequestForm({
                             improvement_period_id: '',
                             subject_id: '',
-                            reason: '',
-                            current_grade: '',
-                            target_grade: ''
+                            reason: ''
                           })
                           loadMyRequests()
                         } else {
@@ -392,16 +352,22 @@ export function StudentGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && activePeriods.length === 0 ? (
+          {isLoading && activePeriods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <div className="space-y-4 mb-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+                    <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+                  </div>
+                </div>
                 <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
           ) : activePeriods.length === 0 ? (
             <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <AlertCircle className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Hiện tại không có kỳ cải thiện điểm nào đang mở</p>
               <p className="text-sm text-muted-foreground mt-2">
                 Vui lòng liên hệ với giáo viên hoặc ban giám hiệu để biết thêm thông tin
@@ -449,16 +415,22 @@ export function StudentGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && myRequests.length === 0 ? (
+          {isLoading && myRequests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                <div className="space-y-4 mb-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+                    <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+                  </div>
+                </div>
                 <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>
           ) : myRequests.length === 0 ? (
             <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <FileText className="h-12 md:h-14 lg:h-16 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">Bạn chưa nộp đơn cải thiện điểm nào</p>
               {activePeriods.length > 0 && (
                 <p className="text-sm text-muted-foreground mt-2">
@@ -487,23 +459,7 @@ export function StudentGradeImprovementClient() {
                         <StatusBadge status={request.status} />
                       </div>
                       
-                      {/* Grades */}
-                      {(request.current_grade !== null || request.target_grade !== null) && (
-                        <div className="flex gap-4 text-sm">
-                          {request.current_grade !== null && (
-                            <div>
-                              <span className="text-muted-foreground">Điểm hiện tại: </span>
-                              <span className="font-medium">{request.current_grade}</span>
-                            </div>
-                          )}
-                          {request.target_grade !== null && (
-                            <div>
-                              <span className="text-muted-foreground">Điểm mục tiêu: </span>
-                              <span className="font-medium">{request.target_grade}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+
                       
                       {/* Reason */}
                       <div>

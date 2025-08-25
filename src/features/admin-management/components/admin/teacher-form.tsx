@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -7,15 +7,16 @@ import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { Checkbox } from "@/shared/components/ui/checkbox"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Loader2, Save, X } from "lucide-react"
-import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
+import { Save, X } from "lucide-react";import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
 import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
+import TeacherSpecializationForm from "@/features/teacher-management/components/teacher-specialization-form"
 
-interface TeacherFormProps {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherFormProps {
   readonly teacher?: TeacherProfile
   readonly onSuccess?: () => void
   readonly onCancel?: () => void
@@ -25,6 +26,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
+  const [createdTeacherId, setCreatedTeacherId] = useState<string | null>(null)
 
   const isEditing = !!teacher
 
@@ -32,7 +34,6 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
     resolver: zodResolver(teacherSchema),
     defaultValues: {
       employee_id: teacher?.employee_id || "",
-      homeroom_enabled: teacher?.homeroom_enabled ?? false,
       full_name: teacher?.full_name || "",
       email: teacher?.email || "",
       phone_number: teacher?.phone_number || "",
@@ -63,6 +64,10 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
         setSubmitSuccess(result.message || "Teacher saved successfully")
         if (!isEditing) {
           form.reset()
+          // Set the created teacher ID to show specialization form
+          if ('teacherId' in result && result.teacherId) {
+            setCreatedTeacherId(result.teacherId as string)
+          }
         }
         onSuccess?.()
       } else {
@@ -92,7 +97,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               id="employee_id"
               {...form.register("employee_id")}
               placeholder="VD: EMP001"
-              className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
+              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
             />
             {form.formState.errors.employee_id && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
@@ -106,7 +111,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               id="full_name"
               {...form.register("full_name")}
               placeholder="Nhập họ và tên"
-              className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
+              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
             />
             {form.formState.errors.full_name && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.full_name.message}</p>
@@ -191,22 +196,42 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
             )}
           </div>
 
-          {/* Homeroom Enabled */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="homeroom_enabled"
-              checked={form.watch("homeroom_enabled")}
-              onCheckedChange={(checked) => form.setValue("homeroom_enabled", !!checked)}
-              disabled={isSubmitting}
-            />
-            <Label htmlFor="homeroom_enabled" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Enable as homeroom teacher
-            </Label>
-          </div>
-          {form.watch("homeroom_enabled") && (
-            <p className="text-sm text-blue-600">
-              This teacher will be available for homeroom class assignments.
-            </p>
+
+
+          {/* Teacher Specializations - Show for editing existing teachers or after creating new teacher */}
+          {((isEditing && teacher?.id) || (!isEditing && createdTeacherId)) && (
+            <div className="space-y-4 border-t pt-6">
+              <TeacherSpecializationForm
+                teacherId={isEditing ? (teacher?.id || '') : (createdTeacherId || '')}
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
+          {/* Teacher Specializations for new teacher creation - Show during creation */}
+          {!isEditing && !createdTeacherId && (
+            <div className="space-y-4 border-t pt-6">
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">Chuyên ngành giảng dạy</h3>
+                <p className="text-sm text-muted-foreground">
+                  Chuyên ngành giảng dạy sẽ được thiết lập sau khi tạo tài khoản giáo viên thành công. Các chuyên ngành có sẵn:
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-medium text-blue-900">Chuyên ngành Tự nhiên - Kỹ thuật</h4>
+                    <p className="text-sm text-blue-700">Toán, Lý, Hóa, Sinh, Tin học, Công nghệ</p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                    <h4 className="font-medium text-green-900">Chuyên ngành Xã hội - Nhân văn</h4>
+                    <p className="text-sm text-green-700">Văn, Sử, Địa, GDCD, Ngoại ngữ</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <h4 className="font-medium text-purple-900">Chuyên ngành Nghệ thuật - Thể chất</h4>
+                    <p className="text-sm text-purple-700">Âm nhạc, Mỹ thuật, Thể dục, Quốc phòng</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Error/Success Messages */}
@@ -231,7 +256,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Skeleton className="h-32 w-full rounded-lg" />
                   {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
                 </>
               ) : (

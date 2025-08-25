@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { checkTeacherPermissions } from "@/lib/utils/permission-utils"
+import { logGradeUpdateAuditPending, type GradeUpdateAuditData } from "@/lib/utils/audit-utils"
 
 export interface GradeOverrideData {
   gradeId: string
@@ -55,8 +56,6 @@ export async function processGradeOverridesAction(
   overrides: GradeOverrideData[]
 ): Promise<GradeOverrideResult> {
   try {
-    const supabase = await createClient()
-
     // Check teacher permissions
     const { user } = await checkTeacherPermissions()
 
@@ -71,41 +70,23 @@ export async function processGradeOverridesAction(
       }
     }
 
-    // Process each override
+    // Process each override - CREATE PENDING AUDIT LOGS ONLY, DON'T UPDATE GRADES YET
     for (const override of overrides) {
-      // Update the grade
-      const { error: updateError } = await supabase
-        .from('student_detailed_grades')
-        .update({
-          grade_value: override.newValue,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', override.gradeId)
-
-      if (updateError) {
-        throw new Error(`Lỗi cập nhật điểm cho ${override.studentName}: ${updateError.message}`)
-      }
-
-      // Create audit log
-      const { error: auditError } = await supabase
-        .from('grade_audit_logs')
-        .insert({
-          grade_id: override.gradeId,
-          old_value: override.oldValue,
-          new_value: override.newValue,
-          change_reason: override.reason || 'Không có lý do',
-          changed_by: user.id,
-          changed_at: new Date().toISOString()
-        })
-
-      if (auditError) {
-        throw new Error(`Lỗi ghi log cho ${override.studentName}: ${auditError.message}`)
-      }
+      // Create pending audit log - grades will be updated only after admin approval
+      await logGradeUpdateAuditPending({
+        gradeId: override.gradeId,
+        userId: user.id,
+        oldValue: override.oldValue,
+        newValue: override.newValue,
+        reason: override.reason || 'Không có lý do',
+        componentType: override.componentType,
+        studentName: override.studentName
+      })
     }
 
     return {
       success: true,
-      message: `Đã xử lý thành công ${overrides.length} thay đổi điểm`,
+      message: `Đã gửi ${overrides.length} yêu cầu thay đổi điểm cho admin phê duyệt`,
       overrideCount: overrides.length
     }
 
@@ -134,8 +115,8 @@ export async function getGradeHistoryAction(
     // Check teacher permissions
     await checkTeacherPermissions()
 
-    // Get grade history with audit logs
-    const { data, error } = await supabase
+    // Get grade records first
+    const { data: gradeRecords, error: gradeError } = await supabase
       .from('student_detailed_grades')
       .select(`
         id,
@@ -144,25 +125,53 @@ export async function getGradeHistoryAction(
         created_at,
         updated_at,
         student_id,
-        students(student_number, full_name),
-        grade_audit_logs(
-          id,
-          old_value,
-          new_value,
-          change_reason,
-          changed_at,
-          changed_by,
-          profiles!changed_by(full_name)
-        )
+        students(student_number, full_name)
       `)
       .eq('period_id', periodId)
       .eq('class_id', classId)
       .eq('subject_id', subjectId)
       .order('created_at', { ascending: false })
 
-    if (error) {
-      throw error
+    if (gradeError) {
+      throw gradeError
     }
+
+    // Get audit logs for these grade records from unified_audit_logs
+    const gradeIds = gradeRecords?.map(record => record.id) || []
+    const { data: auditLogs, error: auditError } = await supabase
+      .from('unified_audit_logs')
+      .select(`
+        id,
+        record_id,
+        old_values,
+        new_values,
+        changes_summary,
+        created_at,
+        user_id,
+        user:profiles!user_id(full_name)
+      `)
+      .eq('audit_type', 'grade')
+      .eq('table_name', 'student_detailed_grades')
+      .in('record_id', gradeIds)
+      .order('created_at', { ascending: false })
+
+    if (auditError) {
+      throw auditError
+    }
+
+    // Combine grade records with their audit logs
+    const data = gradeRecords?.map(record => ({
+      ...record,
+      grade_audit_logs: auditLogs?.filter(log => log.record_id === record.id).map(log => ({
+        id: log.id,
+        old_value: log.old_values?.grade_value || null,
+        new_value: log.new_values?.grade_value || null,
+        change_reason: log.changes_summary || '',
+        changed_at: log.created_at,
+        changed_by: log.user_id,
+        profiles: Array.isArray(log.user) ? log.user : [log.user]
+      })) || []
+    })) || []
 
     return {
       success: true,

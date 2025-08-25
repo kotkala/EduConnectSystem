@@ -5,22 +5,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle,
   DialogFooter 
 } from "@/shared/components/ui/dialog"
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
-  User, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  User,
   BookOpen,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
+import { Input } from "@/shared/components/ui/input"
+import { Label } from "@/shared/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select"
 import { toast } from "sonner"
 import { 
   getGradeOverwriteRequestsAction,
@@ -37,6 +51,40 @@ export default function AdminGradeOverwriteApprovalsPage() {
   const [adminReason, setAdminReason] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [processing, setProcessing] = useState(false)
+
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('pending')
+  const [subjectFilter, setSubjectFilter] = useState<string>('all')
+  const [componentTypeFilter, setComponentTypeFilter] = useState<string>('all')
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+
+  // Filter requests based on search and filters
+  const filteredRequests = requests.filter(request => {
+    const matchesSearch = searchTerm === '' ||
+      request.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.subject_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.change_reason.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === 'all' || request.status === statusFilter
+    const matchesSubject = subjectFilter === 'all' || request.subject_name === subjectFilter
+    const matchesComponentType = componentTypeFilter === 'all' || request.component_type === componentTypeFilter
+
+    return matchesSearch && matchesStatus && matchesSubject && matchesComponentType
+  })
+
+  const toggleCardExpansion = (cardId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId)
+      } else {
+        newSet.add(cardId)
+      }
+      return newSet
+    })
+  }
 
   useEffect(() => {
     loadOverwriteRequests()
@@ -120,7 +168,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <Skeleton className="h-32 w-full rounded-lg" />
             <p className="text-muted-foreground">Đang tải danh sách yêu cầu...</p>
           </div>
         </div>
@@ -137,30 +185,141 @@ export default function AdminGradeOverwriteApprovalsPage() {
         </p>
       </div>
 
-      {requests.length === 0 ? (
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Tìm kiếm và lọc
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="search">Tìm kiếm</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Tên học sinh, môn học, lý do..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="status-filter">Trạng thái</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="pending">Đang chờ</SelectItem>
+                  <SelectItem value="approved">Đã duyệt</SelectItem>
+                  <SelectItem value="rejected">Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="subject-filter">Môn học</Label>
+              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn môn học" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {Array.from(new Set(requests.map(r => r.subject_name))).map(subject => (
+                    <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="component-filter">Loại điểm</Label>
+              <Select value={componentTypeFilter} onValueChange={setComponentTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn loại điểm" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="midterm">Giữa kỳ</SelectItem>
+                  <SelectItem value="final">Cuối kỳ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-4 text-sm text-muted-foreground">
+            Hiển thị {filteredRequests.length} trong tổng số {requests.length} yêu cầu
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredRequests.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
-            <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
-            <h3 className="text-lg font-medium mb-2">Không có yêu cầu nào</h3>
+            <CheckCircle className="mx-auto h-12 md:h-14 lg:h-16 w-12 text-green-500 mb-4" />
+            <h3 className="text-lg font-medium mb-2">
+              {requests.length === 0 ? 'Không có yêu cầu nào' : 'Không tìm thấy yêu cầu'}
+            </h3>
             <p className="text-muted-foreground">
-              Hiện tại không có yêu cầu ghi đè điểm nào cần phê duyệt
+              {requests.length === 0
+                ? 'Hiện tại không có yêu cầu ghi đè điểm nào cần phê duyệt'
+                : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.'
+              }
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {requests.map((request) => (
-            <Card key={request.id}>
-              <CardHeader>
+        <div className="space-y-3">
+          {filteredRequests.map((request) => {
+            const isExpanded = expandedCards.has(request.id)
+            return (
+            <Card key={request.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-orange-500" />
-                    Yêu cầu ghi đè điểm số
-                  </CardTitle>
-                  {getStatusBadge(request.status)}
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                    <div className="flex items-center gap-4">
+                      <span className="font-medium">{request.student_name}</span>
+                      <span className="text-sm text-muted-foreground">{request.subject_name}</span>
+                      <span className="text-sm font-medium">
+                        <span className="text-red-600">{request.old_value}</span>
+                        {' → '}
+                        <span className="text-green-600">{request.new_value}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(request.status)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleCardExpansion(request.id)}
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="h-4 w-4 mr-1" />
+                          Thu gọn
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-4 w-4 mr-1" />
+                          Chi tiết
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              {isExpanded && (
+                <CardContent className="pt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
@@ -246,9 +405,10 @@ export default function AdminGradeOverwriteApprovalsPage() {
                     </p>
                   </div>
                 )}
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
-          ))}
+          )})}
         </div>
       )}
 

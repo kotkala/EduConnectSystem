@@ -4,11 +4,10 @@
 // Components
 export * from './components/teacher/teacher-grade-import-dialog'
 export * from './components/teacher/grade-override-reason-dialog'
-export * from './components/schedule-exchange/exchange-request-form'
-export * from './components/schedule-exchange/exchange-requests-list'
+// Schedule exchange components removed
 
 // Actions
-export * from './actions/schedule-exchange-actions'
+// Schedule exchange actions removed
 export * from './actions/teacher-assignment-actions'
 export * from './actions/teacher-feedback-actions'
 export * from './actions/teacher-grade-submission-actions'

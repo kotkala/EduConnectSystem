@@ -14,6 +14,9 @@ const parentResponseSchema = z.object({
 // Types
 export type ParentResponseFormData = z.infer<typeof parentResponseSchema>
 
+
+
+// Processed interface for client use
 export interface ParentReportNotification {
   id: string
   student_report_id: string
@@ -30,6 +33,7 @@ export interface ParentReportNotification {
     discipline_status: string
     status: string
     sent_at: string
+    report_period_id: string
     student: {
       full_name: string
       student_id: string
@@ -38,20 +42,23 @@ export interface ParentReportNotification {
       name: string
     }
     report_period: {
+      id: string
       name: string
       start_date: string
       end_date: string
-    }
+      period_type?: string
+    } | null
     homeroom_teacher: {
       full_name: string
     }
-  }
+  } | null
   parent_response?: {
+    student_report_id: string
     agreement_status: string | null
     comments: string | null
     is_read: boolean
     responded_at: string | null
-  }
+  } | null
 }
 
 // Helper function to check parent permissions
@@ -112,7 +119,7 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
     const offset = (page - 1) * limit
 
     // PERFORMANCE OPTIMIZATION: Fetch notifications without problematic join
-    const { data: notifications, error } = await supabase
+    const { data: rawNotifications, error } = await supabase
       .from('report_notifications')
       .select(`
         id,
@@ -130,9 +137,9 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           discipline_status,
           status,
           sent_at,
+          report_period_id,
           student:profiles!student_id(full_name, student_id),
           class:classes!class_id(name),
-          report_period:report_periods!report_period_id(name, start_date, end_date),
           homeroom_teacher:profiles!homeroom_teacher_id(full_name)
         )
       `)
@@ -141,11 +148,38 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
       .range(offset, offset + limit - 1) // Add pagination
 
     if (error) {
+      console.error('Supabase query error:', error)
       throw new Error(error.message)
     }
 
+
+
+    // Handle the raw notifications with proper type safety
+    const notifications = rawNotifications as unknown as Array<{
+      id: string
+      student_report_id: string
+      parent_id: string
+      homeroom_teacher_id: string
+      is_read: boolean
+      read_at: string | null
+      created_at: string
+      student_report?: {
+        id: string
+        strengths: string
+        weaknesses: string
+        academic_performance: string
+        discipline_status: string
+        status: string
+        sent_at: string
+        report_period_id: string
+        student: { full_name: string; student_id: string }[] | { full_name: string; student_id: string }
+        class: { name: string }[] | { name: string }
+        homeroom_teacher: { full_name: string }[] | { full_name: string }
+      } | null
+    }> | null
+
     // PERFORMANCE OPTIMIZATION: Fetch parent responses separately to avoid relationship issues
-    let notificationsWithResponses = notifications || []
+    let notificationsWithResponses: ParentReportNotification[] = []
 
     if (notifications && notifications.length > 0) {
       const reportIds = notifications
@@ -165,15 +199,51 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           .eq('parent_id', userId)
           .in('student_report_id', reportIds)
 
-        // Map responses to notifications
+        // Fetch report periods for all reports
+        const reportPeriodIds = notifications
+          .map(n => n.student_report?.report_period_id)
+          .filter(Boolean)
+
+        const { data: reportPeriods } = await supabase
+          .from('grade_reporting_periods')
+          .select('id, name, start_date, end_date, period_type')
+          .in('id', reportPeriodIds)
+
+
+
+        // Map responses and report periods to notifications
         const responseMap = new Map(
           (responses || []).map(r => [r.student_report_id, r])
         )
+        const reportPeriodMap = new Map(
+          (reportPeriods || []).map(rp => [rp.id, rp])
+        )
 
-        notificationsWithResponses = notifications.map(notification => ({
-          ...notification,
-          parent_response: responseMap.get(notification.student_report_id) || null
-        }))
+
+
+        notificationsWithResponses = notifications.map(notification => {
+          const result = {
+            ...notification,
+            parent_response: responseMap.get(notification.student_report_id) || null,
+            student_report: notification.student_report ? {
+              ...notification.student_report,
+              student: Array.isArray(notification.student_report.student)
+                ? notification.student_report.student[0] || { full_name: '', student_id: '' }
+                : notification.student_report.student || { full_name: '', student_id: '' },
+              class: Array.isArray(notification.student_report.class)
+                ? notification.student_report.class[0] || { name: '' }
+                : notification.student_report.class || { name: '' },
+              homeroom_teacher: Array.isArray(notification.student_report.homeroom_teacher)
+                ? notification.student_report.homeroom_teacher[0] || { full_name: '' }
+                : notification.student_report.homeroom_teacher || { full_name: '' },
+              report_period: reportPeriodMap.get(notification.student_report.report_period_id) || null
+            } : null
+          }
+
+
+
+          return result
+        })
       }
     }
 
@@ -263,13 +333,14 @@ export async function submitParentResponseAction(formData: ParentResponseFormDat
 
     const { data: response, error } = await supabase
       .from('parent_report_responses')
-      .update({
+      .upsert({
+        student_report_id: validatedData.student_report_id,
+        parent_id: userId,
         agreement_status: validatedData.agreement_status,
         comments: validatedData.comments,
-        responded_at: new Date().toISOString()
+        responded_at: new Date().toISOString(),
+        is_read: true
       })
-      .eq('student_report_id', validatedData.student_report_id)
-      .eq('parent_id', userId)
       .select()
       .single()
 

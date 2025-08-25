@@ -2,8 +2,15 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 
 import { Button } from '@/shared/components/ui/button'
+
+// Lazy load DotLottieReact for better performance
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
+  { ssr: false }
+)
 
 interface ErrorPageProps {
   readonly error: Error & { digest?: string }
@@ -21,8 +28,19 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="text-center space-y-6 max-w-2xl">
+          {/* Error Animation */}
+          <div className="flex justify-center mb-6">
+            <DotLottieReact
+              src="/animations/Error 404.lottie"
+              loop
+              autoplay
+              className="w-48 h-48 md:w-64 md:h-64"
+              style={{ willChange: 'transform' }}
+            />
+          </div>
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">ĐÝ XẢY RA LỖI</span>
+            <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">ĐÃ XẢY RA LỖI</span>
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Có lỗi không mong muốn xảy ra. Hãy thử lại thao tác hoặc quay về trang chủ.
@@ -40,7 +58,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       </main>
 
       <footer className="w-full pb-6 text-center text-xs text-muted-foreground">
-        Â© {new Date().getFullYear()} EduConnect â€¢ Cổng thông tin trường học
+        © {new Date().getFullYear()} EduConnect • Cổng thông tin trường học
       </footer>
     </div>
   )

@@ -1,11 +1,12 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 
 import { Badge } from "@/shared/components/ui/badge"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Search,
   History,
   MessageCircle,
@@ -168,7 +169,7 @@ export function ChatHistorySidebar({
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <Skeleton className="h-32 w-full rounded-lg" />
         </div>
       )
     }
@@ -232,7 +233,7 @@ export function ChatHistorySidebar({
 
     return (
       <div className="text-center py-8 text-gray-500">
-        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        <MessageCircle className="h-8 md:h-9 lg:h-10 w-8 mx-auto mb-2 opacity-50" />
         <p className="text-sm">Chưa có cuộc trò chuyện nào</p>
         <p className="text-xs mt-1">Bắt đầu chat để tạo lịch sử</p>
       </div>
@@ -325,7 +326,7 @@ export function ChatHistorySidebar({
           {searchQuery.trim() && searchResults.length === 0 && !isSearching && (
             /* No Search Results */
             <div className="text-center py-8 text-gray-500">
-              <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <Search className="h-8 md:h-9 lg:h-10 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Không tìm thấy kết quả</p>
               <p className="text-xs mt-1">Thử từ khóa khác</p>
             </div>

@@ -17,6 +17,7 @@ export interface AvailableTeacher {
   teacher_id: string
   teacher_name: string
   teacher_email: string
+  employee_id?: string
 }
 
 export interface TeacherAssignment {
@@ -71,16 +72,20 @@ export async function getAvailableSubjectsForClassAction(classId: string) {
   }
 }
 
-// Get available teachers for a specific subject
+// Get available teachers for a specific subject (filtered by specialization)
 export async function getAvailableTeachersForSubjectAction(subjectId: string) {
   try {
     const supabase = await createClient()
 
+    // Get teachers who have specialization for this subject
     const { data: availableTeachers, error } = await supabase
-      .from('teachers_for_subjects')
-      .select('teacher_id, teacher_name, teacher_email')
-      .eq('subject_id', subjectId)
-      .order('teacher_name')
+      .from('teacher_specializations')
+      .select(`
+        teacher_id,
+        profiles!inner(id, full_name, email, employee_id)
+      `)
+      .contains('subjects', [subjectId])
+      .order('profiles(full_name)')
 
     if (error) {
       console.error('Error fetching available teachers:', error)
@@ -91,9 +96,20 @@ export async function getAvailableTeachersForSubjectAction(subjectId: string) {
       }
     }
 
+    // Transform data to match expected format
+    const teachers = availableTeachers?.map(item => {
+      const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+      return {
+        teacher_id: item.teacher_id,
+        teacher_name: profile?.full_name || '',
+        teacher_email: profile?.email || '',
+        employee_id: profile?.employee_id || ''
+      }
+    }) || []
+
     return {
       success: true,
-      data: (availableTeachers || []) as AvailableTeacher[]
+      data: teachers as AvailableTeacher[]
     }
   } catch (error) {
     console.error('Error in getAvailableTeachersForSubjectAction:', error)

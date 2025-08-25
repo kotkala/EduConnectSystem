@@ -75,7 +75,8 @@ export const STUDENT_VIOLATION_WITH_DETAILS_FIELDS = `
     academic_year:academic_years(name),
     semester:semesters(name)
   ),
-  recorded_by_profile:profiles!recorded_by(
+  recorded_by_user:profiles!recorded_by(
+    id,
     full_name
   )
 `

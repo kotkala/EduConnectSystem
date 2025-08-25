@@ -1,12 +1,13 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
+
 import {
   Select,
   SelectContent,
@@ -29,7 +30,6 @@ import {
   GraduationCap,
   CheckCircle,
   AlertCircle,
-  Loader2,
   ThumbsUp,
   ThumbsDown,
   Send,
@@ -43,6 +43,7 @@ import {
   markReportAsReadAction,
   type ParentReportNotification
 } from '@/lib/actions/parent-report-actions'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface StudentOption {
   id: string
@@ -59,7 +60,7 @@ interface ReportPeriodOption {
 
 export default function ParentReportsClient() {
   // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
+
   // ðŸ§¹ CLEANUP: Removed unused coordinatedLoading
   
   const [notifications, setNotifications] = useState<ParentReportNotification[]>([])
@@ -76,6 +77,10 @@ export default function ParentReportsClient() {
   const [sectionLoading, setSectionLoading] = useState({
     submitting: false, // For form submissions (non-blocking)
   })
+
+  // Global loading for initial data loads
+  const { startLoading, stopLoading } = useGlobalLoading("Đang tải báo cáo...")
+
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState({
     page: 1,
@@ -106,8 +111,10 @@ export default function ParentReportsClient() {
     notifications.forEach(notification => {
       if (notification.student_report?.report_period) {
         const period = notification.student_report.report_period
-        periods.set(period.name, {
-          id: period.name,
+        // Use a unique key combining name and dates to handle multiple periods with same name
+        const uniqueKey = `${period.name}_${period.start_date}_${period.end_date}`
+        periods.set(uniqueKey, {
+          id: uniqueKey,
           name: period.name,
           start_date: period.start_date,
           end_date: period.end_date
@@ -122,16 +129,26 @@ export default function ParentReportsClient() {
     return notifications.filter(notification => {
       const matchesStudent = selectedStudent === 'all' ||
         notification.student_report?.student?.student_id === selectedStudent
-      const matchesPeriod = selectedPeriod === 'all' ||
-        notification.student_report?.report_period?.name === selectedPeriod
-      return matchesStudent && matchesPeriod
+
+      if (selectedPeriod === 'all') {
+        return matchesStudent
+      }
+
+      // Match using the unique key format
+      const period = notification.student_report?.report_period
+      if (period) {
+        const uniqueKey = `${period.name}_${period.start_date}_${period.end_date}`
+        return matchesStudent && uniqueKey === selectedPeriod
+      }
+
+      return false
     })
   }, [notifications, selectedStudent, selectedPeriod])
 
   // Load notifications with pagination and error handling
   const loadNotifications = useCallback(async (page: number = 1) => {
     try {
-      startPageTransition("Đang tải báo cáo...")
+      startLoading()
       setError(null)
 
       const result = await getParentReportNotificationsAction(page, pagination.limit)
@@ -150,7 +167,7 @@ export default function ParentReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [pagination.limit, startPageTransition, stopLoading])
+  }, [pagination.limit, startLoading, stopLoading])
 
   // Load data on component mount
   useEffect(() => {
@@ -212,6 +229,7 @@ export default function ParentReportsClient() {
               ? {
                   ...n,
                   parent_response: {
+                    student_report_id: selectedReport.student_report_id,
                     agreement_status: responseForm.agreement_status,
                     comments: responseForm.comments.trim() || null,
                     is_read: true,
@@ -247,8 +265,8 @@ export default function ParentReportsClient() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-center h-32 text-red-600">
-            <AlertCircle className="h-8 w-8 mr-2" />
+          <div className="flex items-center justify-center h-32 md:h-40 lg:h-48 text-red-600">
+            <AlertCircle className="h-8 md:h-9 lg:h-10 w-8 mr-2" />
             <span>{error}</span>
           </div>
           <div className="flex justify-center mt-4">
@@ -319,8 +337,8 @@ export default function ParentReportsClient() {
       {filteredNotifications.length === 0 ? (
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-center h-32 text-gray-500">
-              <BookOpen className="h-8 w-8 mr-2" />
+            <div className="flex items-center justify-center h-32 md:h-40 lg:h-48 text-gray-500">
+              <BookOpen className="h-8 md:h-9 lg:h-10 w-8 mr-2" />
               <span>Chưa có báo cáo nào</span>
             </div>
           </CardContent>
@@ -367,7 +385,7 @@ export default function ParentReportsClient() {
                       variant={pageNum === pagination.page ? "default" : "outline"}
                       size="sm"
                       onClick={() => handlePageChange(pageNum)}
-                      className="w-8 h-8 p-0"
+                      className="w-8 h-8 md:h-9 lg:h-10 p-0"
                     >
                       {pageNum}
                     </Button>
@@ -398,10 +416,10 @@ export default function ParentReportsClient() {
       )}
 
       {/* Report Detail Dialog */}
-      {selectedReport && (
+      {selectedReport && !showResponseDialog && (
         <ReportDetailDialog
           report={selectedReport}
-          open={!!selectedReport}
+          open={!!selectedReport && !showResponseDialog}
           onOpenChange={(open) => !open && setSelectedReport(null)}
           formatDate={formatDate}
         />
@@ -410,7 +428,12 @@ export default function ParentReportsClient() {
       {/* Response Dialog */}
       <ResponseDialog
         open={showResponseDialog}
-        onOpenChange={setShowResponseDialog}
+        onOpenChange={(open) => {
+          setShowResponseDialog(open)
+          if (!open) {
+            setSelectedReport(null)
+          }
+        }}
         responseForm={responseForm}
         setResponseForm={setResponseForm}
         onSubmit={handleSubmitResponse}
@@ -513,21 +536,33 @@ const ReportCard = React.memo(({
 
             {/* Response Status */}
             {hasResponse && (
-              <div className="flex items-center gap-2 text-sm">
-                {notification.parent_response?.agreement_status === 'agree' ? (
-                  <>
-                    <ThumbsUp className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">Đã phản hồi: Đồng ý</span>
-                  </>
-                ) : (
-                  <>
-                    <ThumbsDown className="h-4 w-4 text-red-600" />
-                    <span className="text-red-600">Đã phản hồi: Không đồng ý</span>
-                  </>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {notification.parent_response?.agreement_status === 'agree' ? (
+                    <>
+                      <ThumbsUp className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Đã phản hồi: Đồng ý</span>
+                    </>
+                  ) : (
+                    <>
+                      <ThumbsDown className="h-4 w-4 text-red-600" />
+                      <span className="text-red-600">Đã phản hồi: Không đồng ý</span>
+                    </>
+                  )}
+                  <span className="text-gray-500">
+                    ({formatDate(notification.parent_response?.responded_at || '')})
+                  </span>
+                </div>
+                {/* Parent Comments Preview */}
+                {notification.parent_response?.comments && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-700">Nhận xét: </span>
+                    <span className="text-gray-600">
+                      {notification.parent_response.comments.substring(0, 80)}
+                      {notification.parent_response.comments.length > 80 ? '...' : ''}
+                    </span>
+                  </div>
                 )}
-                <span className="text-gray-500">
-                  ({formatDate(notification.parent_response?.responded_at || '')})
-                </span>
               </div>
             )}
             </div>
@@ -685,7 +720,7 @@ const ReportDetailDialog = React.memo(({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto z-[50]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
@@ -863,7 +898,7 @@ const ResponseDialog = React.memo(({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md z-[60]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
@@ -923,11 +958,16 @@ const ResponseDialog = React.memo(({
             disabled={submitting || !responseForm.agreement_status}
           >
             {submitting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Đang gửi...
+              </>
             ) : (
-              <Send className="h-4 w-4 mr-2" />
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Gửi phản hồi
+              </>
             )}
-            Gửi phản hồi
           </Button>
         </div>
       </DialogContent>

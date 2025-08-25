@@ -5,27 +5,17 @@ import { useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
+import { SandyLoading } from "@/shared/components/ui/sandy-loading";
 
 // Lazy load heavy calendar components to improve initial page load
 const EventCalendar = dynamic(() => import("@/features/timetable/components/calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
-    <LoadingFallback size="lg" className="flex items-center justify-center">
-      <span className="sr-only">Loading calendar...</span>
-    </LoadingFallback>
+          <SandyLoading message="Đang tải lịch học..." />
   )
 });
-import { LoadingFallback } from "@/shared/components/ui/loading-fallback"
 
-const ExchangeRequestForm = dynamic(() => import("@/features/teacher-management/components/schedule-exchange/exchange-request-form").then(mod => ({ default: mod.ExchangeRequestForm })), {
-  ssr: false,
-  loading: () => <LoadingFallback size="xs" />
-});
-
-const ExchangeRequestsList = dynamic(() => import("@/features/teacher-management/components/schedule-exchange/exchange-requests-list").then(mod => ({ default: mod.ExchangeRequestsList })), {
-  ssr: false,
-  loading: () => <LoadingFallback size="sm" />
-});
+// Exchange request components removed
 
 import {
   type CalendarEvent,
@@ -118,8 +108,7 @@ export default function TeacherScheduleBigCalendar() {
   const [selectedEvent, setSelectedEvent] = useState<TeacherTimetableEvent | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Exchange requests refresh trigger
-  const [exchangeRefreshTrigger, setExchangeRefreshTrigger] = useState(0);
+// Exchange request state removed
 
   const supabase = createClient();
 
@@ -328,16 +317,7 @@ export default function TeacherScheduleBigCalendar() {
           <StatusLegend />
         </div>
 
-        {/* Exchange Request Actions */}
-        {user && hasValidFilters(filters) && (
-          <div className="flex justify-end">
-            <ExchangeRequestForm
-              teacherId={user.id}
-              semesterId={filters.semesterId}
-              onSuccess={() => setExchangeRefreshTrigger(prev => prev + 1)}
-            />
-          </div>
-        )}
+        {/* Exchange request actions removed */}
       </div>
 
       {/* Calendar */}
@@ -349,13 +329,7 @@ export default function TeacherScheduleBigCalendar() {
         />
       </div>
 
-      {/* Exchange Requests List */}
-      {user && (
-        <ExchangeRequestsList
-          teacherId={user.id}
-          refreshTrigger={exchangeRefreshTrigger}
-        />
-      )}
+      {/* Exchange requests list removed */}
 
       {/* Event Dialog (View Only) */}
       <TeacherTimetableEventDialog

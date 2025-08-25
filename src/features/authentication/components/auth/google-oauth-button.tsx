@@ -1,11 +1,10 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { clientAuth } from '@/lib/auth'
-import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
 
+import { Skeleton } from "@/shared/components/ui/skeleton";import { toast } from 'sonner'
 interface GoogleOAuthButtonProps {
   className?: string
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive'
@@ -39,7 +38,7 @@ export function GoogleOAuthButton({
       size={size}
     >
       {isLoading ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       ) : (
         <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
           <path

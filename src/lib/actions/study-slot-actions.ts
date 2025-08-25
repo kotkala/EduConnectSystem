@@ -18,7 +18,7 @@ const studySlotSchema = z.object({
   notes: z.string().optional()
 })
 
-const updateStudySlotSchema = studySlotSchema.partial().extend({
+const updateStudySlotSchema = studySlotSchema.partial().safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i)
 })
 
@@ -279,7 +279,17 @@ export async function checkStudySlotConflictsAction(
 
     let query = supabase
       .from('timetable_events')
-      .select('id, classroom_id, teacher_id, class_id')
+      .select(`
+        id,
+        classroom_id,
+        teacher_id,
+        class_id,
+        subject_id,
+        classes!inner(name),
+        subjects!inner(name_vietnamese),
+        teacher:profiles!teacher_id(full_name),
+        classrooms!inner(name)
+      `)
       .eq('day_of_week', dayOfWeek)
       .eq('start_time', startTime)
       .eq('week_number', weekNumber)
@@ -298,30 +308,38 @@ export async function checkStudySlotConflictsAction(
     // Check for classroom conflicts
     const classroomConflict = conflicts?.find(c => c.classroom_id === classroomId)
     if (classroomConflict) {
+      const conflictClass = Array.isArray(classroomConflict.classes) ? classroomConflict.classes[0] : classroomConflict.classes
+      const conflictSubject = Array.isArray(classroomConflict.subjects) ? classroomConflict.subjects[0] : classroomConflict.subjects
+      const conflictClassroom = Array.isArray(classroomConflict.classrooms) ? classroomConflict.classrooms[0] : classroomConflict.classrooms
+
       return {
         success: true,
         hasConflict: true,
-        conflictType: 'Classroom is already booked at this time'
+        conflictType: `Phòng học "${conflictClassroom?.name}" đã được sử dụng bởi lớp "${conflictClass?.name}" - môn "${conflictSubject?.name_vietnamese}" vào thời gian này`
       }
     }
 
     // Check for teacher conflicts
     const teacherConflict = conflicts?.find(c => c.teacher_id === teacherId)
     if (teacherConflict) {
+      const conflictClass = Array.isArray(teacherConflict.classes) ? teacherConflict.classes[0] : teacherConflict.classes
+      const conflictSubject = Array.isArray(teacherConflict.subjects) ? teacherConflict.subjects[0] : teacherConflict.subjects
+      const conflictTeacher = Array.isArray(teacherConflict.teacher) ? teacherConflict.teacher[0] : teacherConflict.teacher
+
       return {
         success: true,
         hasConflict: true,
-        conflictType: 'Teacher is already assigned to another class at this time'
+        conflictType: `Giáo viên "${conflictTeacher?.full_name}" đã được phân công dạy lớp "${conflictClass?.name}" - môn "${conflictSubject?.name_vietnamese}" vào thời gian này`
       }
     }
 
     return { success: true, hasConflict: false }
   } catch (error) {
     console.error('Error in checkStudySlotConflictsAction:', error)
-    return { 
-      success: false, 
-      error: 'Failed to check conflicts', 
-      hasConflict: false 
+    return {
+      success: false,
+      error: 'Failed to check conflicts',
+      hasConflict: false
     }
   }
 }

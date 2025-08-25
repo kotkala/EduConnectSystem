@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -9,9 +9,9 @@ import { Label } from "@/shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Loader2 } from "lucide-react"
 import { createSemesterAction, updateSemesterAction, getAcademicYearsAction } from "@/features/admin-management/actions/academic-actions"
-import { 
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { 
   semesterSchema, 
   updateSemesterSchema,
   type SemesterFormData,
@@ -123,7 +123,7 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
         <Label htmlFor="academic_year_id">Academic Year</Label>
         {loadingAcademicYears ? (
           <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span className="text-sm text-muted-foreground">Loading academic years...</span>
           </div>
         ) : (
@@ -273,7 +273,7 @@ export function SemesterForm({ semester, preselectedAcademicYearId, onSuccess, o
           disabled={isSubmitting || loadingAcademicYears}
           className="flex-1 h-10 sm:h-11"
         >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
           <span className="text-sm sm:text-base">
             {isEditing ? "Update Semester" : "Create Semester"}
           </span>

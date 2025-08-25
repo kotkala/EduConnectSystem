@@ -38,7 +38,14 @@ export default function DebugGradesPage() {
       <h1 className="text-2xl font-bold">Debug Grades</h1>
       
       <Button onClick={handleDebug} disabled={loading}>
-        {loading ? 'Loading...' : 'Debug Grades Data'}
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-current animate-pulse rounded" />
+            Đang tải...
+          </div>
+        ) : (
+          'Debug Grades Data'
+        )}
       </Button>
 
       {debugData && (

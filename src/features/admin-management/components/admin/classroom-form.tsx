@@ -254,10 +254,15 @@ export function ClassroomForm({ classroom, onSuccess, onCancel }: ClassroomFormP
                 {selectedEquipment.map((equipment) => (
                   <Badge key={equipment} variant="secondary" className="flex items-center gap-1">
                     {equipment}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 hover:bg-transparent"
                       onClick={() => removeEquipment(equipment)}
-                    />
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </Badge>
                 ))}
               </div>

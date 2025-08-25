@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card"
 import { Separator } from "@/shared/components/ui/separator"
 
-import { getStatusConfig, dayNames } from "./status-config"
+import { getStatusConfig } from "./status-config"
 
 // Generic request interface that can be extended
 export interface BaseRequest {
@@ -22,21 +22,7 @@ export interface BaseRequest {
   approved_by_name?: string | null
 }
 
-// Exchange request specific interface
-export interface ExchangeRequest extends BaseRequest {
-  subject_code: string
-  subject_name: string
-  class_name: string
-  day_of_week: number
-  start_time: string
-  end_time: string
-  classroom_name: string
-  week_number: number
-  exchange_date: string
-  requester_email: string
-  target_email: string
-  reason: string
-}
+// Exchange request interface removed
 
 interface RequestCardProps<T extends BaseRequest> {
   request: T
@@ -126,70 +112,4 @@ export function RequestCard<T extends BaseRequest>({
   )
 }
 
-// Specific component for exchange requests
-export function ExchangeRequestCard({
-  request,
-  onApprove,
-  onReject
-}: {
-  request: ExchangeRequest
-  onApprove?: (request: ExchangeRequest) => void
-  onReject?: (request: ExchangeRequest) => void
-}) {
-  const renderExchangeDetails = (req: ExchangeRequest) => (
-    <>
-      {/* Teaching Slot Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-          <strong>Môn:</strong> {req.subject_code} - {req.subject_name}
-        </div>
-        <div>
-          <strong>Lớp:</strong> {req.class_name}
-        </div>
-        <div>
-          <strong>Thời gian:</strong> {dayNames[req.day_of_week]} {req.start_time}-{req.end_time}
-        </div>
-        <div>
-          <strong>Phòng học:</strong> {req.classroom_name}
-        </div>
-        <div>
-          <strong>Tuần:</strong> {req.week_number}
-        </div>
-        <div>
-          <strong>Ngày đổi lịch:</strong> {format(new Date(req.exchange_date), 'PPP')}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Teacher Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-          <strong>Giáo viên yêu cầu:</strong>
-          <p className="text-muted-foreground">{req.requester_name} ({req.requester_email})</p>
-        </div>
-        <div>
-          <strong>Giáo viên thay thế:</strong>
-          <p className="text-muted-foreground">{req.target_name} ({req.target_email})</p>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Reason */}
-      <div>
-        <strong className="text-sm">Lý do:</strong>
-        <p className="text-sm text-muted-foreground mt-1">{req.reason}</p>
-      </div>
-    </>
-  )
-
-  return (
-    <RequestCard
-      request={request}
-      onApprove={onApprove}
-      onReject={onReject}
-      renderDetails={renderExchangeDetails}
-    />
-  )
-}
+// Exchange request card component removed

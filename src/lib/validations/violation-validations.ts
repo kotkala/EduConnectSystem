@@ -14,7 +14,7 @@ export const violationCategorySchema = z.object({
     .optional()
 })
 
-export const updateViolationCategorySchema = violationCategorySchema.extend({
+export const updateViolationCategorySchema = violationCategorySchema.safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã danh mục không hợp lệ"),
   is_active: z.boolean().optional()
 })
@@ -34,7 +34,7 @@ export const violationTypeSchema = z.object({
   points: z.number().int().min(0, "Điểm trừ phải >= 0").default(0)
 })
 
-export const updateViolationTypeSchema = violationTypeSchema.extend({
+export const updateViolationTypeSchema = violationTypeSchema.safeExtend({
   id: z.string().regex(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i, "Mã loại vi phạm không hợp lệ"),
   is_active: z.boolean().optional(),
   points: z.number().int().min(0).default(0)
@@ -226,6 +226,10 @@ export interface StudentViolationWithDetails {
     }
   }
   recorded_by: {
+    id: string
+    full_name: string
+  }
+  recorded_by_user?: {
     id: string
     full_name: string
   }

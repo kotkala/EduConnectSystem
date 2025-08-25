@@ -4,13 +4,15 @@ import { createClient } from "@/shared/utils/supabase/server"
 import { createAdminClient } from "@/shared/utils/supabase/admin"
 import { checkAdminPermissions } from "@/lib/utils/permission-utils"
 import { sendTeacherGradeNotificationEmail } from "@/lib/services/email-service"
+import { logGradeCreateAudit, logGradeUpdateAudit } from "@/lib/utils/audit-utils"
 
 // Helper function to store calculated summary grade in database
 async function storeSummaryGradeInDatabase(
   studentId: string,
   subjectId: string,
   periodId: string,
-  summaryGrade: number
+  summaryGrade: number,
+  userId?: string
 ) {
   try {
     const supabase = await createClient()
@@ -41,8 +43,19 @@ async function storeSummaryGradeInDatabase(
       }
     }
 
+    // Check if grade already exists for audit logging
+    const { data: existingGrade } = await supabase
+      .from('student_detailed_grades')
+      .select('id, grade_value')
+      .eq('period_id', periodId)
+      .eq('student_id', studentId)
+      .eq('subject_id', subjectId)
+      .eq('class_id', classAssignment.class_id)
+      .eq('component_type', componentType)
+      .single()
+
     // Insert or update the summary grade
-    await supabase
+    const { data: upsertedGrade } = await supabase
       .from('student_detailed_grades')
       .upsert({
         period_id: periodId,
@@ -52,10 +65,36 @@ async function storeSummaryGradeInDatabase(
         component_type: componentType,
         grade_value: Math.round(summaryGrade * 100) / 100,
         summary_grade: Math.round(summaryGrade * 100) / 100,
-        created_by: null
+        created_by: userId || null
       }, {
         onConflict: 'period_id,student_id,subject_id,class_id,component_type'
       })
+      .select('id')
+      .single()
+
+    // Log audit trail if we have a user ID and the grade was actually created/updated
+    if (userId && upsertedGrade) {
+      if (existingGrade) {
+        // This was an update
+        await logGradeUpdateAudit({
+          gradeId: upsertedGrade.id,
+          userId: userId,
+          oldValue: existingGrade.grade_value,
+          newValue: Math.round(summaryGrade * 100) / 100,
+          reason: `Cập nhật điểm tổng kết ${componentType}`,
+          componentType: componentType
+        })
+      } else {
+        // This was a new grade creation
+        await logGradeCreateAudit({
+          gradeId: upsertedGrade.id,
+          userId: userId,
+          gradeValue: Math.round(summaryGrade * 100) / 100,
+          reason: `Tạo điểm tổng kết ${componentType}`,
+          componentType: componentType
+        })
+      }
+    }
   } catch (error) {
     console.error('Error storing summary grade:', error)
   }
@@ -769,6 +808,7 @@ export async function getStudentDetailedGradesAction(
       // Store calculated summary grade in database if it was calculated
       if (average_grade !== null && subject.grade_components.summary_grade === null) {
         // Store the calculated summary grade in the database (fire and forget)
+        // Note: We don't have userId in this context, so audit logging won't occur for auto-calculated grades
         storeSummaryGradeInDatabase(studentId, subject.subject_id, periodId, average_grade).catch(console.error)
       }
 
@@ -1060,6 +1100,25 @@ export async function submitStudentGradesToHomeroomAction(
   }
 }
 
+// Interface for audit log data
+interface AuditLogData {
+  id: string
+  record_id: string
+  action: string
+  user_id: string
+  old_values: Record<string, unknown>
+  new_values: Record<string, unknown>
+  changes_summary: string
+  created_at: string
+  user?: {
+    id: string
+    full_name: string
+  } | Array<{
+    id: string
+    full_name: string
+  }>
+}
+
 // Get grade history for a student
 export async function getStudentGradeHistoryAction(
   studentId: string,
@@ -1087,66 +1146,113 @@ export async function getStudentGradeHistoryAction(
 }> {
   try {
     await checkAdminPermissions()
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    let query = supabase
-      .from('grade_audit_logs')
+    // Build query to get grade history from unified_audit_logs
+    const baseQuery = supabase
+      .from('unified_audit_logs')
       .select(`
         id,
-        grade_id,
-        old_value,
-        new_value,
-        change_reason,
-        changed_at,
-        changed_by,
-        status,
-        admin_reason,
-        processed_at,
-        processed_by,
-        student_detailed_grades!grade_audit_logs_grade_id_fkey(
-          student_id,
-          subject_id,
-          component_type,
-          subjects!student_detailed_grades_subject_id_fkey(name_vietnamese)
-        ),
-        profiles!grade_audit_logs_changed_by_fkey(full_name),
-        admin:profiles!grade_audit_logs_processed_by_fkey(full_name)
+        record_id,
+        action,
+        user_id,
+        old_values,
+        new_values,
+        changes_summary,
+        created_at,
+        user:profiles!user_id(
+          id,
+          full_name
+        )
       `)
-      .eq('student_detailed_grades.student_id', studentId)
-      .order('changed_at', { ascending: false })
+      .eq('audit_type', 'grade')
+      .eq('table_name', 'student_detailed_grades')
+      .order('created_at', { ascending: false })
 
+    // Get the grade records to filter by student
+    let gradeQuery = supabase
+      .from('student_detailed_grades')
+      .select(`
+        id,
+        student_id,
+        subject_id,
+        component_type,
+        period_id,
+        subject:subjects(
+          id,
+          name_vietnamese,
+          code
+        )
+      `)
+      .eq('student_id', studentId)
+
+    // Filter by period if provided
     if (periodId) {
-      // Add period filter if provided
-      query = query.eq('student_detailed_grades.period_id', periodId)
+      gradeQuery = gradeQuery.eq('period_id', periodId)
     }
 
-    const { data: auditLogs, error } = await query
+    const { data: gradeRecords, error: gradeError } = await gradeQuery
 
-    if (error) {
-      console.error('Error fetching grade history:', error)
+    if (gradeError) {
+      console.error('Error fetching grade records:', gradeError)
+      return {
+        success: false,
+        error: 'Không thể tải thông tin điểm'
+      }
+    }
+
+    if (!gradeRecords || gradeRecords.length === 0) {
+      return {
+        success: true,
+        data: []
+      }
+    }
+
+    // Get record IDs for this student's grades
+    const recordIds = gradeRecords.map(record => record.id)
+
+    // Filter audit logs by record IDs
+    const { data: auditLogs, error: auditError } = await baseQuery
+      .in('record_id', recordIds)
+
+    if (auditError) {
+      console.error('Error fetching audit logs:', auditError)
       return {
         success: false,
         error: 'Không thể tải lịch sử thay đổi điểm'
       }
     }
 
-    const formattedHistory = auditLogs?.map(log => ({
-      id: log.id,
-      grade_id: log.grade_id,
-      old_value: log.old_value,
-      new_value: log.new_value,
-      change_reason: log.change_reason,
-      changed_at: log.changed_at,
-      changed_by: log.changed_by,
-      status: log.status || 'pending',
-      admin_reason: log.admin_reason,
-      processed_at: log.processed_at,
-      processed_by: log.processed_by,
-      subject_name: (log.student_detailed_grades as unknown as { subjects: { name_vietnamese: string } })?.subjects?.name_vietnamese || 'Unknown Subject',
-      component_type: (log.student_detailed_grades as unknown as { component_type: string })?.component_type || 'unknown',
-      teacher_name: (log.profiles as unknown as { full_name: string })?.full_name || 'Unknown Teacher',
-      admin_name: (log.admin as unknown as { full_name: string })?.full_name || undefined
-    })) || []
+    // Create a map of grade records for quick lookup
+    const gradeRecordMap = new Map(gradeRecords.map(record => [record.id, record]))
+
+    // Format the audit logs into the expected structure
+    const formattedHistory = (auditLogs || []).map((log: AuditLogData) => {
+      const gradeRecord = gradeRecordMap.get(log.record_id)
+      const oldValues = log.old_values as { old_value?: number; status?: string } || {}
+      const newValues = log.new_values as { new_value?: number; processed_at?: string; processed_by?: string } || {}
+      const user = Array.isArray(log.user) ? log.user[0] : log.user
+      const subject = gradeRecord?.subject
+      const subjectInfo = Array.isArray(subject) ? subject[0] : subject
+
+      return {
+        id: log.id,
+        grade_id: log.record_id,
+        old_value: oldValues.old_value || null,
+        new_value: newValues.new_value || null,
+        change_reason: log.changes_summary || 'Không có lý do',
+        changed_at: log.created_at || '',
+        changed_by: log.user_id || '',
+        status: oldValues.status || 'completed',
+        admin_reason: log.changes_summary || undefined,
+        processed_at: newValues.processed_at || undefined,
+        processed_by: newValues.processed_by || undefined,
+        subject_name: subjectInfo?.name_vietnamese || 'Môn học không xác định',
+        component_type: gradeRecord?.component_type || 'unknown',
+        teacher_name: user?.full_name || 'Giáo viên không xác định',
+        admin_name: user?.full_name || undefined
+      }
+    })
 
     return {
       success: true,

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import {
@@ -11,24 +11,23 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import {
-  User,
   Clock,
   BookOpen,
   MessageSquare,
   Star,
   Calendar,
-  GraduationCap,
   Send,
   Check,
   Sparkles,
   Eye,
   EyeOff,
-  Loader2
+  
 } from "lucide-react"
 import { Button } from "@/shared/components/ui/button"
 import { Label } from "@/shared/components/ui/label"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { toast } from "sonner"
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import { toast } from "sonner"
 import {
   getStudentDayScheduleWithFeedbackAction,
   type StudentWeeklySchedule,
@@ -301,29 +300,24 @@ export function StudentDayModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-4">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="space-y-3 pb-4 border-b">
           <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-12 w-12 border-2 border-border">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10">
                 <AvatarImage src={student.student_avatar_url || undefined} alt={student.student_name} />
-                <AvatarFallback className="text-lg font-semibold">{getInitials(student.student_name)}</AvatarFallback>
+                <AvatarFallback className="text-sm font-semibold">{getInitials(student.student_name)}</AvatarFallback>
               </Avatar>
-              <div className="space-y-1">
-                <div className="text-xl font-bold">{student.student_name}</div>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <User className="h-3 w-3" />
-                    <span>{student.student_code}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <GraduationCap className="h-3 w-3" />
-                    <span>{student.class_name}</span>
-                  </div>
+              <div>
+                <div className="text-lg font-bold">{student.student_name}</div>
+                <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                  <span>{student.student_code}</span>
+                  <span>•</span>
+                  <span>{student.class_name}</span>
                 </div>
               </div>
             </div>
-            <Badge variant="outline" className="text-sm font-medium">
+            <Badge variant="outline" className="text-xs">
               {dayName} - Tuần {filters.week_number}
             </Badge>
           </DialogTitle>
@@ -335,7 +329,7 @@ export function StudentDayModal({
           {loading && (
             <Card>
               <CardContent className="py-8 text-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                <Skeleton className="h-32 w-full rounded-lg" />
                 <p className="mt-2 text-sm text-muted-foreground">Đang tải lịch học...</p>
               </CardContent>
             </Card>
@@ -373,76 +367,71 @@ export function StudentDayModal({
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-3">
                 {lessons.map((lesson, index) => (
-                  <Card key={lesson.timetable_event_id || index} className="border-l-4 border-l-primary/20 hover:border-l-primary/40 transition-colors">
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        {/* Lesson Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-3">
-                              <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-2 py-1">
-                                <Clock className="h-4 w-4 text-primary" />
-                                <span className="text-sm font-semibold">
-                                  {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">{lesson.subject_name}</span>
-                                <Badge variant="outline" className="text-xs">
-                                  {lesson.subject_code}
-                                </Badge>
-                              </div>
+                  <Card key={lesson.timetable_event_id || index} className="border-l-4 border-l-primary/30 hover:shadow-sm transition-all">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        {/* Lesson Header - More Compact */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-1 bg-primary/10 rounded px-2 py-1">
+                              <Clock className="h-3 w-3 text-primary" />
+                              <span className="text-xs font-medium">
+                                {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
+                              </span>
                             </div>
-                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                              <GraduationCap className="h-4 w-4" />
-                              <span>Giáo viên: {lesson.teacher_name}</span>
+                            <div className="flex items-center space-x-2">
+                              <BookOpen className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium text-sm">{lesson.subject_name}</span>
+                              <Badge variant="outline" className="text-xs px-1 py-0">
+                                {lesson.subject_code}
+                              </Badge>
                             </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {lesson.teacher_name}
                           </div>
                         </div>
 
-                        {/* Feedback Section */}
+                        {/* Feedback Section - Compact */}
                         {lesson.feedback ? (
-                          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg p-4 border border-green-200/50 dark:border-green-800/50">
-                            <div className="space-y-3">
+                          <div className="bg-green-50/50 dark:bg-green-950/20 rounded-md p-3 border border-green-200/30 dark:border-green-800/30">
+                            <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
-                                  <div className="p-1.5 bg-green-100 dark:bg-green-900/50 rounded-full">
-                                    <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                  </div>
-                                  <span className="font-medium text-green-800 dark:text-green-200">Phản Hồi</span>
+                                  <MessageSquare className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                  <span className="text-xs font-medium text-green-800 dark:text-green-200">Phản Hồi</span>
                                 </div>
-                                <div className="flex items-center space-x-3">
-                                  <div className="flex items-center space-x-1">
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex items-center space-x-0.5">
                                     {getRatingStars(lesson.feedback.rating)}
                                   </div>
-                                  <Badge variant="secondary" className={`${getRatingColor(lesson.feedback.rating)} font-semibold`}>
+                                  <Badge variant="secondary" className={`${getRatingColor(lesson.feedback.rating)} text-xs px-1 py-0`}>
                                     {lesson.feedback.rating}/5
                                   </Badge>
                                 </div>
                               </div>
 
                               {lesson.feedback.comment && (
-                                <div className="bg-white/60 dark:bg-gray-900/60 rounded-md p-3 border border-green-200/30 dark:border-green-800/30">
-                                  <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                                <div className="bg-white/60 dark:bg-gray-900/60 rounded p-2 border border-green-200/20 dark:border-green-800/20">
+                                  <p className="text-xs text-gray-700 dark:text-gray-300 italic">
                                     &ldquo;{lesson.feedback.comment}&rdquo;
                                   </p>
                                 </div>
                               )}
 
                               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <span>Phản hồi từ: <span className="font-medium">{lesson.feedback.teacher_name}</span></span>
+                                <span>{lesson.feedback.teacher_name}</span>
                                 <span>{new Date(lesson.feedback.created_at).toLocaleDateString('vi-VN')}</span>
                               </div>
                             </div>
                           </div>
                         ) : (
-                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-dashed border-gray-300 dark:border-gray-700">
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded p-2 border border-dashed border-gray-300 dark:border-gray-700">
                             <div className="flex items-center justify-center space-x-2 text-muted-foreground">
-                              <MessageSquare className="h-4 w-4" />
-                              <span className="text-sm">Chưa có phản hồi cho tiết học này</span>
+                              <MessageSquare className="h-3 w-3" />
+                              <span className="text-xs">Chưa có phản hồi</span>
                             </div>
                           </div>
                         )}
@@ -460,7 +449,7 @@ export function StudentDayModal({
               <CardContent className="py-12 text-center">
                 <div className="space-y-4">
                   <div className="p-4 bg-muted/50 rounded-full w-fit mx-auto">
-                    <Calendar className="h-8 w-8 text-muted-foreground" />
+                    <Calendar className="h-8 md:h-9 lg:h-10 w-8 text-muted-foreground" />
                   </div>
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold">Không Có Tiết Học</h3>
@@ -492,7 +481,7 @@ export function StudentDayModal({
                     >
                       {generatingAiSummary ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          <Skeleton className="h-32 w-full rounded-lg" />
                           Đang tạo...
                         </>
                       ) : (
@@ -584,7 +573,7 @@ export function StudentDayModal({
                 >
                   {sendingDailyFeedback ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                       Đang gửi...
                     </>
                   ) : (

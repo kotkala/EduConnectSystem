@@ -108,7 +108,15 @@ export const clientAuth = {
     return data
   },
 
-  async updateUserProfile(userId: string, updates: Partial<{ full_name: string | null; role: string; avatar_url: string | null }>) {
+  async updateUserProfile(userId: string, updates: Partial<{
+    full_name: string | null;
+    role: string;
+    avatar_url: string | null;
+    phone_number: string | null;
+    gender: string | null;
+    date_of_birth: string | null;
+    address: string | null;
+  }>) {
     const supabase = createBrowserClient()
     const { data, error } = await supabase
       .from('profiles')

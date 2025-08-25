@@ -17,6 +17,7 @@ import {
   type GradeImprovementRequest
 } from '@/lib/validations/grade-improvement-validations'
 
+
 // ADMIN FUNCTIONS
 
 // Create grade improvement period
@@ -143,6 +144,53 @@ export async function getGradeImprovementPeriodsAction() {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Không thể tải danh sách kỳ cải thiện điểm'
+    }
+  }
+}
+
+// Update grade improvement period status
+export async function updateGradeImprovementPeriodAction(periodId: string, isActive: boolean) {
+  try {
+    await checkAdminPermissions()
+    const supabase = createAdminClient()
+
+    const { data: period, error } = await supabase
+      .from('grade_improvement_periods')
+      .update({
+        is_active: isActive,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', periodId)
+      .select(`
+        *,
+        grade_reporting_period:grade_reporting_periods!grade_improvement_periods_grade_reporting_period_id_fkey(
+          id,
+          name,
+          start_date,
+          end_date
+        ),
+        created_by_profile:profiles!grade_improvement_periods_created_by_fkey(
+          full_name
+        )
+      `)
+      .single()
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    revalidatePath('/dashboard/admin/grade-improvement')
+
+    return {
+      success: true,
+      data: period as GradeImprovementPeriod,
+      message: `Đã ${isActive ? 'mở' : 'đóng'} kỳ cải thiện điểm`
+    }
+  } catch (error) {
+    console.error('updateGradeImprovementPeriodAction error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Không thể cập nhật trạng thái kỳ cải thiện điểm'
     }
   }
 }
@@ -299,6 +347,9 @@ export async function getActiveGradeImprovementPeriodsAction() {
           name,
           start_date,
           end_date
+        ),
+        created_by_profile:profiles!grade_improvement_periods_created_by_fkey(
+          full_name
         )
       `)
       .eq('is_active', true)
@@ -454,16 +505,17 @@ export async function getStudentSubjectsForImprovementAction() {
 
     // Get student's current class assignments (both main and combined)
     const { data: classAssignments, error: classError } = await supabase
-      .from('student_class_assignments')
+      .from('class_assignments')
       .select(`
         class_id,
         assignment_type,
-        classes!student_class_assignments_class_id_fkey(
+        classes!class_assignments_class_id_fkey(
           id,
           name
         )
       `)
-      .eq('student_id', userId)
+      .eq('user_id', userId)
+      .eq('assignment_type', 'student')
       .eq('is_active', true)
 
     if (classError) {

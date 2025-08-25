@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -11,11 +11,11 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Badge } from '@/shared/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
-import { Loader2, BookOpen, TrendingUp, Award, BarChart3 } from 'lucide-react'
-import { toast } from 'sonner'
+import { BookOpen, TrendingUp, Award, BarChart3 } from "lucide-react";import { toast } from 'sonner'
 import { getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
 
-interface GradeSubmission {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeSubmission {
   id: string
   submission_name: string
   student_id: string
@@ -142,7 +142,7 @@ export function ParentGradeViewDialog({
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <Skeleton className="h-32 w-full rounded-lg" />
             <span>Đang tải chi tiết bảng điểm...</span>
           </div>
         ) : (

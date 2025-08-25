@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -21,7 +21,8 @@ import { vi } from 'date-fns/locale'
 import { SharedPaginationControls } from '@/shared/components/shared/shared-pagination-controls'
 
 
-// Helper functions
+
+import { Skeleton } from "@/shared/components/ui/skeleton";// Helper functions
 const getBasePath = (role: string) => {
   switch (role) {
     case 'admin': return '/dashboard/admin'
@@ -59,12 +60,12 @@ function renderNotificationsContent(
                 <div className="h-5 w-3/4 bg-orange-100 rounded-xl animate-pulse"></div>
                 <div className="flex space-x-4">
                   <div className="h-4 w-24 bg-gray-100 rounded-lg animate-pulse"></div>
-                  <div className="h-4 w-20 bg-gray-100 rounded-lg animate-pulse"></div>
+                  <div className="h-4 w-20 md:w-24 lg:w-28 bg-gray-100 rounded-lg animate-pulse"></div>
                 </div>
                 <div className="h-4 w-full bg-gray-50 rounded-lg animate-pulse"></div>
                 <div className="h-4 w-2/3 bg-gray-50 rounded-lg animate-pulse"></div>
               </div>
-              <div className="h-8 w-16 bg-orange-50 rounded-xl animate-pulse"></div>
+              <div className="h-8 md:h-9 lg:h-10 w-16 md:w-20 lg:w-24 bg-orange-50 rounded-xl animate-pulse"></div>
             </div>
           </div>
         ))}
@@ -76,8 +77,8 @@ function renderNotificationsContent(
     return (
       <div className="card-modern p-12 text-center">
         <div className="flex flex-col items-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-orange-50 flex items-center justify-center">
-            <Bell className="h-8 w-8 text-orange-400" />
+          <div className="h-16 w-16 md:w-20 lg:w-24 rounded-2xl bg-orange-50 flex items-center justify-center">
+            <Bell className="h-8 md:h-9 lg:h-10 w-8 text-orange-400" />
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-foreground">Chưa có thông báo</h3>
@@ -185,7 +186,7 @@ function renderNotificationsContent(
       {/* Mark as Read Button - Separate clickable area */}
       {!notification.is_read && (
         <button
-          className="absolute top-4 right-4 h-8 w-8 p-0 rounded-xl hover:bg-orange-100 hover:text-orange-700 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center"
+          className="absolute top-4 right-4 h-8 md:h-9 lg:h-10 w-8 p-0 rounded-xl hover:bg-orange-100 hover:text-orange-700 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center"
           onClick={(e) => {
             e.stopPropagation()
             handleMarkAsRead(notification.id)
@@ -302,14 +303,14 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   // Loading content
   const loadingContent = (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <Skeleton className="h-32 w-full rounded-lg" />
     </div>
   )
 
   // Access denied content
   const accessDeniedContent = (
     <div className="flex flex-col items-center justify-center h-64 space-y-4">
-      <AlertCircle className="h-16 w-16 text-red-500" />
+      <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
       <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
       <p className="text-gray-600">Bạn không có quyền truy cập mục thông báo.</p>
       <Button onClick={() => router.push(config.dashboardPath)}>
@@ -349,7 +350,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between mb-8">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-orange-100 flex items-center justify-center">
+            <div className="h-12 md:h-14 lg:h-16 w-12 rounded-2xl bg-orange-100 flex items-center justify-center">
               <Bell className="h-6 w-6 text-orange-600" />
             </div>
             <div>

@@ -25,11 +25,11 @@ import {
 } from "@/shared/components/ui/select"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Save,
   MessageSquare,
   AlertCircle,
-  Loader2,
   Sparkles,
   Edit,
   ArrowLeft
@@ -295,7 +295,7 @@ export default function StudentReportEditor({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       </div>
     )
   }
@@ -303,7 +303,7 @@ export default function StudentReportEditor({
   if (!student) {
     return (
       <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+        <AlertCircle className="h-12 md:h-14 lg:h-16 w-12 text-red-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           Không tìm thấy học sinh
         </h3>
@@ -442,7 +442,7 @@ export default function StudentReportEditor({
                 {!isViewMode && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Select value={strengthsStyle} onValueChange={setStrengthsStyle}>
-                      <SelectTrigger className="w-[250px] h-8">
+                      <SelectTrigger className="w-[250px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
                       <SelectContent className="w-[250px] z-50" side="bottom" align="start">
@@ -453,7 +453,7 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={strengthsLength} onValueChange={setStrengthsLength}>
-                      <SelectTrigger className="w-[230px] h-8">
+                      <SelectTrigger className="w-[230px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
                       <SelectContent className="w-[230px] z-50" side="bottom" align="start">
@@ -468,10 +468,10 @@ export default function StudentReportEditor({
                       size="sm"
                       onClick={handleGenerateStrengths}
                       disabled={generatingStrengths}
-                      className="h-8 px-3"
+                      className="h-8 md:h-9 lg:h-10 px-3"
                     >
                       {generatingStrengths ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        <Skeleton className="h-32 w-full rounded-lg" />
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
@@ -502,7 +502,7 @@ export default function StudentReportEditor({
                 {!isViewMode && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Select value={weaknessesStyle} onValueChange={setWeaknessesStyle}>
-                      <SelectTrigger className="w-[250px] h-8">
+                      <SelectTrigger className="w-[250px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
                       <SelectContent className="w-[250px] z-50" side="bottom" align="start">
@@ -513,7 +513,7 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={weaknessesLength} onValueChange={setWeaknessesLength}>
-                      <SelectTrigger className="w-[230px] h-8">
+                      <SelectTrigger className="w-[230px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
                       <SelectContent className="w-[230px] z-50" side="bottom" align="start">
@@ -528,10 +528,10 @@ export default function StudentReportEditor({
                       size="sm"
                       onClick={handleGenerateWeaknesses}
                       disabled={generatingWeaknesses}
-                      className="h-8 px-3"
+                      className="h-8 md:h-9 lg:h-10 px-3"
                     >
                       {generatingWeaknesses ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        <Skeleton className="h-32 w-full rounded-lg" />
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
@@ -562,7 +562,7 @@ export default function StudentReportEditor({
                 {!isViewMode && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Select value={academicStyle} onValueChange={setAcademicStyle}>
-                      <SelectTrigger className="w-[250px] h-8">
+                      <SelectTrigger className="w-[250px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
                       <SelectContent className="w-[250px] z-50" side="bottom" align="start">
@@ -573,7 +573,7 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={academicLength} onValueChange={setAcademicLength}>
-                      <SelectTrigger className="w-[230px] h-8">
+                      <SelectTrigger className="w-[230px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
                       <SelectContent className="w-[230px] z-50" side="bottom" align="start">
@@ -588,10 +588,10 @@ export default function StudentReportEditor({
                       size="sm"
                       onClick={handleRegenerateAcademic}
                       disabled={regeneratingAcademic}
-                      className="h-8 px-3"
+                      className="h-8 md:h-9 lg:h-10 px-3"
                     >
                       {regeneratingAcademic ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        <Skeleton className="h-32 w-full rounded-lg" />
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
@@ -622,7 +622,7 @@ export default function StudentReportEditor({
                 {!isViewMode && (
                   <div className="flex items-center gap-2 flex-wrap">
                     <Select value={disciplineStyle} onValueChange={setDisciplineStyle}>
-                      <SelectTrigger className="w-[250px] h-8">
+                      <SelectTrigger className="w-[250px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Phong cách" />
                       </SelectTrigger>
                       <SelectContent className="w-[250px] z-50" side="bottom" align="start">
@@ -633,7 +633,7 @@ export default function StudentReportEditor({
                       </SelectContent>
                     </Select>
                     <Select value={disciplineLength} onValueChange={setDisciplineLength}>
-                      <SelectTrigger className="w-[230px] h-8">
+                      <SelectTrigger className="w-[230px] h-8 md:h-9 lg:h-10">
                         <SelectValue placeholder="Độ dài" />
                       </SelectTrigger>
                       <SelectContent className="w-[230px] z-50" side="bottom" align="start">
@@ -648,10 +648,10 @@ export default function StudentReportEditor({
                       size="sm"
                       onClick={handleRegenerateDiscipline}
                       disabled={regeneratingDiscipline}
-                      className="h-8 px-3"
+                      className="h-8 md:h-9 lg:h-10 px-3"
                     >
                       {regeneratingDiscipline ? (
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        <Skeleton className="h-32 w-full rounded-lg" />
                       ) : (
                         <Sparkles className="h-3 w-3 mr-1" />
                       )}
@@ -684,7 +684,7 @@ export default function StudentReportEditor({
                     disabled={saving || !strengths.trim() || !weaknesses.trim()}
                   >
                     {saving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
                     )}
@@ -731,7 +731,7 @@ export default function StudentReportEditor({
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave} disabled={saving}>
               {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

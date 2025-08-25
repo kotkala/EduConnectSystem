@@ -318,7 +318,7 @@ export async function getClassAssignmentsAction(filters?: ClassAssignmentFilters
       id: item.id,
       student_id: item.user_id, // Map user_id to student_id for compatibility
       class_id: item.class_id,
-      assignment_type: item.assignment_type as "main" | "combined",
+      assignment_type: "student", // All assignments are now type 'student'
       assigned_at: item.assigned_at,
       assigned_by: item.assigned_by,
       is_active: item.is_active,

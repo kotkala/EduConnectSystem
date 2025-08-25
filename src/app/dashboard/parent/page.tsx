@@ -1,10 +1,11 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { usePageTransition, useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import {
@@ -15,11 +16,11 @@ import {
 } from '@/features/parent-dashboard/actions/parent-actions'
 import { Users, GraduationCap, Calendar, Plus, AlertCircle, User, School } from 'lucide-react'
 import { ParentMeetingSchedules } from '@/features/parent-dashboard/components/parent-dashboard/parent-meeting-schedules'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 export default function ParentDashboard() {
   // ðŸš€ MIGRATION: Replace scattered loading with global system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
   
   const router = useRouter()
   const { user, profile, loading } = useAuth()
@@ -28,6 +29,9 @@ export default function ParentDashboard() {
   const [academicYears, setAcademicYears] = useState<{ id: string; name: string; is_current: boolean }[]>([])
   const [selectedYear, setSelectedYear] = useState<string>('all')
   const [error, setError] = useState<string | null>(null)
+
+  // Loading hook
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
 
   // Redirect if user doesn't have permission
   useEffect(() => {
@@ -56,8 +60,7 @@ export default function ParentDashboard() {
   }
 
   const loadAllStudents = useCallback(async () => {
-    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải thông tin học sinh...")
+    startLoading()
     const result = await getParentStudentsAction()
     if (result.success && result.data) {
       setStudents(result.data)
@@ -65,11 +68,10 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }, [startPageTransition, stopLoading])
+  }, [startLoading, stopLoading])
 
   const loadStudentsByYear = useCallback(async (yearId: string) => {
-    // ðŸŽ¯ UX IMPROVEMENT: Use global loading with year context
-    startPageTransition("Đang tải học sinh theo năm học...")
+    startLoading()
     const result = await getParentStudentsByYearAction(yearId)
     if (result.success && result.data) {
       setStudents(result.data)
@@ -77,7 +79,7 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }, [startPageTransition, stopLoading])
+  }, [startLoading, stopLoading])
 
   useEffect(() => {
     if (selectedYear && selectedYear !== 'all') {
@@ -95,7 +97,7 @@ export default function ParentDashboard() {
     return (
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 text-red-500" />
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
           <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard')}>
@@ -115,7 +117,7 @@ export default function ParentDashboard() {
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -182,7 +184,7 @@ export default function ParentDashboard() {
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 border border-blue-200/50 shadow-lg shadow-blue-500/10">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
@@ -197,7 +199,7 @@ export default function ParentDashboard() {
 
             <div className="bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl p-6 border border-emerald-200/50 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
@@ -214,7 +216,7 @@ export default function ParentDashboard() {
 
             <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl p-6 border border-purple-200/50 shadow-lg shadow-purple-500/10">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-right">
@@ -246,10 +248,16 @@ export default function ParentDashboard() {
             </div>
             <div className="p-6 sm:p-8">
               {(() => {
-                if (coordinatedLoading.isLoading && students.length === 0) {
+                if (isLoading && students.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-16">
-                      <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                      <div className="space-y-4 mb-4">
+          <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto"  aria-label="Loading content" role="status" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[200px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
                       <p className="text-gray-600 font-medium">Đang tải thông tin học sinh...</p>
                     </div>
                   )
@@ -262,8 +270,8 @@ export default function ParentDashboard() {
 
                   return (
                     <div className="flex flex-col items-center justify-center py-16">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Users className="w-8 h-8 text-gray-400" />
+                      <div className="w-16 md:w-20 lg:w-24 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <Users className="w-8 h-8 md:h-9 lg:h-10 text-gray-400" />
                       </div>
                       <h3 className="text-lg font-semibold text-gray-700 mb-2">Không tìm thấy học sinh</h3>
                       <p className="text-gray-500 text-center">{noChildrenMessage}</p>
@@ -273,7 +281,11 @@ export default function ParentDashboard() {
 
                 return (
                   <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-                    {students.map((student) => (
+                    {students
+                      .filter((student, index, self) =>
+                        index === self.findIndex(s => s.id === student.id)
+                      )
+                      .map((student) => (
                       <div key={student.id} className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border border-gray-200/50 p-6 shadow-lg shadow-gray-500/5 hover:shadow-xl hover:shadow-gray-500/10 transition-all duration-300">
                         <div className="flex items-start gap-4">
                           <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">

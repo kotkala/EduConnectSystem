@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Label } from '@/shared/components/ui/label'
 import { ArrowLeft, Bell, Clock, User, FileText, Image as ImageIcon, Eye } from 'lucide-react'
 import { toast } from 'sonner'
@@ -86,7 +87,13 @@ export default function ParentNotificationDetailPage() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="space-y-4">
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
+            <Skeleton className="h-4 w-[100px] mx-auto"  aria-label="Loading content" role="status" />
+          </div>
+        </div>
             <span className="ml-2">Đang tải thông báo...</span>
           </div>
         </div>
@@ -149,7 +156,7 @@ export default function ParentNotificationDetailPage() {
           {/* Header */}
           <div className="p-8 border-b border-gray-100">
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-12 md:h-14 lg:h-16 w-12 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Bell className="h-6 w-6 text-orange-600" />
               </div>
               <div className="flex-1">

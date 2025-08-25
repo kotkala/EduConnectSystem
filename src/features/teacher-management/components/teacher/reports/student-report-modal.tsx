@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -30,14 +30,14 @@ import {
 } from "@/shared/components/ui/select"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
-import {
+
+import { Skeleton } from "@/shared/components/ui/skeleton";import {
   Save,
   Send,
   Eye,
   MessageSquare,
   AlertCircle,
   CheckCircle,
-  Loader2,
   RefreshCw,
   Sparkles,
   Edit
@@ -365,7 +365,7 @@ export function StudentReportModal({
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <Skeleton className="h-32 w-full rounded-lg" />
           </div>
         ) : (
           <div className="space-y-6">
@@ -434,7 +434,7 @@ export function StudentReportModal({
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={strengthsStyle} onValueChange={setStrengthsStyle}>
-                          <SelectTrigger className="w-[180px] h-8">
+                          <SelectTrigger className="w-[180px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
@@ -445,7 +445,7 @@ export function StudentReportModal({
                           </SelectContent>
                         </Select>
                         <Select value={strengthsLength} onValueChange={setStrengthsLength}>
-                          <SelectTrigger className="w-[160px] h-8">
+                          <SelectTrigger className="w-[160px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Độ dài" />
                           </SelectTrigger>
                           <SelectContent>
@@ -460,10 +460,10 @@ export function StudentReportModal({
                           size="sm"
                           onClick={handleGenerateStrengths}
                           disabled={generatingStrengths}
-                          className="h-8 px-3"
+                          className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {generatingStrengths ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            <Skeleton className="h-32 w-full rounded-lg" />
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
@@ -493,7 +493,7 @@ export function StudentReportModal({
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={weaknessesStyle} onValueChange={setWeaknessesStyle}>
-                          <SelectTrigger className="w-[180px] h-8">
+                          <SelectTrigger className="w-[180px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
@@ -504,7 +504,7 @@ export function StudentReportModal({
                           </SelectContent>
                         </Select>
                         <Select value={weaknessesLength} onValueChange={setWeaknessesLength}>
-                          <SelectTrigger className="w-[160px] h-8">
+                          <SelectTrigger className="w-[160px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Độ dài" />
                           </SelectTrigger>
                           <SelectContent>
@@ -519,10 +519,10 @@ export function StudentReportModal({
                           size="sm"
                           onClick={handleGenerateWeaknesses}
                           disabled={generatingWeaknesses}
-                          className="h-8 px-3"
+                          className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {generatingWeaknesses ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            <Skeleton className="h-32 w-full rounded-lg" />
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
@@ -552,7 +552,7 @@ export function StudentReportModal({
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={academicStyle} onValueChange={setAcademicStyle}>
-                          <SelectTrigger className="w-[180px] h-8">
+                          <SelectTrigger className="w-[180px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
@@ -563,7 +563,7 @@ export function StudentReportModal({
                           </SelectContent>
                         </Select>
                         <Select value={academicLength} onValueChange={setAcademicLength}>
-                          <SelectTrigger className="w-[160px] h-8">
+                          <SelectTrigger className="w-[160px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Độ dài" />
                           </SelectTrigger>
                           <SelectContent>
@@ -578,10 +578,10 @@ export function StudentReportModal({
                           size="sm"
                           onClick={handleRegenerateAcademic}
                           disabled={regeneratingAcademic}
-                          className="h-8 px-3"
+                          className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {regeneratingAcademic ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            <Skeleton className="h-32 w-full rounded-lg" />
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
@@ -611,7 +611,7 @@ export function StudentReportModal({
                     {!isViewMode && (
                       <div className="flex items-center gap-2">
                         <Select value={disciplineStyle} onValueChange={setDisciplineStyle}>
-                          <SelectTrigger className="w-[180px] h-8">
+                          <SelectTrigger className="w-[180px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Phong cách" />
                           </SelectTrigger>
                           <SelectContent>
@@ -622,7 +622,7 @@ export function StudentReportModal({
                           </SelectContent>
                         </Select>
                         <Select value={disciplineLength} onValueChange={setDisciplineLength}>
-                          <SelectTrigger className="w-[160px] h-8">
+                          <SelectTrigger className="w-[160px] h-8 md:h-9 lg:h-10">
                             <SelectValue placeholder="Độ dài" />
                           </SelectTrigger>
                           <SelectContent>
@@ -637,10 +637,10 @@ export function StudentReportModal({
                           size="sm"
                           onClick={handleRegenerateDiscipline}
                           disabled={regeneratingDiscipline}
-                          className="h-8 px-3"
+                          className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {regeneratingDiscipline ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            <Skeleton className="h-32 w-full rounded-lg" />
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
@@ -722,7 +722,7 @@ export function StudentReportModal({
                     disabled={saving || !strengths.trim() || !weaknesses.trim()}
                   >
                     {saving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Skeleton className="h-32 w-full rounded-lg" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
                     )}
@@ -736,7 +736,7 @@ export function StudentReportModal({
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       {sending ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Skeleton className="h-32 w-full rounded-lg" />
                       ) : (
                         <Send className="h-4 w-4 mr-2" />
                       )}
@@ -815,7 +815,7 @@ export function StudentReportModal({
               className="bg-orange-600 hover:bg-orange-700"
             >
               {sending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
@@ -841,7 +841,7 @@ export function StudentReportModal({
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave} disabled={saving}>
               {saving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Skeleton className="h-32 w-full rounded-lg" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

@@ -1,8 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { usePageTransition } from '@/shared/components/ui/global-loading-provider'
-import { useCoordinatedLoading } from '@/shared/hooks/use-coordinated-loading'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
@@ -27,7 +26,8 @@ interface ChartProps {
   readonly colors?: readonly string[]
 }
 
-import { LoadingFallback } from '@/shared/components/ui/loading-fallback'
+import { SandyLoading } from '@/shared/components/ui/sandy-loading'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   default: ({ data }: ChartProps) => (
     <mod.ResponsiveContainer width="100%" height={300}>
@@ -42,7 +42,7 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ..." />
 })
 
 const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -69,7 +69,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ tròn..." />
 })
 
 const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -87,7 +87,7 @@ const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <LoadingFallback size="lg" className="h-80 flex items-center justify-center" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ kết hợp..." />
 })
 import {
   getOverallGradeStatsAction,
@@ -192,8 +192,7 @@ function StatisticsCards({ overallStats }: { readonly overallStats: OverallStats
 
 export default function AnalyticsClient() {
   // ðŸš€ MIGRATION: Replace scattered loading with coordinated system
-  const { startPageTransition, stopLoading } = usePageTransition()
-  const coordinatedLoading = useCoordinatedLoading()
+
   
   const [overallStats, setOverallStats] = useState<OverallStats | null>(null)
   const [gradeDistribution, setGradeDistribution] = useState<GradeDistribution[]>([])
@@ -203,6 +202,9 @@ export default function AnalyticsClient() {
   
   // ðŸ§¹ CLEANUP: Removed unused sectionLoading state
   const [lastFetch, setLastFetch] = useState<number>(0)
+
+  // Loading coordinator
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải phân tích dữ liệu học tập...")
 
   // Cache duration: 5 minutes
   const CACHE_DURATION = 5 * 60 * 1000
@@ -219,7 +221,7 @@ export default function AnalyticsClient() {
     }
 
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải phân tích dữ liệu học tập...")
+    startLoading()
     
     try {
       // ðŸš€ PERFORMANCE: Load critical data first
@@ -257,7 +259,7 @@ export default function AnalyticsClient() {
     } finally {
       stopLoading()
     }
-  }, [startPageTransition, stopLoading, lastFetch, overallStats, CACHE_DURATION])
+  }, [lastFetch, overallStats, CACHE_DURATION, startLoading, stopLoading])
 
   useEffect(() => {
     loadAllAnalytics()
@@ -286,7 +288,7 @@ export default function AnalyticsClient() {
         <div className="flex gap-2">
           <Button
             onClick={() => loadAllAnalytics(true)}
-            disabled={coordinatedLoading.isLoading}
+            disabled={isLoading}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -295,7 +297,7 @@ export default function AnalyticsClient() {
           </Button>
           <Button
             onClick={handleExportReport}
-            disabled={coordinatedLoading.isLoading}
+            disabled={isLoading}
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -316,7 +318,7 @@ export default function AnalyticsClient() {
             <CardDescription>Tỷ lệ học sinh theo từng mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
+            {!gradeDistribution.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.gradeDistribution} />
@@ -331,7 +333,7 @@ export default function AnalyticsClient() {
             <CardDescription>Phần trăm học sinh theo mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
+            {!gradeDistribution.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <PieChartComponent data={chartData.gradeDistribution} colors={COLORS} />
@@ -346,7 +348,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình của các lớp</CardDescription>
           </CardHeader>
           <CardContent>
-            {!classPerformance.length && coordinatedLoading.isLoading ? (
+            {!classPerformance.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.classPerformance} />
@@ -361,7 +363,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình qua các kỳ học</CardDescription>
           </CardHeader>
           <CardContent>
-            {!trendData.length && coordinatedLoading.isLoading ? (
+            {!trendData.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ComposedChartComponent data={chartData.trendData} />
@@ -377,7 +379,7 @@ export default function AnalyticsClient() {
           <CardDescription>Hiệu suất chi tiết theo từng môn học</CardDescription>
         </CardHeader>
         <CardContent>
-          {!subjectAnalysis.length && coordinatedLoading.isLoading ? (
+          {!subjectAnalysis.length && isLoading ? (
             <div className="text-center py-8">Đang tải...</div>
           ) : (
             <div className="space-y-3">

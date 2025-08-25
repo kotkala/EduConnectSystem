@@ -105,8 +105,7 @@ export async function createTeacherAction(formData: TeacherFormData) {
         phone_number: validatedData.phone_number,
         gender: validatedData.gender,
         date_of_birth: validatedData.date_of_birth,
-        address: validatedData.address,
-        homeroom_enabled: validatedData.homeroom_enabled
+        address: validatedData.address
       })
 
     if (profileError) {
@@ -121,7 +120,8 @@ export async function createTeacherAction(formData: TeacherFormData) {
     revalidatePath("/dashboard/admin/users/teachers")
     return {
       success: true,
-      message: "Tạo giáo viên thành công"
+      message: "Tạo giáo viên thành công",
+      teacherId: authData.user.id
     }
 
   } catch (error) {

@@ -143,6 +143,64 @@ export async function getChildrenGradeReportsAction() {
     const studentIds = children.map(c => (c.student as { id?: string })?.id).filter(Boolean)
     console.log('ðŸ” [PARENT GRADES] Student IDs:', studentIds)
 
+    // Get homeroom submissions for these students
+    console.log('🔍 [PARENT GRADES] Fetching homeroom submissions from NEW system')
+    const { data: homeroomSubmissions, error: homeroomError } = await supabase
+      .from('homeroom_parent_submissions')
+      .select(`
+        id,
+        period_id,
+        class_id,
+        student_id,
+        status,
+        ai_feedback,
+        submitted_at,
+        student:profiles!student_id(
+          id,
+          full_name,
+          student_id
+        ),
+        class:classes!class_id(
+          id,
+          name,
+          homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
+            id,
+            full_name
+          )
+        ),
+        period:grade_reporting_periods!period_id(
+          id,
+          name,
+          period_type,
+          academic_year:academic_years(name),
+          semester:semesters(name)
+        )
+      `)
+      .in('student_id', studentIds)
+      .eq('status', 'submitted')
+      .order('submitted_at', { ascending: false })
+
+    console.log('🔍 [PARENT GRADES] Homeroom submissions query result:', {
+      submissions: homeroomSubmissions?.length || 0,
+      error: homeroomError?.message || null
+    })
+
+    if (homeroomError) {
+      console.error('❌ [PARENT GRADES] Error fetching homeroom submissions:', homeroomError)
+      return {
+        success: false,
+        error: homeroomError.message
+      }
+    }
+
+    if (!homeroomSubmissions || homeroomSubmissions.length === 0) {
+      console.log('⚠️ [PARENT GRADES] No homeroom submissions found')
+      return {
+        success: true,
+        data: []
+      }
+    }
+
     // Get student grade submissions for our children that have been sent to homeroom teachers
     // and where the homeroom teacher has sent grades to parents
     console.log('ðŸ” [PARENT GRADES] Fetching student grade submissions from NEW system')

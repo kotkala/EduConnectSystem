@@ -9,6 +9,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
+import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import AvatarEditor from '@/features/authentication/components/profile/avatar-editor'
@@ -167,97 +168,53 @@ function ProfileContent() {
   const config = roleConfig[profile.role]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white dark:bg-gray-800 shadow-sm border-r">
-          <div className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
+    <SidebarLayout role={profile.role} title="Hồ sơ cá nhân">
+      <div className="max-w-4xl mx-auto">
+        {/* Profile Header */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4 mb-6">
               <AvatarEditor
                 uid={user.id}
                 url={profile.avatar_url}
-                size={48}
+                size={80}
                 onUpload={handleAvatarUpload}
                 onRemove={handleAvatarRemove}
                 fallback={profile.full_name ? getInitials(profile.full_name) : 'U'}
               />
               <div>
-                <h3 className="font-semibold text-sm">{profile.full_name || 'Chưa cập nhật'}</h3>
-                <Badge variant="secondary" className={`${config.color} text-xs`}>
+                <h2 className="text-2xl font-bold">{profile.full_name || 'Chưa cập nhật'}</h2>
+                <Badge variant="secondary" className={`${config.color} text-sm mt-2`}>
                   {config.label}
                 </Badge>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <nav className="space-y-2">
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === 'profile'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span>Thông tin cá nhân</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === 'settings'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                <span>Cài đặt</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('security')}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  activeTab === 'security'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span>Bảo mật</span>
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="max-w-4xl mx-auto space-y-6">
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
+        {/* Profile Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
-              <User className="w-4 h-4" />
-              <span>Hồ sơ</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="w-4 h-4" />
-              <span>Cài đặt</span>
+              <User className="h-4 w-4" />
+              <span>Thông tin cá nhân</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center space-x-2">
-              <Shield className="w-4 h-4" />
+              <Shield className="h-4 w-4" />
               <span>Bảo mật</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Cài đặt</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
-            <MotionDiv
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
+              <MotionDiv
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -554,11 +511,8 @@ function ProfileContent() {
             </MotionDiv>
           </TabsContent>
         </Tabs>
-            </div>
-          </MotionDiv>
-        </div>
       </div>
-    </div>
+    </SidebarLayout>
   )
 }
 

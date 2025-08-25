@@ -527,9 +527,72 @@ export async function getGradeOverviewAction(
       }
     }
 
+    // Get pending grade overwrite requests for this class/subject/period
+    const { data: pendingAudits } = await supabase
+      .from('unified_audit_logs')
+      .select(`
+        record_id,
+        old_values,
+        new_values,
+        changes_summary,
+        created_at
+      `)
+      .eq('audit_type', 'grade')
+      .eq('table_name', 'student_detailed_grades')
+
+    // Create a map of pending grades by grade record ID
+    const pendingGradeMap = new Map()
+    if (pendingAudits) {
+      for (const audit of pendingAudits) {
+        const oldValues = audit.old_values as { status?: string; old_value?: number } || {}
+        if (oldValues.status === 'pending') {
+          const newValues = audit.new_values as { new_value?: number } || {}
+          pendingGradeMap.set(audit.record_id, {
+            oldValue: oldValues.old_value || 0,
+            newValue: newValues.new_value || 0,
+            reason: audit.changes_summary || '',
+            requestedAt: audit.created_at
+          })
+        }
+      }
+    }
+
+    // Get all grade records for this period/class/subject to map pending status
+    const { data: allGradeRecords } = await supabase
+      .from('student_detailed_grades')
+      .select('id, student_id, component_type')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .eq('subject_id', subjectId)
+
+    // Create a map of grade record IDs by student and component type
+    const gradeRecordMap = new Map()
+    if (allGradeRecords) {
+      for (const record of allGradeRecords) {
+        const key = `${record.student_id}_${record.component_type}`
+        gradeRecordMap.set(key, record.id)
+      }
+    }
+
     // Ensure all students are included (even those without grades)
     const result = allStudents.map(student => {
       const existingGrades = gradesByStudent.get(student.student_id)
+
+      // Check for pending grades for this student
+      const pendingGrades = []
+      const componentTypes = ['regular_1', 'regular_2', 'regular_3', 'regular_4', 'midterm', 'final', 'summary', 'semester_1', 'semester_2', 'yearly']
+
+      for (const componentType of componentTypes) {
+        const gradeRecordId = gradeRecordMap.get(`${student.student_id}_${componentType}`)
+        if (gradeRecordId && pendingGradeMap.has(gradeRecordId)) {
+          const pendingInfo = pendingGradeMap.get(gradeRecordId)
+          pendingGrades.push({
+            componentType,
+            ...pendingInfo
+          })
+        }
+      }
+
       return {
         id: student.student_id,
         studentId: student.student_number,
@@ -539,7 +602,8 @@ export async function getGradeOverviewAction(
         finalGrade: existingGrades?.finalGrade || null,
         summaryGrade: existingGrades?.summaryGrade || null,
         lastModified: existingGrades?.lastModified || null,
-        modifiedBy: existingGrades?.modifiedBy || null
+        modifiedBy: existingGrades?.modifiedBy || null,
+        pendingGrades: pendingGrades.length > 0 ? pendingGrades : undefined
       }
     })
 

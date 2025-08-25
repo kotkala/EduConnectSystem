@@ -148,7 +148,7 @@ export function ClassTable({
               <label htmlFor="class-search" className="text-sm font-medium">Search</label>
               <Input
                 id="class-search"
-                placeholder="Search by class name..."
+                placeholder="Tìm kiếm theo tên lớp..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -157,13 +157,13 @@ export function ClassTable({
 
             {/* Academic Year Filter */}
             <div className="space-y-2">
-              <label htmlFor="academic-year-filter" className="text-sm font-medium">Academic Year</label>
+              <label htmlFor="academic-year-filter" className="text-sm font-medium">Năm học</label>
               <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
                 <SelectTrigger id="academic-year-filter">
-                  <SelectValue placeholder="All academic years" />
+                  <SelectValue placeholder="Tất cả năm học" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All academic years</SelectItem>
+                  <SelectItem value="all">Tất cả năm học</SelectItem>
                   {academicYears.map((year) => (
                     <SelectItem key={year.id} value={year.id}>
                       {year.name}
@@ -175,13 +175,13 @@ export function ClassTable({
 
             {/* Semester Filter */}
             <div className="space-y-2">
-              <label htmlFor="semester-filter" className="text-sm font-medium">Semester</label>
+              <label htmlFor="semester-filter" className="text-sm font-medium">Học kỳ</label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
                 <SelectTrigger id="semester-filter">
-                  <SelectValue placeholder="All semesters" />
+                  <SelectValue placeholder="Tất cả học kỳ" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All semesters</SelectItem>
+                  <SelectItem value="all">Tất cả học kỳ</SelectItem>
                   {semesters.map((semester) => (
                     <SelectItem key={semester.id} value={semester.id}>
                       {semester.name}
@@ -193,28 +193,28 @@ export function ClassTable({
 
             {/* Class Type Filter */}
             <div className="space-y-2">
-              <label htmlFor="class-type-filter" className="text-sm font-medium">Class Type</label>
+              <label htmlFor="class-type-filter" className="text-sm font-medium">Loại lớp</label>
               <Select value={selectedClassType} onValueChange={setSelectedClassType}>
                 <SelectTrigger id="class-type-filter">
-                  <SelectValue placeholder="All class types" />
+                  <SelectValue placeholder="Tất cả loại lớp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All class types</SelectItem>
-                  <SelectItem value="main">Main Classes</SelectItem>
-                  <SelectItem value="combined">Combined Classes</SelectItem>
+                  <SelectItem value="all">Tất cả loại lớp</SelectItem>
+                  <SelectItem value="main">Lớp chính</SelectItem>
+                  <SelectItem value="combined">Lớp tổ hợp</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Teacher Filter */}
             <div className="space-y-2">
-              <label htmlFor="teacher-filter" className="text-sm font-medium">Homeroom Teacher</label>
+              <label htmlFor="teacher-filter" className="text-sm font-medium">Giáo viên chủ nhiệm</label>
               <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
                 <SelectTrigger id="teacher-filter">
-                  <SelectValue placeholder="All teachers" />
+                  <SelectValue placeholder="Tất cả giáo viên" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All teachers</SelectItem>
+                  <SelectItem value="all">Tất cả giáo viên</SelectItem>
                   {teachers.map((teacher) => (
                     <SelectItem key={teacher.id} value={teacher.id}>
                       {teacher.full_name} ({teacher.employee_id})
@@ -246,28 +246,27 @@ export function ClassTable({
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Classes ({total} total)</CardTitle>
+          <CardTitle>Danh sách lớp ({total} tổng cộng)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[120px]">Class Name</TableHead>
-                  <TableHead className="min-w-[80px]">Type</TableHead>
-                  <TableHead className="hidden sm:table-cell min-w-[120px]">Academic Year</TableHead>
-                  <TableHead className="hidden md:table-cell min-w-[100px]">Semester</TableHead>
-                  <TableHead className="hidden lg:table-cell min-w-[140px]">Subject Combination</TableHead>
-                  <TableHead className="hidden md:table-cell min-w-[140px]">Homeroom Teacher</TableHead>
-                  <TableHead className="min-w-[80px]">Students</TableHead>
-                  <TableHead className="w-[70px]">Actions</TableHead>
+                  <TableHead className="min-w-[120px]">Tên lớp</TableHead>
+                  <TableHead className="min-w-[80px]">Loại</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[120px]">Năm học</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[140px]">Tổ hợp môn</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[140px]">Giáo viên chủ nhiệm</TableHead>
+                  <TableHead className="min-w-[80px]">Học sinh</TableHead>
+                  <TableHead className="w-[70px]">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                      No classes found
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      Không tìm thấy lớp học nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -276,7 +275,6 @@ export function ClassTable({
                       <TableCell className="font-medium">{classData.name}</TableCell>
                       <TableCell>{getClassTypeBadge(classData)}</TableCell>
                       <TableCell>{classData.academic_year?.name || "-"}</TableCell>
-                      <TableCell>{classData.semester?.name || "-"}</TableCell>
                       <TableCell>{getSubjectCombinationDisplay(classData)}</TableCell>
                       <TableCell>
                         {classData.homeroom_teacher ? (
@@ -287,7 +285,7 @@ export function ClassTable({
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">No teacher assigned</span>
+                          <span className="text-muted-foreground">Chưa phân công</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -306,7 +304,7 @@ export function ClassTable({
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewClassDetail(classData)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Class Detail
+                              Xem chi tiết lớp
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -322,7 +320,7 @@ export function ClassTable({
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, total)} of {total} classes
+                Hiển thị {((currentPage - 1) * limit) + 1} đến {Math.min(currentPage * limit, total)} trong tổng số {total} lớp
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -332,10 +330,10 @@ export function ClassTable({
                   disabled={currentPage <= 1}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  Trước
                 </Button>
                 <span className="text-sm">
-                  Page {currentPage} of {totalPages}
+                  Trang {currentPage} / {totalPages}
                 </span>
                 <Button
                   variant="outline"
@@ -343,7 +341,7 @@ export function ClassTable({
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                 >
-                  Next
+                  Tiếp
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

@@ -249,6 +249,10 @@ export default function AdminGradeOverwriteApprovalsPage() {
                   <SelectItem value="all">Tất cả</SelectItem>
                   <SelectItem value="midterm">Giữa kỳ</SelectItem>
                   <SelectItem value="final">Cuối kỳ</SelectItem>
+                  <SelectItem value="semester_1">Học kỳ 1</SelectItem>
+                  <SelectItem value="semester_2">Học kỳ 2</SelectItem>
+                  <SelectItem value="yearly">Cả năm</SelectItem>
+                  <SelectItem value="summary">Tổng kết</SelectItem>
                 </SelectContent>
               </Select>
             </div>

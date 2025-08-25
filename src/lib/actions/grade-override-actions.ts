@@ -2,13 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { checkTeacherPermissions } from "@/lib/utils/permission-utils"
-import { logGradeUpdateAuditPending, type GradeUpdateAuditData } from "@/lib/utils/audit-utils"
+import { logGradeUpdateAuditPending } from "@/lib/utils/audit-utils"
 
 export interface GradeOverrideData {
   gradeId: string
   studentId: string
   studentName: string
-  componentType: 'midterm' | 'final'
+  componentType: 'midterm' | 'final' | 'semester_1' | 'semester_2' | 'yearly' | 'summary'
   oldValue: number
   newValue: number
   reason?: string

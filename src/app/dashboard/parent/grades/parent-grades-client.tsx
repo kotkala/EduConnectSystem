@@ -11,7 +11,7 @@ import { Users, Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
-import { getChildrenGradeReportsAction } from '@/lib/actions/parent-grade-actions'
+import { getChildrenGradeReportsAction } from '@/lib/actions/parent-grade-actions-new'
 
 
 
@@ -32,6 +32,11 @@ interface GradeSubmission {
   }
   academic_year: { name: string }
   semester: { name: string }
+  period: {
+    id: string
+    name: string
+    period_type: string
+  }
   grades: Array<{
     subject_id: string
     midterm_grade: number | null
@@ -82,13 +87,13 @@ export default function ParentGradesClient() {
         const submissionsData = result.data as GradeSubmission[]
         setSubmissions(submissionsData)
 
-        // Extract unique periods
+        // Extract unique periods from individual report periods (not just semesters)
         const periodsMap = new Map<string, {id: string, name: string}>()
         submissionsData.forEach(submission => {
-          if (submission.semester?.name && !periodsMap.has(submission.semester.name)) {
-            periodsMap.set(submission.semester.name, {
-              id: submission.semester.name,
-              name: submission.semester.name
+          if (submission.period?.id && submission.period?.name && !periodsMap.has(submission.period.id)) {
+            periodsMap.set(submission.period.id, {
+              id: submission.period.id,
+              name: submission.period.name
             })
           }
         })
@@ -113,7 +118,7 @@ export default function ParentGradesClient() {
   // Filter submissions by selected period
   const filteredSubmissions = selectedPeriod === 'all'
     ? submissions
-    : submissions.filter(submission => submission.semester.name === selectedPeriod)
+    : submissions.filter(submission => submission.period.id === selectedPeriod)
 
   // Process filtered submissions into student records
   const processStudentRecords = useCallback((submissionsData: GradeSubmission[]) => {
@@ -235,7 +240,7 @@ export default function ParentGradesClient() {
                         className="flex items-center gap-2"
                       >
                         <Eye className="h-4 w-4" />
-                        {submission.semester.name}
+                        {submission.period.name}
                       </Button>
                     </div>
                   ))}

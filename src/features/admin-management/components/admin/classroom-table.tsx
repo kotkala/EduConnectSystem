@@ -127,22 +127,22 @@ export function ClassroomTable({
   }
 
   const formatEquipment = (equipment: string[]) => {
-    if (equipment.length === 0) return "None"
+    if (equipment.length === 0) return "Không có"
     if (equipment.length <= 2) return equipment.join(", ")
-    return `${equipment.slice(0, 2).join(", ")} +${equipment.length - 2} more`
+    return `${equipment.slice(0, 2).join(", ")} +${equipment.length - 2} khác`
   }
 
   // Extract location formatting logic to reduce complexity
   const formatLocation = (building: string | null, floor: number | null) => {
     if (building && floor) {
-      return `${building}, Floor ${floor}`
+      return `${building}, Tầng ${floor}`
     }
     if (building || floor) {
       const buildingPart = building || ''
-      const floorPart = floor ? ` Floor ${floor}` : ''
+      const floorPart = floor ? ` Tầng ${floor}` : ''
       return buildingPart + floorPart
     }
-    return 'Not specified'
+    return 'Chưa xác định'
   }
 
   return (
@@ -154,7 +154,7 @@ export function ClassroomTable({
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search classrooms..."
+            placeholder="Tìm kiếm phòng học..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-8"
@@ -163,10 +163,10 @@ export function ClassroomTable({
         
         <Select value={buildingFilter} onValueChange={handleBuildingFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Buildings" />
+            <SelectValue placeholder="Tất cả tòa nhà" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
+            <SelectItem value="all">Tất cả tòa nhà</SelectItem>
             {getUniqueBuildings().map((building) => (
               <SelectItem key={building} value={building}>
                 {building}
@@ -177,10 +177,10 @@ export function ClassroomTable({
 
         <Select value={roomTypeFilter} onValueChange={handleRoomTypeFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Room Types" />
+            <SelectValue placeholder="Tất cả loại phòng" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Room Types</SelectItem>
+            <SelectItem value="all">Tất cả loại phòng</SelectItem>
             {ROOM_TYPES.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -191,12 +191,12 @@ export function ClassroomTable({
 
         <Select value={statusFilter} onValueChange={handleStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Status" />
+            <SelectValue placeholder="Tất cả trạng thái" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="active">Hoạt động</SelectItem>
+            <SelectItem value="inactive">Không hoạt động</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -206,20 +206,20 @@ export function ClassroomTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[100px]">Classroom</TableHead>
-              <TableHead className="hidden sm:table-cell min-w-[120px]">Location</TableHead>
-              <TableHead className="min-w-[80px]">Type</TableHead>
-              <TableHead className="min-w-[80px]">Capacity</TableHead>
-              <TableHead className="hidden md:table-cell min-w-[100px]">Equipment</TableHead>
-              <TableHead className="min-w-[80px]">Status</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
+              <TableHead className="min-w-[100px]">Phòng học</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[120px]">Vị trí</TableHead>
+              <TableHead className="min-w-[80px]">Loại phòng</TableHead>
+              <TableHead className="min-w-[80px]">Sức chứa</TableHead>
+              <TableHead className="hidden md:table-cell min-w-[100px]">Trang thiết bị</TableHead>
+              <TableHead className="min-w-[80px]">Trạng thái</TableHead>
+              <TableHead className="w-[70px]">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  No classrooms found
+                  Không tìm thấy phòng học nào
                 </TableCell>
               </TableRow>
             ) : (
@@ -274,7 +274,7 @@ export function ClassroomTable({
                                 ))}
                               </ul>
                             ) : (
-                              "No equipment listed"
+                              "Không có trang thiết bị"
                             )}
                           </div>
                         </TooltipContent>
@@ -283,7 +283,7 @@ export function ClassroomTable({
                   </TableCell>
                   <TableCell>
                     <Badge variant={classroom.is_active ? "default" : "secondary"} className="text-xs">
-                      {classroom.is_active ? "Active" : "Inactive"}
+                      {classroom.is_active ? "Hoạt động" : "Không hoạt động"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -322,7 +322,7 @@ export function ClassroomTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, total)} of {total} classrooms
+            Hiển thị {((currentPage - 1) * limit) + 1} đến {Math.min(currentPage * limit, total)} trong tổng số {total} phòng học
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -332,7 +332,7 @@ export function ClassroomTable({
               disabled={currentPage <= 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              Trước
             </Button>
             <div className="flex items-center space-x-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -355,7 +355,7 @@ export function ClassroomTable({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
             >
-              Next
+              Tiếp
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

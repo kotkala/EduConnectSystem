@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/shared/utils/supabase/admin"
+import { sendAccountCreationEmail } from "@/lib/services/email-service"
 import { revalidatePath } from "next/cache"
 import {
   teacherSchema,
@@ -115,6 +116,25 @@ export async function createTeacherAction(formData: TeacherFormData) {
         success: false,
         error: profileError.message
       }
+    }
+
+    // Send account creation email notification
+    try {
+      await sendAccountCreationEmail({
+        email: validatedData.email,
+        fullName: validatedData.full_name,
+        role: 'teacher',
+        employeeId: validatedData.employee_id,
+        phoneNumber: validatedData.phone_number,
+        gender: validatedData.gender,
+        dateOfBirth: validatedData.date_of_birth,
+        address: validatedData.address,
+        tempPassword: "TempPassword123!"
+      })
+      console.log('✅ Account creation email sent to teacher:', validatedData.email)
+    } catch (emailError) {
+      console.error('❌ Failed to send account creation email to teacher:', emailError)
+      // Don't fail the entire operation if email fails
     }
 
     revalidatePath("/dashboard/admin/users/teachers")
@@ -579,6 +599,42 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
       // Create profiles and relationship
       await createProfilesAndRelationship(supabase, validatedData, studentAuthData, parentUserId, shouldCreateParentProfile)
 
+      // Send account creation email notifications
+      try {
+        // Send student email notification
+        await sendAccountCreationEmail({
+          email: validatedData.student.email,
+          fullName: validatedData.student.full_name,
+          role: 'student',
+          studentId: validatedData.student.student_id,
+          phoneNumber: validatedData.student.phone_number,
+          gender: validatedData.student.gender,
+          dateOfBirth: validatedData.student.date_of_birth,
+          address: validatedData.student.address,
+          parentName: validatedData.parent.full_name,
+          tempPassword: "TempPassword123!"
+        })
+        console.log('✅ Account creation email sent to student:', validatedData.student.email)
+
+        // Send parent email notification (only if new parent was created)
+        if (shouldCreateParentProfile) {
+          await sendAccountCreationEmail({
+            email: validatedData.parent.email,
+            fullName: validatedData.parent.full_name,
+            role: 'parent',
+            phoneNumber: validatedData.parent.phone_number,
+            gender: validatedData.parent.gender,
+            dateOfBirth: validatedData.parent.date_of_birth,
+            address: validatedData.parent.address,
+            tempPassword: "Invitation email sent"
+          })
+          console.log('✅ Account creation email sent to parent:', validatedData.parent.email)
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send account creation emails:', emailError)
+        // Don't fail the entire operation if email fails
+      }
+
       revalidatePath("/dashboard/admin/users/students")
       return {
         success: true,
@@ -947,6 +1003,55 @@ export async function searchUsersByEmailAction(emailQuery: string) {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Không thể tìm kiếm người dùng"
+    }
+  }
+}
+
+// Generate next employee ID (TC + auto-increment number)
+export async function generateNextEmployeeIdAction() {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    // Get the highest employee ID number
+    const { data: teachers, error } = await supabase
+      .from('profiles')
+      .select('employee_id')
+      .eq('role', 'teacher')
+      .not('employee_id', 'is', null)
+      .order('employee_id', { ascending: false })
+      .limit(1)
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    let nextNumber = 1
+    if (teachers && teachers.length > 0) {
+      const lastEmployeeId = teachers[0].employee_id
+      if (lastEmployeeId?.startsWith('TC')) {
+        const lastNumber = parseInt(lastEmployeeId.substring(2))
+        if (!isNaN(lastNumber)) {
+          nextNumber = lastNumber + 1
+        }
+      }
+    }
+
+    // Format with leading zeros (TC001, TC002, etc.)
+    const nextEmployeeId = `TC${nextNumber.toString().padStart(3, '0')}`
+
+    return {
+      success: true,
+      data: nextEmployeeId
+    }
+  } catch (error) {
+    console.error('Error generating next employee ID:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to generate employee ID"
     }
   }
 }

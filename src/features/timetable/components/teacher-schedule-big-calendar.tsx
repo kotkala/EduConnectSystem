@@ -5,15 +5,15 @@ import { useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
+import { SandyLoading } from "@/shared/components/ui/sandy-loading";
 
 // Lazy load heavy calendar components to improve initial page load
 const EventCalendar = dynamic(() => import("@/features/timetable/components/calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
-          <SandyLoading size="lg" message="Đang tải lịch học..." showMessage />
+          <SandyLoading message="Đang tải lịch học..." />
   )
 });
-import { SandyLoading } from "@/shared/components/ui/sandy-loading"
 
 // Exchange request components removed
 

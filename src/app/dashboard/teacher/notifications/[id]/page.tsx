@@ -22,8 +22,7 @@ import {
 } from '@/features/notifications/actions/notification-actions'
 import { NotificationForm } from '@/features/notifications/components/notifications/notification-form'
 
-
-import { Skeleton } from "@/shared/components/ui/skeleton";export default function TeacherNotificationDetailPage() {
+export default function TeacherNotificationDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { user, profile } = useAuth()

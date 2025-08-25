@@ -9,8 +9,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -50,6 +49,7 @@ import {
   type GradeImprovementRequest,
   type GradeImprovementPeriod
 } from '@/lib/validations/grade-improvement-validations'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface Subject {
   id: string
@@ -84,6 +84,9 @@ export function StudentGradeImprovementClient() {
     creatingRequest: false
   })
 
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
   // Load data functions
   const loadActivePeriods = useCallback(async () => {
     try {
@@ -105,7 +108,7 @@ export function StudentGradeImprovementClient() {
       const isInitialLoad = myRequests.length === 0
       
       if (isInitialLoad) {
-        startPageTransition("Đang tải danh sách đơn của bạn...")
+        startLoading()
       }
 
       const result = await getStudentGradeImprovementRequestsAction()
@@ -120,7 +123,7 @@ export function StudentGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [myRequests.length])
+  }, [myRequests.length, startLoading, stopLoading])
 
   const loadSubjects = useCallback(async () => {
     try {
@@ -392,7 +395,7 @@ export function StudentGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && activePeriods.length === 0 ? (
+          {isLoading && activePeriods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="space-y-4 mb-2">
@@ -455,7 +458,7 @@ export function StudentGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && myRequests.length === 0 ? (
+          {isLoading && myRequests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <div className="space-y-4 mb-2">

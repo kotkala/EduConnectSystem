@@ -9,8 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   getParentLeaveApplicationsAction,
   type LeaveApplication
 } from '@/lib/actions/leave-application-actions'

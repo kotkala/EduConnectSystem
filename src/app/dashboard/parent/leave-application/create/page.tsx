@@ -11,10 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import {
   getParentStudentsAction,
-  type StudentInfo 
+  type StudentInfo
 } from '@/features/parent-dashboard/actions/parent-actions'
 import { 
   createLeaveApplicationAction,

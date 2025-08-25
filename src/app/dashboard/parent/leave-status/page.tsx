@@ -9,10 +9,9 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import {
   getParentLeaveApplicationsAction,
-  type LeaveApplication 
+  type LeaveApplication
 } from '@/lib/actions/leave-application-actions'
 import { 
   ArrowLeft, 

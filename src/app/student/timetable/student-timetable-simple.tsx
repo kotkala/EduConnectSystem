@@ -12,13 +12,12 @@ import { getTimetableEventsAction } from "@/features/timetable/actions/timetable
 import { type CalendarEvent } from "@/features/timetable/components/calendar"
 import { studySlotToCalendarEvent } from "@/features/timetable/components/calendar/mappers"
 
-
-import { Skeleton } from "@/shared/components/ui/skeleton";const EventCalendar = dynamic(
+const EventCalendar = dynamic(
   () => import("@/features/timetable/components/calendar").then((mod) => ({ default: mod.EventCalendar })),
   {
     ssr: false,
     loading: () => (
-      <SandyLoading size="lg" message="Đang tải lịch học..." showMessage />
+      <SandyLoading message="Đang tải lịch học..." />
     ),
   }
 )
@@ -131,7 +130,7 @@ export function StudentTimetableSimple() {
           </p>
         </div>
         
-        <Button 
+        <Button
           onClick={() => {
             loadStudentClass()
             loadTimetableEvents()
@@ -141,7 +140,11 @@ export function StudentTimetableSimple() {
           disabled={isLoading}
           className="flex items-center gap-2"
         >
-          <Skeleton className="h-32 w-full rounded-lg" />
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+          ) : (
+            <Calendar className="h-4 w-4" />
+          )}
           Làm mới
         </Button>
       </div>

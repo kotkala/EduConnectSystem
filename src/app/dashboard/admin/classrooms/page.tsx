@@ -9,7 +9,7 @@ import { Plus, Building2, Users, Monitor } from "lucide-react"
 import { ClassroomTable } from "@/features/admin-management/components/admin/classroom-table"
 import { ClassroomForm } from "@/features/admin-management/components/admin/classroom-form"
 import { getClassroomsAction } from "@/features/admin-management/actions/classroom-actions"
-import { type Classroom, type ClassroomFilters } from "@/lib/validations/classroom-validations"
+import { type Classroom, type ClassroomFilters } from "@/features/admin-management/actions/classroom-actions"
 
 import { Skeleton } from "@/shared/components/ui/skeleton"
 import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"

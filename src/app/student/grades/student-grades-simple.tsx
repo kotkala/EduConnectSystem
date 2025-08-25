@@ -114,8 +114,7 @@ export default function StudentGradesSimple() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <SandyLoading size="lg" />
-        <span className="ml-2 text-muted-foreground">Đang tải bảng điểm...</span>
+        <SandyLoading message="Đang tải bảng điểm..." />
       </div>
     )
   }

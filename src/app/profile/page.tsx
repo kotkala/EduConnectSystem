@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
 import { Button } from '@/shared/components/ui/button'
@@ -40,7 +40,7 @@ const roleConfig = {
   parent: { label: 'Phụ huynh', color: 'bg-purple-500' },
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { user, profile, updateProfile, loading } = useAuth()
   const searchParams = useSearchParams()
   const [isEditing, setIsEditing] = useState(false)
@@ -559,5 +559,23 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="space-y-4">
+          <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto" aria-label="Loading content" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[200px] mx-auto" aria-label="Loading content" />
+            <Skeleton className="h-4 w-[150px] mx-auto" aria-label="Loading content" />
+          </div>
+        </div>
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   )
 }

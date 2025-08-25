@@ -14,8 +14,7 @@ import { vi } from 'date-fns/locale'
 import Image from 'next/image'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
-
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   getNotificationForViewAction,
   markNotificationAsReadAction,
   type Notification

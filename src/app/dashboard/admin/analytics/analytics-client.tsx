@@ -27,6 +27,7 @@ interface ChartProps {
 }
 
 import { SandyLoading } from '@/shared/components/ui/sandy-loading'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   default: ({ data }: ChartProps) => (
     <mod.ResponsiveContainer width="100%" height={300}>
@@ -41,7 +42,7 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <SandyLoading size="lg" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ..." />
 })
 
 const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -68,7 +69,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <SandyLoading size="lg" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ tròn..." />
 })
 
 const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
@@ -86,7 +87,7 @@ const ComposedChartComponent = dynamic(() => import('recharts').then(mod => ({
   )
 })), {
   ssr: false,
-  loading: () => <SandyLoading size="lg" />
+  loading: () => <SandyLoading message="Đang tải biểu đồ kết hợp..." />
 })
 import {
   getOverallGradeStatsAction,
@@ -202,6 +203,9 @@ export default function AnalyticsClient() {
   // ðŸ§¹ CLEANUP: Removed unused sectionLoading state
   const [lastFetch, setLastFetch] = useState<number>(0)
 
+  // Loading coordinator
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải phân tích dữ liệu học tập...")
+
   // Cache duration: 5 minutes
   const CACHE_DURATION = 5 * 60 * 1000
 
@@ -217,7 +221,7 @@ export default function AnalyticsClient() {
     }
 
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải phân tích dữ liệu học tập...")
+    startLoading()
     
     try {
       // ðŸš€ PERFORMANCE: Load critical data first
@@ -255,7 +259,7 @@ export default function AnalyticsClient() {
     } finally {
       stopLoading()
     }
-  }, [lastFetch, overallStats, CACHE_DURATION])
+  }, [lastFetch, overallStats, CACHE_DURATION, startLoading, stopLoading])
 
   useEffect(() => {
     loadAllAnalytics()
@@ -284,7 +288,7 @@ export default function AnalyticsClient() {
         <div className="flex gap-2">
           <Button
             onClick={() => loadAllAnalytics(true)}
-            disabled={coordinatedLoading.isLoading}
+            disabled={isLoading}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -293,7 +297,7 @@ export default function AnalyticsClient() {
           </Button>
           <Button
             onClick={handleExportReport}
-            disabled={coordinatedLoading.isLoading}
+            disabled={isLoading}
             className="flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
@@ -314,7 +318,7 @@ export default function AnalyticsClient() {
             <CardDescription>Tỷ lệ học sinh theo từng mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
+            {!gradeDistribution.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.gradeDistribution} />
@@ -329,7 +333,7 @@ export default function AnalyticsClient() {
             <CardDescription>Phần trăm học sinh theo mức điểm</CardDescription>
           </CardHeader>
           <CardContent>
-            {!gradeDistribution.length && coordinatedLoading.isLoading ? (
+            {!gradeDistribution.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <PieChartComponent data={chartData.gradeDistribution} colors={COLORS} />
@@ -344,7 +348,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình của các lớp</CardDescription>
           </CardHeader>
           <CardContent>
-            {!classPerformance.length && coordinatedLoading.isLoading ? (
+            {!classPerformance.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <BarChartComponent data={chartData.classPerformance} />
@@ -359,7 +363,7 @@ export default function AnalyticsClient() {
             <CardDescription>Điểm trung bình qua các kỳ học</CardDescription>
           </CardHeader>
           <CardContent>
-            {!trendData.length && coordinatedLoading.isLoading ? (
+            {!trendData.length && isLoading ? (
               <div className="h-80 flex items-center justify-center">Đang tải...</div>
             ) : (
               <ComposedChartComponent data={chartData.trendData} />
@@ -375,7 +379,7 @@ export default function AnalyticsClient() {
           <CardDescription>Hiệu suất chi tiết theo từng môn học</CardDescription>
         </CardHeader>
         <CardContent>
-          {!subjectAnalysis.length && coordinatedLoading.isLoading ? (
+          {!subjectAnalysis.length && isLoading ? (
             <div className="text-center py-8">Đang tải...</div>
           ) : (
             <div className="space-y-3">

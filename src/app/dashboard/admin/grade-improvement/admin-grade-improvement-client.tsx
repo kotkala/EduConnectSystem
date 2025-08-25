@@ -63,9 +63,10 @@ import {
   type GradeImprovementRequestFilters
 } from '@/lib/validations/grade-improvement-validations'
 import { getGradeReportingPeriodsAction } from '@/lib/actions/grade-management-actions'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
-
-import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeReportingPeriod {
+interface GradeReportingPeriod {
   id: string
   name: string
   start_date: string
@@ -121,6 +122,9 @@ export function AdminGradeImprovementClient() {
     respondingToRequest: false
   })
 
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
   // Load data functions
   const loadPeriods = useCallback(async () => {
     try {
@@ -153,7 +157,7 @@ export function AdminGradeImprovementClient() {
       const isInitialLoad = requests.length === 0 && filters.page === 1
       
       if (isInitialLoad) {
-        startPageTransition("Đang tải danh sách đơn cải thiện điểm...")
+        startLoading()
       }
 
       const result = await getGradeImprovementRequestsAction(filters)
@@ -172,7 +176,7 @@ export function AdminGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [filters, requests.length])
+  }, [filters, requests.length, startLoading, stopLoading])
 
   // Initial data loading
   useEffect(() => {
@@ -187,7 +191,7 @@ export function AdminGradeImprovementClient() {
   // Handle toggle period status
   const handleTogglePeriodStatus = useCallback(async (periodId: string, currentStatus: boolean) => {
     try {
-      startPageTransition()
+      startLoading()
 
       const result = await updateGradeImprovementPeriodAction(periodId, !currentStatus)
 
@@ -203,7 +207,7 @@ export function AdminGradeImprovementClient() {
     } finally {
       stopLoading()
     }
-  }, [loadPeriods])
+  }, [loadPeriods, startLoading, stopLoading])
 
   // Memoized status badge component to prevent re-renders
   const StatusBadge = useMemo(() => {
@@ -381,7 +385,7 @@ export function AdminGradeImprovementClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {coordinatedLoading.isLoading && periods.length === 0 ? (
+          {isLoading && periods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <Skeleton className="h-32 w-full rounded-lg" />
@@ -500,7 +504,7 @@ export function AdminGradeImprovementClient() {
           </div>
 
           {/* Requests Table */}
-          {coordinatedLoading.isLoading && requests.length === 0 ? (
+          {isLoading && requests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <Skeleton className="h-32 w-full rounded-lg" />

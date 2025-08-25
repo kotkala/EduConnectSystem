@@ -319,8 +319,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <SandyLoading size="lg" />
-        <span className="ml-2 text-muted-foreground">Đang tải thông tin học sinh...</span>
+        <SandyLoading message="Đang tải thông tin học sinh..." />
       </div>
     )
   }
@@ -561,7 +560,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isGeneratingFeedback ? (
                 <>
-                  <SandyLoading size="sm" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Đang tạo...
                 </>
               ) : (
@@ -579,7 +578,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
               <label className="text-sm font-medium">Nội dung đánh giá</label>
               {isLoadingFeedback && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <SandyLoading size="sm" />
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400"></div>
                   Đang tải...
                 </div>
               )}
@@ -607,7 +606,7 @@ export function TeacherStudentGradeDetailClient({ studentId }: Readonly<TeacherS
             >
               {isSavingFeedback ? (
                 <>
-                  <SandyLoading size="sm" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   Đang lưu...
                 </>
               ) : (

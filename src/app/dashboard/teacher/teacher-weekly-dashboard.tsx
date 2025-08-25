@@ -19,8 +19,7 @@ import {
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-// ðŸš€ MIGRATION: Replace LoadingFallback with coordinated system
-
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface Profile {
   id: string
@@ -71,6 +70,9 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
 
   const supabase = createClient()
+
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
 
   const loadWeeklyStats = useCallback(async () => {
     try {
@@ -212,7 +214,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
 
   const loadDashboardData = useCallback(async () => {
     // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-    startPageTransition("Đang tải bảng điều khiển giáo viên...")
+    startLoading()
     try {
       await Promise.all([
         loadWeeklyStats(),
@@ -225,7 +227,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
     } finally {
       stopLoading()
     }
-  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities])
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startLoading, stopLoading])
 
   useEffect(() => {
     loadDashboardData()
@@ -251,7 +253,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
 
   // ðŸš€ MIGRATION: Loading now handled by CoordinatedLoadingOverlay
   // Show placeholder content during initial load
-  const isInitialLoading = coordinatedLoading.isLoading && 
+  const isInitialLoading = isLoading &&
     stats.totalClasses === 0 && upcomingClasses.length === 0 && recentActivities.length === 0
 
   return (

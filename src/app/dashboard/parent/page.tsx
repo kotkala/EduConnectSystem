@@ -16,7 +16,7 @@ import {
 } from '@/features/parent-dashboard/actions/parent-actions'
 import { Users, GraduationCap, Calendar, Plus, AlertCircle, User, School } from 'lucide-react'
 import { ParentMeetingSchedules } from '@/features/parent-dashboard/components/parent-dashboard/parent-meeting-schedules'
-
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 export default function ParentDashboard() {
   // ðŸš€ MIGRATION: Replace scattered loading with global system
@@ -29,6 +29,9 @@ export default function ParentDashboard() {
   const [academicYears, setAcademicYears] = useState<{ id: string; name: string; is_current: boolean }[]>([])
   const [selectedYear, setSelectedYear] = useState<string>('all')
   const [error, setError] = useState<string | null>(null)
+
+  // Loading hook
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
 
   // Redirect if user doesn't have permission
   useEffect(() => {
@@ -57,7 +60,7 @@ export default function ParentDashboard() {
   }
 
   const loadAllStudents = useCallback(async () => {
-    startLoading("Đang tải thông tin học sinh...")
+    startLoading()
     const result = await getParentStudentsAction()
     if (result.success && result.data) {
       setStudents(result.data)
@@ -65,10 +68,10 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }, [])
+  }, [startLoading, stopLoading])
 
   const loadStudentsByYear = useCallback(async (yearId: string) => {
-    startLoading("Đang tải học sinh theo năm học...")
+    startLoading()
     const result = await getParentStudentsByYearAction(yearId)
     if (result.success && result.data) {
       setStudents(result.data)
@@ -76,7 +79,7 @@ export default function ParentDashboard() {
       setError(result.error || 'Không thể tải danh sách học sinh')
     }
     stopLoading()
-  }, [])
+  }, [startLoading, stopLoading])
 
   useEffect(() => {
     if (selectedYear && selectedYear !== 'all') {
@@ -245,7 +248,7 @@ export default function ParentDashboard() {
             </div>
             <div className="p-6 sm:p-8">
               {(() => {
-                if (coordinatedLoading.isLoading && students.length === 0) {
+                if (isLoading && students.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="space-y-4 mb-4">

@@ -15,6 +15,7 @@ import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getHomeroomSubmittedGradesAction, sendGradeReportsToParentsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface SubmissionRecord {
   id: string
@@ -77,6 +78,9 @@ export default function TeacherGradeReportsClient() {
     sendingToAllParents: false
   })
 
+  // Global loading for initial data loads
+  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
   // Load periods
   const loadPeriods = useCallback(async () => {
     try {
@@ -130,7 +134,7 @@ export default function TeacherGradeReportsClient() {
       const isInitialLoad = students.length === 0
 
       if (isInitialLoad) {
-        startPageTransition("Đang tải danh sách học sinh...")
+        startLoading()
       }
 
       const filters = {
@@ -169,7 +173,7 @@ export default function TeacherGradeReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [selectedPeriod, students.length])
+  }, [selectedPeriod, students.length, startLoading, stopLoading])
 
   // Load periods on mount
   useEffect(() => {
@@ -243,11 +247,10 @@ export default function TeacherGradeReportsClient() {
 
   // Render content based on loading and data state
   const renderStudentsList = () => {
-    if (coordinatedLoading.isLoading) {
+    if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <SandyLoading size="lg" />
-          <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
+          <SandyLoading message="Đang tải danh sách học sinh..." />
         </div>
       )
     }
@@ -356,7 +359,7 @@ export default function TeacherGradeReportsClient() {
         >
           {sectionLoading.sendingToAllParents ? (
             <>
-              <SandyLoading size="sm" />
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
               Đang gửi...
             </>
           ) : (

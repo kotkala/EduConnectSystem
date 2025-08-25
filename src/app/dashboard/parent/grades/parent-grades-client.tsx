@@ -169,8 +169,7 @@ export default function ParentGradesClient() {
     if (loading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <SandyLoading size="lg" />
-          <span className="ml-2 text-muted-foreground">Đang tải danh sách học sinh...</span>
+          <SandyLoading message="Đang tải danh sách học sinh..." />
         </div>
       )
     }

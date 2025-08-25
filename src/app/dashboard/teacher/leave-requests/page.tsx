@@ -10,9 +10,9 @@ import { Label } from '@/shared/components/ui/label'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-// ðŸš€ MIGRATION: Add coordinated loading system
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
-import { 
+import {
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
   type LeaveApplication 
@@ -50,10 +50,13 @@ export default function TeacherLeaveRequestsPage() {
   const [paginatedApplications, setPaginatedApplications] = useState<LeaveApplication[]>([])
   const pageSize = 10
 
+  // Global loading for initial data loads
+  const { startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
   const fetchLeaveApplications = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startPageTransition("Đang tải danh sách đơn xin nghỉ...")
+      startLoading()
       setError(null)
 
       const result = await getTeacherLeaveApplicationsAction()
@@ -78,7 +81,7 @@ export default function TeacherLeaveRequestsPage() {
     } finally {
       stopLoading()
     }
-  }, [currentPage, pageSize]) // âœ… Add all dependencies
+  }, [currentPage, pageSize, startLoading, stopLoading]) // âœ… Add all dependencies
 
   useEffect(() => {
     if (user && profile?.role === 'teacher') {

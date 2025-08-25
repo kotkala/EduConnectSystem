@@ -8,7 +8,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -43,6 +43,7 @@ import {
   markReportAsReadAction,
   type ParentReportNotification
 } from '@/lib/actions/parent-report-actions'
+import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 
 interface StudentOption {
   id: string
@@ -76,6 +77,10 @@ export default function ParentReportsClient() {
   const [sectionLoading, setSectionLoading] = useState({
     submitting: false, // For form submissions (non-blocking)
   })
+
+  // Global loading for initial data loads
+  const { startLoading, stopLoading } = useGlobalLoading("Đang tải báo cáo...")
+
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState({
     page: 1,
@@ -106,8 +111,10 @@ export default function ParentReportsClient() {
     notifications.forEach(notification => {
       if (notification.student_report?.report_period) {
         const period = notification.student_report.report_period
-        periods.set(period.name, {
-          id: period.name,
+        // Use a unique key combining name and dates to handle multiple periods with same name
+        const uniqueKey = `${period.name}_${period.start_date}_${period.end_date}`
+        periods.set(uniqueKey, {
+          id: uniqueKey,
           name: period.name,
           start_date: period.start_date,
           end_date: period.end_date
@@ -122,16 +129,26 @@ export default function ParentReportsClient() {
     return notifications.filter(notification => {
       const matchesStudent = selectedStudent === 'all' ||
         notification.student_report?.student?.student_id === selectedStudent
-      const matchesPeriod = selectedPeriod === 'all' ||
-        notification.student_report?.report_period?.name === selectedPeriod
-      return matchesStudent && matchesPeriod
+
+      if (selectedPeriod === 'all') {
+        return matchesStudent
+      }
+
+      // Match using the unique key format
+      const period = notification.student_report?.report_period
+      if (period) {
+        const uniqueKey = `${period.name}_${period.start_date}_${period.end_date}`
+        return matchesStudent && uniqueKey === selectedPeriod
+      }
+
+      return false
     })
   }, [notifications, selectedStudent, selectedPeriod])
 
   // Load notifications with pagination and error handling
   const loadNotifications = useCallback(async (page: number = 1) => {
     try {
-      startPageTransition("Đang tải báo cáo...")
+      startLoading()
       setError(null)
 
       const result = await getParentReportNotificationsAction(page, pagination.limit)
@@ -150,7 +167,7 @@ export default function ParentReportsClient() {
     } finally {
       stopLoading()
     }
-  }, [pagination.limit])
+  }, [pagination.limit, startLoading, stopLoading])
 
   // Load data on component mount
   useEffect(() => {
@@ -212,6 +229,7 @@ export default function ParentReportsClient() {
               ? {
                   ...n,
                   parent_response: {
+                    student_report_id: selectedReport.student_report_id,
                     agreement_status: responseForm.agreement_status,
                     comments: responseForm.comments.trim() || null,
                     is_read: true,
@@ -518,21 +536,33 @@ const ReportCard = React.memo(({
 
             {/* Response Status */}
             {hasResponse && (
-              <div className="flex items-center gap-2 text-sm">
-                {notification.parent_response?.agreement_status === 'agree' ? (
-                  <>
-                    <ThumbsUp className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">Đã phản hồi: Đồng ý</span>
-                  </>
-                ) : (
-                  <>
-                    <ThumbsDown className="h-4 w-4 text-red-600" />
-                    <span className="text-red-600">Đã phản hồi: Không đồng ý</span>
-                  </>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {notification.parent_response?.agreement_status === 'agree' ? (
+                    <>
+                      <ThumbsUp className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Đã phản hồi: Đồng ý</span>
+                    </>
+                  ) : (
+                    <>
+                      <ThumbsDown className="h-4 w-4 text-red-600" />
+                      <span className="text-red-600">Đã phản hồi: Không đồng ý</span>
+                    </>
+                  )}
+                  <span className="text-gray-500">
+                    ({formatDate(notification.parent_response?.responded_at || '')})
+                  </span>
+                </div>
+                {/* Parent Comments Preview */}
+                {notification.parent_response?.comments && (
+                  <div className="text-sm">
+                    <span className="font-medium text-blue-700">Nhận xét: </span>
+                    <span className="text-gray-600">
+                      {notification.parent_response.comments.substring(0, 80)}
+                      {notification.parent_response.comments.length > 80 ? '...' : ''}
+                    </span>
+                  </div>
                 )}
-                <span className="text-gray-500">
-                  ({formatDate(notification.parent_response?.responded_at || '')})
-                </span>
               </div>
             )}
             </div>
@@ -928,11 +958,16 @@ const ResponseDialog = React.memo(({
             disabled={submitting || !responseForm.agreement_status}
           >
             {submitting ? (
-              <Skeleton className="h-32 w-full rounded-lg" />
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Đang gửi...
+              </>
             ) : (
-              <Send className="h-4 w-4 mr-2" />
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Gửi phản hồi
+              </>
             )}
-            Gửi phản hồi
           </Button>
         </div>
       </DialogContent>

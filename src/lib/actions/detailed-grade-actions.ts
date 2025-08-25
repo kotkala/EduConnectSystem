@@ -100,16 +100,16 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
       // Log grade update to audit system
       const studentData = Array.isArray(grade.student) ? grade.student[0] : grade.student
       const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
-      await logGradeUpdateAudit(
-        grade.id,
-        userId,
-        existingGrade.grade_value,
-        validatedData.grade_value,
-        `Cập nhật điểm ${validatedData.component_type}`,
-        validatedData.component_type,
-        studentData?.full_name,
-        subjectData?.name_vietnamese
-      )
+      await logGradeUpdateAudit({
+        gradeId: grade.id,
+        userId: userId,
+        oldValue: existingGrade.grade_value,
+        newValue: validatedData.grade_value,
+        reason: `Cập nhật điểm ${validatedData.component_type}`,
+        componentType: validatedData.component_type,
+        studentName: studentData?.full_name,
+        subjectName: subjectData?.name_vietnamese
+      })
     } else {
       // Create new grade
       const { data: grade, error } = await supabase
@@ -150,15 +150,15 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
       // Log grade creation to audit system
       const studentData = Array.isArray(grade.student) ? grade.student[0] : grade.student
       const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
-      await logGradeCreateAudit(
-        grade.id,
-        userId,
-        validatedData.grade_value,
-        `Tạo điểm ${validatedData.component_type}`,
-        validatedData.component_type,
-        studentData?.full_name,
-        subjectData?.name_vietnamese
-      )
+      await logGradeCreateAudit({
+        gradeId: grade.id,
+        userId: userId,
+        gradeValue: validatedData.grade_value,
+        reason: `Tạo điểm ${validatedData.component_type}`,
+        componentType: validatedData.component_type,
+        studentName: studentData?.full_name,
+        subjectName: subjectData?.name_vietnamese
+      })
     }
 
     revalidatePath('/dashboard/admin/grade-periods')
@@ -549,16 +549,16 @@ export async function updateDetailedGradeAction(data: {
     // Log grade update to audit system
     const studentData = Array.isArray(updatedGrade.student) ? updatedGrade.student[0] : updatedGrade.student
     const subjectData = Array.isArray(updatedGrade.subject) ? updatedGrade.subject[0] : updatedGrade.subject
-    await logGradeUpdateAudit(
-      updatedGrade.id,
-      userId,
-      existingGrade.grade_value,
-      data.grade_value,
-      `Cập nhật điểm ${existingGrade.component_type}`,
-      existingGrade.component_type,
-      studentData?.full_name,
-      subjectData?.name_vietnamese
-    )
+    await logGradeUpdateAudit({
+      gradeId: updatedGrade.id,
+      userId: userId,
+      oldValue: existingGrade.grade_value,
+      newValue: data.grade_value,
+      reason: `Cập nhật điểm ${existingGrade.component_type}`,
+      componentType: existingGrade.component_type,
+      studentName: studentData?.full_name,
+      subjectName: subjectData?.name_vietnamese
+    })
 
     revalidatePath('/dashboard/admin/grade-periods')
     revalidatePath('/dashboard/teacher/grade-reports')

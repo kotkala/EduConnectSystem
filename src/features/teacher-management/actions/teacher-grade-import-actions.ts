@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
 import type { ValidatedGradeData } from "@/lib/utils/teacher-excel-import-validation"
-// import { validateGradeOverwriteAction, executeGradeOverwriteAction } from "./grade-overwrite-actions" // Unused imports
+import { logGradeUpdateAuditPending, logGradeCreateAudit, type GradeUpdateAuditData, type GradeCreateAuditData } from "@/lib/utils/audit-utils"
 
 export interface GradeImportResult {
   success: boolean
@@ -146,26 +146,26 @@ export async function importValidatedGradesAction(
             if (existingGrade && existingGrade.grade_value !== null) {
               // Grade exists - check if it's an override for midterm/final
               if (gradeRecord.component_type === 'midterm' || gradeRecord.component_type === 'final') {
-                // This is an override of midterm/final grade - use provided reason or default
+                // This is an override of midterm/final grade - CREATE PENDING AUDIT LOG ONLY
                 const reasonKey = `${student.student_id}_${gradeRecord.component_type}`
                 const changeReason = overrideReasons?.[reasonKey] || 'Nhập lại từ Excel - Cần xác nhận lý do'
 
-                const auditRecord = {
-                  grade_id: existingGrade.id,
-                  old_value: existingGrade.grade_value,
-                  new_value: gradeRecord.grade_value,
-                  change_reason: changeReason,
-                  changed_by: user.id,
-                  changed_at: new Date().toISOString()
-                }
+                // Create pending audit log - grade will be updated only after admin approval
+                await logGradeUpdateAuditPending({
+                  gradeId: existingGrade.id,
+                  userId: user.id,
+                  oldValue: existingGrade.grade_value,
+                  newValue: gradeRecord.grade_value,
+                  reason: changeReason,
+                  componentType: gradeRecord.component_type,
+                  studentName: studentData.studentName
+                })
 
-                // Insert audit log
-                await supabase
-                  .from('grade_audit_logs')
-                  .insert(auditRecord)
+                // Skip updating the grade - it will be updated when admin approves
+                continue
               }
 
-              // Update existing grade
+              // For non-midterm/final grades, update immediately (regular grades don't need approval)
               const { error: updateError } = await supabase
                 .from('student_detailed_grades')
                 .update({

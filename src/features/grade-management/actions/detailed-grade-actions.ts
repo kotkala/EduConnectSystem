@@ -111,16 +111,16 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
         const studentName = studentData?.full_name
         const subjectName = subjectData?.name_vietnamese
 
-        await logGradeUpdateAudit(
-          grade.id,
-          userId,
-          oldGrade?.grade_value || null,
-          validatedData.grade_value,
-          `Cập nhật điểm ${validatedData.component_type}`,
-          validatedData.component_type,
-          studentName,
-          subjectName
-        )
+        await logGradeUpdateAudit({
+          gradeId: grade.id,
+          userId: userId,
+          oldValue: oldGrade?.grade_value || null,
+          newValue: validatedData.grade_value,
+          reason: `Cập nhật điểm ${validatedData.component_type}`,
+          componentType: validatedData.component_type,
+          studentName: studentName,
+          subjectName: subjectName
+        })
       } catch (auditError) {
         console.error('Error logging grade update audit:', auditError)
         // Don't fail the main operation if audit logging fails
@@ -169,15 +169,15 @@ export async function createDetailedGradeAction(formData: DetailedGradeFormData)
         const studentName = studentData?.full_name
         const subjectName = subjectData?.name_vietnamese
 
-        await logGradeCreateAudit(
-          grade.id,
-          userId,
-          validatedData.grade_value,
-          `Tạo điểm ${validatedData.component_type}`,
-          validatedData.component_type,
-          studentName,
-          subjectName
-        )
+        await logGradeCreateAudit({
+          gradeId: grade.id,
+          userId: userId,
+          gradeValue: validatedData.grade_value,
+          reason: `Tạo điểm ${validatedData.component_type}`,
+          componentType: validatedData.component_type,
+          studentName: studentName,
+          subjectName: subjectName
+        })
       } catch (auditError) {
         console.error('Error logging grade create audit:', auditError)
         // Don't fail the main operation if audit logging fails

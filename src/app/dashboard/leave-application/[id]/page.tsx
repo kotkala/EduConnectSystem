@@ -8,7 +8,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
-import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
+
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 
 import { Skeleton } from "@/shared/components/ui/skeleton";import { 
@@ -140,33 +140,29 @@ export default function LeaveApplicationDetailPage() {
 
   if (isLoading) {
     return (
-      <SidebarLayout role={profile?.role || 'parent'} title="Chi tiết đơn xin nghỉ">
-        <div className="p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Skeleton className="h-32 w-full rounded-lg" />
-              <p className="text-gray-600">Đang tải thông tin đơn xin nghỉ...</p>
-            </div>
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Skeleton className="h-32 w-full rounded-lg" />
+            <p className="text-gray-600">Đang tải thông tin đơn xin nghỉ...</p>
           </div>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
   if (error || !application) {
     return (
-      <SidebarLayout role={profile?.role || 'parent'} title="Chi tiết đơn xin nghỉ">
-        <div className="p-6">
-          <div className="flex flex-col items-center justify-center h-64 space-y-4">
-            <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
-            <h2 className="text-2xl font-bold text-gray-900">Lỗi</h2>
-            <p className="text-gray-600 text-center">{error || 'Không tìm thấy đơn xin nghỉ'}</p>
-            <Button onClick={() => router.push(getBackUrl())}>
-              Quay lại
-            </Button>
-          </div>
+      <div className="p-6">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
+          <h2 className="text-2xl font-bold text-gray-900">Lỗi</h2>
+          <p className="text-gray-600 text-center">{error || 'Không tìm thấy đơn xin nghỉ'}</p>
+          <Button onClick={() => router.push(getBackUrl())}>
+            Quay lại
+          </Button>
         </div>
-      </SidebarLayout>
+      </div>
     )
   }
 
@@ -174,8 +170,7 @@ export default function LeaveApplicationDetailPage() {
   const canRespond = isTeacher && application.status === 'pending'
 
   return (
-    <SidebarLayout role={profile?.role || 'parent'} title="Chi tiết đơn xin nghỉ">
-      <div className="p-6">
+    <div className="p-6">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -273,15 +268,35 @@ export default function LeaveApplicationDetailPage() {
               {/* Attachment */}
               {application.attachment_url && (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Tệp đính kèm</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(application.attachment_url, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Tải xuống
-                  </Button>
+                  <Label className="text-sm font-medium text-gray-700">Đơn xin nghỉ học</Label>
+                  <div className="border rounded-lg p-2 bg-gray-50">
+                    <img
+                      src={application.attachment_url}
+                      alt="Đơn xin nghỉ học"
+                      className="max-w-full h-auto rounded-md shadow-sm"
+                      style={{ maxHeight: '600px' }}
+                      onError={(e) => {
+                        // Fallback to download button if image fails to load
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const fallbackDiv = target.nextElementSibling as HTMLDivElement
+                        if (fallbackDiv) {
+                          fallbackDiv.style.display = 'block'
+                        }
+                      }}
+                    />
+                    <div style={{ display: 'none' }} className="text-center py-4">
+                      <p className="text-sm text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(application.attachment_url, '_blank')}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Tải xuống
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -348,8 +363,7 @@ export default function LeaveApplicationDetailPage() {
               </CardContent>
             </Card>
           )}
-        </div>
       </div>
-    </SidebarLayout>
+    </div>
   )
 }

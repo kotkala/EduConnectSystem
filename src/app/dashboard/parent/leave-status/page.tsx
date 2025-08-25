@@ -271,13 +271,33 @@ export default function ParentLeaveStatusPage() {
 
                   {application.attachment_url && (
                     <div>
-                      <div className="text-sm font-medium mb-1">Attachment</div>
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-3 w-3 mr-1" />
-                          View Attachment
-                        </a>
-                      </Button>
+                      <div className="text-sm font-medium mb-1">Đơn xin nghỉ học</div>
+                      <div className="border rounded-lg p-2 bg-gray-50">
+                        <img
+                          src={application.attachment_url}
+                          alt="Đơn xin nghỉ học"
+                          className="max-w-full h-auto rounded-md shadow-sm"
+                          style={{ maxHeight: '400px' }}
+                          onError={(e) => {
+                            // Fallback to download button if image fails to load
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const fallbackDiv = target.nextElementSibling as HTMLDivElement
+                            if (fallbackDiv) {
+                              fallbackDiv.style.display = 'block'
+                            }
+                          }}
+                        />
+                        <div style={{ display: 'none' }} className="text-center py-2">
+                          <p className="text-xs text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
+                              <Download className="h-3 w-3 mr-1" />
+                              Tải xuống
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
 

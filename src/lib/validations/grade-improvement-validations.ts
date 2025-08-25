@@ -36,17 +36,7 @@ export type GradeImprovementPeriodFormData = z.infer<typeof gradeImprovementPeri
 export const gradeImprovementRequestSchema = z.object({
   improvement_period_id: z.string().uuid('ID kỳ cải thiện điểm không hợp lệ'),
   subject_id: z.string().uuid('ID môn học không hợp lệ'),
-  reason: z.string().min(10, 'Lý do phải có ít nhất 10 ký tự').max(500, 'Lý do không được quá 500 ký tự'),
-  current_grade: z.number().min(0).max(10).optional(),
-  target_grade: z.number().min(0).max(10).optional()
-}).refine((data) => {
-  if (data.current_grade !== undefined && data.target_grade !== undefined) {
-    return data.target_grade > data.current_grade
-  }
-  return true
-}, {
-  message: 'Điểm mục tiêu phải cao hơn điểm hiện tại',
-  path: ['target_grade']
+  reason: z.string().min(10, 'Lý do phải có ít nhất 10 ký tự').max(500, 'Lý do không được quá 500 ký tự')
 })
 
 export type GradeImprovementRequestFormData = z.infer<typeof gradeImprovementRequestSchema>
@@ -90,8 +80,6 @@ export interface GradeImprovementRequest {
   student_id: string
   subject_id: string
   reason: string
-  current_grade?: number
-  target_grade?: number
   status: GradeImprovementRequestStatus
   admin_comment?: string
   reviewed_by?: string

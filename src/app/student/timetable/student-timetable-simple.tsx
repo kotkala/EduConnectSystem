@@ -7,7 +7,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Calendar, AlertCircle,  } from 'lucide-react'
 import { toast } from 'sonner'
 import { SandyLoading } from "@/shared/components/ui/sandy-loading"
-import { TimetableFilters, type TimetableFilters as TimetableFiltersType } from "@/features/timetable/components/timetable-calendar/timetable-filters"
+import { StudentTimetableFilters, type StudentTimetableFilters as StudentTimetableFiltersType } from "./student-timetable-filters"
 import { getTimetableEventsAction } from "@/features/timetable/actions/timetable-actions"
 import { type CalendarEvent } from "@/features/timetable/components/calendar"
 import { studySlotToCalendarEvent } from "@/features/timetable/components/calendar/mappers"
@@ -27,8 +27,6 @@ interface StudentClassInfo {
   class_info: {
     id: string
     name: string
-    grade_level: string
-    academic_year: string
   }
 }
 
@@ -37,12 +35,9 @@ export function StudentTimetableSimple() {
   const [isLoading, setIsLoading] = useState(false)
   const [studentClassInfo, setStudentClassInfo] = useState<StudentClassInfo | null>(null)
   
-  // Filter state - will be auto-populated with student's class
-  const [filters, setFilters] = useState<TimetableFiltersType>({
-    academicYearId: "",
+  // Filter state - simplified for students
+  const [filters, setFilters] = useState<StudentTimetableFiltersType>({
     semesterId: "",
-    gradeLevel: "",
-    classId: "",
     studyWeek: 1,
   })
 
@@ -54,11 +49,6 @@ export function StudentTimetableSimple() {
 
       if (result.success && result.data) {
         setStudentClassInfo(result.data)
-        // Auto-set the class filter
-        setFilters(prev => ({
-          ...prev,
-          classId: result.data.class_id
-        }))
       } else {
         toast.error(result.error || 'Không thể tải thông tin lớp học')
       }
@@ -68,16 +58,16 @@ export function StudentTimetableSimple() {
     }
   }, [])
 
-  // Load timetable events using the same logic as admin
+  // Load timetable events for student
   const loadTimetableEvents = useCallback(async () => {
-    if (!filters.classId || !filters.semesterId || !filters.studyWeek) {
+    if (!studentClassInfo?.class_id || !filters.semesterId || !filters.studyWeek) {
       return
     }
 
     setIsLoading(true)
     try {
       const result = await getTimetableEventsAction({
-        class_id: filters.classId,
+        class_id: studentClassInfo.class_id,
         semester_id: filters.semesterId,
         week_number: filters.studyWeek,
       })
@@ -101,7 +91,7 @@ export function StudentTimetableSimple() {
     } finally {
       setIsLoading(false)
     }
-  }, [filters.classId, filters.semesterId, filters.studyWeek])
+  }, [studentClassInfo?.class_id, filters.semesterId, filters.studyWeek])
 
   // Load student class on mount
   useEffect(() => {
@@ -123,8 +113,8 @@ export function StudentTimetableSimple() {
             Thời khóa biểu
           </h1>
           <p className="text-muted-foreground">
-            {studentClassInfo?.class_info ? 
-              `Lớp ${studentClassInfo.class_info.name} - ${studentClassInfo.class_info.academic_year}` : 
+            {studentClassInfo?.class_info ?
+              `Lớp ${studentClassInfo.class_info.name}` :
               'Xem thời khóa biểu lớp học của bạn'
             }
           </p>
@@ -158,11 +148,12 @@ export function StudentTimetableSimple() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <TimetableFilters
+          <StudentTimetableFilters
             filters={filters}
             onFiltersChange={setFilters}
             onRefresh={loadTimetableEvents}
             loading={isLoading}
+
           />
         </CardContent>
       </Card>

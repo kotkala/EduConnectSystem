@@ -22,7 +22,7 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Student access required' }, { status: 403 })
     }
 
-    // Get student's class assignments - check for both new and legacy assignment types
+    // ✅ FIXED: Remove non-existent columns and simplify query
     const { data: classAssignments, error: classError } = await supabase
       .from('class_assignments')
       .select(`
@@ -30,9 +30,7 @@ export async function GET() {
         assignment_type,
         classes!inner(
           id,
-          name,
-          grade_level,
-          academic_year
+          name
         )
       `)
       .eq('user_id', user.id)

@@ -4,11 +4,14 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 
+
 import {
   UserCheck, GraduationCap, BookOpen, Heart, TrendingUp, TrendingDown,
   Plus, Bell, FileText, Settings, Activity, Database,
   Users, Calendar, BarChart3, CheckCircle
 } from 'lucide-react'
+
+
 // Animated Counter Component (Simple version without motion)
 function AnimatedCounter({ end }: { readonly end: number }) {
   return <span className="transition-all duration-500">{end}</span>

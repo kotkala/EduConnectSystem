@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
-import { Input } from '@/shared/components/ui/input'
+
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -74,9 +74,7 @@ export function StudentGradeImprovementClient() {
   const [requestForm, setRequestForm] = useState({
     improvement_period_id: '',
     subject_id: '',
-    reason: '',
-    current_grade: '',
-    target_grade: ''
+    reason: ''
   })
   
   // ðŸ“Š Section loading for non-blocking operations
@@ -257,35 +255,7 @@ export function StudentGradeImprovementClient() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="current-grade">Điểm hiện tại (tùy chọn)</Label>
-                    <Input
-                      id="current-grade"
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={requestForm.current_grade}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, current_grade: e.target.value }))}
-                      placeholder="VD: 6.5"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="target-grade">Điểm mục tiêu (tùy chọn)</Label>
-                    <Input
-                      id="target-grade"
-                      type="number"
-                      min="0"
-                      max="10"
-                      step="0.1"
-                      value={requestForm.target_grade}
-                      onChange={(e) => setRequestForm(prev => ({ ...prev, target_grade: e.target.value }))}
-                      placeholder="VD: 8.0"
-                    />
-                  </div>
-                </div>
+
                 
                 <div>
                   <Label htmlFor="reason">Lý do yêu cầu cải thiện điểm</Label>
@@ -310,9 +280,7 @@ export function StudentGradeImprovementClient() {
                       setRequestForm({
                         improvement_period_id: '',
                         subject_id: '',
-                        reason: '',
-                        current_grade: '',
-                        target_grade: ''
+                        reason: ''
                       })
                     }}
                     disabled={sectionLoading.creatingRequest}
@@ -331,23 +299,14 @@ export function StudentGradeImprovementClient() {
                         return
                       }
                       
-                      if (requestForm.current_grade && requestForm.target_grade) {
-                        const current = parseFloat(requestForm.current_grade)
-                        const target = parseFloat(requestForm.target_grade)
-                        if (target <= current) {
-                          toast.error('Điểm mục tiêu phải cao hơn điểm hiện tại')
-                          return
-                        }
-                      }
+
                       
                       setSectionLoading(prev => ({ ...prev, creatingRequest: true }))
                       try {
                         const formData = {
                           improvement_period_id: requestForm.improvement_period_id,
                           subject_id: requestForm.subject_id,
-                          reason: requestForm.reason,
-                          current_grade: requestForm.current_grade ? parseFloat(requestForm.current_grade) : undefined,
-                          target_grade: requestForm.target_grade ? parseFloat(requestForm.target_grade) : undefined
+                          reason: requestForm.reason
                         }
                         
                         const result = await createGradeImprovementRequestAction(formData)
@@ -357,9 +316,7 @@ export function StudentGradeImprovementClient() {
                           setRequestForm({
                             improvement_period_id: '',
                             subject_id: '',
-                            reason: '',
-                            current_grade: '',
-                            target_grade: ''
+                            reason: ''
                           })
                           loadMyRequests()
                         } else {
@@ -502,23 +459,7 @@ export function StudentGradeImprovementClient() {
                         <StatusBadge status={request.status} />
                       </div>
                       
-                      {/* Grades */}
-                      {(request.current_grade !== null || request.target_grade !== null) && (
-                        <div className="flex gap-4 text-sm">
-                          {request.current_grade !== null && (
-                            <div>
-                              <span className="text-muted-foreground">Điểm hiện tại: </span>
-                              <span className="font-medium">{request.current_grade}</span>
-                            </div>
-                          )}
-                          {request.target_grade !== null && (
-                            <div>
-                              <span className="text-muted-foreground">Điểm mục tiêu: </span>
-                              <span className="font-medium">{request.target_grade}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+
                       
                       {/* Reason */}
                       <div>

@@ -46,6 +46,7 @@ export interface ParentReportNotification {
       name: string
       start_date: string
       end_date: string
+      period_type?: string
     } | null
     homeroom_teacher: {
       full_name: string
@@ -204,8 +205,8 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           .filter(Boolean)
 
         const { data: reportPeriods } = await supabase
-          .from('report_periods')
-          .select('id, name, start_date, end_date')
+          .from('grade_reporting_periods')
+          .select('id, name, start_date, end_date, period_type')
           .in('id', reportPeriodIds)
 
 

@@ -7,8 +7,41 @@ import { getUserNotificationsAction } from '@/features/notifications/actions/not
 import { Bell, BookOpen, FileText, Award } from 'lucide-react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import { Suspense } from 'react'
+import { CardSkeleton, ListSkeleton } from '@/shared/components/ui/skeleton-utils'
 
-export default async function StudentHome() {
+function StudentHomeSkeleton() {
+  return (
+    <div className="py-6 sm:py-8 md:py-10">
+      {/* Header Skeleton */}
+      <div className="mb-6 sm:mb-8 space-y-2">
+        <div className="h-8 w-64 bg-muted animate-pulse rounded" />
+        <div className="h-4 w-80 bg-muted animate-pulse rounded" />
+      </div>
+
+      {/* Quick Links Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        {Array.from({ length: 3 }, (_, i) => (
+          <CardSkeleton key={`student-quick-links-${i}`} />
+        ))}
+      </div>
+
+      {/* Content Sections Skeleton */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="lg:col-span-2">
+          <ListSkeleton itemCount={5} />
+        </div>
+        <div className="space-y-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+async function StudentHomeContent() {
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/')
@@ -72,7 +105,7 @@ export default async function StudentHome() {
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground">Xem bảng điểm và tiến độ học tập của bạn.</p>
             <Button className="mt-3" variant="outline" size="sm" asChild>
-              <a href="/student/grades">Xem điểm số</a>
+              <Link href="/student/grades">Xem điểm số</Link>
             </Button>
           </CardContent>
         </Card>
@@ -118,7 +151,7 @@ export default async function StudentHome() {
                 <a href="/student/assignments"><FileText className="w-4 h-4 mr-2" />Bài tập</a>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href="/student/grades"><Award className="w-4 h-4 mr-2" />Điểm số</a>
+                <Link href="/student/grades"><Award className="w-4 h-4 mr-2" />Điểm số</Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href="/student/courses"><BookOpen className="w-4 h-4 mr-2" />Khoá học</a>
@@ -155,4 +188,10 @@ export default async function StudentHome() {
   )
 }
 
-
+export default function StudentHome() {
+  return (
+    <Suspense fallback={<StudentHomeSkeleton />}>
+      <StudentHomeContent />
+    </Suspense>
+  )
+}

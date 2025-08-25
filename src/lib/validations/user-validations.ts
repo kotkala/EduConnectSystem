@@ -29,7 +29,19 @@ const baseUserFields = {
       const birthDate = new Date(date)
       const today = new Date()
       return birthDate <= today
-    }, "Date of birth cannot be in the future"),
+    }, "Date of birth cannot be in the future")
+    .refine((date) => {
+      const birthDate = new Date(date)
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const dayDiff = today.getDate() - birthDate.getDate()
+
+      // Adjust age if birthday hasn't occurred this year
+      const actualAge = (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) ? age - 1 : age
+
+      return actualAge >= 0 && actualAge <= 150
+    }, "Age must be between 0 and 150 years"),
   address: z.string()
     .min(1, "Address is required")
     .min(10, "Address must be at least 10 characters")
@@ -44,6 +56,20 @@ export const teacherSchema = z.object({
     .min(3, "Employee ID must be at least 3 characters")
     .max(20, "Employee ID must be less than 20 characters"),
   ...baseUserFields
+}).refine((data) => {
+  const birthDate = new Date(data.date_of_birth)
+  const today = new Date()
+  const age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  const dayDiff = today.getDate() - birthDate.getDate()
+
+  // Adjust age if birthday hasn't occurred this year
+  const actualAge = (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) ? age - 1 : age
+
+  return actualAge >= 18
+}, {
+  message: "Teacher must be at least 18 years old",
+  path: ["date_of_birth"]
 })
 
 // Student validation schema
@@ -79,6 +105,25 @@ export const studentParentSchema = z.object({
 }, {
   message: "Student and parent cannot have the same phone number",
   path: ["parent", "phone_number"]
+}).refine((data) => {
+  // Ensure parent is at least 18 years older than student
+  const studentBirthDate = new Date(data.student.date_of_birth)
+  const parentBirthDate = new Date(data.parent.date_of_birth)
+
+  // Calculate parent age when student was born
+  const parentAgeWhenStudentBorn = studentBirthDate.getFullYear() - parentBirthDate.getFullYear()
+  const monthDiff = studentBirthDate.getMonth() - parentBirthDate.getMonth()
+  const dayDiff = studentBirthDate.getDate() - parentBirthDate.getDate()
+
+  // Adjust age if parent's birthday hadn't occurred yet when student was born
+  const actualParentAgeWhenStudentBorn = (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0))
+    ? parentAgeWhenStudentBorn - 1
+    : parentAgeWhenStudentBorn
+
+  return actualParentAgeWhenStudentBorn >= 18
+}, {
+  message: "Parent must be at least 18 years older than student",
+  path: ["parent", "date_of_birth"]
 })
 
 // Update schemas for editing
@@ -99,6 +144,28 @@ export const updateStudentParentSchema = z.object({
 }, {
   message: "Student and parent cannot have the same email address",
   path: ["parent", "email"]
+}).refine((data) => {
+  // Only validate age difference if both dates of birth are provided
+  if (data.student.date_of_birth && data.parent.date_of_birth) {
+    const studentBirthDate = new Date(data.student.date_of_birth)
+    const parentBirthDate = new Date(data.parent.date_of_birth)
+
+    // Calculate parent age when student was born
+    const parentAgeWhenStudentBorn = studentBirthDate.getFullYear() - parentBirthDate.getFullYear()
+    const monthDiff = studentBirthDate.getMonth() - parentBirthDate.getMonth()
+    const dayDiff = studentBirthDate.getDate() - parentBirthDate.getDate()
+
+    // Adjust age if parent's birthday hadn't occurred yet when student was born
+    const actualParentAgeWhenStudentBorn = (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0))
+      ? parentAgeWhenStudentBorn - 1
+      : parentAgeWhenStudentBorn
+
+    return actualParentAgeWhenStudentBorn >= 18
+  }
+  return true
+}, {
+  message: "Parent must be at least 18 years older than student",
+  path: ["parent", "date_of_birth"]
 })
 
 // Filter schemas

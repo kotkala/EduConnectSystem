@@ -661,19 +661,7 @@ export function AdminGradeImprovementClient() {
                   </div>
                 </div>
                 
-                {selectedRequest.current_grade !== null && (
-                  <div>
-                    <Label className="text-sm font-medium">Điểm hiện tại</Label>
-                    <div className="mt-1 font-medium">{selectedRequest.current_grade}</div>
-                  </div>
-                )}
-                
-                {selectedRequest.target_grade !== null && (
-                  <div>
-                    <Label className="text-sm font-medium">Điểm mục tiêu</Label>
-                    <div className="mt-1 font-medium">{selectedRequest.target_grade}</div>
-                  </div>
-                )}
+
               </div>
               
               <div>

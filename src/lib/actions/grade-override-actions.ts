@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { checkTeacherPermissions } from "@/lib/utils/permission-utils"
-import { logGradeUpdateAudit } from "@/lib/utils/audit-utils"
+import { logGradeUpdateAuditPending, type GradeUpdateAuditData } from "@/lib/utils/audit-utils"
 
 export interface GradeOverrideData {
   gradeId: string
@@ -56,8 +56,6 @@ export async function processGradeOverridesAction(
   overrides: GradeOverrideData[]
 ): Promise<GradeOverrideResult> {
   try {
-    const supabase = await createClient()
-
     // Check teacher permissions
     const { user } = await checkTeacherPermissions()
 
@@ -72,36 +70,23 @@ export async function processGradeOverridesAction(
       }
     }
 
-    // Process each override
+    // Process each override - CREATE PENDING AUDIT LOGS ONLY, DON'T UPDATE GRADES YET
     for (const override of overrides) {
-      // Update the grade
-      const { error: updateError } = await supabase
-        .from('student_detailed_grades')
-        .update({
-          grade_value: override.newValue,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', override.gradeId)
-
-      if (updateError) {
-        throw new Error(`Lỗi cập nhật điểm cho ${override.studentName}: ${updateError.message}`)
-      }
-
-      // Create audit log using unified audit system
-      await logGradeUpdateAudit(
-        override.gradeId,
-        user.id,
-        override.oldValue,
-        override.newValue,
-        override.reason || 'Không có lý do',
-        override.componentType,
-        override.studentName
-      )
+      // Create pending audit log - grades will be updated only after admin approval
+      await logGradeUpdateAuditPending({
+        gradeId: override.gradeId,
+        userId: user.id,
+        oldValue: override.oldValue,
+        newValue: override.newValue,
+        reason: override.reason || 'Không có lý do',
+        componentType: override.componentType,
+        studentName: override.studentName
+      })
     }
 
     return {
       success: true,
-      message: `Đã xử lý thành công ${overrides.length} thay đổi điểm`,
+      message: `Đã gửi ${overrides.length} yêu cầu thay đổi điểm cho admin phê duyệt`,
       overrideCount: overrides.length
     }
 

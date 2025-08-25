@@ -61,51 +61,84 @@ export async function logGradeAuditAction(data: GradeAuditLogData): Promise<{
   }
 }
 
+export interface GradeUpdateAuditData {
+  gradeId: string
+  userId: string
+  oldValue: number | null
+  newValue: number | null
+  reason: string
+  componentType: string
+  studentName?: string
+  subjectName?: string
+}
+
 /**
  * Helper function to create audit log for grade updates
  */
-export async function logGradeUpdateAudit(
-  gradeId: string,
-  userId: string,
-  oldValue: number | null,
-  newValue: number | null,
-  reason: string,
-  componentType: string,
-  studentName?: string,
-  subjectName?: string
-): Promise<void> {
-  const changes_summary = reason || `Cập nhật điểm ${componentType}${studentName ? ` cho ${studentName}` : ''}${subjectName ? ` môn ${subjectName}` : ''}`
-  
+export async function logGradeUpdateAudit(data: GradeUpdateAuditData): Promise<void> {
+  const studentPart = data.studentName ? ` cho ${data.studentName}` : ''
+  const subjectPart = data.subjectName ? ` môn ${data.subjectName}` : ''
+  const changes_summary = data.reason || `Cập nhật điểm ${data.componentType}${studentPart}${subjectPart}`
+
   await logGradeAuditAction({
-    record_id: gradeId,
+    record_id: data.gradeId,
     action: 'UPDATE',
-    user_id: userId,
-    old_values: { grade_value: oldValue },
-    new_values: { grade_value: newValue },
+    user_id: data.userId,
+    old_values: { grade_value: data.oldValue },
+    new_values: { grade_value: data.newValue },
     changes_summary
   })
 }
 
 /**
+ * Helper function to create audit log for grade updates that require admin approval
+ */
+export async function logGradeUpdateAuditPending(data: GradeUpdateAuditData): Promise<void> {
+  const studentPart = data.studentName ? ` cho ${data.studentName}` : ''
+  const subjectPart = data.subjectName ? ` môn ${data.subjectName}` : ''
+  const changes_summary = data.reason || `Cập nhật điểm ${data.componentType}${studentPart}${subjectPart}`
+
+  await logGradeAuditAction({
+    record_id: data.gradeId,
+    action: 'UPDATE',
+    user_id: data.userId,
+    old_values: {
+      old_value: data.oldValue,
+      status: 'pending'
+    },
+    new_values: {
+      new_value: data.newValue,
+      processed_at: null,
+      processed_by: null
+    },
+    changes_summary
+  })
+}
+
+export interface GradeCreateAuditData {
+  gradeId: string
+  userId: string
+  gradeValue: number | null
+  reason: string
+  componentType: string
+  studentName?: string
+  subjectName?: string
+}
+
+/**
  * Helper function to create audit log for new grade creation
  */
-export async function logGradeCreateAudit(
-  gradeId: string,
-  userId: string,
-  gradeValue: number | null,
-  reason: string,
-  componentType: string,
-  studentName?: string,
-  subjectName?: string
-): Promise<void> {
-  const changes_summary = reason || `Tạo điểm ${componentType}${studentName ? ` cho ${studentName}` : ''}${subjectName ? ` môn ${subjectName}` : ''}`
-  
+export async function logGradeCreateAudit(data: GradeCreateAuditData): Promise<void> {
+  const studentPart = data.studentName ? ` cho ${data.studentName}` : ''
+  const subjectPart = data.subjectName ? ` môn ${data.subjectName}` : ''
+  const changes_summary = data.reason || `Tạo điểm ${data.componentType}${studentPart}${subjectPart}`
+
   await logGradeAuditAction({
-    record_id: gradeId,
+    record_id: data.gradeId,
     action: 'INSERT',
-    user_id: userId,
+    user_id: data.userId,
     old_values: undefined,
-    new_values: { grade_value: gradeValue },
+    new_values: { grade_value: data.gradeValue },
     changes_summary
   })
 }

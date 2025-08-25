@@ -76,23 +76,23 @@ async function storeSummaryGradeInDatabase(
     if (userId && upsertedGrade) {
       if (existingGrade) {
         // This was an update
-        await logGradeUpdateAudit(
-          upsertedGrade.id,
-          userId,
-          existingGrade.grade_value,
-          Math.round(summaryGrade * 100) / 100,
-          `Cập nhật điểm tổng kết ${componentType}`,
-          componentType
-        )
+        await logGradeUpdateAudit({
+          gradeId: upsertedGrade.id,
+          userId: userId,
+          oldValue: existingGrade.grade_value,
+          newValue: Math.round(summaryGrade * 100) / 100,
+          reason: `Cập nhật điểm tổng kết ${componentType}`,
+          componentType: componentType
+        })
       } else {
         // This was a new grade creation
-        await logGradeCreateAudit(
-          upsertedGrade.id,
-          userId,
-          Math.round(summaryGrade * 100) / 100,
-          `Tạo điểm tổng kết ${componentType}`,
-          componentType
-        )
+        await logGradeCreateAudit({
+          gradeId: upsertedGrade.id,
+          userId: userId,
+          gradeValue: Math.round(summaryGrade * 100) / 100,
+          reason: `Tạo điểm tổng kết ${componentType}`,
+          componentType: componentType
+        })
       }
     }
   } catch (error) {

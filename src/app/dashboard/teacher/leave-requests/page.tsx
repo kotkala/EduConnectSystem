@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -28,8 +28,20 @@ import {
   AlertCircle,
   Download,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
+import { Input } from '@/shared/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 
 export default function TeacherLeaveRequestsPage() {
   const router = useRouter()
@@ -43,6 +55,12 @@ export default function TeacherLeaveRequestsPage() {
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [responseText, setResponseText] = useState<{ [key: string]: string }>({})
 
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all')
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -52,6 +70,21 @@ export default function TeacherLeaveRequestsPage() {
 
   // Global loading for initial data loads
   const { startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
+  // ✅ FIXED: Memoize filtered applications to prevent infinite loop
+  const filteredApplications = useMemo(() => {
+    return applications.filter(app => {
+      const matchesSearch = searchTerm === '' ||
+        app.student?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.student?.student_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.reason.toLowerCase().includes(searchTerm.toLowerCase())
+
+      const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+      const matchesLeaveType = leaveTypeFilter === 'all' || app.leave_type === leaveTypeFilter
+
+      return matchesSearch && matchesStatus && matchesLeaveType
+    })
+  }, [applications, searchTerm, statusFilter, leaveTypeFilter])
 
   const fetchLeaveApplications = useCallback(async () => {
     try {
@@ -64,15 +97,6 @@ export default function TeacherLeaveRequestsPage() {
       if (result.success && result.data) {
         const allApplications = result.data
         setApplications(allApplications)
-
-        // Update pagination
-        setTotalCount(allApplications.length)
-        setTotalPages(Math.ceil(allApplications.length / pageSize))
-
-        // Get current page applications
-        const startIndex = (currentPage - 1) * pageSize
-        const endIndex = startIndex + pageSize
-        setPaginatedApplications(allApplications.slice(startIndex, endIndex))
       } else {
         setError(result.error || 'Không thể tải danh sách đơn xin nghỉ')
       }
@@ -81,13 +105,38 @@ export default function TeacherLeaveRequestsPage() {
     } finally {
       stopLoading()
     }
-  }, [currentPage, pageSize, startLoading, stopLoading]) // âœ… Add all dependencies
+  }, [startLoading, stopLoading]) // âœ… Add all dependencies
+
+  // ✅ FIXED: Handle filter changes and page reset (without currentPage dependency)
+  useEffect(() => {
+    setTotalCount(filteredApplications.length)
+    const newTotalPages = Math.ceil(filteredApplications.length / pageSize)
+    setTotalPages(newTotalPages)
+
+    // Reset to page 1 when filters change and current page is invalid
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(1)
+      return // Exit early, let the page change effect handle pagination
+    }
+
+    // Update pagination for current page
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    setPaginatedApplications(filteredApplications.slice(startIndex, endIndex))
+  }, [filteredApplications, pageSize]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ✅ FIXED: Handle page changes separately
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    setPaginatedApplications(filteredApplications.slice(startIndex, endIndex))
+  }, [currentPage, filteredApplications, pageSize])
 
   useEffect(() => {
     if (user && profile?.role === 'teacher') {
       fetchLeaveApplications()
     }
-  }, [user, profile, currentPage, fetchLeaveApplications]) // âœ… Add all dependencies
+  }, [user, profile, fetchLeaveApplications]) // âœ… Add all dependencies
 
   const handleStatusUpdate = async (applicationId: string, status: 'approved' | 'rejected') => {
     try {
@@ -146,6 +195,18 @@ export default function TeacherLeaveRequestsPage() {
     const diffTime = Math.abs(end.getTime() - start.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
+  }
+
+  const toggleCardExpansion = (cardId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId)
+      } else {
+        newSet.add(cardId)
+      }
+      return newSet
+    })
   }
 
   // ðŸš€ MIGRATION: Loading now handled by CoordinatedLoadingOverlay
@@ -231,20 +292,90 @@ export default function TeacherLeaveRequestsPage() {
           </Card>
         </div>
 
+        {/* Search and Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Tìm kiếm và lọc
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="search">Tìm kiếm</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Tên học sinh, mã số, lý do..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="status-filter">Trạng thái</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="pending">Đang chờ</SelectItem>
+                    <SelectItem value="approved">Đã duyệt</SelectItem>
+                    <SelectItem value="rejected">Từ chối</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="leave-type-filter">Loại nghỉ</Label>
+                <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại nghỉ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="Nghỉ ốm">Nghỉ ốm</SelectItem>
+                    <SelectItem value="Nghỉ phép">Nghỉ phép</SelectItem>
+                    <SelectItem value="Nghỉ việc gia đình">Nghỉ việc gia đình</SelectItem>
+                    <SelectItem value="Khác">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Results count */}
+            <div className="mt-4 text-sm text-muted-foreground">
+              Hiển thị {filteredApplications.length} trong tổng số {applications.length} đơn xin nghỉ
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Applications List */}
         <div className="space-y-4">
-          {applications.length === 0 ? (
+          {filteredApplications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {applications.length === 0 ? 'Chưa có đơn xin nghỉ' : 'Không tìm thấy đơn xin nghỉ'}
+                </h3>
                 <p className="text-gray-600 text-center">
-                  Hiện chưa có đơn xin nghỉ nào từ học sinh lớp chủ nhiệm.
+                  {applications.length === 0
+                    ? 'Hiện chưa có đơn xin nghỉ nào từ học sinh lớp chủ nhiệm.'
+                    : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.'
+                  }
                 </p>
               </CardContent>
             </Card>
           ) : (
-            paginatedApplications.map((application) => (
+            paginatedApplications.map((application) => {
+              const isExpanded = expandedCards.has(application.id)
+              return (
               <Card key={application.id} className="overflow-hidden">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -266,14 +397,33 @@ export default function TeacherLeaveRequestsPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/dashboard/leave-application/${application.id}`)}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Xem chi tiết
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleCardExpansion(application.id)}
+                        >
+                          {isExpanded ? (
+                            <>
+                              <ChevronUp className="h-4 w-4 mr-2" />
+                              Thu gọn
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4 mr-2" />
+                              Mở rộng
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/leave-application/${application.id}`)}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Xem chi tiết
+                        </Button>
+                      </div>
                       <div className="text-right text-sm text-muted-foreground">
                         <div>Gửi: {formatDate(application.created_at)}</div>
                         {application.responded_at && (
@@ -283,7 +433,8 @@ export default function TeacherLeaveRequestsPage() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {isExpanded && (
+                  <CardContent className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Lý do</Label>
                     <p className="text-sm text-muted-foreground mt-1">{application.reason}</p>
@@ -291,14 +442,32 @@ export default function TeacherLeaveRequestsPage() {
 
                   {application.attachment_url && (
                     <div>
-                      <Label className="text-sm font-medium">Tệp đính kèm</Label>
-                      <div className="mt-1">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
-                            <Download className="h-3 w-3 mr-1" />
-                            Xem tệp đính kèm
-                          </a>
-                        </Button>
+                      <Label className="text-sm font-medium">Đơn xin nghỉ học</Label>
+                      <div className="mt-1 border rounded-lg p-2 bg-gray-50">
+                        <img
+                          src={application.attachment_url}
+                          alt="Đơn xin nghỉ học"
+                          className="max-w-full h-auto rounded-md shadow-sm"
+                          style={{ maxHeight: '400px' }}
+                          onError={(e) => {
+                            // Fallback to download button if image fails to load
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const fallbackDiv = target.nextElementSibling as HTMLDivElement
+                            if (fallbackDiv) {
+                              fallbackDiv.style.display = 'block'
+                            }
+                          }}
+                        />
+                        <div style={{ display: 'none' }} className="text-center py-2">
+                          <p className="text-xs text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
+                              <Download className="h-3 w-3 mr-1" />
+                              Tải xuống
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -347,9 +516,10 @@ export default function TeacherLeaveRequestsPage() {
                       </div>
                     </div>
                   )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
-            ))
+            )})
           )}
         </div>
 

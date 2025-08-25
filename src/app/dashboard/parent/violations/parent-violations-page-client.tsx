@@ -219,7 +219,14 @@ export default function ParentViolationsPageClient() {
             </p>
           </div>
         </div>
-        <div className="text-center py-8">Loading...</div>
+        <div className="space-y-4">
+          <div className="h-4 w-48 bg-muted animate-pulse rounded" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={`violation-skeleton-${i}`} className="h-16 w-full bg-muted animate-pulse rounded" />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

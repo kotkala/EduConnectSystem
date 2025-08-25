@@ -208,6 +208,8 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           .select('id, name, start_date, end_date')
           .in('id', reportPeriodIds)
 
+
+
         // Map responses and report periods to notifications
         const responseMap = new Map(
           (responses || []).map(r => [r.student_report_id, r])
@@ -216,7 +218,10 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           (reportPeriods || []).map(rp => [rp.id, rp])
         )
 
-        notificationsWithResponses = notifications.map(notification => ({
+
+
+        notificationsWithResponses = notifications.map(notification => {
+          const result = {
             ...notification,
             parent_response: responseMap.get(notification.student_report_id) || null,
             student_report: notification.student_report ? {
@@ -232,7 +237,12 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
                 : notification.student_report.homeroom_teacher || { full_name: '' },
               report_period: reportPeriodMap.get(notification.student_report.report_period_id) || null
             } : null
-          }))
+          }
+
+
+
+          return result
+        })
       }
     }
 

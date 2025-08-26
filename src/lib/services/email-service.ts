@@ -963,7 +963,7 @@ export async function sendAccountCreationEmail(data: AccountCreationEmailData) {
             ` : ''}
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/login" class="button">
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}" class="button">
                     🚀 Đăng nhập ngay
                 </a>
             </div>
@@ -1016,7 +1016,7 @@ ${data.address ? `- Địa chỉ: ${data.address}` : ''}
 ${data.tempPassword ? `🔐 MẬT KHẨU TẠM THỜI: ${data.tempPassword}
 ⚠️ Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên` : ''}
 
-🚀 Đăng nhập tại: ${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/login
+🚀 Đăng nhập tại: ${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}
 
 📞 HỖ TRỢ:
 Nếu thông tin trên không chính xác hoặc bạn cần hỗ trợ, vui lòng liên hệ ban cán bộ nhà trường.

@@ -37,26 +37,6 @@ export function AppSidebar({ role }: AppSidebarProps) {
   }
 
   return (
-<<<<<<< Updated upstream
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border/30">
-        <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-          {/* Logo Icon - Modern Minimalist Design */}
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-50 border border-orange-100 shrink-0">
-            <Image
-              src="/Edu Connect.svg"
-              alt="EduConnect Logo"
-              width={24}
-              height={24}
-              className="h-6 w-6 object-contain"
-            />
-          </div>
-
-          {/* Brand Text - Modern Typography */}
-          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <div className="space-y-1">
-              <h1 className="text-lg font-bold text-sidebar-foreground tracking-tight">
-=======
     <>
       <aside
         className={cn(
@@ -97,7 +77,6 @@ export function AppSidebar({ role }: AppSidebarProps) {
                     : "translate-x-0 opacity-100"
                 )}
               >
->>>>>>> Stashed changes
                 EduConnect
               </h1>
             </Link>

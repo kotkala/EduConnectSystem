@@ -21,7 +21,7 @@ const ROUTE_LABELS: Record<string, string> = {
   'grade-tracking': 'Theo dõi điểm',
   'notifications': 'Thông báo',
   'classrooms': 'Phòng học',
-  'timetable': 'Thời khóa biểu',
+  'admin-timetable': 'Thời khóa biểu',
   'schedule-change': 'Đơn thay đổi lịch',
   'grade-periods': 'Kỳ báo cáo điểm',
   'grade-overwrite-approvals': 'Phê duyệt ghi đè điểm',
@@ -30,7 +30,7 @@ const ROUTE_LABELS: Record<string, string> = {
   'teacher-assignments': 'Phân công giáo viên',
   'violations': 'Vi phạm',
   'analytics': 'Phân tích',
-  
+
   // Teacher routes
   'teacher': 'Giáo viên',
   'grade-management': 'Quản lý điểm',
@@ -42,14 +42,14 @@ const ROUTE_LABELS: Record<string, string> = {
   'leave-requests': 'Đơn xin nghỉ',
   'reports': 'Báo cáo',
   'feedback': 'Phản hồi',
-  
+
   // Parent routes
   'parent': 'Phụ huynh',
   'grades': 'Bảng điểm',
   'chatbot': 'Trợ lý AI',
   'leave-application': 'Đơn xin nghỉ',
   'leave-status': 'Trạng thái đơn nghỉ',
-  
+
   // Student routes
   'student': 'Học sinh',
   'courses': 'Khóa học',

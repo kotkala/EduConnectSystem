@@ -253,70 +253,6 @@ export default async function AdminDashboard() {
               </p>
             </div>
 
-<<<<<<< Updated upstream
-        {/* Quick Actions */}
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h3 className="text-lg font-semibold text-gray-900">Thao tác nhanh</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action) => (
-              <QuickActionCard
-                key={action.title}
-                icon={action.icon}
-                title={action.title}
-                description={action.description}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Analytics Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-                Phân tích nền tảng
-              </CardTitle>
-              <CardDescription>
-                Tương tác người dùng và thống kê sử dụng nền tảng
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Tỷ lệ lấp đầy lớp học</span>
-                  <span className="text-sm text-muted-foreground">{occupancyRate}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-blue-500 to-emerald-500 h-2 rounded-full" style={{ width: `${occupancyRate}%` }}></div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Lớp đang hoạt động</span>
-                  <span className="text-sm text-muted-foreground">{totalClasses > 0 ? Math.round((activeClasses / totalClasses) * 100) : 0}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-emerald-500 to-blue-500 h-2 rounded-full" style={{ width: `${totalClasses > 0 ? Math.round((activeClasses / totalClasses) * 100) : 0}%` }}></div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Active Subjects</span>
-                  <span className="text-sm text-muted-foreground">{totalSubjects > 0 ? Math.round((activeSubjects / totalSubjects) * 100) : 0}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{ width: `${totalSubjects > 0 ? Math.round((activeSubjects / totalSubjects) * 100) : 0}%` }}></div>
-                </div>
-
-                <div className="pt-2 border-t border-gray-100">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">{totalStudentsEnrolled}</div>
-                      <div className="text-xs text-muted-foreground">Students Enrolled</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-emerald-600">{totalCapacity}</div>
-                      <div className="text-xs text-muted-foreground">Total Capacity</div>
-=======
             {/* Enhanced Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
               {roleConfig.map(({ role, label, icon: Icon, gradient, trend }) => (
@@ -414,111 +350,11 @@ export default async function AdminDashboard() {
                           <div className="text-xs text-muted-foreground">Tổng sức chứa</div>
                         </div>
                       </div>
->>>>>>> Stashed changes
                     </div>
                   </div>
                 </div>
               </div>
 
-<<<<<<< Updated upstream
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-emerald-600" />
-                System Health
-              </CardTitle>
-              <CardDescription>
-                Real-time system status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Database</span>
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Connected
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Total Users</span>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                    {Object.values(stats).reduce((sum, count) => sum + count, 0)} Active
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Subjects</span>
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    {activeSubjects}/{totalSubjects} Active
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm">Classes</span>
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                    {activeClasses}/{totalClasses} Active
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm">Notifications</span>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {systemHealth ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Enhanced Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription>
-                Latest user registrations and platform activities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity && recentActivity.length > 0 ? recentActivity.slice(0, 4).map((activity, index) => {
-                  const isNewUser = new Date(activity.created_at).getTime() === new Date(activity.updated_at).getTime()
-                  const actionText = isNewUser ? 'New account created' : 'Profile updated'
-                  const timeAgo = getTimeAgo(activity.updated_at)
-                  const roleIcon = getRoleIcon(activity.role)
-                  const roleColor = getRoleColor(activity.role)
-
-                  return (
-                    <div
-                      key={`${activity.full_name}-${activity.updated_at}-${index}`}
-                      className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-left-4 duration-500"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <div className={`w-10 h-10 ${roleColor} rounded-full flex items-center justify-center`}>
-                        {React.createElement(roleIcon, { className: "w-5 h-5 text-white" })}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{actionText}</p>
-                        <p className="text-xs text-muted-foreground">{activity.full_name || 'Unknown User'} â€¢ {timeAgo}</p>
-=======
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                 <div className="flex flex-col space-y-1.5 p-6">
                   <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
@@ -535,66 +371,16 @@ export default async function AdminDashboard() {
                       <div className="flex items-center gap-2">
                         <Database className="w-4 h-4 text-emerald-600" />
                         <span className="text-sm">Cơ sở dữ liệu</span>
->>>>>>> Stashed changes
                       </div>
                       <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Kết nối
                       </Badge>
                     </div>
-<<<<<<< Updated upstream
-                  )
-                }) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-sm">No recent activity</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                Upcoming Events
-              </CardTitle>
-              <CardDescription>
-                Important dates and scheduled activities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {upcomingMeetings && upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting, index) => {
-                  const meetingDate = new Date(meeting.meeting_date)
-                  const formattedDate = meetingDate.toLocaleDateString('vi-VN', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                  const meetingTypeColor = getMeetingTypeColor(meeting.meeting_type)
-
-                  return (
-                    <div
-                      key={`${meeting.title}-${meeting.meeting_date}-${index}`}
-                      className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-right-4 duration-500"
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <div className={`w-10 h-10 ${meetingTypeColor} rounded-full flex items-center justify-center`}>
-                        <Calendar className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{meeting.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {meeting.meeting_type.replace('_', ' ').toUpperCase()} â€¢ {formattedDate}
-                        </p>
-=======
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-emerald-600" />
                         <span className="text-sm">Tổng người dùng</span>
->>>>>>> Stashed changes
                       </div>
                       <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
                         {Object.values(stats).reduce((sum, count) => sum + count, 0)} Hoạt động
@@ -628,13 +414,6 @@ export default async function AdminDashboard() {
                         {systemHealth ? 'Hoạt động' : 'Không hoạt động'}
                       </Badge>
                     </div>
-<<<<<<< Updated upstream
-                  )
-                }) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-sm">No upcoming meetings</p>
-=======
->>>>>>> Stashed changes
                   </div>
                 </div>
               </div>

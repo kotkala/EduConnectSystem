@@ -23,14 +23,13 @@ import { UserRole } from "@/lib/types"
 interface MenuProps {
   isOpen: boolean | undefined
   role: UserRole
-  onChatbotOpen?: () => void
 }
 
-export function Menu({ isOpen, role, onChatbotOpen }: MenuProps) {
+export function Menu({ isOpen, role }: MenuProps) {
   const pathname = usePathname()
   const { user } = useAuth()
   const { counts: notificationCounts } = useNotificationCount(role, user?.id)
-  const menuList = getMenuList(pathname, role, onChatbotOpen)
+  const menuList = getMenuList(pathname, role)
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -68,17 +67,20 @@ export function Menu({ isOpen, role, onChatbotOpen }: MenuProps) {
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname.startsWith(href)) ||
+                                  href && pathname === href) ||
                                 active
                                   ? "secondary"
                                   : "ghost"
                               }
-                              className="w-full justify-start h-10 mb-1"
+                              className={cn(
+                                "w-full justify-start h-10 mb-1",
+                                onClick && "hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                              )}
                               asChild={!onClick}
                               onClick={onClick}
                             >
                               {onClick ? (
-                                <div className="flex items-center">
+                                <>
                                   <span
                                     className={cn(isOpen === false ? "" : "mr-4")}
                                   >
@@ -96,8 +98,8 @@ export function Menu({ isOpen, role, onChatbotOpen }: MenuProps) {
                                   </p>
                                   {/* Notification badge for notifications menu */}
                                   {href.includes('/notifications') && notificationCounts.unread > 0 && (
-                                    <Badge 
-                                      variant="destructive" 
+                                    <Badge
+                                      variant="destructive"
                                       className={cn(
                                         "ml-auto size-5 flex items-center justify-center p-0 text-xs",
                                         isOpen === false ? "opacity-0" : "opacity-100"
@@ -106,7 +108,7 @@ export function Menu({ isOpen, role, onChatbotOpen }: MenuProps) {
                                       {notificationCounts.unread > 99 ? '99+' : notificationCounts.unread}
                                     </Badge>
                                   )}
-                                </div>
+                                </>
                               ) : (
                                 <Link href={href}>
                                   <span
@@ -126,8 +128,8 @@ export function Menu({ isOpen, role, onChatbotOpen }: MenuProps) {
                                   </p>
                                   {/* Notification badge for notifications menu */}
                                   {href.includes('/notifications') && notificationCounts.unread > 0 && (
-                                    <Badge 
-                                      variant="destructive" 
+                                    <Badge
+                                      variant="destructive"
                                       className={cn(
                                         "ml-auto size-5 flex items-center justify-center p-0 text-xs",
                                         isOpen === false ? "opacity-0" : "opacity-100"

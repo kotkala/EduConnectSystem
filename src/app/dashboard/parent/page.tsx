@@ -1,11 +1,13 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from '@/shared/components/ui/breadcrumb'
+import { Card, CardContent } from '@/shared/components/ui/card'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import {
@@ -109,42 +111,51 @@ export default function ParentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-        <div className="space-y-8">
-          {/* Modern Header */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/5 p-6 sm:p-8">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                      Chào mừng trở lại!
-                    </h1>
-                    <p className="text-lg text-gray-600 font-medium">
-                      {profile.full_name || 'Phụ huynh'}
-                    </p>
-                  </div>
+    <ContentLayout title="Tổng quan" role="parent">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Tổng quan</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
+          <div className="space-y-8">
+        {/* Header */}
+        <div className="space-y-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-gray-500 max-w-2xl leading-relaxed">
-                  Quản lý hoạt động học tập của con em và luôn đồng hành cùng các em trong hành trình phát triển.
-                </p>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    Chào mừng trở lại!
+                  </h1>
+                  <p className="text-lg text-muted-foreground font-medium">
+                    {profile.full_name || 'Phụ huynh'}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <ParentMeetingSchedules showUnreadCount={true} />
-                <Button
-                  onClick={() => router.push('/dashboard/parent/leave-application')}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-medium"
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  Tạo đơn xin nghỉ
-                </Button>
-              </div>
+              <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                Quản lý hoạt động học tập của con em và luôn đồng hành cùng các em trong hành trình phát triển.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <ParentMeetingSchedules showUnreadCount={true} />
+              <Button
+                onClick={() => router.push('/dashboard/parent/leave-application')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-medium"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Tạo đơn xin nghỉ
+              </Button>
             </div>
           </div>
+        </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -337,8 +348,9 @@ export default function ParentDashboard() {
               })()}
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+          </div>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

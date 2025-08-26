@@ -62,6 +62,21 @@ interface TeacherGradeNotificationEmailData {
   isResubmission: boolean
 }
 
+interface AccountCreationEmailData {
+  email: string
+  fullName: string
+  role: 'teacher' | 'parent' | 'student'
+  employeeId?: string
+  studentId?: string
+  phoneNumber?: string
+  gender?: string
+  dateOfBirth?: string
+  address?: string
+  className?: string
+  parentName?: string
+  tempPassword?: string
+}
+
 /**
  * Send email notification to parent about new report using Resend
  */
@@ -748,6 +763,291 @@ export async function sendTeacherGradeNotificationEmail(data: TeacherGradeNotifi
     }
   } catch (error) {
     console.error('Error sending teacher grade notification email:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Send account creation notification email with beautiful pastel template
+ */
+export async function sendAccountCreationEmail(data: AccountCreationEmailData) {
+  try {
+    const roleNames = {
+      teacher: 'Giáo viên',
+      parent: 'Phụ huynh',
+      student: 'Học sinh'
+    }
+
+    const roleName = roleNames[data.role]
+    const subject = `🎉 Chào mừng bạn đến với EduConnect - Tài khoản ${roleName} đã được tạo`
+
+    // Create clean HTML template following existing patterns
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${subject}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .content {
+            padding: 30px;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .info-value {
+            color: #212529;
+        }
+        .password-box {
+            background-color: #fff3cd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            text-align: center;
+        }
+        .password {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #856404;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 10px 0;
+            border: 2px solid #ffc107;
+        }
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        .contact-box {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .footer {
+            background: #6c757d;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Chào mừng đến với EduConnect!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Hệ thống quản lý giáo dục thông minh</p>
+        </div>
+
+        <div class="content">
+            <h2 style="color: #333; margin-bottom: 20px;">Tài khoản ${roleName} đã được tạo thành công</h2>
+
+            <p>Xin chào <strong>${data.fullName}</strong>,</p>
+            <p>Tài khoản ${roleName} của bạn đã được tạo thành công trong hệ thống EduConnect. Dưới đây là thông tin chi tiết:</p>
+
+            <div class="info-box">
+                <h3 style="margin: 0 0 15px 0; color: #333;">📋 Thông tin tài khoản</h3>
+                <div class="info-row">
+                    <span class="info-label">Họ và tên:</span>
+                    <span class="info-value">${data.fullName}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">${data.email}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vai trò:</span>
+                    <span class="info-value">${roleName}</span>
+                </div>
+                ${data.employeeId ? `
+                <div class="info-row">
+                    <span class="info-label">Mã nhân viên:</span>
+                    <span class="info-value">${data.employeeId}</span>
+                </div>
+                ` : ''}
+                ${data.studentId ? `
+                <div class="info-row">
+                    <span class="info-label">Mã học sinh:</span>
+                    <span class="info-value">${data.studentId}</span>
+                </div>
+                ` : ''}
+                ${data.className ? `
+                <div class="info-row">
+                    <span class="info-label">Lớp:</span>
+                    <span class="info-value">${data.className}</span>
+                </div>
+                ` : ''}
+                ${data.phoneNumber ? `
+                <div class="info-row">
+                    <span class="info-label">Số điện thoại:</span>
+                    <span class="info-value">${data.phoneNumber}</span>
+                </div>
+                ` : ''}
+                ${data.address ? `
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ:</span>
+                    <span class="info-value">${data.address}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            ${data.tempPassword ? `
+            <div class="password-box">
+                <h3 style="margin: 0 0 15px 0; color: #856404;">🔐 Mật khẩu tạm thời</h3>
+                <p style="margin: 0 0 10px 0;">
+                    Mật khẩu tạm thời của bạn là:
+                </p>
+                <div class="password">${data.tempPassword}</div>
+                <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">
+                    ⚠️ Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên
+                </p>
+            </div>
+            ` : ''}
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}" class="button">
+                    🚀 Đăng nhập ngay
+                </a>
+            </div>
+
+            <div class="contact-box">
+                <h3 style="margin: 0 0 15px 0; color: #1976d2;">📞 Hỗ trợ</h3>
+                <p style="margin: 0 0 10px 0;">
+                    Nếu thông tin trên không chính xác hoặc bạn cần hỗ trợ, vui lòng liên hệ:
+                </p>
+                <p style="margin: 0; font-weight: 600;">
+                    📧 Ban cán bộ nhà trường<br>
+                    📱 Hotline: 1900-xxxx<br>
+                    🏫 Văn phòng: Phòng 101, Tòa nhà chính
+                </p>
+            </div>
+
+            <p>Cảm ơn bạn đã tham gia hệ thống EduConnect!</p>
+        </div>
+
+        <div class="footer">
+            <p style="margin: 0;">
+                Email này được gửi tự động từ hệ thống EduConnect.<br>
+                Vui lòng không trả lời email này.
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 12px;">
+                © 2024 EduConnect. Tất cả quyền được bảo lưu.
+            </p>
+        </div>
+    </div>
+    </body>
+    </html>
+    `.trim()
+
+    // Create text version
+    const textContent = `
+🎉 Chào mừng bạn đến với EduConnect!
+
+Tài khoản ${roleName} của bạn đã được tạo thành công trong hệ thống EduConnect.
+
+📋 THÔNG TIN TÀI KHOẢN:
+- Họ và tên: ${data.fullName}
+- Email: ${data.email}
+- Vai trò: ${roleName}
+${data.employeeId ? `- Mã nhân viên: ${data.employeeId}` : ''}
+${data.studentId ? `- Mã học sinh: ${data.studentId}` : ''}
+${data.className ? `- Lớp: ${data.className}` : ''}
+${data.phoneNumber ? `- Số điện thoại: ${data.phoneNumber}` : ''}
+${data.address ? `- Địa chỉ: ${data.address}` : ''}
+
+${data.tempPassword ? `🔐 MẬT KHẨU TẠM THỜI: ${data.tempPassword}
+⚠️ Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên` : ''}
+
+🚀 Đăng nhập tại: ${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}
+
+📞 HỖ TRỢ:
+Nếu thông tin trên không chính xác hoặc bạn cần hỗ trợ, vui lòng liên hệ ban cán bộ nhà trường.
+
+---
+Email này được gửi tự động từ hệ thống EduConnect. Vui lòng không trả lời email này.
+    `.trim()
+
+    // Send email using SMTP
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const emailResult = await transporter.sendMail({
+          from: process.env.EMAIL_FROM || 'EduConnect <noreply@gmail.com>',
+          to: data.email,
+          subject: subject,
+          html: htmlContent,
+          text: textContent,
+        })
+
+        console.log('✅ Account creation email sent successfully via SMTP:', emailResult.messageId)
+        return { success: true }
+      } catch (smtpError) {
+        console.error('❌ Failed to send account creation email via SMTP:', smtpError)
+        return { success: false, error: smtpError instanceof Error ? smtpError.message : 'SMTP error' }
+      }
+    } else {
+      console.log('📧 SMTP not configured, skipping account creation email')
+      return { success: false, error: 'SMTP not configured' }
+    }
+  } catch (error) {
+    console.error('Error sending account creation email:', error)
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }

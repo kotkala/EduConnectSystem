@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/shared/components/ui/button"
@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Save, X } from "lucide-react";import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
-import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
+import { createTeacherAction, updateTeacherAction, generateNextEmployeeIdAction } from "@/features/admin-management/actions/user-actions"
 import TeacherSpecializationForm from "@/features/teacher-management/components/teacher-specialization-form"
+import { toast } from "sonner"
 
 
 import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherFormProps {
@@ -27,6 +28,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
   const [createdTeacherId, setCreatedTeacherId] = useState<string | null>(null)
+  const [generatingId, setGeneratingId] = useState(false)
 
   const isEditing = !!teacher
 
@@ -42,6 +44,27 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
       address: teacher?.address || ""
     }
   })
+
+  const generateEmployeeId = useCallback(async () => {
+    setGeneratingId(true)
+    try {
+      const result = await generateNextEmployeeIdAction()
+      if (result.success && result.data) {
+        form.setValue("employee_id", result.data)
+      }
+    } catch (error) {
+      console.error("Failed to generate employee ID:", error)
+    } finally {
+      setGeneratingId(false)
+    }
+  }, [form])
+
+  // Auto-generate employee ID for new teachers
+  useEffect(() => {
+    if (!isEditing && !form.getValues("employee_id")) {
+      generateEmployeeId()
+    }
+  }, [isEditing, form, generateEmployeeId])
 
   const onSubmit = async (data: TeacherFormData) => {
     setIsSubmitting(true)
@@ -62,6 +85,7 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
 
       if (result.success) {
         setSubmitSuccess(result.message || "Teacher saved successfully")
+        toast.success(result.message || (isEditing ? "Cập nhật giáo viên thành công!" : "Tạo giáo viên thành công!"))
         if (!isEditing) {
           form.reset()
           // Set the created teacher ID to show specialization form
@@ -93,12 +117,27 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
           {/* Employee ID */}
           <div className="space-y-2 sm:space-y-3">
             <Label htmlFor="employee_id" className="text-sm sm:text-base">Mã nhân viên *</Label>
-            <Input
-              id="employee_id"
-              {...form.register("employee_id")}
-              placeholder="VD: EMP001"
-              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="employee_id"
+                {...form.register("employee_id")}
+                placeholder="VD: TC001"
+                readOnly={isEditing}
+                className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base flex-1 ${form.formState.errors.employee_id ? "border-red-500" : ""} ${isEditing ? "bg-gray-50" : ""}`}
+              />
+              {!isEditing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateEmployeeId}
+                  disabled={generatingId}
+                  className="h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 px-3"
+                >
+                  {generatingId ? "..." : "Tạo"}
+                </Button>
+              )}
+            </div>
             {form.formState.errors.employee_id && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
             )}

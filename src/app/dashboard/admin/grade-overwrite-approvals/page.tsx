@@ -36,12 +36,11 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select"
 import { toast } from "sonner"
-import { 
+import {
   getGradeOverwriteRequestsAction,
-  approveGradeOverwriteAction,
-  rejectGradeOverwriteAction,
-  type GradeOverwriteRequest 
-} from "@/lib/actions/admin-grade-overwrite-actions"
+  reviewGradeOverwriteRequestAction,
+  type GradeOverwriteRequest
+} from "@/lib/actions/grade-overwrite-approval-actions"
 
 export default function AdminGradeOverwriteApprovalsPage() {
   const [requests, setRequests] = useState<GradeOverwriteRequest[]>([])
@@ -62,10 +61,10 @@ export default function AdminGradeOverwriteApprovalsPage() {
   // Filter requests based on search and filters
   const filteredRequests = requests.filter(request => {
     const matchesSearch = searchTerm === '' ||
-      request.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.subject_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.change_reason.toLowerCase().includes(searchTerm.toLowerCase())
+      (request.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (request.subject_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (request.class_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (request.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
 
     const matchesStatus = statusFilter === 'all' || request.status === statusFilter
     const matchesSubject = subjectFilter === 'all' || request.subject_name === subjectFilter
@@ -97,7 +96,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       if (result.success && result.data) {
         setRequests(result.data)
       } else {
-        toast.error(result.message || 'Không thể tải danh sách yêu cầu ghi đè')
+        toast.error(result.error || 'Không thể tải danh sách yêu cầu ghi đè')
       }
     } catch (error) {
       console.error('Error loading overwrite requests:', error)
@@ -120,12 +119,11 @@ export default function AdminGradeOverwriteApprovalsPage() {
     try {
       setProcessing(true)
       
-      let result
-      if (actionType === 'approve') {
-        result = await approveGradeOverwriteAction(selectedRequest.id, adminReason)
-      } else {
-        result = await rejectGradeOverwriteAction(selectedRequest.id, adminReason)
-      }
+      const result = await reviewGradeOverwriteRequestAction({
+        request_id: selectedRequest.id,
+        status: actionType === 'approve' ? 'approved' : 'rejected',
+        admin_notes: adminReason.trim() || undefined
+      })
 
       if (result.success) {
         toast.success(
@@ -136,7 +134,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
         setDialogOpen(false)
         loadOverwriteRequests() // Reload the list
       } else {
-        toast.error(result.message || 'Có lỗi xảy ra')
+        toast.error(result.error || 'Có lỗi xảy ra')
       }
     } catch (error) {
       console.error('Error processing action:', error)
@@ -232,8 +230,8 @@ export default function AdminGradeOverwriteApprovalsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả</SelectItem>
-                  {Array.from(new Set(requests.map(r => r.subject_name))).map(subject => (
-                    <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                  {Array.from(new Set(requests.map(r => r.subject_name).filter(Boolean))).map(subject => (
+                    <SelectItem key={subject} value={subject!}>{subject}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -249,6 +247,10 @@ export default function AdminGradeOverwriteApprovalsPage() {
                   <SelectItem value="all">Tất cả</SelectItem>
                   <SelectItem value="midterm">Giữa kỳ</SelectItem>
                   <SelectItem value="final">Cuối kỳ</SelectItem>
+                  <SelectItem value="semester_1">Học kỳ 1</SelectItem>
+                  <SelectItem value="semester_2">Học kỳ 2</SelectItem>
+                  <SelectItem value="yearly">Cả năm</SelectItem>
+                  <SelectItem value="summary">Tổng kết</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -365,14 +367,14 @@ export default function AdminGradeOverwriteApprovalsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Thời gian yêu cầu</p>
-                    <p className="font-medium">{formatDate(request.changed_at)}</p>
+                    <p className="font-medium">{formatDate(request.requested_at)}</p>
                   </div>
                 </div>
 
                 <div className="mb-4">
                   <p className="text-sm text-muted-foreground mb-1">Lý do ghi đè</p>
                   <p className="text-sm bg-gray-50 p-2 rounded border">
-                    {request.change_reason}
+                    {request.reason}
                   </p>
                 </div>
 
@@ -395,13 +397,13 @@ export default function AdminGradeOverwriteApprovalsPage() {
                   </div>
                 )}
 
-                {request.status !== 'pending' && request.admin_reason && (
+                {request.status !== 'pending' && request.admin_notes && (
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-1">
-                      Ghi chú của admin ({formatDate(request.processed_at || '')})
+                      Ghi chú của admin ({formatDate(request.reviewed_at || '')})
                     </p>
                     <p className="text-sm bg-blue-50 p-2 rounded border">
-                      {request.admin_reason}
+                      {request.admin_notes}
                     </p>
                   </div>
                 )}

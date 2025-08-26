@@ -18,6 +18,7 @@ import { FileText, Clock, User, Search, Filter, ChevronLeft, ChevronRight } from
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSeverityLevels } from '@/lib/validations/violation-validations'
+import { getClassesAction } from '@/lib/actions/grade-management-actions'
 
 
 import { Skeleton } from "@/shared/components/ui/skeleton";// Simple types matching database structure
@@ -212,24 +213,19 @@ export default function SimpleViolationsTable() {
 
   const loadClasses = async () => {
     try {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name')
-        .order('name')
+      const result = await getClassesAction()
 
-      if (error) {
-        console.error('Error loading classes:', error)
-        toast.error(`Failed to load classes: ${error.message}`)
-        return
+      if (result.success && result.data) {
+        // Extract just id and name for the dropdown
+        const classOptions = result.data.map(cls => ({
+          id: cls.id,
+          name: cls.name
+        }))
+        setClasses(classOptions)
+      } else {
+        console.error('Error loading classes:', result.error)
+        toast.error(`Failed to load classes: ${result.error || 'Unknown error'}`)
       }
-
-      if (!Array.isArray(data)) {
-        console.error('Invalid classes data structure:', data)
-        toast.error('Invalid classes data received')
-        return
-      }
-
-      setClasses(data)
     } catch (error) {
       console.error('Error loading classes:', error)
       toast.error(`An error occurred while loading classes: ${error instanceof Error ? error.message : 'Unknown error'}`)

@@ -12,7 +12,17 @@ import {
 import { getGradeOverviewAction } from "@/lib/actions/teacher-grade-import-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentGrade {
+import { Skeleton } from "@/shared/components/ui/skeleton";
+
+interface PendingGradeStatus {
+  componentType: string
+  oldValue: number
+  newValue: number
+  reason: string
+  requestedAt: string
+}
+
+interface StudentGrade {
   id: string
   studentId: string
   studentName: string
@@ -22,6 +32,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentGrad
   summaryGrade?: number | null
   lastModified?: string
   modifiedBy?: string
+  pendingGrades?: PendingGradeStatus[]
 }
 
 
@@ -211,40 +222,61 @@ export function TeacherGradeOverview({
                           </td>
                         ))}
                         <td className="p-3 text-center border-r border-gray-200">
-                          <span className={`text-lg font-medium ${
-                            student.midtermGrade !== null && student.midtermGrade !== undefined ? (
-                              student.midtermGrade >= 8 ? 'text-green-600' :
-                              student.midtermGrade >= 6.5 ? 'text-blue-600' :
-                              student.midtermGrade >= 5 ? 'text-yellow-600' :
-                              'text-red-600'
-                            ) : 'text-gray-400'
-                          }`}>
-                            {student.midtermGrade !== null && student.midtermGrade !== undefined ? student.midtermGrade : '-'}
-                          </span>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`text-lg font-medium ${
+                              student.midtermGrade !== null && student.midtermGrade !== undefined ? (
+                                student.midtermGrade >= 8 ? 'text-green-600' :
+                                student.midtermGrade >= 6.5 ? 'text-blue-600' :
+                                student.midtermGrade >= 5 ? 'text-yellow-600' :
+                                'text-red-600'
+                              ) : 'text-gray-400'
+                            }`}>
+                              {student.midtermGrade !== null && student.midtermGrade !== undefined ? student.midtermGrade : '-'}
+                            </span>
+                            {student.pendingGrades?.some(p => p.componentType === 'midterm') && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                                Pending
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 text-center border-r border-gray-200">
-                          <span className={`text-lg font-medium ${
-                            student.finalGrade !== null && student.finalGrade !== undefined ? (
-                              student.finalGrade >= 8 ? 'text-green-600' :
-                              student.finalGrade >= 6.5 ? 'text-blue-600' :
-                              student.finalGrade >= 5 ? 'text-yellow-600' :
-                              'text-red-600'
-                            ) : 'text-gray-400'
-                          }`}>
-                            {student.finalGrade !== null && student.finalGrade !== undefined ? student.finalGrade : '-'}
-                          </span>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`text-lg font-medium ${
+                              student.finalGrade !== null && student.finalGrade !== undefined ? (
+                                student.finalGrade >= 8 ? 'text-green-600' :
+                                student.finalGrade >= 6.5 ? 'text-blue-600' :
+                                student.finalGrade >= 5 ? 'text-yellow-600' :
+                                'text-red-600'
+                              ) : 'text-gray-400'
+                            }`}>
+                              {student.finalGrade !== null && student.finalGrade !== undefined ? student.finalGrade : '-'}
+                            </span>
+                            {student.pendingGrades?.some(p => p.componentType === 'final') && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                                Pending
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 text-center border-r border-gray-200">
-                          <span className={`text-lg font-bold ${
-                            calculatedAverage !== null ? (
-                              calculatedAverage >= 8 ? 'text-green-600' :
-                              calculatedAverage >= 6.5 ? 'text-blue-600' :
-                              calculatedAverage >= 5 ? 'text-yellow-600' :
-                              'text-red-600'
-                            ) : 'text-gray-400'
-                          }`}>
-                            {calculatedAverage !== null ? calculatedAverage : '-'}
-                          </span>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`text-lg font-bold ${
+                              calculatedAverage !== null ? (
+                                calculatedAverage >= 8 ? 'text-green-600' :
+                                calculatedAverage >= 6.5 ? 'text-blue-600' :
+                                calculatedAverage >= 5 ? 'text-yellow-600' :
+                                'text-red-600'
+                              ) : 'text-gray-400'
+                            }`}>
+                              {calculatedAverage !== null ? calculatedAverage : '-'}
+                            </span>
+                            {student.pendingGrades?.some(p => ['summary', 'semester_1', 'semester_2', 'yearly'].includes(p.componentType)) && (
+                              <span className="text-xs bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">
+                                Pending
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 text-center text-sm text-gray-600">
                           {student.lastModified ? (

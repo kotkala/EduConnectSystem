@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
 import type { ValidatedGradeData } from "@/lib/utils/teacher-excel-import-validation"
+import { createGradeOverwriteRequestAction } from "@/lib/actions/grade-overwrite-approval-actions"
 // import { validateGradeOverwriteAction, executeGradeOverwriteAction } from "./grade-overwrite-actions" // Unused imports
 
 export interface GradeImportResult {
@@ -42,6 +43,35 @@ export async function importValidatedGradesAction(
         errorCount: 0,
         errors: ['Lỗi xác thực người dùng']
       }
+    }
+
+    // Check if grades have already been submitted to admin for this period/class/subject
+    const { data: existingSubmission, error: submissionError } = await supabase
+      .from('grade_period_submissions')
+      .select('id, status, created_at, submission_count')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .eq('subject_id', subjectId)
+      .eq('teacher_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (submissionError) {
+      console.error('Error checking grade submission:', submissionError)
+      // Continue with normal import if we can't check submission status
+    }
+
+    // If grades have been submitted to admin, create overwrite request instead
+    if (existingSubmission && existingSubmission.status === 'submitted') {
+      return await createGradeOverwriteRequestFromImport(
+        periodId,
+        classId,
+        subjectId,
+        validatedData,
+        user.id,
+        overrideReasons
+      )
     }
 
     let importedCount = 0
@@ -264,6 +294,160 @@ export async function importValidatedGradesAction(
   }
 }
 
+// Helper function to create grade overwrite request when grades have been submitted
+async function createGradeOverwriteRequestFromImport(
+  periodId: string,
+  classId: string,
+  subjectId: string,
+  validatedData: ValidatedGradeData[],
+  teacherId: string,
+  overrideReasons?: Record<string, string>
+): Promise<GradeImportResult> {
+  try {
+    // Create a summary reason from all override reasons
+    const reasonSummary = overrideReasons
+      ? Object.values(overrideReasons).join('; ')
+      : 'Yêu cầu ghi đè điểm từ file Excel sau khi đã gửi cho admin'
+
+    // Get current submitted grades to compare with new grades
+    const supabase = await createClient()
+
+    // First, get student UUIDs from their student_id codes
+    const studentIds = [...new Set(validatedData.map(d => d.studentId))]
+    const { data: students, error: studentsError } = await supabase
+      .from('profiles')
+      .select('id, student_id')
+      .in('student_id', studentIds)
+
+    if (studentsError) {
+      console.error('Error fetching students:', studentsError)
+    }
+
+    // Create a map of student_id -> UUID
+    const studentIdToUuid = new Map()
+    students?.forEach(student => {
+      studentIdToUuid.set(student.student_id, student.id)
+    })
+
+    // Get current grades using UUIDs
+    const studentUuids = Array.from(studentIdToUuid.values())
+    const { data: currentGrades, error: currentGradesError } = await supabase
+      .from('student_detailed_grades')
+      .select('student_id, component_type, grade_value')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .eq('subject_id', subjectId)
+      .in('student_id', studentUuids)
+
+    if (currentGradesError) {
+      console.error('Error fetching current grades:', currentGradesError)
+    }
+
+    // Create grade comparison details by flattening all grade components
+    const gradeDetails: Array<{
+      student_id: string
+      component_type: string
+      old_value: string
+      new_value: string
+      reason: string
+    }> = []
+
+    validatedData.forEach(newGrade => {
+      const studentUuid = studentIdToUuid.get(newGrade.studentId)
+      if (!studentUuid) {
+        console.error(`Student UUID not found for student_id: ${newGrade.studentId}`)
+        return
+      }
+
+      // Add regular grades
+      newGrade.regularGrades.forEach((grade, index) => {
+        if (grade !== null) {
+          const componentType = `regular_${index + 1}`
+          const currentGrade = currentGrades?.find(
+            g => g.student_id === studentUuid && g.component_type === componentType
+          )
+
+          gradeDetails.push({
+            student_id: newGrade.studentId,
+            component_type: componentType,
+            old_value: currentGrade?.grade_value || 'Chưa có điểm',
+            new_value: grade.toString(),
+            reason: overrideReasons?.[`${newGrade.studentId}_${componentType}`] || 'Cập nhật điểm thường xuyên'
+          })
+        }
+      })
+
+      // Add midterm grade
+      if (newGrade.midtermGrade !== null && newGrade.midtermGrade !== undefined) {
+        const componentType = 'midterm'
+        const currentGrade = currentGrades?.find(
+          g => g.student_id === studentUuid && g.component_type === componentType
+        )
+
+        gradeDetails.push({
+          student_id: newGrade.studentId,
+          component_type: componentType,
+          old_value: currentGrade?.grade_value || 'Chưa có điểm',
+          new_value: newGrade.midtermGrade.toString(),
+          reason: overrideReasons?.[`${newGrade.studentId}_${componentType}`] || 'Cập nhật điểm giữa kỳ'
+        })
+      }
+
+      // Add final grade
+      if (newGrade.finalGrade !== null && newGrade.finalGrade !== undefined) {
+        const componentType = 'final'
+        const currentGrade = currentGrades?.find(
+          g => g.student_id === studentUuid && g.component_type === componentType
+        )
+
+        gradeDetails.push({
+          student_id: newGrade.studentId,
+          component_type: componentType,
+          old_value: currentGrade?.grade_value || 'Chưa có điểm',
+          new_value: newGrade.finalGrade.toString(),
+          reason: overrideReasons?.[`${newGrade.studentId}_${componentType}`] || 'Cập nhật điểm cuối kỳ'
+        })
+      }
+    })
+
+    const result = await createGradeOverwriteRequestAction({
+      teacher_id: teacherId,
+      class_id: classId,
+      subject_id: subjectId,
+      period_id: periodId,
+      reason: reasonSummary,
+      grade_details: gradeDetails
+    })
+
+    if (result.success) {
+      return {
+        success: true,
+        message: 'Yêu cầu ghi đè điểm đã được tạo và gửi cho admin phê duyệt',
+        importedCount: 0,
+        errorCount: 0,
+        errors: []
+      }
+    } else {
+      return {
+        success: false,
+        message: result.error || 'Không thể tạo yêu cầu ghi đè điểm',
+        importedCount: 0,
+        errorCount: 1,
+        errors: [result.error || 'Lỗi tạo yêu cầu ghi đè']
+      }
+    }
+  } catch (error) {
+    console.error('Error creating grade overwrite request:', error)
+    return {
+      success: false,
+      message: 'Đã xảy ra lỗi khi tạo yêu cầu ghi đè điểm',
+      importedCount: 0,
+      errorCount: 1,
+      errors: [error instanceof Error ? error.message : 'Lỗi không xác định']
+    }
+  }
+}
+
 export async function getGradeOverviewAction(
   periodId: string,
   classId: string,
@@ -304,11 +488,13 @@ export async function getGradeOverviewAction(
         .eq('subject_id', subjectId)
 
       if (summaryGradeError) {
-        throw new Error(`Lỗi tải dữ liệu điểm tổng kết: ${summaryGradeError.message}`)
+        console.error('Summary grade error details:', summaryGradeError)
+        // Don't throw error immediately, try to continue with component periods
+        console.warn('Failed to load summary grades, will try component periods')
       }
 
-      // If no grades found in summary period, try component periods
-      if (!summaryGrades || summaryGrades.length === 0) {
+      // If no grades found in summary period or there was an error, try component periods
+      if (!summaryGrades || summaryGrades.length === 0 || summaryGradeError) {
         const { data: componentPeriods, error: componentError } = await supabase
           .from('grade_reporting_periods')
           .select('id')
@@ -527,9 +713,72 @@ export async function getGradeOverviewAction(
       }
     }
 
+    // Get pending grade overwrite requests for this class/subject/period
+    const { data: pendingAudits } = await supabase
+      .from('unified_audit_logs')
+      .select(`
+        record_id,
+        old_values,
+        new_values,
+        changes_summary,
+        created_at
+      `)
+      .eq('audit_type', 'grade')
+      .eq('table_name', 'student_detailed_grades')
+
+    // Create a map of pending grades by grade record ID
+    const pendingGradeMap = new Map()
+    if (pendingAudits) {
+      for (const audit of pendingAudits) {
+        const oldValues = audit.old_values as { status?: string; old_value?: number } || {}
+        if (oldValues.status === 'pending') {
+          const newValues = audit.new_values as { new_value?: number } || {}
+          pendingGradeMap.set(audit.record_id, {
+            oldValue: oldValues.old_value || 0,
+            newValue: newValues.new_value || 0,
+            reason: audit.changes_summary || '',
+            requestedAt: audit.created_at
+          })
+        }
+      }
+    }
+
+    // Get all grade records for this period/class/subject to map pending status
+    const { data: allGradeRecords } = await supabase
+      .from('student_detailed_grades')
+      .select('id, student_id, component_type')
+      .eq('period_id', periodId)
+      .eq('class_id', classId)
+      .eq('subject_id', subjectId)
+
+    // Create a map of grade record IDs by student and component type
+    const gradeRecordMap = new Map()
+    if (allGradeRecords) {
+      for (const record of allGradeRecords) {
+        const key = `${record.student_id}_${record.component_type}`
+        gradeRecordMap.set(key, record.id)
+      }
+    }
+
     // Ensure all students are included (even those without grades)
     const result = allStudents.map(student => {
       const existingGrades = gradesByStudent.get(student.student_id)
+
+      // Check for pending grades for this student
+      const pendingGrades = []
+      const componentTypes = ['regular_1', 'regular_2', 'regular_3', 'regular_4', 'midterm', 'final', 'summary', 'semester_1', 'semester_2', 'yearly']
+
+      for (const componentType of componentTypes) {
+        const gradeRecordId = gradeRecordMap.get(`${student.student_id}_${componentType}`)
+        if (gradeRecordId && pendingGradeMap.has(gradeRecordId)) {
+          const pendingInfo = pendingGradeMap.get(gradeRecordId)
+          pendingGrades.push({
+            componentType,
+            ...pendingInfo
+          })
+        }
+      }
+
       return {
         id: student.student_id,
         studentId: student.student_number,
@@ -539,7 +788,8 @@ export async function getGradeOverviewAction(
         finalGrade: existingGrades?.finalGrade || null,
         summaryGrade: existingGrades?.summaryGrade || null,
         lastModified: existingGrades?.lastModified || null,
-        modifiedBy: existingGrades?.modifiedBy || null
+        modifiedBy: existingGrades?.modifiedBy || null,
+        pendingGrades: pendingGrades.length > 0 ? pendingGrades : undefined
       }
     })
 
@@ -550,9 +800,31 @@ export async function getGradeOverviewAction(
 
   } catch (error) {
     console.error('Error getting grade overview:', error)
+    console.error('Error details:', {
+      periodId,
+      classId,
+      subjectId,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : 'No stack trace'
+    })
+
+    // Provide more specific error messages
+    let errorMessage = 'Lỗi không xác định khi tải tổng quan điểm'
+    if (error instanceof Error) {
+      if (error.message.includes('fetch failed')) {
+        errorMessage = 'Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại sau.'
+      } else if (error.message.includes('permission')) {
+        errorMessage = 'Không có quyền truy cập dữ liệu điểm'
+      } else if (error.message.includes('not found')) {
+        errorMessage = 'Không tìm thấy dữ liệu điểm cho lớp và môn học này'
+      } else {
+        errorMessage = error.message
+      }
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Lỗi không xác định'
+      error: errorMessage
     }
   }
 }

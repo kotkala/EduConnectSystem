@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useMediaQuery } from '@/shared/hooks/use-mobile'
+import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -79,7 +79,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setLoading(false)
   }, [onOpenChange])
 
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isMobile = useIsMobile()
+  const isDesktop = !isMobile
 
   if (isDesktop) {
     return (

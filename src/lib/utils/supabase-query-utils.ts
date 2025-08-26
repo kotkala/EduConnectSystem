@@ -129,7 +129,7 @@ export async function getRecentGradeData(studentIds: string[], daysBack: number 
 // Common query pattern for recent violations data
 export async function getRecentViolationsData(studentIds: string[], daysBack: number = 60) {
   const cutoffDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString()
-  
+
   return executeSupabaseQuery(
     async (supabase) => supabase
       .from('student_violations')
@@ -154,6 +154,134 @@ export async function getRecentViolationsData(studentIds: string[], daysBack: nu
   )
 }
 
+// Get grade submission data for students (using existing tables)
+export async function getGradeReportsData(studentIds: string[]) {
+  if (studentIds.length === 0) return []
+
+  return executeSupabaseQuery(
+    async (supabase) => {
+      const query = supabase
+        .from('grade_submissions')
+        .select(`
+          id,
+          status,
+          ai_feedback,
+          teacher_notes,
+          sent_at,
+          reviewed_at,
+          sent_to_parents_at,
+          created_at,
+          period:grade_reporting_periods(
+            id,
+            name,
+            start_date,
+            end_date,
+            period_type,
+            academic_year:academic_years(name),
+            semester:semesters(name)
+          ),
+          class:classes(name),
+          homeroom_teacher:profiles!grade_submissions_homeroom_teacher_id_fkey(full_name)
+        `)
+        .in('class_id', studentIds) // Note: This needs to be adjusted based on actual relationship
+        .order('created_at', { ascending: false })
+
+      return query.limit(30)
+    },
+    'getGradeReportsData'
+  )
+}
+
+// Get student reports data (using existing student_reports table)
+export async function getAcademicReportsData(studentIds: string[]) {
+  if (studentIds.length === 0) return []
+
+  return executeSupabaseQuery(
+    async (supabase) => {
+      const query = supabase
+        .from('student_reports')
+        .select(`
+          id,
+          strengths,
+          weaknesses,
+          academic_performance,
+          discipline_status,
+          status,
+          sent_at,
+          created_at,
+          student:profiles!student_reports_student_id_fkey(full_name, student_id),
+          report_period:report_periods(
+            id,
+            name,
+            start_date,
+            end_date,
+            academic_year:academic_years(name),
+            semester:semesters(name)
+          ),
+          class:classes(name),
+          homeroom_teacher:profiles!student_reports_homeroom_teacher_id_fkey(full_name)
+        `)
+        .in('student_id', studentIds)
+        .order('created_at', { ascending: false })
+
+      return query.limit(30)
+    },
+    'getAcademicReportsData'
+  )
+}
+
+// Get grade reporting periods for context
+export async function getGradeReportingPeriods(academicYearId?: string) {
+  return executeSupabaseQuery(
+    async (supabase) => {
+      let query = supabase
+        .from('grade_reporting_periods')
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          is_final,
+          academic_year:academic_years(name)
+        `)
+        .order('start_date', { ascending: true })
+
+      if (academicYearId) {
+        query = query.eq('academic_year_id', academicYearId)
+      }
+
+      return query
+    },
+    'getGradeReportingPeriods'
+  )
+}
+
+// Get report periods for academic reports
+export async function getReportPeriods(academicYearId?: string) {
+  return executeSupabaseQuery(
+    async (supabase) => {
+      let query = supabase
+        .from('report_periods')
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          report_type,
+          academic_year:academic_years(name)
+        `)
+        .order('start_date', { ascending: true })
+
+      if (academicYearId) {
+        query = query.eq('academic_year_id', academicYearId)
+      }
+
+      return query
+    },
+    'getReportPeriods'
+  )
+}
+
 // Helper function to extract student IDs from relationships
 export function extractStudentIds(relationships: unknown[]): string[] {
   return relationships?.map(rel => (rel as { student_id: string }).student_id) || []
@@ -172,6 +300,10 @@ export interface FormattedContextData {
   recentFeedback: unknown[]
   recentGrades: unknown[]
   recentViolations: unknown[]
+  gradeReports: unknown[]
+  academicReports: unknown[]
+  gradeReportingPeriods: unknown[]
+  reportPeriods: unknown[]
 }
 
 // Optimized batch query function with caching
@@ -224,24 +356,52 @@ export async function getFormattedParentContextData(parentId: string): Promise<F
       students: [],
       recentFeedback: [],
       recentGrades: [],
-      recentViolations: []
+      recentViolations: [],
+      gradeReports: [],
+      academicReports: [],
+      gradeReportingPeriods: [],
+      reportPeriods: []
     }
     setCachedData(cacheKey, emptyData)
     return emptyData
   }
 
+  // Get current academic year for context
+  let currentAcademicYear: { id: string; name: string } | null = null
+  try {
+    currentAcademicYear = await executeSupabaseQuery(
+      async (supabase) => supabase
+        .from('academic_years')
+        .select('id, name')
+        .eq('is_current', true)
+        .single(),
+      'getCurrentAcademicYear'
+    )
+  } catch {
+    // Handle case where no current academic year is set
+    currentAcademicYear = null
+  }
+
   // Get all data in parallel with optimized batch sizes
-  const [feedbackData, gradeData, violationsData] = await Promise.all([
+  const [feedbackData, gradeData, violationsData, gradeReports, academicReports, gradeReportingPeriods, reportPeriods] = await Promise.all([
     getRecentFeedbackData(studentIds, 30), // Reduced from default
     getRecentGradeData(studentIds, 30),    // Reduced from default
-    getRecentViolationsData(studentIds, 60) // Keep longer for violations
+    getRecentViolationsData(studentIds, 60), // Keep longer for violations
+    getGradeReportsData(studentIds),
+    getAcademicReportsData(studentIds),
+    getGradeReportingPeriods(currentAcademicYear?.id),
+    getReportPeriods(currentAcademicYear?.id)
   ])
 
   const result = {
     students: studentNames,
     recentFeedback: feedbackData || [],
     recentGrades: gradeData || [],
-    recentViolations: violationsData || []
+    recentViolations: violationsData || [],
+    gradeReports: gradeReports || [],
+    academicReports: academicReports || [],
+    gradeReportingPeriods: gradeReportingPeriods || [],
+    reportPeriods: reportPeriods || []
   }
 
   setCachedData(cacheKey, result)
@@ -296,4 +456,73 @@ export function formatGradeForDisplay(grade: unknown): string {
   };
   
   return `- ${g.profiles?.full_name} - ${g.subjects?.name_vietnamese}: ${g.grade} điểm (${new Date(g.submission_date || '').toLocaleDateString('vi-VN')})`;
+}
+
+// Format grade report data for display
+export function formatGradeReportForDisplay(report: unknown): string {
+  const r = report as {
+    student?: { full_name?: string; student_id?: string }
+    grade_reporting_period?: { name?: string; start_date?: string; end_date?: string; is_final?: boolean }
+    total_score?: number
+    average_score?: number
+    rank_in_class?: number | null
+    rank_in_grade?: number | null
+    conduct_score?: number | null
+    academic_year?: { name?: string }
+    semester?: { name?: string }
+    class?: { name?: string }
+    created_at?: string
+  }
+
+  const startDate = r.grade_reporting_period?.start_date ? new Date(r.grade_reporting_period.start_date).toLocaleDateString('vi-VN') : 'N/A'
+  const endDate = r.grade_reporting_period?.end_date ? new Date(r.grade_reporting_period.end_date).toLocaleDateString('vi-VN') : 'N/A'
+  const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString('vi-VN') : 'N/A'
+
+  let rankInfo = ''
+  if (r.rank_in_class) {
+    rankInfo += `Xếp hạng lớp: ${r.rank_in_class}`
+  }
+  if (r.rank_in_grade) {
+    rankInfo += rankInfo ? `, Xếp hạng khối: ${r.rank_in_grade}` : `Xếp hạng khối: ${r.rank_in_grade}`
+  }
+
+  const conductInfo = r.conduct_score ? `, Điểm hạnh kiểm: ${r.conduct_score}` : ''
+  const finalInfo = r.grade_reporting_period?.is_final ? ' (Báo cáo cuối kỳ)' : ''
+
+  return `- ${r.student?.full_name || 'N/A'} (${r.student?.student_id || 'N/A'}) - ${r.grade_reporting_period?.name || 'N/A'}${finalInfo} (${startDate} - ${endDate}): Tổng điểm: ${r.total_score || 'N/A'}, Điểm TB: ${r.average_score || 'N/A'}${conductInfo}${rankInfo ? `, ${rankInfo}` : ''}. Lớp: ${r.class?.name || 'N/A'}, ${r.semester?.name || 'N/A'}, ${r.academic_year?.name || 'N/A'}. Cập nhật: ${createdDate}`
+}
+
+// Format academic report data for display
+export function formatAcademicReportForDisplay(report: unknown): string {
+  const r = report as {
+    student?: { full_name?: string; student_id?: string }
+    report_period?: { name?: string; start_date?: string; end_date?: string; report_type?: string }
+    learning_attitude?: string | null
+    participation_level?: string | null
+    homework_completion?: string | null
+    class_behavior?: string | null
+    strengths?: string | null
+    areas_for_improvement?: string | null
+    teacher_comments?: string | null
+    academic_year?: { name?: string }
+    semester?: { name?: string }
+    class?: { name?: string }
+    teacher?: { full_name?: string }
+    created_at?: string
+  }
+
+  const startDate = r.report_period?.start_date ? new Date(r.report_period.start_date).toLocaleDateString('vi-VN') : 'N/A'
+  const endDate = r.report_period?.end_date ? new Date(r.report_period.end_date).toLocaleDateString('vi-VN') : 'N/A'
+  const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString('vi-VN') : 'N/A'
+
+  const details = []
+  if (r.learning_attitude) details.push(`Thái độ học tập: ${r.learning_attitude}`)
+  if (r.participation_level) details.push(`Mức độ tham gia: ${r.participation_level}`)
+  if (r.homework_completion) details.push(`Hoàn thành BTVN: ${r.homework_completion}`)
+  if (r.class_behavior) details.push(`Hành vi lớp học: ${r.class_behavior}`)
+  if (r.strengths) details.push(`Điểm mạnh: ${r.strengths}`)
+  if (r.areas_for_improvement) details.push(`Cần cải thiện: ${r.areas_for_improvement}`)
+  if (r.teacher_comments) details.push(`Nhận xét GV: ${r.teacher_comments}`)
+
+  return `- ${r.student?.full_name || 'N/A'} (${r.student?.student_id || 'N/A'}) - ${r.report_period?.name || 'N/A'} (${r.report_period?.report_type || 'N/A'}) (${startDate} - ${endDate}): ${details.join(', ')}. Lớp: ${r.class?.name || 'N/A'}, ${r.semester?.name || 'N/A'}, ${r.academic_year?.name || 'N/A'}. GV: ${r.teacher?.full_name || 'N/A'}. Cập nhật: ${createdDate}`
 }

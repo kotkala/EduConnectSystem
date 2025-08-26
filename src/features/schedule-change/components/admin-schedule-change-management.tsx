@@ -6,6 +6,8 @@ import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Label } from "@/shared/components/ui/label"
+import { Input } from "@/shared/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -13,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog"
-import { Calendar, Clock, BookOpen, Users, MessageSquare, Check, X, User } from "lucide-react"
+import { Calendar, Clock, BookOpen, Users, MessageSquare, Check, X, User, Search, Filter, Eye } from "lucide-react"
 import { toast } from "sonner"
 import {
   getAdminScheduleChangeRequestsAction,
@@ -54,6 +56,13 @@ export default function AdminScheduleChangeManagement() {
   const [responseText, setResponseText] = useState('')
   const [responding, setResponding] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [detailRequest, setDetailRequest] = useState<ScheduleChangeRequest | null>(null)
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [teacherFilter, setTeacherFilter] = useState('all')
 
   useEffect(() => {
     loadRequests()
@@ -115,6 +124,11 @@ export default function AdminScheduleChangeManagement() {
     setDialogOpen(true)
   }
 
+  const openDetailDialog = (request: ScheduleChangeRequest) => {
+    setDetailRequest(request)
+    setDetailDialogOpen(true)
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -128,12 +142,97 @@ export default function AdminScheduleChangeManagement() {
     )
   }
 
-  const pendingRequests = requests.filter(r => r.status === 'pending')
-  const processedRequests = requests.filter(r => r.status !== 'pending')
+  // Filter function
+  const filterRequests = (requestList: ScheduleChangeRequest[]) => {
+    return requestList.filter(request => {
+      // Search filter
+      const matchesSearch = searchTerm === '' ||
+        request.teacher.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.subject.name_vietnamese.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.class.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.reason.toLowerCase().includes(searchTerm.toLowerCase())
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || request.status === statusFilter
+
+      // Teacher filter
+      const matchesTeacher = teacherFilter === 'all' || request.teacher_id === teacherFilter
+
+      return matchesSearch && matchesStatus && matchesTeacher
+    })
+  }
+
+  const filteredRequests = filterRequests(requests)
+  const pendingRequests = filteredRequests.filter(r => r.status === 'pending')
+  const processedRequests = filteredRequests.filter(r => r.status !== 'pending')
+
+  // Get unique teachers for filter dropdown
+  const uniqueTeachers = Array.from(
+    new Map(requests.map(r => [r.teacher_id, r.teacher])).values()
+  )
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Quản Lý Đơn Thay Đổi Lịch Dạy</h1>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Tìm kiếm và lọc
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="search">Tìm kiếm</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Tên giáo viên, môn học, lớp, lý do..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="status-filter">Trạng thái</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="status-filter">
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="pending">Chờ duyệt</SelectItem>
+                  <SelectItem value="approved">Đã duyệt</SelectItem>
+                  <SelectItem value="rejected">Từ chối</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="teacher-filter">Giáo viên</Label>
+              <Select value={teacherFilter} onValueChange={setTeacherFilter}>
+                <SelectTrigger id="teacher-filter">
+                  <SelectValue placeholder="Tất cả giáo viên" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả giáo viên</SelectItem>
+                  {uniqueTeachers.map((teacher) => (
+                    <SelectItem key={teacher.id} value={teacher.id}>
+                      {teacher.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Pending Requests */}
       <div className="space-y-4">
@@ -159,10 +258,18 @@ export default function AdminScheduleChangeManagement() {
                     <Badge className={getStatusColor(request.status)}>
                       {getStatusLabel(request.status)}
                     </Badge>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openDetailDialog(request)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Xem chi tiết
+                    </Button>
                     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           onClick={() => openResponseDialog(request)}
                         >
                           Phản hồi
@@ -347,6 +454,157 @@ export default function AdminScheduleChangeManagement() {
           ))}
         </div>
       )}
+
+      {/* Detail Dialog */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chi tiết đơn thay đổi lịch dạy</DialogTitle>
+          </DialogHeader>
+          {detailRequest && (
+            <div className="space-y-6">
+              {/* Request Header */}
+              <div className="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Đơn #{detailRequest.id.slice(-8)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Tạo: {new Date(detailRequest.created_at).toLocaleString('vi-VN')}
+                  </p>
+                </div>
+                <Badge className={getStatusColor(detailRequest.status)}>
+                  {getStatusLabel(detailRequest.status)}
+                </Badge>
+              </div>
+
+              {/* Teacher Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Thông tin giáo viên
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium">Họ và tên</p>
+                      <p className="text-sm text-muted-foreground">{detailRequest.teacher.full_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <p className="text-sm text-muted-foreground">{detailRequest.teacher.email}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Schedule Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Thông tin lịch dạy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium">Ngày thay đổi</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(detailRequest.change_date).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Tuần học</p>
+                      <p className="text-sm text-muted-foreground">Tuần {detailRequest.week_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Tiết học gốc</p>
+                      <p className="text-sm text-muted-foreground">Tiết {detailRequest.original_period}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Academic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Môn học
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="font-medium">{detailRequest.subject.name_vietnamese}</p>
+                    <p className="text-sm text-muted-foreground">Mã: {detailRequest.subject.code}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Lớp học
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="font-medium">{detailRequest.class.name}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Năm học & Học kỳ</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="font-medium">{detailRequest.academic_year.name}</p>
+                    <p className="text-sm text-muted-foreground">{detailRequest.semester.name}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Reason */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Lý do thay đổi
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm bg-gray-50 p-4 rounded-md whitespace-pre-wrap">
+                    {detailRequest.reason}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Admin Response */}
+              {detailRequest.admin_response && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Phản hồi của quản trị viên</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className={`text-sm p-4 rounded-md whitespace-pre-wrap ${
+                      detailRequest.status === 'approved'
+                        ? 'bg-green-50 text-green-800 border border-green-200'
+                        : 'bg-red-50 text-red-800 border border-red-200'
+                    }`}>
+                      {detailRequest.admin_response}
+                    </p>
+                    {detailRequest.admin && detailRequest.responded_at && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Phản hồi bởi {detailRequest.admin.full_name} vào {new Date(detailRequest.responded_at).toLocaleString('vi-VN')}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

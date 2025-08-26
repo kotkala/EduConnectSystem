@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
@@ -15,7 +16,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";import {
 import { toast } from "sonner"
 import { HomeroomFeedbackFilters } from "./homeroom-feedback-filters"
 import { StudentWeeklyGrid } from "./student-weekly-grid"
-import { StudentDayModal } from "./student-day-modal"
+
 import {
   getHomeroomStudentsWeeklyFeedbackAction,
   type HomeroomFeedbackFilters as FiltersType,
@@ -23,6 +24,7 @@ import {
 } from "@/features/grade-management/actions/homeroom-feedback-actions"
 
 export function HomeroomFeedbackDashboard() {
+  const router = useRouter()
   const [students, setStudents] = useState<StudentWeeklySchedule[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,11 +34,7 @@ export function HomeroomFeedbackDashboard() {
     week_number: 1
   })
 
-  // Modal state for viewing student day details
-  const [selectedStudentDay, setSelectedStudentDay] = useState<{
-    student: StudentWeeklySchedule
-    dayOfWeek: number
-  } | null>(null)
+
 
   // Helper function to check if filters are valid for loading data
   function hasValidFilters(filters: FiltersType): boolean {
@@ -95,16 +93,19 @@ export function HomeroomFeedbackDashboard() {
     }
   }
 
-  // Handle student day click
+  // Handle student day click - navigate to detail page
   const handleStudentDayClick = (student: StudentWeeklySchedule, dayOfWeek: number) => {
-    setSelectedStudentDay({ student, dayOfWeek })
+    const searchParams = new URLSearchParams({
+      academic_year_id: filters.academic_year_id,
+      semester_id: filters.semester_id,
+      week_number: filters.week_number.toString(),
+      student_name: student.student_name
+    })
+
+    router.push(`/dashboard/teacher/feedback/student/${student.student_id}/${dayOfWeek}?${searchParams.toString()}`)
   }
 
-  // Get day name in Vietnamese
-  const getDayName = (dayOfWeek: number): string => {
-    const days = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
-    return days[dayOfWeek] || ''
-  }
+
 
   // Calculate statistics
   const totalStudents = students.length
@@ -230,17 +231,7 @@ export function HomeroomFeedbackDashboard() {
         </Card>
       )}
 
-      {/* Student Day Detail Modal */}
-      {selectedStudentDay && (
-        <StudentDayModal
-          student={selectedStudentDay.student}
-          dayOfWeek={selectedStudentDay.dayOfWeek}
-          dayName={getDayName(selectedStudentDay.dayOfWeek)}
-          filters={filters}
-          open={!!selectedStudentDay}
-          onOpenChange={(open) => !open && setSelectedStudentDay(null)}
-        />
-      )}
+
     </div>
   )
 }

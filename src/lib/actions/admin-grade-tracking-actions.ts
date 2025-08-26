@@ -593,7 +593,7 @@ export async function getStudentDetailedGradesAction(
         student_id,
         class_assignments!class_assignments_user_id_fkey(
           class_id,
-          classes(id, name)
+          classes!class_assignments_class_id_fkey(id, name)
         )
       `)
       .eq('id', studentId)
@@ -738,11 +738,11 @@ export async function getStudentDetailedGradesAction(
           // Get teacher name using the subject-teacher mapping
           // Use the class_id from the actual grade record, not just the first class assignment
           const gradeClassId = grade.class_id || classAssignments?.[0]?.class_id || ''
-          const teacherName = subjectTeacherMap.get(`${subjectId}_${gradeClassId}`) || 'Unknown'
+          const teacherName = subjectTeacherMap.get(`${subjectId}_${gradeClassId}`) || 'Chưa xác định'
 
           subjectMap.set(subjectId, {
             subject_id: subjectId,
-            subject_name: subjectData?.name_vietnamese || 'Unknown',
+            subject_name: subjectData?.name_vietnamese || 'Chưa xác định',
             teacher_name: teacherName,
             grade_components: {
               regular_grades: [],
@@ -822,7 +822,7 @@ export async function getStudentDetailedGradesAction(
     })
 
     // Determine class name from the actual grade records or fallback to class assignments
-    let className = 'Unknown'
+    let className = 'Chưa xác định'
     let classId = ''
 
     if (gradeData && gradeData.length > 0) {
@@ -830,18 +830,30 @@ export async function getStudentDetailedGradesAction(
       classId = gradeData[0].class_id
       // Find the corresponding class name from class assignments
       const matchingClass = classAssignments?.find(ca => ca.class_id === classId)
-      className = matchingClass?.classes?.[0]?.name || 'Unknown'
+      if (matchingClass?.classes) {
+        // Handle both array and single object cases
+        const classData = Array.isArray(matchingClass.classes)
+          ? matchingClass.classes[0]
+          : matchingClass.classes
+        className = classData?.name || 'Chưa xác định'
+      }
     } else {
       // Fallback to first class assignment if no grade data
       const classData = classAssignments?.[0]
-      className = classData?.classes?.[0]?.name || 'Unknown'
-      classId = classData?.class_id || ''
+      if (classData?.classes) {
+        // Handle both array and single object cases
+        const classInfo = Array.isArray(classData.classes)
+          ? classData.classes[0]
+          : classData.classes
+        className = classInfo?.name || 'Chưa xác định'
+        classId = classData?.class_id || ''
+      }
     }
 
     const result: StudentDetailedGrades = {
       student_id: studentId,
-      student_name: studentInfo.full_name || 'Unknown',
-      student_number: studentInfo.student_id || 'Unknown',
+      student_name: studentInfo.full_name || 'Chưa xác định',
+      student_number: studentInfo.student_id || 'Chưa xác định',
       class_id: classId,
       class_name: className,
       subjects

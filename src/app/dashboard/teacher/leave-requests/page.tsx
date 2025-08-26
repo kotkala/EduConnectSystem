@@ -35,6 +35,7 @@ import {
   ChevronUp
 } from 'lucide-react'
 import { Input } from '@/shared/components/ui/input'
+import Image from "next/image"
 import {
   Select,
   SelectContent,
@@ -444,21 +445,28 @@ export default function TeacherLeaveRequestsPage() {
                     <div>
                       <Label className="text-sm font-medium">Đơn xin nghỉ học</Label>
                       <div className="mt-1 border rounded-lg p-2 bg-gray-50">
-                        <img
-                          src={application.attachment_url}
-                          alt="Đơn xin nghỉ học"
-                          className="max-w-full h-auto rounded-md shadow-sm"
-                          style={{ maxHeight: '400px' }}
-                          onError={(e) => {
-                            // Fallback to download button if image fails to load
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            const fallbackDiv = target.nextElementSibling as HTMLDivElement
-                            if (fallbackDiv) {
-                              fallbackDiv.style.display = 'block'
-                            }
-                          }}
-                        />
+                        <div className="relative">
+                          <Image
+                            src={application.attachment_url}
+                            alt="Đơn xin nghỉ học"
+                            width={800}
+                            height={400}
+                            className="max-w-full h-auto rounded-md shadow-sm"
+                            style={{ maxHeight: '400px' }}
+                            onError={() => {
+                              // Fallback to download button if image fails to load
+                              const imgElement = document.querySelector(`[data-attachment-url="${application.attachment_url}"]`) as HTMLElement
+                              if (imgElement) {
+                                imgElement.style.display = 'none'
+                                const fallbackDiv = imgElement.nextElementSibling as HTMLDivElement
+                                if (fallbackDiv) {
+                                  fallbackDiv.style.display = 'block'
+                                }
+                              }
+                            }}
+                            data-attachment-url={application.attachment_url}
+                          />
+                        </div>
                         <div style={{ display: 'none' }} className="text-center py-2">
                           <p className="text-xs text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
                           <Button variant="outline" size="sm" asChild>

@@ -38,6 +38,7 @@ export default function MonthlyViolationSummary() {
   const [summaries, setSummaries] = useState<MonthlyViolationSummary[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [currentSemester, setCurrentSemester] = useState<{ id: string; name: string; start_date: string; end_date: string } | null>(null)
+  const [semesterError, setSemesterError] = useState<string | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(1) // Academic month (1-5 for semester)
   const [selectedClass, setSelectedClass] = useState('all')
   const [availableMonths, setAvailableMonths] = useState<number[]>([]) // Tháng có data
@@ -51,7 +52,8 @@ export default function MonthlyViolationSummary() {
     const now = new Date()
     const diffTime = now.getTime() - semesterStart.getTime()
     const diffDays = Math.floor(diffTime / (24 * 60 * 60 * 1000))
-    const academicMonth = Math.floor(diffDays / 30.44) + 1
+    // Use 28 days per month to align with buildMonthDateRange function
+    const academicMonth = Math.floor(diffDays / 28) + 1
 
     return Math.max(1, Math.min(4, academicMonth)) // Clamp to 1-4 (4 tháng học kỳ)
   }, [currentSemester?.start_date])
@@ -140,6 +142,7 @@ export default function MonthlyViolationSummary() {
 
   const loadCurrentSemester = async () => {
     try {
+      setSemesterError(null)
       const result = await getSemestersAction()
       if (result.success && result.data) {
         const current = result.data.find(s => s.is_current)
@@ -150,10 +153,20 @@ export default function MonthlyViolationSummary() {
             start_date: current.start_date,
             end_date: current.end_date
           })
+        } else {
+          const errorMsg = 'Không tìm thấy học kỳ hiện tại. Vui lòng liên hệ quản trị viên để thiết lập học kỳ hiện tại.'
+          console.error(errorMsg)
+          setSemesterError(errorMsg)
         }
+      } else {
+        const errorMsg = result.error || 'Không thể tải danh sách học kỳ'
+        console.error('Lỗi tải danh sách học kỳ:', errorMsg)
+        setSemesterError(errorMsg)
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Lỗi không xác định khi tải học kỳ'
       console.error('Lỗi tải học kì hiện tại:', error)
+      setSemesterError(errorMsg)
     }
   }
 
@@ -349,6 +362,23 @@ export default function MonthlyViolationSummary() {
           ))}
         </TableBody>
       </Table>
+    )
+  }
+
+  // Show error state if semester loading failed
+  if (semesterError) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center space-y-4">
+            <div className="text-red-500 text-lg font-semibold">Lỗi tải học kỳ</div>
+            <p className="text-muted-foreground">{semesterError}</p>
+            <Button onClick={loadCurrentSemester} variant="outline">
+              Thử lại
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

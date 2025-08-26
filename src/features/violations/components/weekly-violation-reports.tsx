@@ -56,6 +56,7 @@ export default function WeeklyViolationReports() {
   const [sentAt, setSentAt] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [currentSemester, setCurrentSemester] = useState<{ id: string; name: string; start_date: string } | null>(null)
+  const [semesterError, setSemesterError] = useState<string | null>(null)
   const [selectedWeek, setSelectedWeek] = useState(1)
   const [selectedClass, setSelectedClass] = useState('all')
   const [isWeekInitialized, setIsWeekInitialized] = useState(false)
@@ -212,6 +213,7 @@ export default function WeeklyViolationReports() {
 
   const loadCurrentSemester = async () => {
     try {
+      setSemesterError(null)
       const result = await getSemestersAction()
       if (result.success && result.data) {
         const current = result.data.find(s => s.is_current)
@@ -223,15 +225,21 @@ export default function WeeklyViolationReports() {
           })
         } else {
           // Không tìm thấy học kỳ hiện tại
-          console.error('Không tìm thấy học kỳ hiện tại')
+          const errorMsg = 'Không tìm thấy học kỳ hiện tại. Vui lòng liên hệ quản trị viên để thiết lập học kỳ hiện tại.'
+          console.error(errorMsg)
+          setSemesterError(errorMsg)
           setIsInitializing(false) // Vẫn cho phép hiển thị UI
         }
       } else {
-        console.error('Lỗi tải danh sách học kỳ:', result.error)
+        const errorMsg = result.error || 'Không thể tải danh sách học kỳ'
+        console.error('Lỗi tải danh sách học kỳ:', errorMsg)
+        setSemesterError(errorMsg)
         setIsInitializing(false) // Vẫn cho phép hiển thị UI
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Lỗi không xác định khi tải học kỳ'
       console.error('Lỗi tải học kì hiện tại:', error)
+      setSemesterError(errorMsg)
       setIsInitializing(false) // Vẫn cho phép hiển thị UI
     }
   }
@@ -419,6 +427,23 @@ export default function WeeklyViolationReports() {
           </CardContent>
         </Card>
       </div>
+    )
+  }
+
+  // Show error state if semester loading failed
+  if (semesterError) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center space-y-4">
+            <div className="text-red-500 text-lg font-semibold">Lỗi tải học kỳ</div>
+            <p className="text-muted-foreground">{semesterError}</p>
+            <Button onClick={loadCurrentSemester} variant="outline">
+              Thử lại
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

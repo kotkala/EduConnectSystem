@@ -159,8 +159,14 @@ export async function executeGradeOverwriteAction(
     // CRITICAL FIX: DO NOT UPDATE GRADES IMMEDIATELY
     // Instead, create a pending audit log that requires admin approval
 
-    // For midterm and final grades, create pending audit log
-    if (data.componentType === 'midterm' || data.componentType === 'final') {
+    // For important grades that require admin approval, create pending audit log
+    const requiresApproval = [
+      'midterm', 'final',           // Điểm giữa kì, cuối kì
+      'semester_1', 'semester_2',   // Điểm học kì 1, học kì 2
+      'yearly', 'summary'           // Điểm cả năm, tổng kết
+    ].includes(data.componentType)
+
+    if (requiresApproval) {
       await logGradeUpdateAuditPending({
         gradeId: existingGrade?.id || 'new-grade-pending',
         userId: userId,

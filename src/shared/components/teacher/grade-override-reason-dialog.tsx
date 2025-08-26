@@ -10,7 +10,7 @@ import { AlertTriangle, Save, X } from "lucide-react"
 
 interface GradeOverride {
   studentName: string
-  componentType: 'midterm' | 'final'
+  componentType: 'midterm' | 'final' | 'semester_1' | 'semester_2' | 'yearly' | 'summary'
   oldValue: number
   newValue: number
   studentId: string
@@ -76,6 +76,14 @@ export function GradeOverrideReasonDialog({
         return 'Giữa kỳ'
       case 'final':
         return 'Cuối kỳ'
+      case 'semester_1':
+        return 'Học kỳ 1'
+      case 'semester_2':
+        return 'Học kỳ 2'
+      case 'yearly':
+        return 'Cả năm'
+      case 'summary':
+        return 'Tổng kết'
       default:
         return componentType
     }

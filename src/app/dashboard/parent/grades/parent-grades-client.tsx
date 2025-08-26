@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Button } from '@/shared/components/ui/button'
@@ -11,7 +11,7 @@ import { Users, Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
-import { getChildrenGradeReportsAction } from '@/lib/actions/parent-grade-actions'
+import { getChildrenGradeReportsAction, getAllGradeReportingPeriodsAction } from '@/lib/actions/parent-grade-actions'
 
 
 
@@ -32,6 +32,11 @@ interface GradeSubmission {
   }
   academic_year: { name: string }
   semester: { name: string }
+  period: {
+    id: string
+    name: string
+    period_type: string
+  }
   grades: Array<{
     subject_id: string
     midterm_grade: number | null
@@ -69,57 +74,68 @@ export default function ParentGradesClient() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [submissions, setSubmissions] = useState<GradeSubmission[]>([])
-  const [students, setStudents] = useState<StudentRecord[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
-  const [availablePeriods, setAvailablePeriods] = useState<Array<{id: string, name: string}>>([])
+  const [allPeriods, setAllPeriods] = useState<Array<{
+    id: string,
+    name: string,
+    academic_year?: {name: string},
+    semester?: {name: string}
+  }>>([])
 
   // Load grade reports
   const loadGradeReports = useCallback(async () => {
     try {
       setLoading(true)
+
+      // Fetch all grade reporting periods for dropdown
+      console.log('🔍 [PARENT GRADES CLIENT] Fetching all periods...')
+      const periodsResult = await getAllGradeReportingPeriodsAction()
+      console.log('🔍 [PARENT GRADES CLIENT] Periods result:', periodsResult)
+      if (periodsResult.success) {
+        console.log('✅ [PARENT GRADES CLIENT] Setting periods:', periodsResult.data)
+        setAllPeriods(periodsResult.data as Array<{
+          id: string,
+          name: string,
+          academic_year?: {name: string},
+          semester?: {name: string}
+        }>)
+      } else {
+        console.error('❌ [PARENT GRADES CLIENT] Failed to fetch periods:', periodsResult.error)
+        toast.error(`Không thể tải danh sách kỳ báo cáo: ${periodsResult.error}`)
+      }
+
+      // Fetch grade submissions
       const result = await getChildrenGradeReportsAction()
       if (result.success) {
         const submissionsData = result.data as GradeSubmission[]
         setSubmissions(submissionsData)
-
-        // Extract unique periods
-        const periodsMap = new Map<string, {id: string, name: string}>()
-        submissionsData.forEach(submission => {
-          if (submission.semester?.name && !periodsMap.has(submission.semester.name)) {
-            periodsMap.set(submission.semester.name, {
-              id: submission.semester.name,
-              name: submission.semester.name
-            })
-          }
-        })
-        const periods = Array.from(periodsMap.values())
-        setAvailablePeriods(periods)
       } else {
         toast.error(result.error || "Không thể tải bảng điểm")
-        setStudents([])
+        setSubmissions([])
       }
     } catch {
       toast.error("Có lỗi xảy ra khi tải bảng điểm")
-      setStudents([])
+      setSubmissions([])
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, []) // Remove state setters from dependency array
 
   useEffect(() => {
     loadGradeReports()
   }, [loadGradeReports])
 
-  // Filter submissions by selected period
-  const filteredSubmissions = selectedPeriod === 'all'
-    ? submissions
-    : submissions.filter(submission => submission.semester.name === selectedPeriod)
+  // Process submissions into student records with memoization
+  const students = useMemo(() => {
+    // Filter submissions by selected period
+    const filteredSubmissions = selectedPeriod === 'all'
+      ? submissions
+      : submissions.filter(submission => submission.period.id === selectedPeriod)
 
-  // Process filtered submissions into student records
-  const processStudentRecords = useCallback((submissionsData: GradeSubmission[]) => {
+    // Process filtered submissions into student records
     const studentMap = new Map<string, StudentRecord>()
 
-    submissionsData.forEach((submission) => {
+    filteredSubmissions.forEach((submission) => {
       const studentUUID = submission.student.id
       if (!studentMap.has(studentUUID)) {
         studentMap.set(studentUUID, {
@@ -151,13 +167,7 @@ export default function ParentGradesClient() {
     })
 
     return Array.from(studentMap.values())
-  }, [])
-
-  // Update students when filtered submissions change
-  useEffect(() => {
-    const processedStudents = processStudentRecords(filteredSubmissions)
-    setStudents(processedStudents)
-  }, [filteredSubmissions, processStudentRecords])
+  }, [submissions, selectedPeriod])
 
   // Handle view submission
   const handleViewSubmission = useCallback((submission: GradeSubmission) => {
@@ -235,7 +245,7 @@ export default function ParentGradesClient() {
                         className="flex items-center gap-2"
                       >
                         <Eye className="h-4 w-4" />
-                        {submission.semester.name}
+                        {submission.period.name}
                       </Button>
                     </div>
                   ))}
@@ -270,9 +280,9 @@ export default function ParentGradesClient() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả kỳ</SelectItem>
-              {availablePeriods.map((period) => (
+              {allPeriods.map((period) => (
                 <SelectItem key={period.id} value={period.id}>
-                  {period.name}
+                  {period.name} - {period.academic_year?.name} - {period.semester?.name}
                 </SelectItem>
               ))}
             </SelectContent>

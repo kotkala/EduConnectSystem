@@ -118,11 +118,11 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[150px]">Class</TableHead>
-              <TableHead className="hidden sm:table-cell min-w-[180px]">Homeroom Teacher</TableHead>
-              <TableHead className="min-w-[120px]">Progress</TableHead>
-              <TableHead className="min-w-[120px]">Parent Agreement</TableHead>
-              <TableHead className="min-w-[100px]">Status</TableHead>
+              <TableHead className="min-w-[150px]">Lớp</TableHead>
+              <TableHead className="hidden sm:table-cell min-w-[180px]">Giáo viên chủ nhiệm</TableHead>
+              <TableHead className="min-w-[120px]">Tiến độ</TableHead>
+              <TableHead className="min-w-[120px]">Phụ huynh đồng ý</TableHead>
+              <TableHead className="min-w-[100px]">Trạng thái</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

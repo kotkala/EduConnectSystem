@@ -185,7 +185,7 @@ export function ReportPeriodForm({
 
   const createSampleSemesters = async () => {
     if (!formData.academic_year_id) {
-      toast.error('Please select an academic year first')
+      toast.error('Vui lòng chọn năm học trước')
       return
     }
 
@@ -218,11 +218,11 @@ export function ReportPeriodForm({
         return
       }
 
-      toast.success('Sample semesters created successfully')
+      toast.success('Tạo học kỳ mẫu thành công')
       loadSemesters(formData.academic_year_id)
     } catch (error) {
       console.error('Error creating sample semesters:', error)
-      toast.error('Failed to create sample semesters')
+      toast.error('Không thể tạo học kỳ mẫu')
     }
   }
 
@@ -312,17 +312,17 @@ export function ReportPeriodForm({
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="academic_year">Academic Year</Label>
+            <Label htmlFor="academic_year">Năm học</Label>
             <Select
               value={formData.academic_year_id}
-              onValueChange={(value) => setFormData(prev => ({ 
-                ...prev, 
+              onValueChange={(value) => setFormData(prev => ({
+                ...prev,
                 academic_year_id: value,
                 semester_id: '' // Reset semester when academic year changes
               }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select academic year" />
+                <SelectValue placeholder="Chọn năm học" />
               </SelectTrigger>
               <SelectContent>
                 {academicYears.map((year) => (
@@ -336,14 +336,14 @@ export function ReportPeriodForm({
 
           {formData.academic_year_id && (() => {
             const getPlaceholder = () => {
-              if (semestersLoading) return "Loading semesters..."
-              if (semesters.length === 0) return "No semesters available"
-              return "Select semester"
+              if (semestersLoading) return "Đang tải học kỳ..."
+              if (semesters.length === 0) return "Không có học kỳ nào"
+              return "Chọn học kỳ"
             }
 
             return (
               <div>
-                <Label htmlFor="semester">Semester</Label>
+                <Label htmlFor="semester">Học kỳ</Label>
                 <Select
                   value={formData.semester_id}
                   onValueChange={handleSemesterChange}
@@ -361,7 +361,7 @@ export function ReportPeriodForm({
                     ))
                   ) : (
                     <SelectItem value="no-semesters" disabled>
-                      {semestersLoading ? "Loading..." : "No semesters found"}
+                      {semestersLoading ? "Đang tải..." : "Không tìm thấy học kỳ nào"}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -375,10 +375,10 @@ export function ReportPeriodForm({
                       onClick={createSampleSemesters}
                       className="text-xs"
                     >
-                      Create Sample Semesters
+                      Tạo học kỳ mẫu
                     </Button>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Create sample semesters for testing
+                      Tạo học kỳ mẫu để thử nghiệm
                     </p>
                   </div>
                 )}
@@ -390,14 +390,14 @@ export function ReportPeriodForm({
             const availablePeriods = getAvailablePeriods()
 
             const getPlaceholderText = () => {
-              if (loadingReportPeriods) return "Loading periods..."
-              if (availablePeriods.length === 0) return "No periods available"
-              return "Select report period"
+              if (loadingReportPeriods) return "Đang tải kỳ báo cáo..."
+              if (availablePeriods.length === 0) return "Không có kỳ báo cáo nào"
+              return "Chọn kỳ báo cáo"
             }
 
             return (
               <div>
-                <Label htmlFor="report_period">Report Period</Label>
+                <Label htmlFor="report_period">Kỳ báo cáo</Label>
                 <Select
                   value={selectedReportPeriod}
                   onValueChange={handleReportPeriodChange}
@@ -415,7 +415,7 @@ export function ReportPeriodForm({
                       ))
                     ) : (
                       <SelectItem value="no-periods" disabled>
-                        {loadingReportPeriods ? "Loading..." : "All periods have been created"}
+                        {loadingReportPeriods ? "Đang tải..." : "Tất cả kỳ báo cáo đã được tạo"}
                       </SelectItem>
                     )}
                   </SelectContent>

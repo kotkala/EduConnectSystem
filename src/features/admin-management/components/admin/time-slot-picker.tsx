@@ -93,12 +93,12 @@ export function TimeSlotPicker({ value, onChange, disabled, error }: TimeSlotPic
       <div className="flex items-center space-x-2">
         <div className="flex items-center space-x-1">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Start:</span>
+          <span className="text-sm text-muted-foreground">Bắt đầu:</span>
         </div>
         
         <Select value={selectedHour} onValueChange={handleHourChange} disabled={disabled}>
           <SelectTrigger className="w-20">
-            <SelectValue placeholder="Hour" />
+            <SelectValue placeholder="Giờ" />
           </SelectTrigger>
           <SelectContent>
             {hours.map((hour) => (
@@ -113,7 +113,7 @@ export function TimeSlotPicker({ value, onChange, disabled, error }: TimeSlotPic
 
         <Select value={selectedMinute} onValueChange={handleMinuteChange} disabled={disabled}>
           <SelectTrigger className="w-20">
-            <SelectValue placeholder="Min" />
+            <SelectValue placeholder="Phút" />
           </SelectTrigger>
           <SelectContent>
             {minutes.map((minute) => (

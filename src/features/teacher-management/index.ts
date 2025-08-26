@@ -13,12 +13,8 @@ export * from './actions/teacher-feedback-actions'
 export * from './actions/teacher-grade-submission-actions'
 export * from './actions/teacher-schedule-actions'
 
-// Teacher Grade Import Actions (with renamed export to avoid conflict)
-export {
-  importValidatedGradesAction,
-  getGradeOverviewAction,
-  getClassStudentsAction as getClassStudentsForGradeImportAction
-} from './actions/teacher-grade-import-actions'
+// Teacher Grade Import Actions are now in src/lib/actions/teacher-grade-import-actions.ts
+// to ensure single source of truth and proper submission workflow
 
 // Hooks (when created)
 // export * from './hooks/use-teacher-management'

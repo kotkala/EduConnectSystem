@@ -284,19 +284,19 @@ export function TimetableEventForm({
 
   // Days of week options
   const daysOfWeek = [
-    { value: 1, label: 'Monday' },
-    { value: 2, label: 'Tuesday' },
-    { value: 3, label: 'Wednesday' },
-    { value: 4, label: 'Thursday' },
-    { value: 5, label: 'Friday' },
-    { value: 6, label: 'Saturday' },
-    { value: 0, label: 'Sunday' }
+    { value: 1, label: 'Thứ Hai' },
+    { value: 2, label: 'Thứ Ba' },
+    { value: 3, label: 'Thứ Tư' },
+    { value: 4, label: 'Thứ Năm' },
+    { value: 5, label: 'Thứ Sáu' },
+    { value: 6, label: 'Thứ Bảy' },
+    { value: 0, label: 'Chủ Nhật' }
   ]
 
   // Week number options (1-52)
   const weekOptions = Array.from({ length: 52 }, (_, i) => ({
     value: i + 1,
-    label: `Week ${i + 1}`
+    label: `Tuần ${i + 1}`
   }))
 
   return (
@@ -312,7 +312,7 @@ export function TimetableEventForm({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Conflict Detected:</strong> {conflictCheck.conflictType}
+            <strong>Phát hiện xung đột:</strong> {conflictCheck.conflictType}
           </AlertDescription>
         </Alert>
       )}
@@ -322,7 +322,7 @@ export function TimetableEventForm({
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            No conflicts detected for this time slot
+            Không phát hiện xung đột cho khung giờ này
           </AlertDescription>
         </Alert>
       )}
@@ -336,11 +336,11 @@ export function TimetableEventForm({
               name="class_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Class *</FormLabel>
+                  <FormLabel>Lớp *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingData}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingData ? "Loading classes..." : "Select class"} />
+                        <SelectValue placeholder={loadingData ? "Đang tải lớp..." : "Chọn lớp"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -362,11 +362,11 @@ export function TimetableEventForm({
               name="subject_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Subject *</FormLabel>
+                  <FormLabel>Môn học *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingData}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingData ? "Loading subjects..." : "Select subject"} />
+                        <SelectValue placeholder={loadingData ? "Đang tải môn học..." : "Chọn môn học"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -390,11 +390,11 @@ export function TimetableEventForm({
               name="teacher_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Teacher *</FormLabel>
+                  <FormLabel>Giáo viên *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingData}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingData ? "Loading teachers..." : "Select teacher"} />
+                        <SelectValue placeholder={loadingData ? "Đang tải giáo viên..." : "Chọn giáo viên"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -416,11 +416,11 @@ export function TimetableEventForm({
               name="classroom_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Classroom *</FormLabel>
+                  <FormLabel>Phòng học *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingData}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingData ? "Loading classrooms..." : "Select classroom"} />
+                        <SelectValue placeholder={loadingData ? "Đang tải phòng học..." : "Chọn phòng học"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -445,11 +445,11 @@ export function TimetableEventForm({
               name="semester_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Semester *</FormLabel>
+                  <FormLabel>Học kỳ *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingData}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={loadingData ? "Loading semesters..." : "Select semester"} />
+                        <SelectValue placeholder={loadingData ? "Đang tải học kỳ..." : "Chọn học kỳ"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -471,14 +471,14 @@ export function TimetableEventForm({
               name="day_of_week"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Day of Week *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
+                  <FormLabel>Thứ trong tuần *</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select day" />
+                        <SelectValue placeholder="Chọn thứ" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -499,14 +499,14 @@ export function TimetableEventForm({
               name="week_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Week Number *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
+                  <FormLabel>Số tuần *</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select week" />
+                        <SelectValue placeholder="Chọn tuần" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -553,13 +553,13 @@ export function TimetableEventForm({
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes</FormLabel>
+                <FormLabel>Ghi chú</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Additional notes for this lesson..."
+                  <Textarea
+                    placeholder="Ghi chú bổ sung cho tiết học này..."
                     className="resize-none"
                     rows={3}
-                    {...field} 
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -570,7 +570,7 @@ export function TimetableEventForm({
           {/* Form Actions */}
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              Hủy
             </Button>
             <Button 
               type="submit" 

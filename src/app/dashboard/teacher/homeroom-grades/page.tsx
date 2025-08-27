@@ -12,7 +12,8 @@ import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Label } from "@/shared/components/ui/label"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   RefreshCw,
   Users,
   BookOpen,
@@ -551,5 +552,6 @@ export default function HomeroomGradesPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </TeacherPageTemplate>
   )
 }

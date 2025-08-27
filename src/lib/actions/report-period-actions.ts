@@ -598,6 +598,187 @@ export async function adminBulkSendReportsAction(reportPeriodId: string) {
   }
 }
 
+// Admin send individual class reports to parents
+export async function adminSendClassReportsAction(reportPeriodId: string, classId: string) {
+  try {
+    await checkAdminPermissions()
+    const supabase = await createClient()
+
+    // Get all draft reports for this class and period
+    const { data: reports, error: reportsError } = await supabase
+      .from('student_reports')
+      .select('id, student_id, homeroom_teacher_id')
+      .eq('report_period_id', reportPeriodId)
+      .eq('class_id', classId)
+      .eq('status', 'draft')
+
+    if (reportsError) {
+      throw new Error(reportsError.message)
+    }
+
+    if (!reports || reports.length === 0) {
+      // Check if there are any reports for this class at all
+      const { data: allClassReports } = await supabase
+        .from('student_reports')
+        .select('id, status')
+        .eq('report_period_id', reportPeriodId)
+        .eq('class_id', classId)
+
+      if (!allClassReports || allClassReports.length === 0) {
+        return { success: false, error: 'No student reports found for this class. Please generate reports first.' }
+      } else {
+        const sentCount = allClassReports.filter(r => r.status === 'sent').length
+        return { success: false, error: `Found ${allClassReports.length} reports for this class but none are in draft status. ${sentCount} reports have already been sent.` }
+      }
+    }
+
+    // Update reports to sent status
+    const { error: updateError } = await supabase
+      .from('student_reports')
+      .update({
+        status: 'sent',
+        sent_at: new Date().toISOString()
+      })
+      .in('id', reports.map(r => r.id))
+
+    if (updateError) {
+      throw new Error(updateError.message)
+    }
+
+    // Get report period info
+    const { data: reportPeriod } = await supabase
+      .from('report_periods')
+      .select('name, start_date, end_date')
+      .eq('id', reportPeriodId)
+      .single()
+
+    if (!reportPeriod) {
+      throw new Error('Report period not found')
+    }
+
+    // Get class info
+    const { data: classInfo } = await supabase
+      .from('classes')
+      .select('name')
+      .eq('id', classId)
+      .single()
+
+    if (!classInfo) {
+      throw new Error('Class not found')
+    }
+
+    // Batch fetch all parent and student data
+    const studentIds = reports.map(r => r.student_id)
+
+    // Get all students data in one query
+    const { data: students } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', studentIds)
+
+    // Get all parent relationships in one query
+    const { data: parentRelationships } = await supabase
+      .from('parent_student_relationships')
+      .select(`
+        student_id,
+        parent_id,
+        parent:profiles!parent_student_relationships_parent_id_fkey(email, full_name)
+      `)
+      .in('student_id', studentIds)
+
+    // Create lookup maps for efficient access
+    const studentMap = new Map(students?.map(s => [s.id, s]) || [])
+    const parentsByStudent = new Map<string, Array<{ parent_id: string; parent: unknown }>>()
+
+    parentRelationships?.forEach(rel => {
+      if (!parentsByStudent.has(rel.student_id)) {
+        parentsByStudent.set(rel.student_id, [])
+      }
+      parentsByStudent.get(rel.student_id)!.push({
+        parent_id: rel.parent_id,
+        parent: rel.parent
+      })
+    })
+
+    // Create parent response records, notifications, and send email notifications
+    const responsePromises = reports.map(async (report) => {
+      const student = studentMap.get(report.student_id)
+      const parents = parentsByStudent.get(report.student_id) || []
+
+      if (parents.length > 0) {
+        // Create response records
+        const responses = parents.map(parent => ({
+          student_report_id: report.id,
+          parent_id: parent.parent_id
+        }))
+
+        await supabase
+          .from('parent_report_responses')
+          .insert(responses)
+
+        // Create notifications for parents
+        const notifications = parents.map(parent => ({
+          student_report_id: report.id,
+          parent_id: parent.parent_id,
+          homeroom_teacher_id: report.homeroom_teacher_id
+        }))
+
+        await supabase
+          .from('report_notifications')
+          .insert(notifications)
+
+        // Send email notifications to parents using Resend
+        const emailPromises = parents.map(async (parent) => {
+          const parentProfile = Array.isArray(parent.parent) ? parent.parent[0] : parent.parent
+
+          if (parentProfile?.email && student?.full_name) {
+            try {
+              const { sendParentReportEmail } = await import('@/lib/services/resend-email-service')
+
+              const result = await sendParentReportEmail({
+                parentEmail: parentProfile.email,
+                parentName: parentProfile.full_name,
+                studentName: student.full_name,
+                reportPeriodName: reportPeriod.name,
+                startDate: reportPeriod.start_date,
+                endDate: reportPeriod.end_date
+              })
+
+              if (result.success) {
+                console.log(`✅ Email sent to parent ${parentProfile.email} for student ${student.full_name}`)
+              } else {
+                console.error(`❌ Failed to send email to parent ${parentProfile.email}:`, result.error)
+              }
+            } catch (emailError) {
+              console.error(`❌ Failed to send email to parent ${parentProfile.email}:`, emailError)
+              // Don't fail the entire operation if email fails
+            }
+          }
+        })
+
+        await Promise.allSettled(emailPromises)
+      }
+    })
+
+    await Promise.allSettled(responsePromises)
+
+    return {
+      success: true,
+      data: {
+        sentCount: reports.length,
+        className: classInfo.name,
+        message: `Successfully sent ${reports.length} reports from class ${classInfo.name} to parents`
+      }
+    }
+  } catch (error) {
+    console.error('Error in adminSendClassReportsAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send class reports'
+    }
+  }
+}
+
 // Send teacher reminder emails and notifications
 export async function sendTeacherRemindersAction(
   reportPeriodId: string,

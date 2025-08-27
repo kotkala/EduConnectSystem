@@ -608,6 +608,8 @@ export default function ReportPeriodsPage() {
               <ClassProgressTable
                 data={filteredClassProgress}
                 loading={isProgressLoading}
+                reportPeriodId={selectedPeriod}
+                onReportsUpdated={loadClassProgress}
               />
             </CardContent>
           </Card>

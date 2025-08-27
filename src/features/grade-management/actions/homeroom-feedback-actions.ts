@@ -574,3 +574,56 @@ Hãy tạo tóm tắt chi tiết và hữu ích dựa trên dữ liệu phản h
     }
   }
 }
+
+// Update AI summary action
+export async function updateDailyFeedbackSummaryAction({
+  studentId,
+  dayOfWeek,
+  academic_year_id,
+  semester_id,
+  week_number,
+  aiSummary
+}: {
+  studentId: string
+  dayOfWeek: number
+  academic_year_id: string
+  semester_id: string
+  week_number: number
+  aiSummary: string
+}) {
+  try {
+    const supabase = await createClient()
+
+    // Update the existing AI summary
+    const { error } = await supabase
+      .from('daily_feedback_summaries')
+      .update({
+        ai_summary: aiSummary.trim(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('student_id', studentId)
+      .eq('day_of_week', dayOfWeek)
+      .eq('academic_year_id', academic_year_id)
+      .eq('semester_id', semester_id)
+      .eq('week_number', week_number)
+
+    if (error) {
+      console.error("Update daily feedback summary error:", error)
+      return {
+        success: false,
+        error: "Không thể cập nhật tóm tắt phản hồi"
+      }
+    }
+
+    return {
+      success: true,
+      message: "Đã cập nhật tóm tắt thành công"
+    }
+  } catch (error) {
+    console.error("Update daily feedback summary error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Không thể cập nhật tóm tắt phản hồi"
+    }
+  }
+}

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Badge } from "@/shared/components/ui/badge"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Textarea } from "@/shared/components/ui/textarea"
 import {
   ArrowLeft,
   Calendar,
@@ -17,13 +18,18 @@ import {
   GraduationCap,
   Sparkles,
   AlertCircle,
-  Send
+  Send,
+  Edit3,
+  Save,
+  X,
+  Info
 } from "lucide-react"
 import { toast } from "sonner"
 import {
   getStudentDayFeedbackAction,
   generateDailyFeedbackSummaryAction,
   getDailyFeedbackSummaryAction,
+  updateDailyFeedbackSummaryAction,
   type HomeroomFeedbackFilters,
   type StudentDaySchedule
 } from "@/features/grade-management/actions/homeroom-feedback-actions"
@@ -53,6 +59,9 @@ export function StudentDayFeedbackDetail({
   const [dailySummary, setDailySummary] = useState<string | null>(null)
   const [sendingToParents, setSendingToParents] = useState(false)
   const [sentToParents, setSentToParents] = useState(false)
+  const [isEditingAI, setIsEditingAI] = useState(false)
+  const [editedAISummary, setEditedAISummary] = useState<string>("")
+  const [savingAIEdit, setSavingAIEdit] = useState(false)
 
   // Get day name in Vietnamese
   const getDayName = (dayOfWeek: number): string => {
@@ -177,6 +186,50 @@ export function StudentDayFeedbackDetail({
       toast.error("An unexpected error occurred")
     } finally {
       setSendingToParents(false)
+    }
+  }
+
+  // Handle AI summary editing
+  const handleEditAISummary = () => {
+    setIsEditingAI(true)
+    setEditedAISummary(dailySummary || "")
+  }
+
+  const handleCancelEditAI = () => {
+    setIsEditingAI(false)
+    setEditedAISummary("")
+  }
+
+  const handleSaveAISummary = async () => {
+    if (!editedAISummary.trim()) {
+      toast.error("Tóm tắt không được để trống")
+      return
+    }
+
+    setSavingAIEdit(true)
+    try {
+      const result = await updateDailyFeedbackSummaryAction({
+        studentId,
+        dayOfWeek,
+        academic_year_id: filters.academic_year_id,
+        semester_id: filters.semester_id,
+        week_number: filters.week_number,
+        aiSummary: editedAISummary.trim()
+      })
+
+      if (result.success) {
+        setDailySummary(editedAISummary.trim())
+        setIsEditingAI(false)
+        setEditedAISummary("")
+        toast.success(result.message || "Đã cập nhật tóm tắt thành công")
+      } else {
+        toast.error(result.error || "Không thể cập nhật tóm tắt")
+      }
+    } catch (err) {
+      console.error("Save AI summary error:", err)
+      toast.error("Đã xảy ra lỗi không mong muốn")
+    } finally {
+      setSavingAIEdit(false)
     }
   }
 
@@ -337,17 +390,73 @@ export function StudentDayFeedbackDetail({
       {dailySummary && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5" />
-              Tóm Tắt Phản Hồi Ngày {dayName}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none">
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {dailySummary}
-              </div>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                Tóm Tắt Phản Hồi Ngày {dayName}
+              </CardTitle>
+              {!isEditingAI && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditAISummary}
+                  className="flex items-center gap-2"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+              )}
             </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* AI Content Disclaimer */}
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                <strong>Lưu ý:</strong> Nội dung được tạo bởi AI chỉ mang tính chất tham khảo.
+                Giáo viên có thể chỉnh sửa để đảm bảo tính chính xác và phù hợp.
+              </AlertDescription>
+            </Alert>
+
+            {/* Editable Content */}
+            {isEditingAI ? (
+              <div className="space-y-4">
+                <Textarea
+                  value={editedAISummary}
+                  onChange={(e) => setEditedAISummary(e.target.value)}
+                  placeholder="Nhập tóm tắt phản hồi..."
+                  className="min-h-[120px] resize-none"
+                  disabled={savingAIEdit}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSaveAISummary}
+                    disabled={savingAIEdit || !editedAISummary.trim()}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    {savingAIEdit ? "Đang lưu..." : "Lưu"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEditAI}
+                    disabled={savingAIEdit}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Hủy
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed bg-muted p-4 rounded-md">
+                  {dailySummary}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

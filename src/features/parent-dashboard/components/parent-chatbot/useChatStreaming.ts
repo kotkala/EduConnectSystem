@@ -147,6 +147,19 @@ export function useChatStreaming({
           function_calls: functionCalls || 0,
           prompt_strength: promptStrength
         })
+
+        // Update local state with conversationId so Feedback only shows when persisted
+        setMessages(prev => {
+          return prev.map(m => {
+            if (m.id === userMessage.id) {
+              return { ...m, conversationId }
+            }
+            if (m.id === assistantMessageId) {
+              return { ...m, conversationId, promptStrength, contextUsed: contextUsed || m.contextUsed }
+            }
+            return m
+          })
+        })
       }
 
     } catch (error) {

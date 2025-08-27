@@ -305,7 +305,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                       </Button>
 
                       {/* Feedback button for assistant messages */}
-                      {message.role === 'assistant' && parentId && !message.hasFeedback && (
+                      {message.role === 'assistant' && parentId && message.conversationId && !message.hasFeedback && (
                         <FeedbackDialog
                           messageId={message.id}
                           parentId={parentId}

@@ -29,7 +29,6 @@ const ROUTE_LABELS: Record<string, string> = {
   'grade-improvement': 'Cải thiện điểm số',
   'teacher-assignments': 'Phân công giáo viên',
   'violations': 'Vi phạm',
-  'analytics': 'Phân tích',
 
   // Teacher routes
   'teacher': 'Giáo viên',

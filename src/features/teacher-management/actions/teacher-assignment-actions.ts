@@ -246,6 +246,7 @@ export async function getClassTeacherAssignmentsAction(classId: string) {
       .from('teacher_class_assignments_view')
       .select('*')
       .eq('class_id', classId)
+      .eq('is_active', true)
       .order('subject_code')
 
     if (error) {

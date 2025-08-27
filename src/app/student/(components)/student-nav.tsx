@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import Link from 'next/link'
-import { Bell, Home, BookOpen, FileText, Award, User, LogOut, Settings, TrendingUp, Calendar } from 'lucide-react'
+import { Bell, Home, Award, User, LogOut, Settings, TrendingUp, Calendar } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'

@@ -282,6 +282,20 @@ export async function submitFeedback(data: z.infer<typeof createFeedbackSchema>)
     const validatedData = createFeedbackSchema.parse(data)
     const supabase = await createClient()
 
+    // Check if message exists in database before submitting feedback
+    const { data: messageExists, error: checkError } = await supabase
+      .from('chat_messages')
+      .select('id')
+      .eq('id', validatedData.message_id)
+      .single()
+
+    if (checkError || !messageExists) {
+      return {
+        success: false,
+        error: 'Không thể gửi phản hồi cho tin nhắn chưa được lưu. Vui lòng thử lại sau.'
+      }
+    }
+
     const { data: feedback, error } = await supabase
       .from('chat_feedback')
       .insert({

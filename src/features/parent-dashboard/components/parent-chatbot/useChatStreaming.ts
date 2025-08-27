@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createMessage } from "./parent-chatbot"
 import {
   prepareConversationHistory,
@@ -39,6 +40,7 @@ interface UseChatStreamingProps {
 
 interface UseChatStreamingReturn {
   sendMessage: (inputMessage: string) => Promise<void>
+  currentConversationId: string | null
 }
 
 // Helper function to calculate prompt strength based on context and function calls
@@ -90,6 +92,7 @@ export function useChatStreaming({
   conversationId,
   parentId
 }: UseChatStreamingProps): UseChatStreamingReturn {
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(conversationId || null)
 
   const sendMessage = async (inputMessage: string): Promise<void> => {
     // Early return for invalid input or loading states
@@ -125,41 +128,60 @@ export function useChatStreaming({
       // Final update with context information
       finalizeMessage(assistantMessageId, accumulatedText, contextUsed, setMessages)
 
-      // Save messages to database if conversation and parent IDs are available
-      if (conversationId && parentId) {
-        // Save user message with its ID
-        await saveMessage({
-          id: userMessage.id,
-          conversation_id: conversationId,
-          role: 'user',
-          content: messageText,
-          function_calls: 0,
-          prompt_strength: 0
-        })
+      // Save messages to database - create conversation if needed
+      if (parentId) {
+        let activeConversationId = currentConversationId
 
-        // Save assistant message with its ID
-        await saveMessage({
-          id: assistantMessageId,
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: accumulatedText,
-          context_used: contextUsed || undefined,
-          function_calls: functionCalls || 0,
-          prompt_strength: promptStrength
-        })
-
-        // Update local state with conversationId so Feedback only shows when persisted
-        setMessages(prev => {
-          return prev.map(m => {
-            if (m.id === userMessage.id) {
-              return { ...m, conversationId }
-            }
-            if (m.id === assistantMessageId) {
-              return { ...m, conversationId, promptStrength, contextUsed: contextUsed || m.contextUsed }
-            }
-            return m
+        // Create conversation if it doesn't exist
+        if (!activeConversationId) {
+          const { createConversation } = await import('@/lib/actions/chat-history-actions')
+          const result = await createConversation({
+            parent_id: parentId,
+            title: 'Cuộc trò chuyện mới'
           })
-        })
+
+          if (result.success && result.data) {
+            activeConversationId = result.data.id
+            setCurrentConversationId(activeConversationId)
+          }
+        }
+
+        // Save messages if we have a conversation ID
+        if (activeConversationId) {
+          // Save user message with its ID
+          await saveMessage({
+            id: userMessage.id,
+            conversation_id: activeConversationId,
+            role: 'user',
+            content: messageText,
+            function_calls: 0,
+            prompt_strength: 0
+          })
+
+          // Save assistant message with its ID
+          await saveMessage({
+            id: assistantMessageId,
+            conversation_id: activeConversationId,
+            role: 'assistant',
+            content: accumulatedText,
+            context_used: contextUsed || undefined,
+            function_calls: functionCalls || 0,
+            prompt_strength: promptStrength
+          })
+
+          // Update local state with conversationId so Feedback only shows when persisted
+          setMessages(prev => {
+            return prev.map(m => {
+              if (m.id === userMessage.id) {
+                return { ...m, conversationId: activeConversationId }
+              }
+              if (m.id === assistantMessageId) {
+                return { ...m, conversationId: activeConversationId, promptStrength, contextUsed: contextUsed || m.contextUsed }
+              }
+              return m
+            })
+          })
+        }
       }
 
     } catch (error) {
@@ -172,5 +194,5 @@ export function useChatStreaming({
     }
   }
 
-  return { sendMessage }
+  return { sendMessage, currentConversationId }
 }

@@ -217,7 +217,7 @@ export default function ParentChatbot({
   ], [])
 
   // Use custom hook for chat streaming
-  const { sendMessage: sendStreamingMessage } = useChatStreaming({
+  const { sendMessage: sendStreamingMessage, currentConversationId: hookConversationId } = useChatStreaming({
     messages,
     setMessages,
     setInputMessage,
@@ -226,6 +226,13 @@ export default function ParentChatbot({
     conversationId: currentConversationId,
     parentId: parentId
   })
+
+  // Update local conversationId when hook creates a new one
+  useEffect(() => {
+    if (hookConversationId && hookConversationId !== currentConversationId) {
+      setCurrentConversationId(hookConversationId)
+    }
+  }, [hookConversationId, currentConversationId])
 
   const sendMessage = useCallback(async () => {
     if (!inputMessage.trim() || isLoading || isStreaming) return
@@ -328,7 +335,7 @@ export default function ParentChatbot({
                       </div>
 
                       {/* Feedback button for assistant messages */}
-                      {message.role === 'assistant' && parentId && message.conversationId && !message.hasFeedback && (
+                      {message.role === 'assistant' && parentId && !message.hasFeedback && (
                         <FeedbackDialog
                           messageId={message.id}
                           parentId={parentId}
@@ -603,7 +610,7 @@ export default function ParentChatbot({
                         </div>
 
                         {/* Feedback button for assistant messages */}
-                        {message.role === 'assistant' && parentId && message.conversationId && !message.hasFeedback && (
+                        {message.role === 'assistant' && parentId && !message.hasFeedback && (
                           <FeedbackDialog
                             messageId={message.id}
                             parentId={parentId}

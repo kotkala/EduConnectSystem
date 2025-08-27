@@ -70,9 +70,9 @@ function EventWrapper({
   // Remove unused displayEnd variable
 
   return (
-    <button
+    <div
       className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3 flex-col",
+        "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-2 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-3 flex-col cursor-pointer",
         getEventColorClasses(event.color),
         getBorderRadiusClasses(determineEventPosition(isFirstDay, isLastDay)),
         // Add status background color
@@ -83,11 +83,32 @@ function EventWrapper({
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          // Simulate a click by calling the handler directly
+          if (onClick) {
+            const target = e.currentTarget;
+            const rect = target.getBoundingClientRect();
+            const syntheticEvent = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              clientX: rect.left + rect.width / 2,
+              clientY: rect.top + rect.height / 2,
+            });
+            target.dispatchEvent(syntheticEvent);
+          }
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={undefined}
+      aria-roledescription="draggable"
       {...dndListeners}
       {...dndAttributes}
     >
       {children}
-    </button>
+    </div>
   );
 }
 
@@ -270,15 +291,35 @@ export function EventItem({
 
   // Agenda view - kept separate since it's significantly different
   return (
-    <button
+    <div
       className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px]",
+        "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px] cursor-pointer",
         getEventColorClasses(eventColor),
         className,
       )}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          // Simulate a click by calling the handler directly
+          if (onClick) {
+            const target = e.currentTarget;
+            const rect = target.getBoundingClientRect();
+            const syntheticEvent = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              clientX: rect.left + rect.width / 2,
+              clientY: rect.top + rect.height / 2,
+            });
+            target.dispatchEvent(syntheticEvent);
+          }
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={undefined}
       {...dndListeners}
       {...dndAttributes}
     >
@@ -315,6 +356,6 @@ export function EventItem({
       {event.description && (
         <div className="my-1 text-xs opacity-90">{event.description}</div>
       )}
-    </button>
+    </div>
   );
 }

@@ -101,39 +101,39 @@ function StudentInfoSection({
   generateStudentId: () => void
 }>) {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3 pb-4 border-b border-blue-100">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <User className="h-6 w-6 text-blue-600" />
+    <div className="space-y-10 bg-gradient-to-r from-blue-50/30 to-blue-50/10 p-8 rounded-2xl border border-blue-100">
+      <div className="flex items-center gap-4 pb-6 border-b-2 border-blue-200">
+        <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+          <User className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-blue-700">Thông tin học sinh</h3>
-          <p className="text-sm text-blue-600">Nhập thông tin cá nhân của học sinh</p>
+          <h3 className="text-2xl font-bold text-blue-800">Thông tin học sinh</h3>
+          <p className="text-base text-blue-600 mt-1">Nhập thông tin cá nhân của học sinh</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {/* Student ID */}
-        <div className="space-y-3">
-          <Label htmlFor="student_id" className="text-sm font-semibold text-gray-700">
+        <div className="space-y-4">
+          <Label htmlFor="student_id" className="text-base font-semibold text-gray-800">
             Mã học sinh *
           </Label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Input
               id="student_id"
               {...form.register("student.student_id")}
               placeholder="VD: SU001"
               readOnly={editMode}
-              className={`h-11 flex-1 ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
+              className={`h-14 flex-1 text-base ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
             />
             {!editMode && (
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="lg"
                 onClick={generateStudentId}
                 disabled={generatingId}
-                className="h-11 px-3"
+                className="h-14 px-4 text-base"
               >
                 {generatingId ? (
                   <Skeleton className="h-32 w-full rounded-lg" />
@@ -261,26 +261,26 @@ function ParentInfoSection({
   handleParentEmailSelect: (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => void
 }>) {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-3 pb-4 border-b border-green-100">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <Users className="h-6 w-6 text-green-600" />
+    <div className="space-y-10 bg-gradient-to-r from-green-50/30 to-green-50/10 p-8 rounded-2xl border border-green-100">
+      <div className="flex items-center gap-4 pb-6 border-b-2 border-green-200">
+        <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg">
+          <Users className="h-8 w-8 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-green-700">Thông tin phụ huynh</h3>
-          <p className="text-sm text-green-600">Nhập thông tin liên hệ và mối quan hệ của phụ huynh</p>
+          <h3 className="text-2xl font-bold text-green-800">Thông tin phụ huynh</h3>
+          <p className="text-base text-green-600 mt-1">Nhập thông tin liên hệ và mối quan hệ của phụ huynh</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {/* Parent Full Name */}
-        <div className="space-y-2">
-          <Label htmlFor="parent_name">Họ và tên *</Label>
+        <div className="space-y-4">
+          <Label htmlFor="parent_name" className="text-base font-semibold text-gray-800">Họ và tên *</Label>
           <Input
             id="parent_name"
             {...form.register("parent.full_name")}
             placeholder="Nhập họ và tên phụ huynh"
-            className={form.formState.errors.parent?.full_name ? "border-red-500" : ""}
+            className={`h-14 text-base ${form.formState.errors.parent?.full_name ? "border-red-500" : ""}`}
           />
           {form.formState.errors.parent?.full_name && (
             <p className="text-sm text-red-500">{form.formState.errors.parent.full_name.message}</p>
@@ -483,21 +483,23 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   }
 
   return (
-    <Card className="w-full max-w-5xl mx-auto shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 border-b">
-        <CardTitle className="flex items-center gap-3 text-2xl font-bold">
-          <Users className="h-6 w-6 text-blue-600" />
+    <Card className="w-full max-w-7xl mx-auto shadow-xl border-0">
+      <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-green-50 border-b-2 border-gradient-to-r from-blue-200 to-green-200 p-8">
+        <CardTitle className="flex items-center gap-4 text-3xl font-bold">
+          <div className="p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl">
+            <Users className="h-8 w-8 text-white" />
+          </div>
           {editMode ? "Chỉnh sửa thông tin Học sinh & Phụ huynh" : "Thêm Học sinh & Phụ huynh mới"}
         </CardTitle>
-        <CardDescription className="text-base mt-2">
+        <CardDescription className="text-lg mt-4 leading-relaxed text-gray-700">
           {editMode
             ? "Cập nhật thông tin học sinh và phụ huynh. Thay đổi sẽ được lưu cho cả hai tài khoản."
             : "Tạo tài khoản học sinh mới với thông tin phụ huynh bắt buộc. Cả hai tài khoản sẽ được tạo cùng nhau với xác thực an toàn."
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-8">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+      <CardContent className="p-10">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
           {/* Student Information Section */}
           <StudentInfoSection
             form={form}

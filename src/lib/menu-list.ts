@@ -9,7 +9,6 @@ import {
   Bell,
   Bot,
   AlertTriangle,
-  BarChart3,
   Calculator,
   CalendarClock,
   BookCheck,
@@ -59,11 +58,6 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
             href: "/dashboard/admin/notifications",
             label: "Thông báo",
             icon: Bell
-          },
-          {
-            href: "/dashboard/admin/analytics",
-            label: "Phân tích",
-            icon: BarChart3
           }
         ]
       },
@@ -132,17 +126,7 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
               }
             ]
           },
-          {
-            href: "",
-            label: "Giáo viên",
-            icon: Users,
-            submenus: [
-              {
-                href: "/dashboard/admin/teacher-assignments",
-                label: "Phân công giáo viên"
-              }
-            ]
-          },
+
           {
             href: "",
             label: "Báo cáo",

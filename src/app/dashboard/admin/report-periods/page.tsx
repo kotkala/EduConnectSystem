@@ -24,7 +24,6 @@ import {
   adminBulkSendReportsAction,
   sendTeacherRemindersAction,
   generateStudentReportsAction,
-  resetReportsToDraftAction,
   type ReportPeriod,
   type ClassProgress
 } from "@/lib/actions/report-period-actions"
@@ -54,7 +53,7 @@ export default function ReportPeriodsPage() {
   const { isLoading: isSendingNotifications, startLoading: startSendingNotifications, stopLoading: stopSendingNotifications } = useComponentLoading()
   const { isLoading: isBulkSending, startLoading: startBulkSending, stopLoading: stopBulkSending } = useComponentLoading()
   const { isLoading: isGeneratingReports, startLoading: startGeneratingReports, stopLoading: stopGeneratingReports } = useComponentLoading()
-  const { isLoading: isResettingReports, startLoading: startResettingReports, stopLoading: stopResettingReports } = useComponentLoading()
+
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -248,30 +247,7 @@ export default function ReportPeriodsPage() {
     }
   }, [selectedPeriod, loadClassProgress, startGeneratingReports, stopGeneratingReports])
 
-  // Reset reports to draft handler (for testing)
-  const handleResetReports = useCallback(async () => {
-    if (!selectedPeriod) {
-      toast.error('Vui lòng chọn kỳ báo cáo')
-      return
-    }
 
-    startResettingReports()
-    try {
-      const result = await resetReportsToDraftAction(selectedPeriod)
-
-      if (result.success) {
-        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
-        loadClassProgress() // Reload to get updated data
-      } else {
-        toast.error(result.error || 'Không thể reset báo cáo')
-      }
-    } catch (error) {
-      console.error('Error resetting reports:', error)
-      toast.error('Có lỗi xảy ra khi reset báo cáo')
-    } finally {
-      stopResettingReports()
-    }
-  }, [selectedPeriod, loadClassProgress, startResettingReports, stopResettingReports])
 
   // Memoized toggle handler to prevent unnecessary re-renders
   const handleTestModeToggle = useCallback((checked: boolean) => {
@@ -500,31 +476,7 @@ export default function ReportPeriodsPage() {
                   </div>
                 )}
 
-                {/* Reset Reports Button (for testing) */}
-                {selectedPeriod && (
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-muted-foreground">
-                      Reset báo cáo đã gửi về trạng thái draft (để test gửi lại)
-                    </div>
-                    <Button
-                      onClick={handleResetReports}
-                      disabled={isResettingReports}
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                    >
-                      {isResettingReports ? (
-                        <>
-                          <Skeleton className="h-4 w-4 rounded-full" />
-                          Đang reset...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Reset để test lại
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+
 
                 {/* Send Notifications Button */}
                 {incompleteClasses.length > 0 && (

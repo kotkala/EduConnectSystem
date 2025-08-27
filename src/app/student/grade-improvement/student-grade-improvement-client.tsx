@@ -49,7 +49,7 @@ import {
   type GradeImprovementRequest,
   type GradeImprovementPeriod
 } from '@/lib/validations/grade-improvement-validations'
-import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+
 
 interface Subject {
   id: string
@@ -82,8 +82,8 @@ export function StudentGradeImprovementClient() {
     creatingRequest: false
   })
 
-  // Global loading for initial data loads
-  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+  // Simple loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   // Load data functions
   const loadActivePeriods = useCallback(async () => {
@@ -106,7 +106,7 @@ export function StudentGradeImprovementClient() {
       const isInitialLoad = myRequests.length === 0
       
       if (isInitialLoad) {
-        startLoading()
+        setIsLoading(true)
       }
 
       const result = await getStudentGradeImprovementRequestsAction()
@@ -119,9 +119,9 @@ export function StudentGradeImprovementClient() {
       console.error('Error loading my requests:', error)
       toast.error('Lỗi khi tải danh sách đơn của bạn')
     } finally {
-      stopLoading()
+      setIsLoading(false)
     }
-  }, [myRequests.length, startLoading, stopLoading])
+  }, [myRequests.length])
 
   const loadSubjects = useCallback(async () => {
     try {

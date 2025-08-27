@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/shared/components/ui/button"
+import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
@@ -315,23 +316,17 @@ export default function TeacherGradeManagementPage() {
   )
 
   return (
-    <div className="p-6">
+    <TeacherPageTemplate
+      title="Quản lý điểm số"
+      description="Nhập và quản lý điểm số học sinh theo từng kỳ báo cáo"
+      actions={
+        <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
+          Làm mới
+        </Button>
+      }
+      showCard={true}
+    >
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý điểm số</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Nhập và quản lý điểm số học sinh theo từng kỳ báo cáo
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
-            <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-              <Skeleton className="h-32 w-full rounded-lg" />
-              Làm mới
-            </Button>
-          </div>
-        </div>
 
         {/* Period Selection */}
         <Card>
@@ -531,6 +526,6 @@ export default function TeacherGradeManagementPage() {
           periodName={selectedPeriodData?.name || ''}
         />
       </div>
-    </div>
+    </TeacherPageTemplate>
   )
 }

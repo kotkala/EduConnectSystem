@@ -7,6 +7,7 @@ import { Subject } from '@/lib/types'
 import { SubjectCreateDialog } from '@/features/admin-management/components/subjects/subject-create-dialog'
 import { SubjectEditDialog } from '@/features/admin-management/components/subjects/subject-edit-dialog'
 import { SubjectDeleteDialog } from '@/features/admin-management/components/subjects/subject-delete-dialog'
+import { AdminPageTemplate } from '@/shared/components/dashboard/admin-page-template'
 
 export default async function AdminSubjectsPage() {
   const supabase = await createClient()
@@ -40,21 +41,15 @@ export default async function AdminSubjectsPage() {
   const specializedSubjects = subjects?.filter(subject => subject.category === 'specialized') || []
 
   return (
-    <div className="space-y-6 p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Quản lý môn học</h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Quản lý môn học và chương trình THPT
-            </p>
-          </div>
-          <div className="w-full sm:w-auto">
-            <SubjectCreateDialog />
-          </div>
-        </div>
+    <AdminPageTemplate
+      title="Quản lý môn học"
+      description="Quản lý môn học và chương trình THPT"
+      actions={<SubjectCreateDialog />}
+      showCard={true}
+    >
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tổng số môn học</CardTitle>
@@ -94,7 +89,7 @@ export default async function AdminSubjectsPage() {
         </div>
 
         {/* Core Subjects */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -130,7 +125,7 @@ export default async function AdminSubjectsPage() {
         </Card>
 
         {/* Specialized Subjects */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -164,6 +159,6 @@ export default async function AdminSubjectsPage() {
             </div>
           </CardContent>
         </Card>
-    </div>
+    </AdminPageTemplate>
   )
 }

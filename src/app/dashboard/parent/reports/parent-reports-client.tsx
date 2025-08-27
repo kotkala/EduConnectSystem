@@ -43,7 +43,7 @@ import {
   markReportAsReadAction,
   type ParentReportNotification
 } from '@/lib/actions/parent-report-actions'
-import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+
 
 interface StudentOption {
   id: string
@@ -78,8 +78,7 @@ export default function ParentReportsClient() {
     submitting: false, // For form submissions (non-blocking)
   })
 
-  // Global loading for initial data loads
-  const { startLoading, stopLoading } = useGlobalLoading("Đang tải báo cáo...")
+
 
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState({
@@ -148,7 +147,7 @@ export default function ParentReportsClient() {
   // Load notifications with pagination and error handling
   const loadNotifications = useCallback(async (page: number = 1) => {
     try {
-      startLoading()
+      // Loading state removed
       setError(null)
 
       const result = await getParentReportNotificationsAction(page, pagination.limit)
@@ -165,9 +164,9 @@ export default function ParentReportsClient() {
       console.error('Error loading notifications:', error)
       setError('Có lỗi xảy ra khi tải báo cáo')
     } finally {
-      stopLoading()
+      // Loading state removed
     }
-  }, [pagination.limit, startLoading, stopLoading])
+  }, [pagination.limit])
 
   // Load data on component mount
   useEffect(() => {

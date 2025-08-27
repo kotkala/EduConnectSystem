@@ -9,33 +9,17 @@ import { Slider } from "@/shared/components/ui/slider"
 import {
   Bot,
   Send,
-  Sparkles,
   Copy,
   Share,
-  AlertTriangle,
-  Gauge
+  AlertTriangle
 } from "lucide-react"
 // Import shared components and utilities to eliminate duplication
-import { ChatAvatar, formatTime, copyMessage, handleKeyPress } from "./parent-chatbot"
+import { ChatAvatar, formatTime, copyMessage, handleKeyPress, stripMarkdown } from "./parent-chatbot"
 import { ChatHistorySidebar } from "./chat-history-sidebar"
 import { FeedbackDialog } from "./feedback-dialog"
 import { createConversation, getMessages } from "@/lib/actions/chat-history-actions"
 
-// Type guard for context used
-function isContextUsed(contextUsed: unknown): contextUsed is {
-  studentsCount: number
-  feedbackCount: number
-  gradesCount: number
-  violationsCount: number
-} {
-  return contextUsed !== null &&
-    typeof contextUsed === 'object' &&
-    contextUsed !== undefined &&
-    'studentsCount' in contextUsed &&
-    'feedbackCount' in contextUsed &&
-    'gradesCount' in contextUsed &&
-    'violationsCount' in contextUsed
-}
+
 import { useChatStreaming } from "./useChatStreaming"
 
 interface Message {
@@ -92,7 +76,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
   }, [])
 
   // Use custom hook for chat streaming
-  const { sendMessage: sendStreamingMessage } = useChatStreaming({
+  const { sendMessage: sendStreamingMessage, currentConversationId: hookConversationId } = useChatStreaming({
     messages,
     setMessages,
     setInputMessage,
@@ -101,6 +85,13 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
     conversationId: currentConversationId,
     parentId: parentId
   })
+
+  // Update local conversationId when hook creates a new one
+  useEffect(() => {
+    if (hookConversationId && hookConversationId !== currentConversationId) {
+      setCurrentConversationId(hookConversationId)
+    }
+  }, [hookConversationId, currentConversationId])
 
   // Memoized event handlers for performance
   const sendMessage = useCallback(async () => {
@@ -262,35 +253,11 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                         className="text-gray-800 whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere"
                         style={{ fontSize: `${fontSize[0]}px` }}
                       >
-                        {message.content}
+                        {message.role === 'assistant' ? stripMarkdown(message.content) : message.content}
                       </p>
                     </div>
                     
-                    {/* Context info for assistant messages */}
-                    {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center space-x-2 text-xs text-blue-700">
-                          <Sparkles className="h-3 w-3" />
-                          <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số</span>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Prompt strength indicator for assistant messages */}
-                    {message.role === 'assistant' && message.promptStrength !== undefined && (
-                      <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div className="flex items-center space-x-2 text-xs text-green-700">
-                          <Gauge className="h-3 w-3" />
-                          <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-1.5 ml-2">
-                            <div
-                              className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
-                              style={{ width: `${message.promptStrength * 100}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Action buttons */}
                     <div className="flex items-center space-x-2 mt-2 opacity-100 transition-opacity">

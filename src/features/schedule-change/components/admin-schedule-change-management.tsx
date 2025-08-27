@@ -173,10 +173,10 @@ export default function AdminScheduleChangeManagement() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Quản Lý Đơn Thay Đổi Lịch Dạy</h1>
+      <h1 className="text-2xl font-bold animate-in fade-in duration-700">Quản Lý Đơn Thay Đổi Lịch Dạy</h1>
 
       {/* Filters */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -235,7 +235,7 @@ export default function AdminScheduleChangeManagement() {
       </Card>
 
       {/* Pending Requests */}
-      <div className="space-y-4">
+      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <h2 className="text-lg font-semibold text-yellow-600">
           Đơn Chờ Duyệt ({pendingRequests.length})
         </h2>

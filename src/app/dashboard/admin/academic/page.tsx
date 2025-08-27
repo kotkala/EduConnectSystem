@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -15,7 +16,8 @@ import { SemesterForm } from "@/features/admin-management/components/admin/semes
 import { useAuth } from "@/features/authentication/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,
@@ -200,16 +202,10 @@ export default function AcademicManagementPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý niên khóa</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Quản lý năm học và học kỳ
-          </p>
-        </div>
+    <AdminPageTemplate
+      title="Tổng quan học thuật"
+      description="Tổng quan về hoạt động học thuật"
+      actions={
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
           <Button
             onClick={() => setShowCreateSemesterDialog(true)}
@@ -229,7 +225,10 @@ export default function AcademicManagementPage() {
             <span className="sm:hidden">Năm học</span>
           </Button>
         </div>
-      </div>
+      }
+      showCard={true}
+    >
+      <div className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -400,6 +399,6 @@ export default function AcademicManagementPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

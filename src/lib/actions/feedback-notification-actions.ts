@@ -90,6 +90,17 @@ export async function sendDailyFeedbackToParentsAction(
       }
     }
 
+    // Get daily AI summary if it exists
+    const { data: dailySummary } = await supabase
+      .from('daily_feedback_summaries')
+      .select('ai_summary')
+      .eq('student_id', studentId)
+      .eq('day_of_week', dayOfWeek)
+      .eq('week_number', weekNumber)
+      .eq('academic_year_id', academicYearId)
+      .eq('semester_id', semesterId)
+      .single()
+
     // Create notifications for all feedback and all parents
     const notifications = []
     for (const feedback of dailyFeedback) {
@@ -98,7 +109,10 @@ export async function sendDailyFeedbackToParentsAction(
           student_feedback_id: feedback.id,
           parent_id: parent.parent_id,
           student_id: studentId,
-          teacher_id: user.id
+          teacher_id: user.id,
+          ai_summary: dailySummary?.ai_summary || null,
+          use_ai_summary: Boolean(dailySummary?.ai_summary),
+          ai_generated_at: dailySummary?.ai_summary ? new Date().toISOString() : null
         })
       }
     }

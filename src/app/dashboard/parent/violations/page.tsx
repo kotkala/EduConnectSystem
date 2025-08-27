@@ -2,6 +2,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
+import { Card, CardContent } from '@/shared/components/ui/card'
+import Link from 'next/link'
 
 import ParentViolationsPageClient from './parent-violations-page-client'
 
@@ -24,23 +28,39 @@ export default async function ParentViolationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-        <Suspense fallback={
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="space-y-4 mb-4">
-          <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto"  aria-label="Loading content" role="status" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[200px] mx-auto"  aria-label="Loading content" role="status" />
-            <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
-          </div>
-        </div>
-            <p className="text-gray-600 font-medium">Đang tải thông tin vi phạm...</p>
-          </div>
-        }>
-          <ParentViolationsPageClient />
-        </Suspense>
-      </div>
-    </div>
+    <ContentLayout title="Vi phạm" role="parent">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard/parent">Phụ huynh</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Vi phạm</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="space-y-4 mb-4">
+                <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto" aria-label="Loading content" role="status" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[200px] mx-auto" aria-label="Loading content" role="status" />
+                  <Skeleton className="h-4 w-[150px] mx-auto" aria-label="Loading content" role="status" />
+                </div>
+              </div>
+              <p className="text-muted-foreground font-medium">Đang tải thông tin vi phạm...</p>
+            </div>
+          }>
+            <ParentViolationsPageClient />
+          </Suspense>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

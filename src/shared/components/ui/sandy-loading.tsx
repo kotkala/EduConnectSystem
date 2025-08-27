@@ -11,12 +11,12 @@ const DotLottieReact = dynamic(
 )
 
 /**
- * 🏖️ SANDY LOADING - Global & Route Loading Only
- * 
- * Full-screen overlay loading with Lottie animation.
- * Used ONLY for Global and Route-level loading states.
- * 
- * For Component-level loading, use Skeleton components instead.
+ * 🏖️ SANDY LOADING - Simplified Loading System
+ *
+ * Beautiful Lottie animation loading for better UX.
+ * - Global: Full-screen overlay for major transitions
+ * - Route: Page-level loading for route changes
+ * - Content: In-content loading without covering sidebar
  */
 
 interface SandyLoadingProps {
@@ -31,14 +31,14 @@ interface SandyLoadingProps {
 }
 
 /**
- * 🎯 GLOBAL SANDY LOADING - For global app loading states
- * 
- * Full-screen overlay that pops up and shows Lottie animation.
- * Automatically disappears when loading completes.
- * 
+ * 🎯 GLOBAL SANDY LOADING - For major app transitions
+ *
+ * Full-screen overlay for authentication, app initialization.
+ * Use sparingly - only for major transitions like main → dashboard.
+ *
  * @example
  * ```tsx
- * // Global loading (auth, initial data, etc.)
+ * // Major transitions only
  * <GlobalSandyLoading message="Đang khởi tạo ứng dụng..." />
  * ```
  */

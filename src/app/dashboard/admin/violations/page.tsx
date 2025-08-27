@@ -2,6 +2,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ViolationsPageClient from './violations-page-client'
+import ViolationsPageWrapper from './violations-page-wrapper'
+import { AdminPageWithSuspense } from '@/shared/components/dashboard/admin-page-template'
 
 export default async function ViolationsPage() {
   const supabase = await createClient()
@@ -22,19 +24,15 @@ export default async function ViolationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý vi phạm học sinh</h1>
-          <p className="text-muted-foreground">
-            Quản lý danh mục vi phạm, ghi nhận vi phạm và theo dõi kỷ luật học sinh
-          </p>
-        </div>
-      </div>
-
-      <Suspense fallback={<div>Đang tải...</div>}>
+    <ViolationsPageWrapper>
+      <AdminPageWithSuspense
+        title="Quản lý vi phạm"
+        description="Theo dõi và xử lý vi phạm học sinh"
+        showCard={true}
+        fallback={<div>Đang tải...</div>}
+      >
         <ViolationsPageClient />
-      </Suspense>
-    </div>
+      </AdminPageWithSuspense>
+    </ViolationsPageWrapper>
   )
 }

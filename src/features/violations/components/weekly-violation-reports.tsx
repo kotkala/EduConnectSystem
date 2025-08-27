@@ -19,7 +19,8 @@ import {
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
 import { getClassesAction } from '@/features/admin-management/actions/class-actions'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import OutdatedReportsAlert from './outdated-reports-alert'
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import OutdatedReportsAlert from './outdated-reports-alert'
 
 interface WeeklyViolationReport {
   id: string
@@ -475,30 +476,30 @@ export default function WeeklyViolationReports() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div className="space-y-2">
-              <label htmlFor="week-select" className="text-sm font-medium">Tuần</label>
-              <div className="flex items-center gap-2">
+              <label htmlFor="week-select" className="text-xs sm:text-sm font-medium">Tuần</label>
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handlePreviousWeek}
                   disabled={selectedWeek <= 1 || !currentSemester?.start_date}
-                  className="px-2"
+                  className="px-1 sm:px-2"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
                 <Select
                   value={selectedWeek.toString()}
                   onValueChange={(value) => setSelectedWeek(parseInt(value))}
                   disabled={!currentSemester?.start_date}
                 >
-                  <SelectTrigger id="week-select" className="flex-1">
+                  <SelectTrigger id="week-select" className="flex-1 text-xs sm:text-sm">
                     <SelectValue placeholder={!currentSemester?.start_date ? "Đang tải học kỳ..." : undefined} />
                   </SelectTrigger>
                   <SelectContent>
                     {getWeekOptions().map((option) => (
-                      <SelectItem key={option.value} value={option.value.toString()}>
+                      <SelectItem key={option.value} value={option.value.toString()} className="text-xs sm:text-sm">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -509,17 +510,17 @@ export default function WeeklyViolationReports() {
                   size="sm"
                   onClick={handleNextWeek}
                   disabled={selectedWeek >= Math.max(getCurrentWeek(), 20) || !currentSemester?.start_date}
-                  className="px-2"
+                  className="px-1 sm:px-2"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="class-select" className="text-sm font-medium">Lớp (tùy chọn)</label>
+              <label htmlFor="class-select" className="text-xs sm:text-sm font-medium">Lớp (tùy chọn)</label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger id="class-select">
+                <SelectTrigger id="class-select" className="text-xs sm:text-sm">
                   <SelectValue placeholder="Tất cả lớp" />
                 </SelectTrigger>
                 <SelectContent>
@@ -568,14 +569,14 @@ export default function WeeklyViolationReports() {
       </Card>
 
       {/* Thống kê tổng quan */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Học sinh vi phạm</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Học sinh vi phạm</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalStudentsWithViolations}</div>
+            <div className="text-lg sm:text-2xl font-bold">{totalStudentsWithViolations}</div>
             <p className="text-xs text-muted-foreground">
               Tuần {selectedWeek}
             </p>
@@ -725,20 +726,23 @@ export default function WeeklyViolationReports() {
               </div>
             )
             return (
-              <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Học sinh</TableHead>
-                  <TableHead>Lớp</TableHead>
-                  <TableHead>Số vi phạm</TableHead>
-                  <TableHead>Điểm trừ</TableHead>
-                  <TableHead>Điểm tuần</TableHead>
-                  <TableHead>Chi tiết vi phạm</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.map((report) => (
+              <div className="space-y-4">
+                {/* Desktop Table */}
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Học sinh</TableHead>
+                        <TableHead>Lớp</TableHead>
+                        <TableHead>Số vi phạm</TableHead>
+                        <TableHead>Điểm trừ</TableHead>
+                        <TableHead>Điểm tuần</TableHead>
+                        <TableHead>Chi tiết vi phạm</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reports.map((report) => (
                   <TableRow key={report.id}>
                     <TableCell>
                       <div>
@@ -783,11 +787,71 @@ export default function WeeklyViolationReports() {
                       ) : (
                         <Badge variant="secondary">Chưa gửi</Badge>
                       )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="lg:hidden space-y-3">
+                  {reports.map((report) => (
+                    <Card key={report.id} className="p-4">
+                      <div className="space-y-3">
+                        {/* Student Info */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-sm">{report.student.full_name}</div>
+                            <div className="text-xs text-muted-foreground">{report.student.student_id}</div>
+                          </div>
+                          <Badge variant={getScoreBadgeVariant(report.weekly_score)} className="text-xs">
+                            {report.weekly_score}/100
+                          </Badge>
+                        </div>
+
+                        {/* Class and Stats */}
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <div className="text-muted-foreground">Lớp</div>
+                            <div className="font-medium">{report.class.name}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Vi phạm</div>
+                            <Badge variant="outline" className="text-xs">
+                              {report.total_violations} lần
+                            </Badge>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Điểm trừ</div>
+                            <Badge variant="destructive" className="text-xs">
+                              -{report.total_points_deducted}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Violations Details */}
+                        {report.violation_details.length > 0 && (
+                          <div>
+                            <div className="text-xs text-muted-foreground mb-1">Chi tiết vi phạm:</div>
+                            <div className="space-y-1">
+                              {report.violation_details.map((violation, index) => (
+                                <div key={index} className="text-xs bg-muted p-2 rounded">
+                                  <span className="font-medium">{violation.type}</span>
+                                  <span className="text-muted-foreground"> (-{violation.points} điểm)</span>
+                                  {violation.description && (
+                                    <div className="text-muted-foreground mt-1">{violation.description}</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             )
           })()}
         </CardContent>

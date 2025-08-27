@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createMessage } from "./parent-chatbot"
 import {
   prepareConversationHistory,
@@ -35,10 +36,12 @@ interface UseChatStreamingProps {
   setIsStreaming: (value: boolean) => void
   conversationId?: string | null
   parentId?: string | null
+  onConversationCreated?: (conversationId: string) => void
 }
 
 interface UseChatStreamingReturn {
   sendMessage: (inputMessage: string) => Promise<void>
+  currentConversationId: string | null
 }
 
 // Helper function to calculate prompt strength based on context and function calls
@@ -88,8 +91,10 @@ export function useChatStreaming({
   setIsLoading,
   setIsStreaming,
   conversationId,
-  parentId
+  parentId,
+  onConversationCreated
 }: UseChatStreamingProps): UseChatStreamingReturn {
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(conversationId || null)
 
   const sendMessage = async (inputMessage: string): Promise<void> => {
     // Early return for invalid input or loading states
@@ -112,9 +117,9 @@ export function useChatStreaming({
       const response = await createStreamRequest(messageText, conversationHistory)
       const reader = validateStreamResponse(response)
 
-      // Create initial assistant message
+      // Generate assistant message ID but don't create the message yet
+      // Let the streaming process create it when first text arrives
       const assistantMessageId = crypto.randomUUID()
-      setMessages(prev => [...prev, createMessage('assistant', '', undefined, assistantMessageId)])
 
       // Process the entire stream
       const { accumulatedText, contextUsed, functionCalls } = await processStream(reader, assistantMessageId, setMessages)
@@ -125,28 +130,78 @@ export function useChatStreaming({
       // Final update with context information
       finalizeMessage(assistantMessageId, accumulatedText, contextUsed, setMessages)
 
-      // Save messages to database if conversation and parent IDs are available
-      if (conversationId && parentId) {
-        // Save user message with its ID
-        await saveMessage({
-          id: userMessage.id,
-          conversation_id: conversationId,
-          role: 'user',
-          content: messageText,
-          function_calls: 0,
-          prompt_strength: 0
-        })
+      // Save messages to database - create conversation if needed
+      if (parentId) {
+        let activeConversationId = conversationId || currentConversationId
 
-        // Save assistant message with its ID
-        await saveMessage({
-          id: assistantMessageId,
-          conversation_id: conversationId,
-          role: 'assistant',
-          content: accumulatedText,
-          context_used: contextUsed || undefined,
-          function_calls: functionCalls || 0,
-          prompt_strength: promptStrength
-        })
+        // Create conversation if it doesn't exist (when user sends first message)
+        if (!activeConversationId) {
+          const { createConversation } = await import('@/lib/actions/chat-history-actions')
+          const result = await createConversation({
+            parent_id: parentId,
+            title: 'Cuộc trò chuyện mới'
+          })
+
+          if (result.success && result.data) {
+            activeConversationId = result.data.id
+            setCurrentConversationId(activeConversationId) // Update local state
+            if (activeConversationId) {
+              onConversationCreated?.(activeConversationId) // Notify parent component
+            }
+          }
+        }
+
+        // Save messages if we have a conversation ID
+        if (activeConversationId) {
+          try {
+          // Save user message with its ID
+          const userSaveResult = await saveMessage({
+            id: userMessage.id,
+            conversation_id: activeConversationId,
+            role: 'user',
+            content: messageText,
+            function_calls: 0,
+            prompt_strength: 0
+          })
+
+          // Save assistant message with its ID
+          const assistantSaveResult = await saveMessage({
+            id: assistantMessageId,
+            conversation_id: activeConversationId,
+            role: 'assistant',
+            content: accumulatedText,
+            context_used: contextUsed || undefined,
+            function_calls: functionCalls || 0,
+            prompt_strength: promptStrength
+          })
+
+          // Update local state with conversationId, context info, and database save status
+          setMessages(prev => {
+            return prev.map(m => {
+              if (m.id === userMessage.id) {
+                return {
+                  ...m,
+                  conversationId: activeConversationId,
+                  isSavedToDatabase: userSaveResult.success
+                }
+              }
+              if (m.id === assistantMessageId) {
+                return {
+                  ...m,
+                  conversationId: activeConversationId,
+                  promptStrength,
+                  contextUsed: contextUsed || m.contextUsed,
+                  isSavedToDatabase: assistantSaveResult.success
+                }
+              }
+              return m
+            })
+          })
+          } catch (saveError) {
+            console.error('Error saving messages:', saveError)
+            // Don't throw error - allow feedback to work even if save fails
+          }
+        }
       }
 
     } catch (error) {
@@ -159,5 +214,5 @@ export function useChatStreaming({
     }
   }
 
-  return { sendMessage }
+  return { sendMessage, currentConversationId }
 }

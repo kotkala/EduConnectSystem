@@ -32,6 +32,13 @@ export interface StudentFeedbackForParent {
     use_ai_summary: boolean | null
     ai_generated_at: string | null
   }>>
+  daily_ai_summaries?: Record<string, {
+    day_of_week: number
+    ai_summary: string
+    created_at: string
+    total_lessons: number
+    lessons_with_feedback: number
+  }>
 }
 
 interface ParentFeedbackViewData {
@@ -295,6 +302,30 @@ export async function getStudentFeedbackForParentAction(
       })
     }
 
+    // Get daily AI summaries for these students
+    const { data: dailySummaries } = await supabase
+      .from('daily_feedback_summaries')
+      .select('student_id, day_of_week, ai_summary, created_at, total_lessons, lessons_with_feedback')
+      .eq('week_number', filters.week_number)
+      .eq('academic_year_id', filters.academic_year_id)
+      .in('student_id', studentIds)
+
+    // Add daily AI summaries to student feedback
+    for (const studentFeedback of studentFeedbackMap.values()) {
+      const studentSummaries = (dailySummaries || []).filter(s => s.student_id === studentFeedback.student_id)
+      studentFeedback.daily_ai_summaries = {}
+
+      for (const summary of studentSummaries) {
+        studentFeedback.daily_ai_summaries[summary.day_of_week.toString()] = {
+          day_of_week: summary.day_of_week,
+          ai_summary: summary.ai_summary,
+          created_at: summary.created_at,
+          total_lessons: summary.total_lessons,
+          lessons_with_feedback: summary.lessons_with_feedback
+        }
+      }
+    }
+
     // Sort feedback within each day by start time
     for (const studentFeedback of studentFeedbackMap.values()) {
       for (const dayFeedback of Object.values(studentFeedback.daily_feedback)) {
@@ -341,6 +372,78 @@ export async function markFeedbackAsReadAction(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Không thể đánh dấu phản hồi là đã đọc"
+    }
+  }
+}
+
+// Get daily AI summaries for parent
+export async function getParentDailySummariesAction({
+  academic_year_id,
+  semester_id,
+  week_number,
+  student_id
+}: {
+  academic_year_id: string
+  semester_id: string
+  week_number: number
+  student_id?: string
+}) {
+  try {
+    const supabase = await createClient()
+
+    // Check parent permissions
+    const permissionCheck = await checkParentPermissions()
+    if (!permissionCheck.userId) {
+      return {
+        success: false,
+        error: "Unauthorized access"
+      }
+    }
+
+    // Build query for daily summaries
+    let query = supabase
+      .from('daily_feedback_summaries')
+      .select(`
+        *,
+        profiles:student_id (
+          full_name,
+          student_id,
+          avatar_url
+        )
+      `)
+      .eq('academic_year_id', academic_year_id)
+      .eq('semester_id', semester_id)
+      .eq('week_number', week_number)
+      .order('day_of_week', { ascending: true })
+
+    // Filter by student if specified
+    if (student_id) {
+      query = query.eq('student_id', student_id)
+    } else {
+      // Get all children for this parent - need to implement parent-child relationship query
+      // For now, require student_id to be specified
+      return {
+        success: false,
+        error: "Student ID is required"
+      }
+    }
+
+    const { data: summaries, error } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: summaries || []
+    }
+
+  } catch (error) {
+    console.error("Get parent daily summaries error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Không thể lấy tóm tắt phản hồi hàng ngày"
     }
   }
 }

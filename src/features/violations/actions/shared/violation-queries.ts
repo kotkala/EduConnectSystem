@@ -28,7 +28,7 @@ export const VIOLATION_TYPE_WITH_CATEGORY_FIELDS = `
   is_active,
   created_at,
   updated_at,
-  violation_categories!inner(
+  category:violation_categories!inner(
     id,
     name
   )

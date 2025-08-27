@@ -11,18 +11,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table"
-import { CheckCircle, AlertCircle, Users, User } from "lucide-react"
-import { type ClassProgress } from "@/lib/actions/report-period-actions"
+import { CheckCircle, AlertCircle, Users, User, Send, Loader2 } from "lucide-react"
+import { type ClassProgress, adminSendClassReportsAction } from "@/lib/actions/report-period-actions"
+import { toast } from "sonner"
 
 interface ClassProgressTableProps {
   readonly data: ClassProgress[]
   readonly loading?: boolean
+  readonly reportPeriodId?: string
+  readonly onReportsUpdated?: () => void
 }
 
 const ITEMS_PER_PAGE = 10
 
-function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps) {
+function ClassProgressTableComponent({ data, loading, reportPeriodId, onReportsUpdated }: ClassProgressTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
+  const [sendingClassId, setSendingClassId] = useState<string | null>(null)
 
   // Memoize expensive calculations
   const summaryStats = useMemo(() => {
@@ -82,6 +86,31 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
     if (total === 0) return 0
     return Math.round((sent / total) * 100)
   }
+
+  // Handle individual class report sending
+  const handleSendClassReports = async (classId: string, className: string) => {
+    if (!reportPeriodId) {
+      toast.error('Report period ID is required')
+      return
+    }
+
+    setSendingClassId(classId)
+    try {
+      const result = await adminSendClassReportsAction(reportPeriodId, classId)
+
+      if (result.success) {
+        toast.success(result.data?.message || `Successfully sent reports for class ${className}`)
+        onReportsUpdated?.() // Refresh the data
+      } else {
+        toast.error(result.error || `Failed to send reports for class ${className}`)
+      }
+    } catch (error) {
+      console.error('Error sending class reports:', error)
+      toast.error(`Error sending reports for class ${className}`)
+    } finally {
+      setSendingClassId(null)
+    }
+  }
   if (loading) {
     return (
       <div className="space-y-3">
@@ -123,6 +152,7 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
               <TableHead className="min-w-[120px]">Tiến độ</TableHead>
               <TableHead className="min-w-[120px]">Phụ huynh đồng ý</TableHead>
               <TableHead className="min-w-[100px]">Trạng thái</TableHead>
+              {reportPeriodId && <TableHead className="min-w-[120px]">Thao tác</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -207,6 +237,31 @@ function ClassProgressTableComponent({ data, loading }: ClassProgressTableProps)
                       {getStatusBadge(classItem.status)}
                     </div>
                   </TableCell>
+
+                  {/* Actions Column */}
+                  {reportPeriodId && (
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSendClassReports(classItem.class_id, classItem.class_name)}
+                        disabled={sendingClassId === classItem.class_id}
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      >
+                        {sendingClassId === classItem.class_id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Đang gửi...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Gửi báo cáo
+                          </>
+                        )}
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               )
             })}

@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
+import Link from 'next/link'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import {
   getParentLeaveApplicationsAction,
@@ -97,7 +99,22 @@ export default function LeaveApplicationPage() {
   // Show loading state
   if (loading) {
     return (
-      <SidebarLayout role="parent" title="Đơn xin nghỉ">
+      <ContentLayout title="Đơn xin nghỉ" role="parent">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/dashboard/parent">Phụ huynh</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Đơn xin nghỉ</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <Card className="rounded-lg border-none mt-6">
+          <CardContent className="p-6">
         <div className="flex items-center justify-center h-64">
           <div className="space-y-4">
             <Skeleton className="h-8 w-8 rounded-full" />
@@ -107,28 +124,62 @@ export default function LeaveApplicationPage() {
             </div>
           </div>
         </div>
-      </SidebarLayout>
+          </CardContent>
+        </Card>
+      </ContentLayout>
     )
   }
 
   // Show access denied if no permission
   if (!user || profile?.role !== 'parent') {
     return (
-      <SidebarLayout role="parent" title="Từ chối truy cập">
-        <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
-          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
-          <Button onClick={() => router.push('/dashboard/parent')}>
-            Quay lại bảng điều khiển
-          </Button>
-        </div>
-      </SidebarLayout>
+      <ContentLayout title="Từ chối truy cập" role="parent">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/dashboard/parent">Phụ huynh</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Từ chối truy cập</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <Card className="rounded-lg border-none mt-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center h-64 space-y-4">
+              <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
+              <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+              <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
+              <Button onClick={() => router.push('/dashboard/parent')}>
+                Quay lại bảng điều khiển
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </ContentLayout>
     )
   }
 
   return (
-    <SidebarLayout role="parent" title="Đơn xin nghỉ">
+    <ContentLayout title="Đơn xin nghỉ" role="parent">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard/parent">Phụ huynh</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Đơn xin nghỉ</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -235,6 +286,8 @@ export default function LeaveApplicationPage() {
           </CardContent>
         </Card>
       </div>
-    </SidebarLayout>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -11,13 +12,13 @@ import { ClassroomForm } from "@/features/admin-management/components/admin/clas
 import { getClassroomsAction } from "@/features/admin-management/actions/classroom-actions"
 import { type Classroom, type ClassroomFilters } from "@/features/admin-management/actions/classroom-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
+
 
 export default function ClassroomsPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [total, setTotal] = useState(0)
-  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách phòng học...")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // Dialog states
@@ -31,9 +32,9 @@ export default function ClassroomsPage() {
   })
 
   const loadClassrooms = useCallback(async () => {
-    startLoading()
+    setLoading(true)
     setError(null)
-    
+
     try {
       const result = await getClassroomsAction(filters)
       if (result.success) {
@@ -45,9 +46,9 @@ export default function ClassroomsPage() {
     } catch {
       setError('Không thể tải danh sách phòng học')
     } finally {
-      stopLoading()
+      setLoading(false)
     }
-  }, [filters, startLoading, stopLoading])
+  }, [filters])
 
   useEffect(() => {
     loadClassrooms()
@@ -89,28 +90,23 @@ export default function ClassroomsPage() {
   const roomTypes = [...new Set(classrooms.map(c => c.room_type))].length
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý phòng học</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Quản lý phòng học, sức chứa, trang thiết bị và trạng thái sử dụng
-          </p>
-        </div>
+    <AdminPageTemplate
+      title="Quản lý phòng học"
+      description="Quản lý phòng học và cơ sở vật chất"
+      actions={
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-            <Skeleton className="h-32 w-full rounded-lg" />
-            <span className="hidden sm:inline">Làm mới</span>
-            <span className="sm:hidden">Làm mới</span>
+            Làm mới
           </Button>
           <Button onClick={handleCreateClassroom} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Thêm phòng học
           </Button>
         </div>
-      </div>
+      }
+      showCard={true}
+    >
+      <div className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -210,6 +206,6 @@ export default function ClassroomsPage() {
         </DialogContent>
       </Dialog>
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

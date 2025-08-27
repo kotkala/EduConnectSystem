@@ -12,11 +12,11 @@ import { getTeachersAction, getTeacherStatsAction } from "@/features/admin-manag
 import { type TeacherProfile, type StudentWithParent, type UserFilters } from "@/lib/validations/user-validations"
 
 import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 
 export default function TeachersPageClient() {
   const [teachers, setTeachers] = useState<TeacherProfile[]>([])
-  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách giáo viên...")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -35,7 +35,7 @@ export default function TeachersPageClient() {
   const fetchTeachers = useCallback(async () => {
     // Chỉ start loading nếu chưa có data
     if (teachers.length === 0) {
-      startLoading()
+      setLoading(true)
     }
     setError(null)
 
@@ -60,9 +60,9 @@ export default function TeachersPageClient() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
     } finally {
-      stopLoading()
+      setLoading(false)
     }
-  }, [filters, startLoading, stopLoading, teachers.length])
+  }, [filters, teachers.length])
 
   useEffect(() => {
     fetchTeachers()

@@ -125,27 +125,32 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(30)
 
-    // Get official grade submissions (semester reports)
-    const { data: gradeSubmissions } = await supabase
-      .from('student_grade_submissions')
+    // Get comprehensive grade data from unified source (student_detailed_grades)
+    const { data: comprehensiveGrades } = await supabase
+      .from('student_detailed_grades')
       .select(`
         id,
-        submission_name,
-        status,
+        grade_value,
+        component_type,
         created_at,
         student_id,
-        academic_year:academic_years(name),
-        semester:semesters(name),
-        detailed_grades:student_detailed_grades(
-          subject_id,
-          component_type,
-          grade_value
+        period:grade_reporting_periods(
+          id,
+          name,
+          period_type,
+          academic_year:academic_years(name),
+          semester:semesters(name)
+        ),
+        subject:subjects(
+          id,
+          name_vietnamese,
+          code,
+          category
         )
       `)
       .in('student_id', studentIds)
-      .eq('status', 'sent_to_teacher')
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(50)
 
     // Get violations data for context
     const { data: violationsData } = await supabase
@@ -186,7 +191,7 @@ export async function POST(request: NextRequest) {
       students: studentNames,
       recentFeedback: feedbackData || [],
       recentGrades: gradeData || [],
-      gradeSubmissions: gradeSubmissions || [],
+      comprehensiveGrades: comprehensiveGrades || [], // **UNIFIED**: Using comprehensive grade data from student_detailed_grades
       recentViolations: violationsData || [],
       notifications: notifications || [],
       currentAcademicYear,
@@ -252,22 +257,19 @@ ${contextData.recentGrades.map((g: any) => { // eslint-disable-line @typescript-
   return `- ${studentName} - ${subjectName}: ${grade} điểm (${date})`
 }).join('\n')}
 
-BẢNG ĐIỂM CHÍNH THỨC (Học kỳ):
-${contextData.gradeSubmissions.map((submission: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-  const student = contextData.studentMap.get(submission.student_id)
+BẢNG ĐIỂM CHI TIẾT (Từ hệ thống thống nhất):
+${contextData.comprehensiveGrades.map((grade: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const student = contextData.studentMap.get(grade.student_id)
   const studentName = student?.full_name || 'Unknown Student'
-  const academicYear = submission.academic_year?.name || 'N/A'
-  const semester = submission.semester?.name || 'N/A'
-  const submissionName = submission.submission_name || 'Bảng điểm'
-  const date = new Date(submission.created_at).toLocaleDateString('vi-VN')
+  const subject = grade.subject?.name_vietnamese || 'Unknown Subject'
+  const period = grade.period?.name || 'N/A'
+  const academicYear = grade.period?.academic_year?.name || 'N/A'
+  const semester = grade.period?.semester?.name || 'N/A'
+  const gradeValue = parseFloat(grade.grade_value) || 0
+  const componentType = grade.component_type || 'N/A'
+  const date = new Date(grade.created_at).toLocaleDateString('vi-VN')
 
-  const gradesSummary = submission.grades?.map((grade: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    const subject = contextData.subjectMap.get(grade.subject_id)
-    const subjectName = subject?.name_vietnamese || 'Unknown Subject'
-    return `${subjectName}: TB=${grade.average_grade || 'N/A'} (GK=${grade.midterm_grade || 'N/A'}, CK=${grade.final_grade || 'N/A'})`
-  }).join(', ') || 'Chưa có điểm'
-
-  return `- ${studentName} - ${submissionName} (${semester} ${academicYear}, ${date}): ${gradesSummary}`
+  return `- ${studentName} - ${subject}: ${gradeValue} điểm (${componentType}) - ${period} - ${academicYear} - ${semester} (${date})`
 }).join('\n')}
 
 DỮ LIỆU VI PHẠM GẦN ĐÂY (60 ngày):

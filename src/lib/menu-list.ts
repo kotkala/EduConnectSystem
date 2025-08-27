@@ -9,7 +9,6 @@ import {
   Bell,
   Bot,
   AlertTriangle,
-  BarChart3,
   Calculator,
   CalendarClock,
   BookCheck,
@@ -39,7 +38,7 @@ type Group = {
   menus: Menu[]
 }
 
-export function getMenuList(pathname: string, role: UserRole, onChatbotOpen?: () => void): Group[] {
+export function getMenuList(pathname: string, role: UserRole): Group[] {
   const menuConfig: Record<UserRole, Group[]> = {
     admin: [
       {
@@ -59,11 +58,6 @@ export function getMenuList(pathname: string, role: UserRole, onChatbotOpen?: ()
             href: "/dashboard/admin/notifications",
             label: "Thông báo",
             icon: Bell
-          },
-          {
-            href: "/dashboard/admin/analytics",
-            label: "Phân tích",
-            icon: BarChart3
           }
         ]
       },
@@ -125,6 +119,22 @@ export function getMenuList(pathname: string, role: UserRole, onChatbotOpen?: ()
               {
                 href: "/dashboard/admin/grade-overwrite-approvals",
                 label: "Phê duyệt điểm"
+              },
+              {
+                href: "/dashboard/admin/grade-improvement",
+                label: "Cải thiện điểm"
+              }
+            ]
+          },
+
+          {
+            href: "",
+            label: "Báo cáo",
+            icon: FileText,
+            submenus: [
+              {
+                href: "/dashboard/admin/report-periods",
+                label: "Báo cáo học tập"
               }
             ]
           }
@@ -298,10 +308,9 @@ export function getMenuList(pathname: string, role: UserRole, onChatbotOpen?: ()
             icon: Bell
           },
           {
-            href: "",
+            href: "/dashboard/parent/chatbot",
             label: "Trợ lý AI",
-            icon: Bot,
-            onClick: onChatbotOpen
+            icon: Bot
           }
         ]
       },

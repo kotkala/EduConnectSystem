@@ -36,7 +36,9 @@ async function checkUserProfile(supabase: Awaited<ReturnType<typeof createClient
 // Helper function to create redirect URL
 function createRedirectUrl(next: string, origin: string): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin
-  const redirectUrl = new URL(next, siteUrl)
+  // For consistent UX, redirect to homepage instead of dashboard
+  // Let user manually navigate to dashboard like OTP flow
+  const redirectUrl = new URL('/', siteUrl)
   redirectUrl.searchParams.set('auth_success', 'true')
   return redirectUrl.toString()
 }

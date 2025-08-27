@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
+import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Input } from "@/shared/components/ui/input"
@@ -197,25 +198,18 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
   }
 
   return (
-    <div className="p-6">
-      <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Học sinh lớp chủ nhiệm
-          </h1>
-          {classInfo && (
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {classInfo.name} â€¢ {classInfo.academic_year_name} â€¢ {classInfo.semester_name}
-            </p>
-          )}
-        </div>
+    <TeacherPageTemplate
+      title="Học sinh lớp chủ nhiệm"
+      description={classInfo ? `${classInfo.name} • ${classInfo.academic_year_name} • ${classInfo.semester_name}` : "Quản lý danh sách học sinh lớp chủ nhiệm"}
+      actions={
         <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto">
           <RefreshCw className="mr-2 h-4 w-4" />
           Làm mới
         </Button>
-      </div>
+      }
+      showCard={true}
+    >
+      <div className="space-y-6">
 
       {/* Class Overview */}
       {classInfo && (
@@ -382,6 +376,6 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
         />
       )}
       </div>
-    </div>
+    </TeacherPageTemplate>
   )
 }

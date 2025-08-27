@@ -324,7 +324,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
                     <td className="text-center py-3 px-4">
                       <span className="font-medium">
                         {grade.regular_grades && grade.regular_grades.length > 0
-                          ? grade.regular_grades.map(g => g.toFixed(1)).join(', ')
+                          ? grade.regular_grades.filter(g => g !== null).map(g => g.toFixed(1)).join(', ') || '--'
                           : '--'
                         }
                       </span>

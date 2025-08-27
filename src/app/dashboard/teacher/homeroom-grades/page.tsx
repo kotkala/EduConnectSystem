@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
 import { Button } from "@/shared/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Badge } from "@/shared/components/ui/badge"
@@ -11,7 +12,8 @@ import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Label } from "@/shared/components/ui/label"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   RefreshCw,
   Users,
   BookOpen,
@@ -235,20 +237,15 @@ export default function HomeroomGradesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Quản lý điểm lớp chủ nhiệm</h1>
-          <p className="text-muted-foreground">
-            Tạo phản hồi AI và gửi bảng điểm cho phụ huynh
-          </p>
-        </div>
+    <TeacherPageTemplate
+      title="Điểm số lớp chủ nhiệm"
+      description="Tạo phản hồi AI và gửi bảng điểm cho phụ huynh"
+      actions={
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadGradeData} disabled={loading}>
-            <Skeleton className="h-32 w-full rounded-lg" />
             Làm mới
           </Button>
-          <Button 
+          <Button
             onClick={() => setFeedbackDialogOpen(true)}
             disabled={selectedStudents.size === 0}
           >
@@ -256,7 +253,10 @@ export default function HomeroomGradesPage() {
             Tạo phản hồi AI ({selectedStudents.size})
           </Button>
         </div>
-      </div>
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
 
       {/* Period Selection */}
       <Card>
@@ -552,5 +552,6 @@ export default function HomeroomGradesPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </TeacherPageTemplate>
   )
 }

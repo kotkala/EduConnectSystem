@@ -93,12 +93,22 @@ export function processStreamChunk(line: string): StreamData | null {
 function handleTextData(data: StreamData, accumulatedText: string, assistantMessageId: string, setMessages: (updater: (prev: Message[]) => Message[]) => void): string {
   const newAccumulatedText = accumulatedText + (typeof data.data === 'string' ? data.data : '')
 
-  // Update the assistant message in real-time
-  setMessages(prev => prev.map(msg =>
-    msg.id === assistantMessageId
-      ? { ...msg, content: newAccumulatedText }
-      : msg
-  ))
+  // Update the assistant message in real-time, or create it if it doesn't exist
+  setMessages(prev => {
+    const existingMessageIndex = prev.findIndex(msg => msg.id === assistantMessageId)
+
+    if (existingMessageIndex >= 0) {
+      // Update existing message
+      return prev.map(msg =>
+        msg.id === assistantMessageId
+          ? { ...msg, content: newAccumulatedText }
+          : msg
+      )
+    } else {
+      // Create new assistant message if it doesn't exist (first text chunk)
+      return [...prev, createMessage('assistant', newAccumulatedText, undefined, assistantMessageId)]
+    }
+  })
 
   return newAccumulatedText
 }

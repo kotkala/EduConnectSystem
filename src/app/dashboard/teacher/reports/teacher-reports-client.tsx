@@ -35,7 +35,7 @@ import {
   getStudentsForReportAction,
   type StudentForReport
 } from "@/features/reports"
-import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+
 
 // Removed StudentReportModal import - now using dedicated page
 
@@ -190,8 +190,7 @@ function TeacherReportsClient() {
   const [currentPage, setCurrentPage] = useState(1)
   const [bulkSending, setBulkSending] = useState(false)
 
-  // Global loading for initial data loads
-  const { startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("")
@@ -267,7 +266,7 @@ function TeacherReportsClient() {
   const loadReportPeriods = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startLoading()
+      // Loading state removed
       setError(null)
 
       const result = await getReportPeriodsAction()
@@ -281,9 +280,9 @@ function TeacherReportsClient() {
       console.error('Error loading report periods:', error)
       setError('Failed to load report periods')
     } finally {
-      stopLoading()
+      // Loading state removed
     }
-  }, [startLoading, stopLoading])
+  }, [])
 
   const loadStudents = useCallback(async () => {
     if (!selectedPeriod) return

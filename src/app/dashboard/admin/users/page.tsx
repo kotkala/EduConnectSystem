@@ -75,19 +75,25 @@ export default async function UsersPage() {
         <CardContent className="p-6">
           <div className="space-y-6">
             {/* Header */}
-            <div className="space-y-2 sm:space-y-3">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý người dùng</h1>
+            <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                Quản lý người dùng
+              </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Quản lý toàn bộ tài khoản trong hệ thống EduConnect
               </p>
             </div>
 
             {/* Overview Cards */}
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-              {userTypes.map((userType) => {
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {userTypes.map((userType, index) => {
                 const Icon = userType.icon
                 return (
-                  <div key={userType.title} className="relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div
+                    key={userType.title}
+                    className="relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
@@ -134,7 +140,7 @@ export default async function UsersPage() {
             </div>
 
             {/* Important Notes */}
-            <div className="border-amber-200 bg-amber-50 rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="border-amber-200 bg-amber-50 rounded-lg border bg-card text-card-foreground shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex flex-col space-y-1.5 p-6">
                 <h3 className="text-2xl font-semibold leading-none tracking-tight text-amber-800 flex items-center gap-2">
                   <Heart className="h-5 w-5" />
@@ -167,7 +173,7 @@ export default async function UsersPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex flex-col space-y-1.5 p-6">
                 <h3 className="text-2xl font-semibold leading-none tracking-tight">Thao tác nhanh</h3>
                 <p className="text-sm text-muted-foreground">

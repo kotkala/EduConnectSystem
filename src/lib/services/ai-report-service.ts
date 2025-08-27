@@ -94,12 +94,27 @@ export async function generateAIAcademicSummary(
       .lte('created_at', reportPeriod.end_date + 'T23:59:59.999Z')
       .order('created_at', { ascending: false })
 
-    if (!feedback || feedback.length === 0) {
-      return 'Chưa có phản hồi từ giáo viên trong kỳ báo cáo này.'
+    // Get grade data from the NEW system within the report period
+    const { data: grades } = await supabase
+      .from('student_detailed_grades')
+      .select(`
+        grade_value,
+        component_type,
+        created_at,
+        subject:subjects(name_vietnamese)
+      `)
+      .eq('student_id', studentId)
+      .gte('created_at', reportPeriod.start_date + 'T00:00:00.000Z')
+      .lte('created_at', reportPeriod.end_date + 'T23:59:59.999Z')
+      .in('component_type', ['regular_1', 'regular_2', 'regular_3', 'midterm', 'final', 'summary'])
+      .order('created_at', { ascending: false })
+
+    if ((!feedback || feedback.length === 0) && (!grades || grades.length === 0)) {
+      return 'Chưa có phản hồi từ giáo viên và điểm số trong kỳ báo cáo này.'
     }
 
-    // Prepare data for AI analysis with comprehensive processing
-    const feedbackSummary = feedback.map((item: FeedbackData) => {
+    // Prepare feedback data for AI analysis with comprehensive processing
+    const feedbackSummary = feedback?.map((item: FeedbackData) => {
       const subject = Array.isArray(item.subject) ? item.subject[0] : item.subject
       const teacher = Array.isArray(item.teacher) ? item.teacher[0] : item.teacher
 
@@ -113,21 +128,36 @@ export async function generateAIAcademicSummary(
         comment: cleanFeedback,
         date: item.created_at
       }
-    })
+    }) || []
 
-    // Comprehensive data analysis
+    // Prepare grade data for AI analysis
+    const gradeSummary = grades?.map((item: { subject: { name_vietnamese?: string } | { name_vietnamese?: string }[]; component_type: string; grade_value: string; created_at: string }) => {
+      const subject = Array.isArray(item.subject) ? item.subject[0] : item.subject
+      return {
+        subject: subject?.name_vietnamese || 'Môn học',
+        component_type: item.component_type,
+        grade_value: parseFloat(item.grade_value) || 0,
+        date: item.created_at
+      }
+    }) || []
+
+    // Comprehensive data analysis including both feedback and grades
     const subjectAnalysis = feedbackSummary.reduce((acc: Record<string, {
       ratings: number[],
       comments: string[],
       teachers: Set<string>,
-      count: number
+      count: number,
+      grades: number[],
+      gradeComponents: string[]
     }>, item) => {
       if (!acc[item.subject]) {
         acc[item.subject] = {
           ratings: [],
           comments: [],
           teachers: new Set(),
-          count: 0
+          count: 0,
+          grades: [],
+          gradeComponents: []
         }
       }
 
@@ -143,6 +173,23 @@ export async function generateAIAcademicSummary(
       return acc
     }, {})
 
+    // Add grade data to subject analysis
+    gradeSummary.forEach(gradeItem => {
+      if (!subjectAnalysis[gradeItem.subject]) {
+        subjectAnalysis[gradeItem.subject] = {
+          ratings: [],
+          comments: [],
+          teachers: new Set(),
+          count: 0,
+          grades: [],
+          gradeComponents: []
+        }
+      }
+
+      subjectAnalysis[gradeItem.subject].grades.push(gradeItem.grade_value)
+      subjectAnalysis[gradeItem.subject].gradeComponents.push(gradeItem.component_type)
+    })
+
     // Calculate statistics
     const totalFeedback = feedbackSummary.length
     const ratedFeedback = feedbackSummary.filter(f => f.rating !== null && f.rating !== undefined)
@@ -154,22 +201,30 @@ export async function generateAIAcademicSummary(
       const avgRating = data.ratings.length > 0
         ? data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length
         : null
+      const avgGrade = data.grades.length > 0
+        ? data.grades.reduce((a, b) => a + b, 0) / data.grades.length
+        : null
       return {
         subject,
         avgRating,
+        avgGrade,
         feedbackCount: data.count,
         ratingCount: data.ratings.length,
+        gradeCount: data.grades.length,
+        gradeComponents: data.gradeComponents,
         teacherCount: data.teachers.size,
         hasComments: data.comments.length > 0,
         sampleComments: data.comments.slice(0, 2) // First 2 comments for context
       }
-    }).sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0))
+    }).sort((a, b) => (b.avgGrade || b.avgRating || 0) - (a.avgGrade || a.avgRating || 0))
 
     // Create comprehensive AI prompt for academic performance analysis
     const subjectBreakdown = subjectStats.map(stat => {
-      const ratingText = stat.avgRating !== null ? `${stat.avgRating.toFixed(1)}/5` : 'chưa có điểm'
-      const commentsText = stat.sampleComments.length > 0 ? ` (${stat.sampleComments.join('; ')})` : ''
-      return `- ${stat.subject}: ${ratingText} điểm từ ${stat.ratingCount}/${stat.feedbackCount} phản hồi${commentsText}`
+      const ratingText = stat.avgRating !== null ? `${stat.avgRating.toFixed(1)}/5 phản hồi` : 'chưa có phản hồi'
+      const gradeText = stat.avgGrade !== null ? `${stat.avgGrade.toFixed(1)}/10 điểm` : 'chưa có điểm'
+      const componentsText = stat.gradeComponents.length > 0 ? ` (${stat.gradeComponents.join(', ')})` : ''
+      const commentsText = stat.sampleComments.length > 0 ? ` - Nhận xét: "${stat.sampleComments.join('; ')}"` : ''
+      return `- ${stat.subject}: ${gradeText}${componentsText}, ${ratingText}${commentsText}`
     }).join('\n')
 
     const prompt = `
@@ -180,7 +235,9 @@ THÔNG TIN KỲ BÁO CÁO:
 - Thời gian: ${reportPeriod.start_date} đến ${reportPeriod.end_date}
 - Tổng số phản hồi: ${totalFeedback}
 - Phản hồi có điểm: ${ratedFeedback.length}
-- Điểm trung bình chung: ${overallAverage.toFixed(1)}/5
+- Điểm phản hồi trung bình: ${overallAverage.toFixed(1)}/5
+- Tổng số điểm: ${gradeSummary.length}
+- Điểm học tập trung bình: ${gradeSummary.length > 0 ? (gradeSummary.reduce((sum, g) => sum + g.grade_value, 0) / gradeSummary.length).toFixed(1) : 'N/A'}/10
 - Số môn học: ${Object.keys(subjectAnalysis).length}
 
 PHÂN TÍCH THEO MÔN HỌC:
@@ -225,9 +282,28 @@ Tóm tắt chi tiết tình hình học tập:
   } catch (error) {
     console.error('Error generating AI academic summary:', error)
     
-    // Fallback to basic summary on error
+    // Fallback to basic summary on error using NEW table structure
     try {
       const supabase = await createClient()
+
+      // Get recent grades from student_detailed_grades (NEW system)
+      const { data: grades } = await supabase
+        .from('student_detailed_grades')
+        .select(`
+          grade_value,
+          component_type,
+          subject:subjects(name_vietnamese)
+        `)
+        .eq('student_id', studentId)
+        .gte('created_at', new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString())
+        .in('component_type', ['summary', 'semester_1', 'semester_2'])
+
+      if (grades && grades.length > 0) {
+        const avgGrade = grades.reduce((sum, item) => sum + (parseFloat(item.grade_value) || 0), 0) / grades.length
+        return `Tình hình học tập: Điểm trung bình ${avgGrade.toFixed(1)}/10 từ ${grades.length} môn học.`
+      }
+
+      // Fallback to feedback if no grades
       const { data: feedback } = await supabase
         .from('student_feedback')
         .select('rating, subject:subjects(name_vietnamese)')
@@ -236,7 +312,7 @@ Tóm tắt chi tiết tình hình học tập:
 
       if (feedback && feedback.length > 0) {
         const avgRating = feedback.reduce((sum, item) => sum + (item.rating || 0), 0) / feedback.length
-        return `Tình hình học tập: Điểm trung bình ${avgRating.toFixed(1)}/5 từ ${feedback.length} phản hồi của giáo viên.`
+        return `Tình hình học tập: Điểm đánh giá trung bình ${avgRating.toFixed(1)}/5 từ ${feedback.length} phản hồi của giáo viên.`
       }
     } catch (fallbackError) {
       console.error('Fallback summary also failed:', fallbackError)

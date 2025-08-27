@@ -16,7 +16,19 @@ export default function AdminPanelLayout({
   role
 }: AdminPanelLayoutProps) {
   const sidebar = useStore(useSidebar, (x) => x)
-  if (!sidebar) return null
+
+  // Show loading state instead of null to prevent hydration mismatch
+  if (!sidebar) {
+    return (
+      <>
+        <div className="fixed top-0 left-0 z-20 h-screen w-72 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <main className="min-h-[calc(100vh_-_56px)] bg-zinc-50 dark:bg-zinc-900 lg:ml-72">
+          {children}
+        </main>
+      </>
+    )
+  }
+
   const { getOpenState, settings } = sidebar
 
   return (

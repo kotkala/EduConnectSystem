@@ -1,4 +1,4 @@
-﻿"use server"
+"use server"
 
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/shared/utils/supabase/admin"
@@ -1013,14 +1013,13 @@ export async function generateNextEmployeeIdAction() {
     await checkAdminPermissions()
     const supabase = await createClient()
 
-    // Get the highest employee ID number
+    // Get all teacher employee IDs that start with TC and have numeric suffix
     const { data: teachers, error } = await supabase
       .from('profiles')
       .select('employee_id')
       .eq('role', 'teacher')
       .not('employee_id', 'is', null)
-      .order('employee_id', { ascending: false })
-      .limit(1)
+      .like('employee_id', 'TC%')
 
     if (error) {
       return {
@@ -1029,19 +1028,29 @@ export async function generateNextEmployeeIdAction() {
       }
     }
 
-    let nextNumber = 1
+    let nextNumber = 28 // Start from 28 as requested
     if (teachers && teachers.length > 0) {
-      const lastEmployeeId = teachers[0].employee_id
-      if (lastEmployeeId?.startsWith('TC')) {
-        const lastNumber = parseInt(lastEmployeeId.substring(2))
-        if (!isNaN(lastNumber)) {
-          nextNumber = lastNumber + 1
-        }
+      // Extract all numeric parts from TC employee IDs
+      const numbers = teachers
+        .map(teacher => {
+          const employeeId = teacher.employee_id
+          if (employeeId?.startsWith('TC')) {
+            const numericPart = employeeId.substring(2)
+            const number = parseInt(numericPart)
+            return !isNaN(number) ? number : 0
+          }
+          return 0
+        })
+        .filter(num => num > 0)
+
+      if (numbers.length > 0) {
+        const maxNumber = Math.max(...numbers)
+        nextNumber = Math.max(maxNumber + 1, 28) // Ensure we don't go below 28
       }
     }
 
-    // Format with leading zeros (TC001, TC002, etc.)
-    const nextEmployeeId = `TC${nextNumber.toString().padStart(3, '0')}`
+    // Format with leading zeros (TC00028, TC00029, etc.)
+    const nextEmployeeId = `TC${nextNumber.toString().padStart(5, '0')}`
 
     return {
       success: true,

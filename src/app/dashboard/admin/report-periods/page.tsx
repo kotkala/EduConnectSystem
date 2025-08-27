@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
@@ -23,7 +24,6 @@ import {
   adminBulkSendReportsAction,
   sendTeacherRemindersAction,
   generateStudentReportsAction,
-  resetReportsToDraftAction,
   type ReportPeriod,
   type ClassProgress
 } from "@/lib/actions/report-period-actions"
@@ -33,7 +33,7 @@ import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
 
 import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useGlobalLoading, useSectionLoading, useComponentLoading } from "@/shared/hooks/use-loading-coordinator"
+
 
 export default function ReportPeriodsPage() {
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
@@ -45,21 +45,21 @@ export default function ReportPeriodsPage() {
   const [selectedCompletionStatus, setSelectedCompletionStatus] = useState<string>("all")
   // Loading States
   const [isLoadingInitial, setIsLoadingInitial] = useState(false)
-  const { startLoading: startGlobalLoading, stopLoading: stopGlobalLoading } = useGlobalLoading("Đang tải thông tin kỳ báo cáo...")
+
   
   const [error, setError] = useState<string | null>(null)
   // ðŸ“Š Section loading for non-blocking components
-  const { isLoading: isProgressLoading, startLoading: startProgressLoading, stopLoading: stopProgressLoading } = useSectionLoading("Đang tải tiến độ lớp...")
-  const { isLoading: isSendingNotifications, startLoading: startSendingNotifications, stopLoading: stopSendingNotifications } = useComponentLoading()
-  const { isLoading: isBulkSending, startLoading: startBulkSending, stopLoading: stopBulkSending } = useComponentLoading()
-  const { isLoading: isGeneratingReports, startLoading: startGeneratingReports, stopLoading: stopGeneratingReports } = useComponentLoading()
-  const { isLoading: isResettingReports, startLoading: startResettingReports, stopLoading: stopResettingReports } = useComponentLoading()
+  const [isProgressLoading, setIsProgressLoading] = useState(false)
+  const [isSendingNotifications, setIsSendingNotifications] = useState(false)
+  const [isBulkSending, setIsBulkSending] = useState(false)
+  const [isGeneratingReports, setIsGeneratingReports] = useState(false)
+
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadInitialData = useCallback(async () => {
-    startGlobalLoading()
+    // Global loading removed
     setIsLoadingInitial(true)
     try {
       setError(null)
@@ -91,16 +91,16 @@ export default function ReportPeriodsPage() {
       setError('Failed to load data')
     } finally {
       setIsLoadingInitial(false)
-      stopGlobalLoading()
+      // Global loading removed
     }
-  }, [startGlobalLoading, stopGlobalLoading])
+  }, [])
 
   const loadClassProgress = useCallback(async () => {
     if (!selectedPeriod) return
 
     try {
       // ðŸ“Š Use section loading for non-blocking progress loading
-      startProgressLoading()
+      setIsProgressLoading(true)
       const classBlockFilter = selectedClassBlock === "all-blocks" ? undefined : selectedClassBlock
       const result = await getClassProgressAction(
         selectedPeriod,
@@ -116,9 +116,9 @@ export default function ReportPeriodsPage() {
       console.error('Error loading class progress:', error)
       toast.error('Failed to load class progress')
     } finally {
-      stopProgressLoading()
+      setIsProgressLoading(false)
     }
-  }, [selectedPeriod, selectedClassBlock, startProgressLoading, stopProgressLoading])
+  }, [selectedPeriod, selectedClassBlock])
 
   const handleCreateSuccess = useCallback(async () => {
     setShowCreateForm(false)
@@ -172,7 +172,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    startSendingNotifications()
+    setIsSendingNotifications(true)
     try {
       const result = await sendTeacherRemindersAction(selectedPeriod, incompleteClasses)
 
@@ -185,9 +185,9 @@ export default function ReportPeriodsPage() {
       console.error('Error sending notifications:', error)
       toast.error('Có lỗi xảy ra khi gửi thông báo')
     } finally {
-      stopSendingNotifications()
+      setIsSendingNotifications(false)
     }
-  }, [incompleteClasses, selectedPeriod, startSendingNotifications, stopSendingNotifications])
+  }, [incompleteClasses, selectedPeriod])
 
   const handleBulkSendReports = useCallback(async () => {
     if (!selectedPeriod) {
@@ -204,7 +204,7 @@ export default function ReportPeriodsPage() {
       }
     }
 
-    startBulkSending()
+    setIsBulkSending(true)
     try {
       const result = await adminBulkSendReportsAction(selectedPeriod)
 
@@ -218,9 +218,9 @@ export default function ReportPeriodsPage() {
       console.error('Error bulk sending reports:', error)
       toast.error('Có lỗi xảy ra khi gửi báo cáo')
     } finally {
-      stopBulkSending()
+      setIsBulkSending(false)
     }
-  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress, startBulkSending, stopBulkSending])
+  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress])
 
   // Generate student reports handler
   const handleGenerateReports = useCallback(async () => {
@@ -229,7 +229,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    startGeneratingReports()
+    setIsGeneratingReports(true)
     try {
       const result = await generateStudentReportsAction(selectedPeriod)
 
@@ -243,34 +243,11 @@ export default function ReportPeriodsPage() {
       console.error('Error generating reports:', error)
       toast.error('Có lỗi xảy ra khi tạo báo cáo học sinh')
     } finally {
-      stopGeneratingReports()
+      setIsGeneratingReports(false)
     }
-  }, [selectedPeriod, loadClassProgress, startGeneratingReports, stopGeneratingReports])
+  }, [selectedPeriod, loadClassProgress])
 
-  // Reset reports to draft handler (for testing)
-  const handleResetReports = useCallback(async () => {
-    if (!selectedPeriod) {
-      toast.error('Vui lòng chọn kỳ báo cáo')
-      return
-    }
 
-    startResettingReports()
-    try {
-      const result = await resetReportsToDraftAction(selectedPeriod)
-
-      if (result.success) {
-        toast.success(result.data?.message || 'Đã reset báo cáo về trạng thái draft')
-        loadClassProgress() // Reload to get updated data
-      } else {
-        toast.error(result.error || 'Không thể reset báo cáo')
-      }
-    } catch (error) {
-      console.error('Error resetting reports:', error)
-      toast.error('Có lỗi xảy ra khi reset báo cáo')
-    } finally {
-      stopResettingReports()
-    }
-  }, [selectedPeriod, loadClassProgress, startResettingReports, stopResettingReports])
 
   // Memoized toggle handler to prevent unnecessary re-renders
   const handleTestModeToggle = useCallback((checked: boolean) => {
@@ -322,27 +299,24 @@ export default function ReportPeriodsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Kỳ báo cáo</h1>
-            <p className="text-muted-foreground">
-              Quản lý kỳ báo cáo hàng tháng và theo dõi tiến độ hoàn thành theo lớp
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Làm mới
-            </Button>
-            <Button onClick={() => setShowCreateForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo kỳ báo cáo
-            </Button>
-          </div>
+    <AdminPageTemplate
+      title="Quản lý kỳ báo cáo"
+      description="Quản lý các kỳ báo cáo học tập"
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Làm mới
+          </Button>
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo kỳ báo cáo
+          </Button>
         </div>
+      }
+      showCard={true}
+    >
+      <div className="space-y-6">
 
         {/* Error Alert */}
         {error && (
@@ -353,7 +327,7 @@ export default function ReportPeriodsPage() {
         )}
 
         {/* Report Period Selection */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -502,31 +476,7 @@ export default function ReportPeriodsPage() {
                   </div>
                 )}
 
-                {/* Reset Reports Button (for testing) */}
-                {selectedPeriod && (
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-muted-foreground">
-                      Reset báo cáo đã gửi về trạng thái draft (để test gửi lại)
-                    </div>
-                    <Button
-                      onClick={handleResetReports}
-                      disabled={isResettingReports}
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                    >
-                      {isResettingReports ? (
-                        <>
-                          <Skeleton className="h-4 w-4 rounded-full" />
-                          Đang reset...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Reset để test lại
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
+
 
                 {/* Send Notifications Button */}
                 {incompleteClasses.length > 0 && (
@@ -610,6 +560,8 @@ export default function ReportPeriodsPage() {
               <ClassProgressTable
                 data={filteredClassProgress}
                 loading={isProgressLoading}
+                reportPeriodId={selectedPeriod}
+                onReportsUpdated={loadClassProgress}
               />
             </CardContent>
           </Card>
@@ -623,6 +575,6 @@ export default function ReportPeriodsPage() {
           academicYears={academicYears}
         />
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

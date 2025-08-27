@@ -12,11 +12,11 @@ import { getStudentsWithParentsAction } from "@/features/admin-management/action
 import { type StudentWithParent, type UserFilters, type TeacherProfile } from "@/lib/validations/user-validations"
 
 import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 
 export default function StudentsPageClient() {
   const [students, setStudents] = useState<StudentWithParent[]>([])
-  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách học sinh...")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
@@ -30,7 +30,7 @@ export default function StudentsPageClient() {
   const fetchStudents = useCallback(async () => {
     // Chỉ start loading nếu chưa có data
     if (students.length === 0) {
-      startLoading()
+      setLoading(true)
     }
     setError(null)
 
@@ -47,9 +47,9 @@ export default function StudentsPageClient() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách học sinh")
     } finally {
-      stopLoading()
+      setLoading(false)
     }
-  }, [filters, startLoading, stopLoading, students.length])
+  }, [filters, students.length])
 
   useEffect(() => {
     fetchStudents()
@@ -245,9 +245,9 @@ export default function StudentsPageClient() {
 
       {/* Create Student & Parent Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Add New Student & Parent</DialogTitle>
+        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
           </DialogHeader>
                      <StudentParentForm
              onSuccess={handleCreateSuccess}
@@ -258,11 +258,11 @@ export default function StudentsPageClient() {
 
       {/* Edit Student & Parent Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="w-[95vw] max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
-              <Edit className="h-5 w-5" />
-              Edit Student & Parent Information
+        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+              <Edit className="h-6 w-6" />
+              Chỉnh sửa thông tin Học sinh & Phụ huynh
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (

@@ -33,7 +33,9 @@ import ClassTeachersTab from "@/features/admin-management/components/admin/class
 import ClassHomeroomTab from "@/features/admin-management/components/admin/class-detail/class-homeroom-tab"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";export default function ClassDetailPage() {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+
+export default function ClassDetailPage() {
   const params = useParams()
   const router = useRouter()
   const classId = params.id as string

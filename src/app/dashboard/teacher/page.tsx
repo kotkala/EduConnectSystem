@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { Suspense } from 'react'
 import TeacherWeeklyDashboard from './teacher-weekly-dashboard'
 import { CardSkeleton } from '@/shared/components/ui/skeleton-utils'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
+import { Card, CardContent } from '@/shared/components/ui/card'
+import Link from 'next/link'
 
 function TeacherDashboardSkeleton() {
   return (
@@ -46,10 +50,30 @@ export default async function TeacherDashboard() {
   }
 
   return (
-    <div className="p-6">
-      <Suspense fallback={<TeacherDashboardSkeleton />}>
-        <TeacherWeeklyDashboard profile={profile} />
-      </Suspense>
-    </div>
+    <ContentLayout title="Bảng điều khiển" role="teacher">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard/teacher">Giáo viên</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Tổng quan</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
+          <div className="min-h-[calc(100vh-56px-64px-20px-24px-56px-48px)]">
+            <Suspense fallback={<TeacherDashboardSkeleton />}>
+              <TeacherWeeklyDashboard profile={profile} />
+            </Suspense>
+          </div>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

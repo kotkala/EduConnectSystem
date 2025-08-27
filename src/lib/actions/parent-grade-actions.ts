@@ -27,6 +27,7 @@ interface GradeSubmission {
   }
   grades: Array<{
     subject_id: string
+    regular_grades: number[] // **ADDED**: Regular grades (điểm miệng)
     midterm_grade: number | null
     final_grade: number | null
     average_grade: number | null
@@ -155,23 +156,19 @@ export async function getChildrenGradeReportsAction() {
     const studentIds = children.map(c => (c.student as { id?: string })?.id).filter(Boolean)
     console.log('🔍 [PARENT GRADES] Student IDs:', studentIds)
 
-    // Get homeroom submissions for these students
-    console.log('🔍 [PARENT GRADES] Fetching homeroom submissions from NEW system')
-    const { data: homeroomSubmissions, error: homeroomError } = await supabase
-      .from('homeroom_parent_submissions')
+    // Get grade submissions for these students from the actual grade submission system
+    console.log('🔍 [PARENT GRADES] Fetching grade submissions from grade_period_submissions')
+    const { data: gradeSubmissions, error: gradeError } = await supabase
+      .from('grade_period_submissions')
       .select(`
         id,
         period_id,
         class_id,
-        student_id,
+        subject_id,
         status,
-        ai_feedback,
         submitted_at,
-        student:profiles!student_id(
-          id,
-          full_name,
-          student_id
-        ),
+        submission_name,
+        grade_data,
         class:classes!class_id(
           id,
           name,
@@ -188,130 +185,256 @@ export async function getChildrenGradeReportsAction() {
           semester:semesters(name)
         )
       `)
-      .in('student_id', studentIds)
       .eq('status', 'submitted')
       .order('submitted_at', { ascending: false })
 
-    console.log('🔍 [PARENT GRADES] Homeroom submissions query result:', {
-      submissions: homeroomSubmissions?.length || 0,
-      error: homeroomError?.message || null
+    console.log('🔍 [PARENT GRADES] Grade submissions query result:', {
+      submissions: gradeSubmissions?.length || 0,
+      error: gradeError?.message || null
     })
 
-    if (homeroomError) {
-      console.error('❌ [PARENT GRADES] Error fetching homeroom submissions:', homeroomError)
+    if (gradeError) {
+      console.error('❌ [PARENT GRADES] Error fetching grade submissions:', gradeError)
       return {
         success: false,
-        error: homeroomError.message
+        error: gradeError.message
       }
     }
 
-    if (!homeroomSubmissions || homeroomSubmissions.length === 0) {
-      console.log('⚠️ [PARENT GRADES] No homeroom submissions found')
+    if (!gradeSubmissions || gradeSubmissions.length === 0) {
+      console.log('⚠️ [PARENT GRADES] No grade submissions found')
       return {
         success: true,
         data: []
       }
     }
 
-    // Process homeroom submissions into the expected format
-    console.log('🔍 [PARENT GRADES] Processing homeroom submissions')
+    // Filter submissions that contain data for our students
+    const relevantSubmissions = gradeSubmissions.filter(submission => {
+      if (!submission.grade_data) return false
+      try {
+        const gradeData = JSON.parse(submission.grade_data)
+        return Array.isArray(gradeData) && gradeData.some(student => studentIds.includes(student.id))
+      } catch {
+        return false
+      }
+    })
+
+    console.log('🔍 [PARENT GRADES] Processing grade submissions:', relevantSubmissions.length)
+
+    // **CONSOLIDATION LOGIC**: Group submissions by period_id + student_id to create consolidated reports
+    const consolidatedSubmissions = new Map<string, {
+      representativeSubmissionId: string // Store the first submission ID for proper 73-char format
+      period: {
+        id: string
+        name: string
+        period_type: string
+        academic_year?: { name: string }
+        semester?: { name: string }
+      } | null
+      student: {
+        id: string
+        full_name: string
+        student_id: string
+      }
+      class: {
+        id: string
+        name: string
+        homeroom_teacher?: { full_name: string }
+      } | null
+      academic_year: { name: string } | null
+      semester: { name: string } | null
+      grades: Array<{
+        subject_id: string
+        regular_grades: number[] // **ADDED**: Regular grades (điểm miệng)
+        midterm_grade: number | null
+        final_grade: number | null
+        average_grade: number | null
+        subject: {
+          id: string
+          code: string
+          name_vietnamese: string
+          category: string
+        }
+      }>
+      submitted_at: string
+      submission_name: string
+    }>()
+
+    for (const submission of relevantSubmissions) {
+      // Parse grade data to find students
+      let gradeData: Array<{
+        id: string
+        studentId: string
+        studentName: string
+        regularGrades: number[] // **ADDED**: Regular grades (điểm miệng)
+        midtermGrade: number | null
+        finalGrade: number | null
+        summaryGrade: number | null
+      }> = []
+      try {
+        gradeData = JSON.parse(submission.grade_data)
+      } catch {
+        continue
+      }
+
+      // Process each student in this submission
+      for (const studentGrade of gradeData) {
+        if (!studentIds.includes(studentGrade.id)) continue
+
+        // Find the student profile
+        const childRecord = children.find(child => {
+          const student = Array.isArray(child.student) ? child.student[0] : child.student
+          return student?.id === studentGrade.id
+        })
+        const studentProfile = Array.isArray(childRecord?.student) ? childRecord.student[0] : childRecord?.student
+        if (!studentProfile) continue
+
+        // Get subject information for this submission
+        const adminSupabase = createAdminClient()
+        const { data: subjectInfo } = await adminSupabase
+          .from('subjects')
+          .select('id, code, name_vietnamese, category')
+          .eq('id', submission.subject_id)
+          .single()
+
+        if (!subjectInfo) continue
+
+        // Create grade entry from the submission data
+        const gradeEntry = {
+          subject_id: subjectInfo.id,
+          regular_grades: studentGrade.regularGrades || [], // **ADDED**: Regular grades (điểm miệng)
+          midterm_grade: studentGrade.midtermGrade,
+          final_grade: studentGrade.finalGrade,
+          average_grade: studentGrade.summaryGrade,
+          subject: {
+            id: subjectInfo.id,
+            code: subjectInfo.code,
+            name_vietnamese: subjectInfo.name_vietnamese,
+            category: subjectInfo.category
+          }
+        }
+
+        // Fix data structure to match expected types
+        const classInfo = Array.isArray(submission.class)
+          ? submission.class[0]
+          : submission.class
+
+        const period = Array.isArray(submission.period)
+          ? submission.period[0]
+          : submission.period
+
+        const academicYear = period?.academic_year
+        const academicYearData = Array.isArray(academicYear)
+          ? academicYear[0]
+          : academicYear
+
+        const semester = period?.semester
+        const semesterData = Array.isArray(semester)
+          ? semester[0]
+          : semester
+
+        // **CONSOLIDATION KEY**: Use period_id + student_id to group all subjects together
+        const consolidationKey = `${period?.id || 'unknown'}-${studentGrade.id}`
+
+        if (!consolidatedSubmissions.has(consolidationKey)) {
+          // Create new consolidated submission with properly typed period data
+          const consolidatedPeriod = period ? {
+            id: period.id || '',
+            name: period.name || '',
+            period_type: period.period_type || '',
+            academic_year: academicYearData,
+            semester: semesterData
+          } : null
+
+          // Fix class data structure to handle array cases
+          const consolidatedClass = classInfo ? {
+            id: classInfo.id || '',
+            name: classInfo.name || '',
+            homeroom_teacher: classInfo.homeroom_teacher ? {
+              full_name: Array.isArray(classInfo.homeroom_teacher)
+                ? (classInfo.homeroom_teacher[0] as { full_name: string })?.full_name || ''
+                : (classInfo.homeroom_teacher as { full_name: string }).full_name || ''
+            } : undefined
+          } : null
+
+          consolidatedSubmissions.set(consolidationKey, {
+            representativeSubmissionId: submission.id, // Store first submission ID for proper 73-char format
+            period: consolidatedPeriod,
+            student: studentProfile,
+            class: consolidatedClass,
+            academic_year: academicYearData,
+            semester: semesterData,
+            grades: [],
+            submitted_at: submission.submitted_at,
+            submission_name: submission.submission_name || `${period?.name || 'Kỳ báo cáo'} - ${academicYearData?.name || 'Năm học'}`
+          })
+        }
+
+        // Add this subject's grade to the consolidated submission
+        const consolidated = consolidatedSubmissions.get(consolidationKey)!
+        consolidated.grades.push(gradeEntry)
+
+        console.log('✅ [PARENT GRADES] Added subject to consolidated submission:', {
+          student: studentProfile.full_name,
+          period: period?.name,
+          subject: subjectInfo.name_vietnamese,
+          totalSubjects: consolidated.grades.length
+        })
+      }
+    }
+
+    // Convert consolidated submissions to final format
     const finalSubmissions: GradeSubmission[] = []
-
-    for (const submission of homeroomSubmissions) {
-      // Get detailed grades for this student and period
-      const adminSupabase = createAdminClient()
-      const { data: detailedGrades } = await adminSupabase
-        .from('student_detailed_grades')
-        .select(`
-          id,
-          subject_id,
-          component_type,
-          grade_value,
-          subject:subjects(
-            id,
-            code,
-            name_vietnamese,
-            category
-          )
-        `)
-        .eq('student_id', submission.student_id)
-        .eq('class_id', submission.class_id)
-        .eq('period_id', submission.period_id)
-
-      // Process detailed grades into aggregated format
-      const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])
-
-      // Fix data structure to match expected types
-      const student = Array.isArray(submission.student)
-        ? submission.student[0]
-        : submission.student
-
-      const classInfo = Array.isArray(submission.class)
-        ? submission.class[0]
-        : submission.class
-
-      const period = Array.isArray(submission.period)
-        ? submission.period[0]
-        : submission.period
-
-      const homeroomTeacher = classInfo?.homeroom_teacher
-      const teacher = Array.isArray(homeroomTeacher)
-        ? homeroomTeacher[0]
-        : homeroomTeacher
-
-      const academicYear = period?.academic_year
-      const academicYearData = Array.isArray(academicYear)
-        ? academicYear[0]
-        : academicYear
-
-      const semester = period?.semester
-      const semesterData = Array.isArray(semester)
-        ? semester[0]
-        : semester
+    for (const [, consolidated] of consolidatedSubmissions.entries()) {
+      // **FIX**: Create proper 73-character submission ID using representative submission ID + student ID
+      const properSubmissionId = `${consolidated.representativeSubmissionId}-${consolidated.student.id}`
 
       const enrichedSubmission: GradeSubmission = {
-        id: submission.id,
-        submission_name: `${period?.name || 'Kỳ báo cáo'} - ${academicYearData?.name || 'Năm học'}`,
-        student_id: submission.student_id,
-        created_at: submission.submitted_at,
+        id: properSubmissionId, // Use proper 73-character format: {36-char-uuid}-{36-char-uuid}
+        submission_name: consolidated.submission_name,
+        student_id: consolidated.student.id,
+        created_at: consolidated.submitted_at,
         student: {
-          id: student?.id || '',
-          full_name: student?.full_name || '',
-          student_id: student?.student_id || ''
+          id: consolidated.student.id,
+          full_name: consolidated.student.full_name,
+          student_id: consolidated.student.student_id
         },
         class: {
-          name: classInfo?.name || '',
+          name: consolidated.class?.name || '',
           homeroom_teacher: {
-            full_name: teacher?.full_name || ''
+            full_name: consolidated.class?.homeroom_teacher?.full_name || ''
           }
         },
         academic_year: {
-          name: academicYearData?.name || ''
+          name: consolidated.academic_year?.name || ''
         },
         semester: {
-          name: semesterData?.name || ''
+          name: consolidated.semester?.name || ''
         },
         period: {
-          id: period?.id || '',
-          name: period?.name || '',
-          period_type: period?.period_type || ''
+          id: consolidated.period?.id || '',
+          name: consolidated.period?.name || '',
+          period_type: consolidated.period?.period_type || ''
         },
-        grades: processedGrades,
-        ai_feedback: submission.ai_feedback ? {
-          text: submission.ai_feedback,
-          created_at: submission.submitted_at,
-          rating: null
-        } : null
+        grades: consolidated.grades, // ALL subjects in one grades array
+        ai_feedback: null // No AI feedback in grade_period_submissions
       }
 
       finalSubmissions.push(enrichedSubmission)
-      console.log('✅ [PARENT GRADES] Added submission for student:', student?.full_name)
+      console.log('✅ [PARENT GRADES] Created consolidated submission:', {
+        student: consolidated.student.full_name,
+        period: consolidated.period?.name,
+        totalSubjects: consolidated.grades.length,
+        submissionId: properSubmissionId,
+        idLength: properSubmissionId.length
+      })
     }
 
     console.log('✅ [PARENT GRADES] Final result:', {
       total_submissions: finalSubmissions.length,
-      using_new_homeroom_teacher_system: true,
-      old_database_completely_removed: true
+      using_grade_period_submissions: true,
+      fixed_parent_grade_display_bug: true
     })
 
     return {
@@ -390,28 +513,56 @@ function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
   return Array.from(gradesBySubject.values())
 }
 
-// Get detailed grade information for a specific submission
+// Get detailed grade information using UNIFIED data source (student_detailed_grades)
 export async function getStudentGradeDetailAction(submissionId: string) {
   try {
-    console.log('🔍 [PARENT GRADE DETAIL] Starting query for submission:', submissionId)
+    console.log('🔍 [PARENT GRADE DETAIL UNIFIED] Starting query for submission:', submissionId)
     const { userId } = await checkParentPermissions()
     const supabase = await createClient()
 
-    // Get the homeroom submission
-    const { data: submission, error: submissionError } = await supabase
-      .from('homeroom_parent_submissions')
+    // Parse composite ID (format: "grade_submission_uuid-student_uuid")
+    if (submissionId.length !== 73) {
+      return {
+        success: false,
+        error: 'Invalid submission ID format - incorrect length'
+      }
+    }
+
+    const gradeSubmissionId = submissionId.substring(0, 36)
+    const studentId = submissionId.substring(37, 73)
+
+    console.log('🔍 [PARENT GRADE DETAIL UNIFIED] Parsed IDs:', { gradeSubmissionId, studentId })
+
+    // Verify parent has access to this student
+    const { data: parentAccessCheck } = await supabase
+      .from('parent_student_relationships')
+      .select('id')
+      .eq('parent_id', userId)
+      .eq('student_id', studentId)
+      .single()
+
+    if (!parentAccessCheck) {
+      console.error('❌ [PARENT GRADE DETAIL UNIFIED] Parent does not have access to this student')
+      return {
+        success: false,
+        error: 'Access denied'
+      }
+    }
+
+    // Get period information from the grade submission ID
+    const { data: submissionInfo } = await supabase
+      .from('grade_period_submissions')
       .select(`
-        id,
         period_id,
         class_id,
-        student_id,
-        status,
-        ai_feedback,
+        submission_name,
         submitted_at,
-        student:profiles!student_id(
+        period:grade_reporting_periods!period_id(
           id,
-          full_name,
-          student_id
+          name,
+          period_type,
+          academic_year:academic_years(name),
+          semester:semesters(name)
         ),
         class:classes!class_id(
           id,
@@ -420,84 +571,176 @@ export async function getStudentGradeDetailAction(submissionId: string) {
             id,
             full_name
           )
-        ),
-        period:grade_reporting_periods!period_id(
-          id,
-          name,
-          period_type,
-          academic_year:academic_years(name),
-          semester:semesters(name)
         )
       `)
-      .eq('id', submissionId)
+      .eq('id', gradeSubmissionId)
       .single()
 
-    if (submissionError || !submission) {
-      console.error('❌ [PARENT GRADE DETAIL] Error fetching submission:', submissionError)
+    if (!submissionInfo) {
       return {
         success: false,
-        error: submissionError?.message || 'Submission not found'
+        error: 'Grade submission not found'
       }
     }
 
-    // Verify parent has access to this student
-    const { data: parentAccess } = await supabase
-      .from('parent_student_relationships')
-      .select('id')
-      .eq('parent_id', userId)
-      .eq('student_id', submission.student_id)
+    // Get student profile information
+    const { data: studentProfileData } = await supabase
+      .from('profiles')
+      .select('id, full_name, student_id')
+      .eq('id', studentId)
       .single()
 
-    if (!parentAccess) {
-      console.error('❌ [PARENT GRADE DETAIL] Parent does not have access to this student')
+    if (!studentProfileData) {
       return {
         success: false,
-        error: 'Access denied'
+        error: 'Student not found'
       }
     }
 
-    // Get detailed grades for this submission
-    const adminSupabase = createAdminClient()
-    const { data: detailedGrades } = await adminSupabase
+    // **UNIFIED DATA SOURCE**: Get ALL grades from student_detailed_grades (same as admin/teacher views)
+    console.log('🔍 [PARENT GRADE DETAIL UNIFIED] Fetching ALL grades from student_detailed_grades')
+    const { data: allGrades, error: gradesError } = await supabase
       .from('student_detailed_grades')
       .select(`
-        id,
         subject_id,
         component_type,
         grade_value,
-        subject:subjects(
-          id,
-          code,
-          name_vietnamese,
-          category
-        )
+        period_id,
+        subject:subjects(id, code, name_vietnamese, category)
       `)
-      .eq('student_id', submission.student_id)
-      .eq('class_id', submission.class_id)
-      .eq('period_id', submission.period_id)
+      .eq('student_id', studentId)
+      .eq('period_id', submissionInfo.period_id)
 
-    // Process detailed grades
-    console.log('🔍 [PARENT GRADE DETAIL] Processing', (detailedGrades || []).length, 'detailed grades')
-    const processedGrades = processDetailedGradesToAggregated(detailedGrades || [])
-    console.log('🔍 [PARENT GRADE DETAIL] Processed grades result:', processedGrades.length, 'subjects')
+    if (gradesError) {
+      console.error('❌ [PARENT GRADE DETAIL UNIFIED] Grades error:', gradesError)
+      return {
+        success: false,
+        error: gradesError.message
+      }
+    }
 
-    // Fix data structure
-    const student = Array.isArray(submission.student) ? submission.student[0] : submission.student
-    const classInfo = Array.isArray(submission.class) ? submission.class[0] : submission.class
-    const period = Array.isArray(submission.period) ? submission.period[0] : submission.period
+    // Group grades by subject (same logic as admin/teacher views)
+    interface SubjectGradeData {
+      subject: {
+        id: string
+        code: string
+        name_vietnamese: string
+        category: string
+      }
+      regular_grades: number[]
+      midterm_grade: number | null
+      final_grade: number | null
+      average_grade: number | null
+    }
+
+    const gradesBySubject = (allGrades || []).reduce((acc, grade) => {
+      if (!acc[grade.subject_id]) {
+        // Handle case where subject might be an array (Supabase join result)
+        const subjectData = Array.isArray(grade.subject) ? grade.subject[0] : grade.subject
+        acc[grade.subject_id] = {
+          subject: {
+            id: subjectData.id,
+            code: subjectData.code,
+            name_vietnamese: subjectData.name_vietnamese,
+            category: subjectData.category
+          },
+          regular_grades: [],
+          midterm_grade: null,
+          final_grade: null,
+          average_grade: null
+        }
+      }
+
+      const gradeValue = parseFloat(grade.grade_value)
+      if (grade.component_type.startsWith('regular_')) {
+        acc[grade.subject_id].regular_grades.push(gradeValue)
+      } else if (grade.component_type === 'midterm') {
+        acc[grade.subject_id].midterm_grade = gradeValue
+      } else if (grade.component_type === 'final') {
+        acc[grade.subject_id].final_grade = gradeValue
+      } else if (grade.component_type === 'summary') {
+        acc[grade.subject_id].average_grade = gradeValue
+      }
+
+      return acc
+    }, {} as Record<string, SubjectGradeData>)
+
+    // Convert to consolidated grades format
+    const consolidatedGrades = Object.entries(gradesBySubject).map(([subjectId, gradeData]) => ({
+      subject_id: subjectId,
+      regular_grades: gradeData.regular_grades,
+      midterm_grade: gradeData.midterm_grade,
+      final_grade: gradeData.final_grade,
+      average_grade: gradeData.average_grade,
+      subject: {
+        id: gradeData.subject.id,
+        code: gradeData.subject.code,
+        name_vietnamese: gradeData.subject.name_vietnamese,
+        category: gradeData.subject.category
+      }
+    }))
+
+    console.log('✅ [PARENT GRADE DETAIL UNIFIED] Created consolidated grades for', consolidatedGrades.length, 'subjects')
+
+    // Get AI feedback for this student and period
+    let aiFeedbackData = null
+    const submissionPeriodId = submissionInfo.period_id
+    const submissionClassId = submissionInfo.class_id
+
+    if (submissionPeriodId && submissionClassId) {
+      console.log('🔍 [PARENT GRADE DETAIL UNIFIED] Fetching AI feedback for:', {
+        student_id: studentId,
+        period_id: submissionPeriodId,
+        class_id: submissionClassId
+      })
+
+      const { data: feedbackData, error: feedbackError } = await supabase
+        .from('ai_grade_feedback')
+        .select('feedback_content, created_at, version_number, status')
+        .eq('student_id', studentId)
+        .eq('period_id', submissionPeriodId)
+        .eq('class_id', submissionClassId)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (feedbackError) {
+        console.error('❌ [PARENT GRADE DETAIL UNIFIED] AI feedback error:', feedbackError)
+      }
+
+      if (feedbackData) {
+        console.log('✅ [PARENT GRADE DETAIL UNIFIED] Found AI feedback:', {
+          content_length: feedbackData.feedback_content?.length,
+          status: feedbackData.status,
+          version: feedbackData.version_number
+        })
+        aiFeedbackData = {
+          text: feedbackData.feedback_content,
+          created_at: feedbackData.created_at,
+          rating: null // Rating not used in current system
+        }
+      } else {
+        console.log('⚠️ [PARENT GRADE DETAIL UNIFIED] No AI feedback found')
+      }
+    }
+
+    // Fix data structure (handle Supabase join arrays)
+    const classInfo = Array.isArray(submissionInfo.class) ? submissionInfo.class[0] : submissionInfo.class
+    const period = Array.isArray(submissionInfo.period) ? submissionInfo.period[0] : submissionInfo.period
     const teacher = Array.isArray(classInfo?.homeroom_teacher) ? classInfo.homeroom_teacher[0] : classInfo?.homeroom_teacher
     const academicYear = Array.isArray(period?.academic_year) ? period.academic_year[0] : period?.academic_year
     const semester = Array.isArray(period?.semester) ? period.semester[0] : period?.semester
 
-    const result = {
-      id: submission.id,
-      submission_name: `${period?.name || 'Kỳ báo cáo'} - ${academicYear?.name || 'Năm học'} - ${semester?.name || 'Học kỳ'}`,
-      student_id: submission.student_id,
-      created_at: submission.submitted_at,
+    // Build result using unified data structure
+    const unifiedResult = {
+      id: submissionId,
+      submission_name: submissionInfo.submission_name || `${period?.name || 'Kỳ báo cáo'} - ${academicYear?.name || 'Năm học'}`,
+      student_id: studentId,
+      created_at: submissionInfo.submitted_at,
       student: {
-        id: student?.id || '',
-        full_name: student?.full_name || '',
-        student_id: student?.student_id || ''
+        id: studentProfileData.id,
+        full_name: studentProfileData.full_name,
+        student_id: studentProfileData.student_id
       },
       class: {
         name: classInfo?.name || '',
@@ -511,20 +754,18 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       semester: {
         name: semester?.name || ''
       },
-      grades: processedGrades,
-      ai_feedback: submission.ai_feedback ? {
-        text: submission.ai_feedback,
-        created_at: submission.submitted_at,
-        rating: null
-      } : null,
-      sent_to_parents_at: submission.submitted_at
+      grades: consolidatedGrades, // **UNIFIED**: All subjects from student_detailed_grades
+      ai_feedback: aiFeedbackData, // **UNIFIED**: AI feedback from ai_grade_feedback table
+      sent_to_parents_at: submissionInfo.submitted_at
     }
 
-    console.log('✅ [PARENT GRADE DETAIL] Successfully processed submission')
+    console.log('✅ [PARENT GRADE DETAIL UNIFIED] Successfully created unified grade detail')
     return {
       success: true,
-      data: result
+      data: unifiedResult
     }
+
+
 
   } catch (error) {
     console.error('❌ [PARENT GRADE DETAIL] Error:', error)
@@ -536,11 +777,22 @@ export async function getStudentGradeDetailAction(submissionId: string) {
 }
 
 // Get grade statistics for a student
-export async function getStudentGradeStatsAction(studentId: string) {
+export async function getStudentGradeStatsAction(submissionId: string) {
   try {
-    console.log('🔍 [PARENT GRADE STATS] Starting query for student:', studentId)
+    console.log('🔍 [PARENT GRADE STATS] Starting query for submission:', submissionId)
     const { userId } = await checkParentPermissions()
     const supabase = await createClient()
+
+    // Parse composite ID (format: "grade_submission_uuid-student_uuid")
+    // Each UUID is exactly 36 characters, so total should be 73 (36 + 1 + 36)
+    if (submissionId.length !== 73) {
+      return {
+        success: false,
+        error: 'Invalid submission ID format - incorrect length'
+      }
+    }
+
+    const studentId = submissionId.substring(37, 73) // Characters 37-73 (skip the dash at position 36)
 
     // Verify parent has access to this student
     const { data: parentAccess } = await supabase

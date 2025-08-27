@@ -689,7 +689,7 @@ export default function ViolationCategoriesManager() {
                     return violationTypes.map((type) => (
                       <TableRow key={type.id}>
                         <TableCell className="font-medium">{type.name}</TableCell>
-                        <TableCell>{type.violation_categories?.[0]?.name || 'N/A'}</TableCell>
+                        <TableCell>{type.category?.name || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge className={getSeverityColor(type.default_severity)}>
                             {getSeverityLabel(type.default_severity)}

@@ -10,7 +10,6 @@ import {
   Bot,
   Send,
   User,
-  Sparkles,
   Clock,
   X,
   Minimize2,
@@ -18,7 +17,6 @@ import {
   MessageCircle,
   ExternalLink,
   AlertCircle,
-  Gauge,
 
 } from "lucide-react"
 import { toast } from "sonner"
@@ -26,8 +24,9 @@ import Link from "next/link"
 import { useChatStreaming } from "./useChatStreaming"
 import { FeedbackDialog } from "./feedback-dialog"
 
-import { createConversation } from "@/lib/actions/chat-history-actions"
+
 import { createClient } from "@/shared/utils/supabase/client"
+import { getMessages } from "@/lib/actions/chat-history-actions"
 
 interface Message {
   id: string
@@ -44,6 +43,7 @@ interface Message {
   promptStrength?: number
   conversationId?: string
   hasFeedback?: boolean
+  isSavedToDatabase?: boolean // Track if message is saved to database
 }
 
 interface ParentChatbotProps {
@@ -101,6 +101,7 @@ export function createMessage(
     role,
     content,
     timestamp: new Date(),
+    isSavedToDatabase: false, // New messages start as not saved
     ...(contextUsed && { contextUsed })
   }
 }
@@ -113,21 +114,6 @@ export function formatTime(date: Date): string {
   })
 }
 
-// Type guard for context used
-function isContextUsed(contextUsed: unknown): contextUsed is {
-  studentsCount: number
-  feedbackCount: number
-  gradesCount: number
-  violationsCount: number
-} {
-  return contextUsed !== null &&
-    typeof contextUsed === 'object' &&
-    contextUsed !== undefined &&
-    'studentsCount' in contextUsed &&
-    'feedbackCount' in contextUsed &&
-    'gradesCount' in contextUsed &&
-    'violationsCount' in contextUsed
-}
 
 export function copyMessage(content: string): void {
   navigator.clipboard.writeText(content)
@@ -139,6 +125,17 @@ export function handleKeyPress(e: React.KeyboardEvent, sendMessage: () => void):
     e.preventDefault()
     sendMessage()
   }
+}
+
+// Utility function to strip markdown formatting from AI responses
+export function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold **text**
+    .replace(/\*(.*?)\*/g, '$1')     // Remove italic *text*
+    .replace(/`(.*?)`/g, '$1')       // Remove inline code `text`
+    .replace(/#{1,6}\s/g, '')        // Remove headers # ## ### etc
+    .replace(/^\s*[-*+]\s/gm, '')    // Remove bullet points
+    .replace(/^\s*\d+\.\s/gm, '')    // Remove numbered lists
 }
 
 export default function ParentChatbot({
@@ -165,10 +162,15 @@ export default function ParentChatbot({
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isInitializedRef = useRef(false)
 
-  // Initialize conversation and parent ID - fixed infinite loop
+  // Initialize parent ID and load existing conversation - DON'T create new conversation until user sends message
   useEffect(() => {
     const initializeChat = async () => {
+      // Prevent multiple initializations
+      if (isInitializedRef.current) return
+      isInitializedRef.current = true
+
       // Get current user (parent) ID from auth
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -176,30 +178,69 @@ export default function ParentChatbot({
       if (user) {
         setParentId(user.id)
 
-        // Create new conversation if none exists
-        if (!currentConversationId) {
-          const result = await createConversation({
-            parent_id: user.id,
-            title: 'Cuộc trò chuyện mới'
-          })
+        // Try to load the most recent conversation with messages (skip empty conversations)
+        const { getConversations } = await import('@/lib/actions/chat-history-actions')
+        const conversationsResult = await getConversations(user.id, 10) // Get more conversations to find one with messages
 
-          if (result.success && result.data) {
-            setCurrentConversationId(result.data.id)
+        if (conversationsResult.success && conversationsResult.data && conversationsResult.data.length > 0) {
+          // Find the most recent conversation that has messages
+          for (const conversation of conversationsResult.data) {
+            const messagesResult = await getMessages(conversation.id)
+            if (messagesResult.success && messagesResult.data && messagesResult.data.length > 0) {
+              // Found a conversation with messages, use it
+              setCurrentConversationId(conversation.id)
+
+              const loadedMessages: Message[] = messagesResult.data.map((msg: {
+                id: string
+                role: 'user' | 'assistant'
+                content: string
+                created_at: string
+                context_used?: Record<string, unknown>
+                function_calls?: number
+                prompt_strength?: number
+                feedback?: Array<{
+                  id: string
+                  is_helpful: boolean
+                  rating: number
+                  comment: string
+                  created_at: string
+                }>
+              }) => ({
+                id: msg.id,
+                role: msg.role,
+                content: msg.content,
+                timestamp: new Date(msg.created_at),
+                contextUsed: msg.context_used,
+                functionCalls: msg.function_calls,
+                promptStrength: msg.prompt_strength,
+                conversationId: conversation.id,
+                hasFeedback: msg.feedback && msg.feedback.length > 0,
+                isSavedToDatabase: true // Messages loaded from database are already saved
+              }))
+              setMessages(loadedMessages)
+              break // Stop after finding the first conversation with messages
+            }
           }
+          // If no conversation with messages found, currentConversationId remains null
+          // A new conversation will be created when the user sends their first message
         }
+        // If no conversations exist at all, currentConversationId remains null
+        // A new conversation will be created when the user sends their first message
       }
     }
 
-    if (isOpen) {
+    // Only run when chat is opened AND not already initialized
+    if (isOpen && !isInitializedRef.current) {
       initializeChat()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]) // Removed currentConversationId to prevent infinite loop
+  }, [isOpen]) // Remove currentConversationId from dependencies to prevent loops
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+
 
   // Focus input when opened
   useEffect(() => {
@@ -224,7 +265,10 @@ export default function ParentChatbot({
     setIsLoading,
     setIsStreaming,
     conversationId: currentConversationId,
-    parentId: parentId
+    parentId: parentId,
+    onConversationCreated: (newConversationId) => {
+      setCurrentConversationId(newConversationId)
+    }
   })
 
   // Update local conversationId when hook creates a new one
@@ -294,33 +338,11 @@ export default function ParentChatbot({
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.role === 'assistant' ? stripMarkdown(message.content) : message.content}
+                    </p>
 
-                    {/* Context info for assistant messages */}
-                    {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
-                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                          <Sparkles className="h-3 w-3" />
-                          <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số, {message.contextUsed.violationsCount} vi phạm</span>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Prompt strength indicator for assistant messages */}
-                    {message.role === 'assistant' && message.promptStrength !== undefined && (
-                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                          <Gauge className="h-3 w-3" />
-                          <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                            <div
-                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                              style={{ width: `${message.promptStrength * 100}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center space-x-1 text-xs opacity-70">
@@ -342,6 +364,7 @@ export default function ParentChatbot({
                           userQuestion={messages[messages.findIndex(m => m.id === message.id) - 1]?.content || ''}
                           aiResponse={message.content}
                           onFeedbackSubmitted={() => handleFeedbackSubmitted(message.id)}
+                          disabled={!message.isSavedToDatabase}
                         />
                       )}
                     </div>
@@ -569,33 +592,11 @@ export default function ParentChatbot({
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                     }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {message.role === 'assistant' ? stripMarkdown(message.content) : message.content}
+                      </p>
                       
-                      {/* Context info for assistant messages */}
-                      {message.role === 'assistant' && isContextUsed(message.contextUsed) && (
-                        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                            <Sparkles className="h-3 w-3" />
-                            <span>Dựa trên {message.contextUsed.feedbackCount} phản hồi, {message.contextUsed.gradesCount} điểm số, {message.contextUsed.violationsCount} vi phạm</span>
-                          </div>
-                        </div>
-                      )}
 
-                      {/* Prompt strength indicator for assistant messages */}
-                      {message.role === 'assistant' && message.promptStrength !== undefined && (
-                        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                            <Gauge className="h-3 w-3" />
-                            <span>Độ mạnh prompt: {(message.promptStrength * 100).toFixed(0)}%</span>
-                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${message.promptStrength * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
 
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 text-xs opacity-70">

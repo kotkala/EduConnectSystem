@@ -30,13 +30,7 @@ export default function ParentMeetingSchedulesPage() {
       <Card className="rounded-lg border-none mt-6">
         <CardContent className="p-6">
           <div className="space-y-6">
-            {/* Header */}
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Lịch họp phụ huynh</h1>
-              <p className="text-muted-foreground">
-                Xem lịch họp và cuộc hẹn từ giáo viên chủ nhiệm
-              </p>
-            </div>
+
 
             {/* Meeting Content */}
             <ParentMeetingSchedules />

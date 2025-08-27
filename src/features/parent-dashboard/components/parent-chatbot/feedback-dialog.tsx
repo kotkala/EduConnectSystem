@@ -33,6 +33,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";interface FeedbackDia
   userQuestion: string
   aiResponse: string
   onFeedbackSubmitted?: () => void
+  disabled?: boolean
 }
 
 const ratingOptions = [
@@ -48,8 +49,9 @@ export function FeedbackDialog({
   parentId,
   userQuestion,
   aiResponse,
-  onFeedbackSubmitted
-}: FeedbackDialogProps) {
+  onFeedbackSubmitted,
+  disabled = false
+}: Readonly<FeedbackDialogProps>) {
   const [isOpen, setIsOpen] = useState(false)
   const [isHelpful, setIsHelpful] = useState<boolean>(true)
   const [rating, setRating] = useState<string>('good')
@@ -100,7 +102,9 @@ export function FeedbackDialog({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 md:h-9 lg:h-10 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+          disabled={disabled}
+          className="h-8 md:h-9 lg:h-10 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={disabled ? "Đang lưu tin nhắn..." : "Đánh giá câu trả lời"}
         >
           <MessageSquare className="h-3 w-3 mr-1" />
           Đánh giá

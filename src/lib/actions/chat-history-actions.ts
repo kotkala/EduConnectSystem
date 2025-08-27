@@ -1,7 +1,6 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 // Validation schemas following Context7 patterns
@@ -94,7 +93,8 @@ export async function createConversation(data: z.infer<typeof createConversation
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/parent/chatbot')
+    // Don't revalidate path to prevent sidebar reload during chat
+    // revalidatePath('/parent/chatbot')
     return { success: true, data: conversation }
   } catch (error) {
     console.error('Create conversation error:', error)
@@ -142,7 +142,8 @@ export async function saveMessage(data: z.infer<typeof createMessageSchema>) {
       .update({ updated_at: new Date().toISOString() })
       .eq('id', validatedData.conversation_id)
 
-    revalidatePath('/parent/chatbot')
+    // Don't revalidate path to prevent sidebar reload during chat
+    // revalidatePath('/parent/chatbot')
     return { success: true, data: message }
   } catch (error) {
     console.error('Save message error:', error)
@@ -315,7 +316,8 @@ export async function submitFeedback(data: z.infer<typeof createFeedbackSchema>)
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/parent/chatbot')
+    // Don't revalidate path to prevent sidebar reload during chat
+    // revalidatePath('/parent/chatbot')
     return { success: true, data: feedback }
   } catch (error) {
     console.error('Submit feedback error:', error)
@@ -399,7 +401,8 @@ export async function archiveConversation(conversationId: string) {
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/parent/chatbot')
+    // Don't revalidate path to prevent sidebar reload during chat
+    // revalidatePath('/parent/chatbot')
     return { success: true }
   } catch (error) {
     console.error('Archive conversation error:', error)

@@ -8,7 +8,9 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Badge } from '@/shared/components/ui/badge'
 import { Input } from '@/shared/components/ui/input'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Checkbox } from "@/shared/components/ui/checkbox"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -584,23 +586,71 @@ export function TeacherFeedbackForm({
               )}
 
               {feedbackMode === 'group' && (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200 flex-1">
-                    {selectedStudents.size > 0 ? (
-                      <>✓ Đã chọn {selectedStudents.size}/{students.length} học sinh</>
-                    ) : (
-                      <>Chưa chọn học sinh nào. Sử dụng chế độ &quot;Phản hồi cá nhân&quot; để chọn từng học sinh.</>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md border border-green-200 flex-1">
+                      {selectedStudents.size > 0 ? (
+                        <>✓ Đã chọn {selectedStudents.size}/{students.length} học sinh</>
+                      ) : (
+                        <>Chưa chọn học sinh nào. Vui lòng chọn ít nhất 2 học sinh cho phản hồi nhóm.</>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                      className="ml-3"
+                    >
+                      {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    </Button>
+                  </div>
+
+                  {/* Student Selection List for Group Feedback */}
+                  <div className="border rounded-lg p-4 bg-white">
+                    <h4 className="font-medium text-gray-900 mb-3">Chọn học sinh cho phản hồi nhóm</h4>
+
+                    {/* Search bar for students */}
+                    <div className="relative mb-3">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Tìm kiếm học sinh theo tên hoặc MSSV..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+
+                    {/* Student list with checkboxes */}
+                    <div className="max-h-64 overflow-y-auto space-y-2">
+                      {filteredStudents.map((student) => (
+                        <div key={student.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md">
+                          <Checkbox
+                            checked={selectedStudents.has(student.id)}
+                            onCheckedChange={(checked) => {
+                              const newSelected = new Set(selectedStudents)
+                              if (checked) {
+                                newSelected.add(student.id)
+                              } else {
+                                newSelected.delete(student.id)
+                              }
+                              setSelectedStudents(newSelected)
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{student.full_name}</div>
+                            <div className="text-xs text-gray-500">{student.student_id}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {filteredStudents.length === 0 && searchTerm && (
+                      <div className="text-center py-4 text-gray-500">
+                        Không tìm thấy học sinh nào với từ khóa &quot;{searchTerm}&quot;
+                      </div>
                     )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectAll}
-                    className="ml-3"
-                  >
-                    {selectedStudents.size === students.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
-                  </Button>
                 </div>
               )}
 

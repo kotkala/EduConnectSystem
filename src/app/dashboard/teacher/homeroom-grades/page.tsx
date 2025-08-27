@@ -254,7 +254,7 @@ export default function HomeroomGradesPage() {
           </Button>
         </div>
       }
-      showCard={true}
+      showCard={false}
     >
       <div className="space-y-6">
 

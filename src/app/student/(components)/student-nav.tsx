@@ -18,8 +18,6 @@ import { useAuth } from '@/features/authentication/hooks/use-auth'
 const links = [
   { href: '/student', icon: Home, label: 'Tổng quan' },
   { href: '/student/notifications', icon: Bell, label: 'Thông báo' },
-  { href: '/student/courses', icon: BookOpen, label: 'Khoá học' },
-  { href: '/student/assignments', icon: FileText, label: 'Bài tập' },
   { href: '/student/grades', icon: Award, label: 'Điểm số' },
   { href: '/student/timetable', icon: Calendar, label: 'Thời khóa biểu' },
   { href: '/student/grade-improvement', icon: TrendingUp, label: 'Cải thiện điểm' },

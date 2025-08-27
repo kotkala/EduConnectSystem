@@ -347,32 +347,58 @@ export async function reviewGradeOverwriteRequestAction(
             continue
           }
 
-          // Update or insert the grade
+          // Update or insert the grade in the correct table
           const scoreValue = typeof new_value === 'string' ? parseFloat(new_value) : new_value
-          const { error: gradeError } = await supabase
-            .from('grades')
+          const { data: gradeData, error: gradeError } = await supabase
+            .from('student_detailed_grades')
             .upsert({
               student_id: studentProfile.id,
               class_id: requestData.class_id,
               subject_id: requestData.subject_id,
               period_id: requestData.period_id,
               component_type,
-              score: isNaN(scoreValue) ? null : scoreValue,
+              grade_value: isNaN(scoreValue) ? null : scoreValue,
               updated_at: new Date().toISOString(),
-              updated_by: user.id
+              created_by: user.id
             }, {
               onConflict: 'student_id,class_id,subject_id,period_id,component_type'
             })
+            .select('id')
+            .single()
 
           if (gradeError) {
             console.error(`Failed to update grade for student ${student_id}, component ${component_type}:`, gradeError)
-          } else {
-            console.log(`Successfully updated grade for student ${student_id}, component ${component_type}: ${new_value}`)
+            continue
           }
+
+          // Log the grade change to audit logs
+          if (gradeData) {
+            const { error: auditError } = await supabase
+              .from('unified_audit_logs')
+              .insert({
+                audit_type: 'grade',
+                table_name: 'student_detailed_grades',
+                record_id: gradeData.id,
+                action: 'UPDATE',
+                user_id: user.id,
+                user_role: user.role || 'admin',
+                old_values: { old_value: detail.old_value },
+                new_values: { new_value: scoreValue },
+                changes_summary: detail.reason || 'Cập nhật điểm từ đơn ghi đè',
+                ip_address: '127.0.0.1'
+              })
+
+            if (auditError) {
+              console.error('Audit log error for student:', student_id, auditError)
+              // Don't fail the grade update if audit logging fails
+            }
+          }
+
+          console.log('Updated grade for student:', student_id, 'component:', component_type, 'value:', new_value)
         }
 
         // Create audit log entry for the approval
-        const { error: auditError } = await supabase
+        const { error: approvalAuditError } = await supabase
           .from('unified_audit_logs')
           .insert({
             table_name: 'grade_overwrite_approvals',
@@ -389,8 +415,8 @@ export async function reviewGradeOverwriteRequestAction(
             user_role: 'admin'
           })
 
-        if (auditError) {
-          console.error('Failed to create audit log:', auditError)
+        if (approvalAuditError) {
+          console.error('Failed to create audit log:', approvalAuditError)
         }
 
         console.log('Successfully processed all grade updates for request:', data.request_id)
@@ -432,13 +458,7 @@ export async function getTeacherGradeOverwriteRequestsAction(
 
     const { data: requests, error } = await supabase
       .from('grade_overwrite_approvals')
-      .select(`
-        *,
-        class:classes!grade_overwrite_approvals_class_id_fkey(name),
-        subject:subjects!grade_overwrite_approvals_subject_id_fkey(name_vietnamese),
-        period:grade_reporting_periods!grade_overwrite_approvals_period_id_fkey(name),
-        reviewer:profiles!grade_overwrite_approvals_reviewed_by_fkey(full_name)
-      `)
+      .select('*, class:classes!grade_overwrite_approvals_class_id_fkey(name), subject:subjects!grade_overwrite_approvals_subject_id_fkey(name_vietnamese), period:grade_reporting_periods!grade_overwrite_approvals_period_id_fkey(name), reviewer:profiles!grade_overwrite_approvals_reviewed_by_fkey(full_name)')
       .eq('teacher_id', teacherId)
       .order('requested_at', { ascending: false })
 

@@ -19,14 +19,14 @@ import {
   ExternalLink,
   AlertCircle,
   Gauge,
-  History
+
 } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
 import { useChatStreaming } from "./useChatStreaming"
 import { FeedbackDialog } from "./feedback-dialog"
-import { ChatHistorySidebar } from "./chat-history-sidebar"
-import { createConversation, getMessages } from "@/lib/actions/chat-history-actions"
+
+import { createConversation } from "@/lib/actions/chat-history-actions"
 import { createClient } from "@/shared/utils/supabase/client"
 
 interface Message {
@@ -162,7 +162,7 @@ export default function ParentChatbot({
   const [isStreaming, setIsStreaming] = useState(false)
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [parentId, setParentId] = useState<string | null>(null)
-  const [showHistory, setShowHistory] = useState(false)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -242,76 +242,15 @@ export default function ParentChatbot({
     ))
   }, [])
 
-  const handleConversationSelect = useCallback(async (conversationId: string) => {
-    setCurrentConversationId(conversationId)
-    setShowHistory(false)
 
-    // Load messages for selected conversation
-    const result = await getMessages(conversationId)
-    if (result.success && result.data) {
-      const loadedMessages: Message[] = result.data.map((msg: {
-        id: string
-        role: 'user' | 'assistant'
-        content: string
-        created_at: string
-        context_used?: Record<string, unknown>
-        function_calls: number
-        prompt_strength: number
-        conversation_id: string
-        feedback?: { id: string }[]
-      }) => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        timestamp: new Date(msg.created_at),
-        contextUsed: msg.context_used,
-        functionCalls: msg.function_calls,
-        promptStrength: msg.prompt_strength,
-        conversationId: msg.conversation_id,
-        hasFeedback: msg.feedback && msg.feedback.length > 0
-      }))
-      setMessages(loadedMessages)
-    }
-  }, [])
 
-  const handleNewConversation = useCallback(async () => {
-    if (!parentId) return
 
-    const result = await createConversation({
-      parent_id: parentId,
-      title: 'Cuộc trò chuyện mới'
-    })
-
-    if (result.success && result.data) {
-      setCurrentConversationId(result.data.id)
-      setMessages([{
-        id: '1',
-        role: 'assistant',
-        content: 'Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn theo dõi tình hình học tập của con em. Hãy hỏi tôi về điểm số, phản hồi từ giáo viên, hoặc bất kỳ thắc mắc nào về việc học của con bạn.',
-        timestamp: new Date()
-      }])
-      setShowHistory(false)
-    }
-  }, [parentId])
 
   if (!isOpen) return null
 
   // Page mode - full page layout
   if (mode === 'page') {
     return (
-      <>
-        {/* Chat History Sidebar */}
-        {parentId && (
-          <ChatHistorySidebar
-            parentId={parentId}
-            currentConversationId={currentConversationId}
-            onConversationSelect={handleConversationSelect}
-            onNewConversation={handleNewConversation}
-            isOpen={showHistory}
-            onClose={() => setShowHistory(false)}
-          />
-        )}
-
         <div className="h-full flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-2xl">
@@ -326,15 +265,7 @@ export default function ParentChatbot({
                 </div>
               </div>
               <div className="flex items-center space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowHistory(!showHistory)}
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                  title="Lịch sử chat"
-                >
-                  <History className="h-4 w-4" />
-                </Button>
+
               </div>
             </div>
           </div>
@@ -491,7 +422,6 @@ export default function ParentChatbot({
             </div>
           </div>
         </div>
-      </>
     )
   }
 
@@ -574,19 +504,6 @@ export default function ParentChatbot({
 
   // Original full chatbot design
   return (
-    <>
-      {/* Chat History Sidebar */}
-      {parentId && (
-        <ChatHistorySidebar
-          parentId={parentId}
-          currentConversationId={currentConversationId}
-          onConversationSelect={handleConversationSelect}
-          onNewConversation={handleNewConversation}
-          isOpen={showHistory}
-          onClose={() => setShowHistory(false)}
-        />
-      )}
-
       <div className="fixed bottom-4 right-4 z-50">
       <Card className={`w-96 shadow-2xl border-2 transition-all duration-300 ${
         isMinimized ? 'h-16' : 'h-[600px]'
@@ -604,15 +521,7 @@ export default function ParentChatbot({
               </div>
             </div>
             <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowHistory(!showHistory)}
-                className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                title="Lịch sử chat"
-              >
-                <History className="h-4 w-4" />
-              </Button>
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -791,6 +700,5 @@ export default function ParentChatbot({
         )}
       </Card>
     </div>
-    </>
   )
 }

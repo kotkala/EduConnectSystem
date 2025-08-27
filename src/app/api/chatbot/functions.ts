@@ -317,16 +317,17 @@ async function getDetailedGrades(supabase: Awaited<ReturnType<typeof createClien
   }
   
   let query = supabase
-    .from('submission_grades')
+    .from('student_detailed_grades')
     .select(`
-      grade,
-      submission_date,
+      grade_value,
+      component_type,
+      created_at,
       subjects(name_vietnamese, name_english),
-      profiles!submission_grades_student_id_fkey(full_name)
+      profiles!student_detailed_grades_student_id_fkey(full_name)
     `)
     .eq('student_id', student.student_id)
-    .gte('submission_date', startDate.toISOString())
-    .order('submission_date', { ascending: false })
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', { ascending: false })
   
   if (subjectName && typeof subjectName === 'string') {
     query = query.or(`subjects.name_vietnamese.ilike.%${subjectName}%,subjects.name_english.ilike.%${subjectName}%`)
@@ -345,9 +346,9 @@ async function getDetailedGrades(supabase: Awaited<ReturnType<typeof createClien
     grades: grades || [],
     summary: {
       totalGrades: grades?.length || 0,
-      averageGrade: grades?.length ? (grades.reduce((sum: number, g: { grade: number }) => sum + g.grade, 0) / grades.length).toFixed(2) : 'N/A',
-      highestGrade: grades?.length ? Math.max(...grades.map((g: { grade: number }) => g.grade)) : 'N/A',
-      lowestGrade: grades?.length ? Math.min(...grades.map((g: { grade: number }) => g.grade)) : 'N/A'
+      averageGrade: grades?.length ? (grades.reduce((sum: number, g: { grade_value: string }) => sum + parseFloat(g.grade_value), 0) / grades.length).toFixed(2) : 'N/A',
+      highestGrade: grades?.length ? Math.max(...grades.map((g: { grade_value: string }) => parseFloat(g.grade_value))) : 'N/A',
+      lowestGrade: grades?.length ? Math.min(...grades.map((g: { grade_value: string }) => parseFloat(g.grade_value))) : 'N/A'
     }
   }
 }
@@ -467,14 +468,14 @@ function calculateTimeRanges(period: string, now: Date): { start: Date; end: Dat
 
 async function fetchGradesForPeriod(supabase: Awaited<ReturnType<typeof createClient>>, studentId: string, range: { start: Date; end: Date }) {
   const { data: grades } = await supabase
-    .from('submission_grades')
-    .select('grade, submission_date, subjects(name_vietnamese)')
+    .from('student_detailed_grades')
+    .select('grade_value, created_at, subjects(name_vietnamese)')
     .eq('student_id', studentId)
-    .gte('submission_date', range.start.toISOString())
-    .lte('submission_date', range.end.toISOString())
+    .gte('created_at', range.start.toISOString())
+    .lte('created_at', range.end.toISOString())
 
   const gradeAverage = grades && grades.length > 0
-    ? (grades.reduce((sum: number, g: any) => sum + g.grade, 0) / grades.length).toFixed(2)
+    ? (grades.reduce((sum: number, g: any) => sum + parseFloat(g.grade_value), 0) / grades.length).toFixed(2)
     : null
 
   return {
@@ -1082,15 +1083,14 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
       semesterFilter = semester as string
     }
 
-    // Query homeroom parent submissions (NEW system)
+    // Query student detailed grades (NEW system)
     let query = supabase
-      .from('homeroom_parent_submissions')
+      .from('student_detailed_grades')
       .select(`
         id,
-        status,
-        submitted_at,
-        class_id,
-        period_id,
+        grade_value,
+        component_type,
+        created_at,
         class:classes!class_id(
           id,
           name,
@@ -1102,28 +1102,28 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
           period_type,
           academic_year:academic_years(name),
           semester:semesters(name)
-        )
+        ),
+        subject:subjects(name_vietnamese, code)
       `)
       .eq('student_id', student.student_id)
-      .eq('status', 'submitted')
-      .order('submitted_at', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (semesterFilter) {
       // Add semester filter if specified
       query = query.ilike('semester.name', `%${semesterFilter}%`)
     }
 
-    const { data: gradeSubmissions, error } = await query
+    const { data: gradeRecords, error } = await query
 
     if (error) {
-      return { error: `Failed to fetch grade submissions: ${error.message}` }
+      return { error: `Failed to fetch grade records: ${error.message}` }
     }
 
-    if (!gradeSubmissions || gradeSubmissions.length === 0) {
+    if (!gradeRecords || gradeRecords.length === 0) {
       return {
         studentName: (student as any).profiles?.full_name || studentName,
-        message: 'Chưa có bảng điểm chính thức nào được gửi từ nhà trường.',
-        gradeSubmissions: []
+        message: 'Chưa có điểm số nào được ghi nhận từ nhà trường.',
+        gradeRecords: []
       }
     }
 
@@ -1131,21 +1131,27 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
     const result: Record<string, unknown> = {
       studentName: (student as any).profiles?.full_name || studentName,
       analysisType,
-      totalSubmissions: gradeSubmissions.length
+      totalGradeRecords: gradeRecords.length
     }
 
     if (analysisType === 'summary' || analysisType === 'detailed') {
-      // Get the most recent grade submission
-      const latestSubmission = gradeSubmissions[0]
+      // Get the most recent grade records
+      const latestRecord = gradeRecords[0]
+
+      const period = Array.isArray(latestRecord.period) ? latestRecord.period[0] : latestRecord.period
+      const classInfo = Array.isArray(latestRecord.class) ? latestRecord.class[0] : latestRecord.class
+      const academicYear = Array.isArray((period as any)?.academic_year) ? (period as any).academic_year[0] : (period as any)?.academic_year
+      const semester = Array.isArray((period as any)?.semester) ? (period as any).semester[0] : (period as any)?.semester
+      const homeroomTeacher = Array.isArray((classInfo as any)?.homeroom_teacher) ? (classInfo as any).homeroom_teacher[0] : (classInfo as any)?.homeroom_teacher
 
       result.latestGradeReport = {
-        submissionName: latestSubmission.period?.[0]?.name || 'Kỳ báo cáo',
-        academicYear: latestSubmission.period?.[0]?.academic_year?.[0]?.name,
-        semester: latestSubmission.period?.[0]?.semester?.[0]?.name,
-        className: latestSubmission.class?.[0]?.name,
-        homeroomTeacher: latestSubmission.class?.[0]?.homeroom_teacher?.[0]?.full_name,
-        submittedAt: new Date(latestSubmission.submitted_at).toLocaleDateString('vi-VN'),
-        subjects: [] // Will be populated separately from student_detailed_grades
+        submissionName: (period as any)?.name || 'Kỳ báo cáo',
+        academicYear: (academicYear as any)?.name,
+        semester: (semester as any)?.name,
+        className: (classInfo as any)?.name,
+        homeroomTeacher: (homeroomTeacher as any)?.full_name,
+        recordedAt: new Date(latestRecord.created_at).toLocaleDateString('vi-VN'),
+        subjects: [] // Will be populated from grade records
       }
 
       // Get detailed grades for this submission
@@ -1161,8 +1167,8 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
           )
         `)
         .eq('student_id', student.student_id)
-        .eq('class_id', latestSubmission.class_id)
-        .eq('period_id', latestSubmission.period_id)
+        .eq('class_id', (classInfo as any)?.id)
+        .eq('period_id', (period as any)?.id)
 
       if (detailedGrades && detailedGrades.length > 0) {
         // Add subjects to the result
@@ -1192,35 +1198,25 @@ async function getStudentGrades(supabase: Awaited<ReturnType<typeof createClient
       }
     }
 
-    if (analysisType === 'trends' && gradeSubmissions.length > 1) {
-      // Compare multiple submissions to show trends
-      result.gradeTrends = gradeSubmissions.slice(0, 3).map((submission: any) => ({
-        period: `${submission.semester?.name} - ${submission.academic_year?.name}`,
-        submissionName: submission.submission_name,
-        date: new Date(submission.created_at).toLocaleDateString('vi-VN'),
-        subjectAverages: submission.grades?.reduce((acc: Record<string, number>, grade: any) => {
-          if (grade.average_grade !== null) {
-            acc[grade.subject?.name_vietnamese || 'Unknown'] = grade.average_grade
-          }
-          return acc
-        }, {}) || {}
+    if (analysisType === 'trends' && gradeRecords.length > 1) {
+      // Compare multiple records to show trends
+      result.gradeTrends = gradeRecords.slice(0, 3).map((record: any) => ({
+        period: `${(record as any).period?.semester?.name} - ${(record as any).period?.academic_year?.name}`,
+        subject: (record as any).subject?.name_vietnamese,
+        date: new Date(record.created_at).toLocaleDateString('vi-VN'),
+        gradeValue: parseFloat(record.grade_value) || 0,
+        componentType: record.component_type
       }))
     }
 
     if (analysisType === 'detailed') {
-      // Include all grade submissions
-      result.allGradeReports = gradeSubmissions.map((submission: any) => ({
-        submissionName: submission.submission_name,
-        academicYear: submission.academic_year?.name,
-        semester: submission.semester?.name,
-        submittedAt: new Date(submission.created_at).toLocaleDateString('vi-VN'),
-        subjectCount: submission.grades?.length || 0,
-        averageGrade: submission.grades?.length > 0
-          ? (submission.grades
-              .filter((g: any) => g.average_grade !== null)
-              .reduce((sum: number, g: any) => sum + g.average_grade, 0) /
-             submission.grades.filter((g: any) => g.average_grade !== null).length).toFixed(2)
-          : 'N/A'
+      // Include all grade records
+      result.allGradeRecords = gradeRecords.map((record: any) => ({
+        subject: (record as any).subject?.name_vietnamese,
+        gradeValue: parseFloat(record.grade_value) || 0,
+        componentType: record.component_type,
+        recordedAt: new Date(record.created_at).toLocaleDateString('vi-VN'),
+        period: (record as any).period?.name
       }))
     }
 

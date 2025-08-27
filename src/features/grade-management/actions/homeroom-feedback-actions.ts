@@ -367,10 +367,58 @@ export async function getStudentDayFeedbackAction({
   }
 }
 
+// Get existing daily feedback summary
+export async function getDailyFeedbackSummaryAction({
+  studentId,
+  dayOfWeek,
+  academic_year_id,
+  semester_id,
+  week_number
+}: {
+  studentId: string
+  dayOfWeek: number
+  academic_year_id: string
+  semester_id: string
+  week_number: number
+}) {
+  try {
+    const supabase = await createClient()
+
+    const { data: summary, error } = await supabase
+      .from('daily_feedback_summaries')
+      .select('*')
+      .eq('student_id', studentId)
+      .eq('day_of_week', dayOfWeek)
+      .eq('week_number', week_number)
+      .eq('academic_year_id', academic_year_id)
+      .eq('semester_id', semester_id)
+      .single()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+      throw new Error(error.message)
+    }
+
+    return {
+      success: true,
+      data: summary
+    }
+
+  } catch (error) {
+    console.error("Get daily feedback summary error:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Không thể lấy tóm tắt phản hồi"
+    }
+  }
+}
+
 // Generate daily feedback summary using AI
 export async function generateDailyFeedbackSummaryAction({
+  studentId,
   dayOfWeek,
   lessons,
+  academic_year_id,
+  semester_id,
   week_number
 }: {
   studentId: string
@@ -381,33 +429,30 @@ export async function generateDailyFeedbackSummaryAction({
   week_number: number
 }) {
   try {
-    // Standardized prompt for daily feedback summary
-    const DAILY_FEEDBACK_SUMMARY_PROMPT = `Bạn là trợ lý AI chuyên phân tích phản hồi học tập hàng ngày của học sinh. Nhiệm vụ của bạn là tóm tắt và phân tích tất cả phản hồi trong ngày một cách chuyên nghiệp và có ích.
+    // Enhanced prompt with 10 evaluation criteria
+    const DAILY_FEEDBACK_SUMMARY_PROMPT = `Bạn là trợ lý AI chuyên phân tích phản hồi học tập hàng ngày của học sinh. Hãy tạo đánh giá chi tiết theo 10 tiêu chí sau:
 
-QUY TẮC TÓM TẮT:
-- Phân tích tất cả phản hồi từ các giáo viên trong ngày
-- Xác định xu hướng chung về thái độ học tập và hành vi
-- Đưa ra nhận xét tổng quan về hiệu suất học tập
-- Ghi nhận những điểm tích cực và cần cải thiện
-- Đề xuất hướng hỗ trợ cụ thể cho ngày hôm sau
+**YÊU CẦU ĐÁNH GIÁ:**
 
-CẤU TRÚC TÓM TẮT:
-📊 TỔNG QUAN NGÀY HỌC:
-- Tổng số tiết: [X] tiết
-- Số tiết có phản hồi: [Y] tiết
-- Đánh giá chung: [Tích cực/Trung bình/Cần cải thiện]
+1. **Thái độ học tập** - Mức độ tích cực, chú ý trong giờ học
+2. **Tương tác lớp học** - Khả năng phát biểu, thảo luận, hợp tác
+3. **Hoàn thành bài tập** - Chất lượng và tiến độ làm bài
+4. **Kỹ năng tư duy** - Khả năng phân tích, suy luận, giải quyết vấn đề
+5. **Kỹ năng giao tiếp** - Cách trình bày, lắng nghe, phản hồi
+6. **Thói quen học tập** - Chuẩn bị bài, ghi chép, tổ chức thời gian
+7. **Tinh thần trách nhiệm** - Hoàn thành nhiệm vụ, tuân thủ quy định
+8. **Khả năng sáng tạo** - Ý tưởng mới, cách tiếp cận độc đáo
+9. **Kỹ năng xã hội** - Quan hệ bạn bè, hỗ trợ lẫn nhau
+10. **Điểm cần cải thiện** - Gợi ý cụ thể để phát triển
 
-📝 PHÂN TÍCH PHẢN HỒI:
-- Điểm mạnh: [Liệt kê các điểm tích cực từ phản hồi]
-- Cần chú ý: [Các vấn đề cần theo dõi]
-- Xu hướng: [Nhận xét về sự thay đổi so với trước]
+**ĐỊNH DẠNG MONG MUỐN:**
+- Mỗi đánh giá có tiêu đề rõ ràng
+- Nội dung tích cực, khích lệ
+- Đưa ra gợi ý cải thiện cụ thể
+- Phù hợp với độ tuổi học sinh
+- Tập trung vào hành vi có thể quan sát được
 
-🎯 KHUYẾN NGHỊ:
-- Cho học sinh: [Gợi ý cụ thể để cải thiện]
-- Cho phụ huynh: [Cách hỗ trợ tại nhà]
-- Theo dõi: [Điểm cần quan sát trong những ngày tới]
-
-DỮLIỆU PHẢN HỒI NGÀY HÔM NAY:`
+**DỮ LIỆU PHẢN HỒI NGÀY HÔM NAY:**`
 
     // Prepare feedback data for AI analysis
     const dayNames = ['', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật']
@@ -428,57 +473,97 @@ ${feedbackData}
 
 Hãy tạo tóm tắt chi tiết và hữu ích dựa trên dữ liệu phản hồi trên.`
 
-    // For now, return a structured summary based on the data
-    // In a real implementation, this would call an AI service
-    const totalLessons = lessons.length
-    const lessonsWithFeedback = lessons.filter(lesson => lesson.feedback).length
-    const feedbackRate = totalLessons > 0 ? Math.round((lessonsWithFeedback / totalLessons) * 100) : 0
+    // Call Google Gemini AI to generate the actual summary
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const response = await fetch(`${baseUrl}/api/ai/generate-daily-summary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: fullPrompt,
+          dayName,
+          weekNumber: week_number,
+          totalLessons: lessons.length,
+          lessonsWithFeedback: lessons.filter(lesson => lesson.feedback).length,
+          lessons: lessons.map(lesson => ({
+            period: lesson.period,
+            subject_name: lesson.subject_name,
+            teacher_name: lesson.teacher_name,
+            feedback: lesson.feedback
+          }))
+        })
+      })
 
-    let overallAssessment = "Trung bình"
-    if (feedbackRate >= 80) overallAssessment = "Tích cực"
-    else if (feedbackRate < 50) overallAssessment = "Cần cải thiện"
+      if (!response.ok) {
+        throw new Error(`AI API call failed: ${response.status}`)
+      }
 
-    const positiveFeedbacks = lessons.filter(lesson =>
-      lesson.feedback && (
-        lesson.feedback.toLowerCase().includes('tốt') ||
-        lesson.feedback.toLowerCase().includes('tích cực') ||
-        lesson.feedback.toLowerCase().includes('chăm chỉ') ||
-        lesson.feedback.toLowerCase().includes('xuất sắc')
-      )
-    )
+      const aiResult = await response.json()
 
-    const concernFeedbacks = lessons.filter(lesson =>
-      lesson.feedback && (
-        lesson.feedback.toLowerCase().includes('cần cải thiện') ||
-        lesson.feedback.toLowerCase().includes('chưa tốt') ||
-        lesson.feedback.toLowerCase().includes('cần chú ý') ||
-        lesson.feedback.toLowerCase().includes('yếu')
-      )
-    )
+      if (!aiResult.success) {
+        throw new Error(aiResult.error || 'AI generation failed')
+      }
 
-    const summary = `📊 TỔNG QUAN NGÀY HỌC:
+      // Save the AI summary to the database
+      const supabase = await createClient()
+      const { error: saveError } = await supabase
+        .from('daily_feedback_summaries')
+        .upsert({
+          student_id: studentId,
+          day_of_week: dayOfWeek,
+          week_number,
+          academic_year_id,
+          semester_id,
+          ai_summary: aiResult.summary,
+          is_ai_generated: aiResult.isAIGenerated ?? true,
+          total_lessons: lessons.length,
+          lessons_with_feedback: lessons.filter(lesson => lesson.feedback).length,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'student_id,day_of_week,week_number,academic_year_id,semester_id'
+        })
+
+      if (saveError) {
+        console.error('Failed to save AI summary to database:', saveError)
+        // Don't fail the entire operation, just log the error
+      }
+
+      return {
+        success: true,
+        summary: aiResult.summary,
+        prompt: fullPrompt,
+        isAIGenerated: aiResult.isAIGenerated ?? true
+      }
+    } catch (aiError) {
+      console.error("AI generation failed, falling back to template:", aiError)
+
+      // Fallback to template-based summary if AI fails
+      const totalLessons = lessons.length
+      const lessonsWithFeedback = lessons.filter(lesson => lesson.feedback).length
+      const feedbackRate = totalLessons > 0 ? Math.round((lessonsWithFeedback / totalLessons) * 100) : 0
+
+      let overallAssessment = 'Cần cải thiện'
+      if (feedbackRate >= 80) {
+        overallAssessment = 'Tích cực'
+      } else if (feedbackRate >= 50) {
+        overallAssessment = 'Trung bình'
+      }
+
+      const fallbackSummary = `📊 TỔNG QUAN NGÀY HỌC:
 - Tổng số tiết: ${totalLessons} tiết
 - Số tiết có phản hồi: ${lessonsWithFeedback} tiết (${feedbackRate}%)
 - Đánh giá chung: ${overallAssessment}
 
-📝 PHÂN TÍCH PHẢN HỒI:
-- Điểm mạnh: ${positiveFeedbacks.length > 0 ?
-  positiveFeedbacks.map(l => `${l.subject_name} - ${l.feedback?.substring(0, 50)}...`).join('; ') :
-  'Cần có thêm phản hồi tích cực từ giáo viên'}
-- Cần chú ý: ${concernFeedbacks.length > 0 ?
-  concernFeedbacks.map(l => `${l.subject_name} - ${l.feedback?.substring(0, 50)}...`).join('; ') :
-  'Không có vấn đề đáng lo ngại'}
-- Xu hướng: ${feedbackRate >= 70 ? 'Tích cực, duy trì phong độ' : 'Cần tăng cường tương tác với giáo viên'}
+⚠️ Lưu ý: Đây là tóm tắt tự động do lỗi kết nối AI. Vui lòng thử lại để có phân tích chi tiết hơn.`
 
-🎯 KHUYẾN NGHỊ:
-- Cho học sinh: ${feedbackRate < 70 ? 'Tăng cường tham gia tích cực trong các tiết học, chủ động hỏi bài khi chưa hiểu' : 'Tiếp tục duy trì thái độ học tập tích cực hiện tại'}
-- Cho phụ huynh: Theo dõi và động viên con trong việc hoàn thành bài tập, tạo môi trường học tập tích cực tại nhà
-- Theo dõi: ${concernFeedbacks.length > 0 ? 'Quan sát sự tiến bộ trong các môn đã được ghi nhận cần cải thiện' : 'Duy trì mức độ tham gia hiện tại trong tất cả các môn học'}`
-
-    return {
-      success: true,
-      summary: summary,
-      prompt: fullPrompt // Return the prompt for reference
+      return {
+        success: true,
+        summary: fallbackSummary,
+        prompt: fullPrompt,
+        isAIGenerated: false
+      }
     }
 
   } catch (error) {

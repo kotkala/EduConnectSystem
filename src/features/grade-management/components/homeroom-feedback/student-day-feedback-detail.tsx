@@ -23,6 +23,7 @@ import { toast } from "sonner"
 import {
   getStudentDayFeedbackAction,
   generateDailyFeedbackSummaryAction,
+  getDailyFeedbackSummaryAction,
   type HomeroomFeedbackFilters,
   type StudentDaySchedule
 } from "@/features/grade-management/actions/homeroom-feedback-actions"
@@ -82,6 +83,19 @@ export function StudentDayFeedbackDetail({
         if (result.success && result.data) {
           setStudentData(result.data)
 
+          // Load existing AI summary if available
+          const summaryResult = await getDailyFeedbackSummaryAction({
+            studentId,
+            dayOfWeek,
+            academic_year_id: filters.academic_year_id,
+            semester_id: filters.semester_id,
+            week_number: filters.week_number
+          })
+
+          if (summaryResult.success && summaryResult.data) {
+            setDailySummary(summaryResult.data.ai_summary)
+          }
+
           // Check if feedback has already been sent to parents
           const sentStatus = await checkDailyFeedbackSentStatusAction(
             studentId,
@@ -119,7 +133,9 @@ export function StudentDayFeedbackDetail({
         studentId,
         dayOfWeek,
         lessons: studentData.lessons,
-        ...filters
+        academic_year_id: filters.academic_year_id,
+        semester_id: filters.semester_id,
+        week_number: filters.week_number
       })
 
       if (result.success && result.summary) {

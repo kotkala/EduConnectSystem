@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ContentLayout } from '@/shared/components/dashboard/content-layout'
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
-import { Card, CardContent } from '@/shared/components/ui/card'
 import Link from 'next/link'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import {

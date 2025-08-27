@@ -237,14 +237,13 @@ export async function updateDisciplinaryCaseStatusAction(data: {
   notes?: string;
 }) {
   try {
-    const { userId, supabase } = await checkAdminOrTeacherPermissions()
+    const { supabase } = await checkAdminOrTeacherPermissions()
 
     const { data: disciplinaryCase, error } = await supabase
       .from('student_disciplinary_cases')
       .update({
         status: data.status,
         notes: data.notes,
-        updated_by: userId,
         updated_at: new Date().toISOString()
       })
       .eq('id', data.caseId)

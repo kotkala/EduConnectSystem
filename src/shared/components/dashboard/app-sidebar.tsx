@@ -84,7 +84,6 @@ export function AppSidebar({ role }: AppSidebarProps) {
           <Menu
             isOpen={getOpenState()}
             role={role}
-            onChatbotOpen={role === 'parent' ? handleChatbotOpen : undefined}
           />
         </div>
       </aside>

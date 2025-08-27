@@ -11,11 +11,10 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Send, Users, FileText, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getHomeroomSubmittedGradesAction, sendGradeReportsToParentsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
 import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
-import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 
 interface SubmissionRecord {
   id: string
@@ -78,8 +77,8 @@ export default function TeacherGradeReportsClient() {
     sendingToAllParents: false
   })
 
-  // Global loading for initial data loads
-  const { isLoading, startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+  // Simple loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   // Load periods
   const loadPeriods = useCallback(async () => {
@@ -134,7 +133,7 @@ export default function TeacherGradeReportsClient() {
       const isInitialLoad = students.length === 0
 
       if (isInitialLoad) {
-        startLoading()
+        setIsLoading(true)
       }
 
       const filters = {
@@ -171,9 +170,9 @@ export default function TeacherGradeReportsClient() {
       toast.error('Không thể tải danh sách học sinh')
       setStudents([])
     } finally {
-      stopLoading()
+      setIsLoading(false)
     }
-  }, [selectedPeriod, students.length, startLoading, stopLoading])
+  }, [selectedPeriod, students.length])
 
   // Load periods on mount
   useEffect(() => {
@@ -249,8 +248,44 @@ export default function TeacherGradeReportsClient() {
   const renderStudentsList = () => {
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center py-8">
-          <SandyLoading message="Đang tải danh sách học sinh..." />
+        <div className="space-y-4">
+          {/* Stats Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-12 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* Table Skeleton */}
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex items-center space-x-3">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                      <Skeleton className="h-8 w-8" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )
     }

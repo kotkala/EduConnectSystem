@@ -19,7 +19,7 @@ import {
 import { createClient } from '@/shared/utils/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { useSectionLoading } from '@/shared/hooks/use-loading-coordinator'
+
 import { CardSkeleton, ListSkeleton } from '@/shared/components/ui/skeleton-utils'
 
 interface Profile {
@@ -72,8 +72,8 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
 
   const supabase = createClient()
 
-  // Section loading for dashboard data
-  const { isLoading, startLoading, stopLoading } = useSectionLoading("Đang tải dữ liệu dashboard...")
+  // Simple loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   const loadWeeklyStats = useCallback(async () => {
     try {
@@ -215,7 +215,7 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
 
   const loadDashboardData = useCallback(async () => {
     // ðŸŽ¯ UX IMPROVEMENT: Use section loading for non-blocking experience
-    startLoading()
+    setIsLoading(true)
     try {
       await Promise.all([
         loadWeeklyStats(),
@@ -226,9 +226,9 @@ export default function TeacherWeeklyDashboard({ profile }: Readonly<{ profile: 
       console.error('Error loading dashboard data:', error)
       toast.error('Không thể tải dữ liệu dashboard')
     } finally {
-      stopLoading()
+      setIsLoading(false)
     }
-  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities, startLoading, stopLoading])
+  }, [loadWeeklyStats, loadUpcomingClasses, loadRecentActivities])
 
   useEffect(() => {
     loadDashboardData()

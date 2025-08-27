@@ -15,7 +15,8 @@ import { AcademicDeleteDialog } from "@/features/admin-management/components/adm
 import { useAcademicYear } from "@/providers/academic-year-context"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,
@@ -163,6 +164,56 @@ export default function AcademicYearsManagementPage() {
   const currentYear = academicYears.find(year => year.is_current)
   const currentSemester = semesters.find(semester => semester.is_current)
 
+  // Show loading skeleton when initially loading
+  if (academicYearsLoading && academicYears.length === 0) {
+    return (
+      <AdminPageTemplate
+        title="Quản lý năm học"
+        description="Quản lý năm học và học kỳ"
+        showCard={true}
+      >
+        <div className="space-y-6">
+          {/* Stats Cards Skeleton */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4" />
+                </div>
+                <div className="p-6 pt-0">
+                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tables Skeleton */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                <div className="p-6">
+                  <Skeleton className="h-6 w-32 mb-4" />
+                  <div className="space-y-3">
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="flex items-center space-x-4">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </AdminPageTemplate>
+    )
+  }
+
   return (
     <AdminPageTemplate
       title="Quản lý năm học"
@@ -199,7 +250,7 @@ export default function AcademicYearsManagementPage() {
     >
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">Năm học hiện tại</CardTitle>
@@ -273,7 +324,7 @@ export default function AcademicYearsManagementPage() {
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="years" className="space-y-4">
+        <Tabs defaultValue="years" className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <TabsList>
             <TabsTrigger value="years">Năm học ({academicYearsTotal})</TabsTrigger>
             <TabsTrigger value="semesters">Học kỳ ({semestersTotal})</TabsTrigger>

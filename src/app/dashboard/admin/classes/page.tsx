@@ -6,6 +6,7 @@ import { Button } from "@/shared/components/ui/button"
 import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Plus, GraduationCap, Users, BookOpen,  } from "lucide-react"
 import { ClassTable } from "@/features/admin-management/components/admin/class-table"
@@ -18,8 +19,7 @@ import {
 } from "@/lib/validations/class-validations"
 import { type AcademicYear, type Semester } from "@/lib/validations/academic-validations"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
 
 // Simple teacher interface for dropdown
 interface SimpleTeacher {
@@ -30,7 +30,7 @@ interface SimpleTeacher {
 
 export default function ClassManagementPage() {
   // Loading States
-  const { isLoading: isLoadingClasses, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách lớp học...")
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false)
   
   // Classes State
   const [classes, setClasses] = useState<ClassWithDetails[]>([])
@@ -49,7 +49,7 @@ export default function ClassManagementPage() {
 
   // Fetch Classes
   const fetchClasses = useCallback(async () => {
-    startLoading()
+    setIsLoadingClasses(true)
     setClassesError(null)
 
     try {
@@ -69,9 +69,9 @@ export default function ClassManagementPage() {
       setClassesError(errorMessage)
       console.error("Classes fetch exception:", err)
     } finally {
-      stopLoading()
+      setIsLoadingClasses(false)
     }
-  }, [classesFilters, startLoading, stopLoading])
+  }, [classesFilters])
 
   // Fetch Form Data with optimized loading
   const fetchFormData = useCallback(async () => {
@@ -148,21 +148,23 @@ export default function ClassManagementPage() {
   // Show loading skeleton when initially loading classes
   if (isLoadingClasses && classes.length === 0) {
     return (
-      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+      <AdminPageTemplate
+        title="Quản lý lớp học"
+        description="Quản lý lớp chính và lớp tổ hợp môn"
+        actions={
+          <Skeleton className="h-10 w-32" />
+        }
+        showCard={true}
+      >
         <div className="space-y-6">
-          {/* Header Skeleton */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <Skeleton className="h-8 w-64 mb-2" />
-              <Skeleton className="h-4 w-80" />
-            </div>
-            <Skeleton className="h-10 w-32" />
-          </div>
-
           {/* Stats Cards Skeleton */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {[...Array(4)].map((_, i) => (
-              <Card key={i}>
+              <Card
+                key={i}
+                className="animate-in fade-in slide-in-from-bottom-4"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-4 w-4" />
@@ -176,14 +178,18 @@ export default function ClassManagementPage() {
           </div>
 
           {/* Table Skeleton */}
-          <Card>
+          <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <CardHeader>
               <Skeleton className="h-6 w-48" />
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4">
+                  <div
+                    key={i}
+                    className="flex items-center space-x-4 animate-in fade-in"
+                    style={{ animationDelay: `${(i + 4) * 100}ms` }}
+                  >
                     <Skeleton className="h-4 w-4" />
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-4 w-24" />
@@ -196,7 +202,7 @@ export default function ClassManagementPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </AdminPageTemplate>
     )
   }
 
@@ -215,8 +221,11 @@ export default function ClassManagementPage() {
       <div className="space-y-6">
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card
+          className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+          style={{ animationDelay: '0ms' }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số lớp</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -228,8 +237,11 @@ export default function ClassManagementPage() {
             </p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card
+          className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+          style={{ animationDelay: '100ms' }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lớp chính</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -242,7 +254,10 @@ export default function ClassManagementPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+          style={{ animationDelay: '200ms' }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Lớp tổ hợp môn</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -255,7 +270,10 @@ export default function ClassManagementPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+          style={{ animationDelay: '300ms' }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium min-w-0 flex-1 pr-2">Tổng số học sinh</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -290,7 +308,8 @@ export default function ClassManagementPage() {
       )}
 
       {/* Classes Table */}
-      <ClassTable
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <ClassTable
         data={classes}
         total={classesTotal}
         currentPage={classesPage}
@@ -302,6 +321,7 @@ export default function ClassManagementPage() {
         semesters={semesters}
         teachers={teachers}
       />
+      </div>
 
       {/* Create Class Dialog */}
       <Dialog open={showCreateClassDialog} onOpenChange={setShowCreateClassDialog}>

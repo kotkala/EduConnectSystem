@@ -221,7 +221,7 @@ export default function AdminGradeTrackingPage() {
       <div className="space-y-6">
 
       {/* Period Selection */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <CardTitle>Chọn kỳ báo cáo</CardTitle>
         </CardHeader>
@@ -255,7 +255,7 @@ export default function AdminGradeTrackingPage() {
 
       {/* Filter and Search */}
       {selectedPeriod && !loading && (
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <CardHeader>
             <CardTitle>Bộ lọc và tìm kiếm</CardTitle>
           </CardHeader>

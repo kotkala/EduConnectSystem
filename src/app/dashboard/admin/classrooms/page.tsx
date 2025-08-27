@@ -12,13 +12,13 @@ import { ClassroomForm } from "@/features/admin-management/components/admin/clas
 import { getClassroomsAction } from "@/features/admin-management/actions/classroom-actions"
 import { type Classroom, type ClassroomFilters } from "@/features/admin-management/actions/classroom-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useSectionLoading } from "@/shared/hooks/use-loading-coordinator"
+
+
 
 export default function ClassroomsPage() {
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [total, setTotal] = useState(0)
-  const { isLoading: loading, startLoading, stopLoading } = useSectionLoading("Đang tải danh sách phòng học...")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // Dialog states
@@ -32,9 +32,9 @@ export default function ClassroomsPage() {
   })
 
   const loadClassrooms = useCallback(async () => {
-    startLoading()
+    setLoading(true)
     setError(null)
-    
+
     try {
       const result = await getClassroomsAction(filters)
       if (result.success) {
@@ -46,9 +46,9 @@ export default function ClassroomsPage() {
     } catch {
       setError('Không thể tải danh sách phòng học')
     } finally {
-      stopLoading()
+      setLoading(false)
     }
-  }, [filters, startLoading, stopLoading])
+  }, [filters])
 
   useEffect(() => {
     loadClassrooms()

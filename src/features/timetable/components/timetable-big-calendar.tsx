@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { SandyLoading } from "@/shared/components/ui/sandy-loading";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 
 import { type CalendarEvent } from "@/features/timetable/components/calendar";
@@ -15,7 +15,16 @@ const EventCalendar = dynamic(
   {
     ssr: false,
     loading: () => (
-      <SandyLoading message="Đang tải lịch học..." />
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-[200px]" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-[80px]" />
+            <Skeleton className="h-10 w-[80px]" />
+          </div>
+        </div>
+        <Skeleton className="h-[700px] w-full rounded-lg" />
+      </div>
     ),
   }
 );

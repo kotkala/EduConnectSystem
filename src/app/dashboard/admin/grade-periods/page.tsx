@@ -23,7 +23,7 @@ import { GradePeriodForm } from "@/shared/components/admin/grade-period-form"
 import { GradePeriodStatusDialog } from "@/shared/components/admin/grade-period-status-dialog"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import {
   getEnhancedGradeReportingPeriodsAction,
   updateGradeReportingPeriodStatusAction
 } from "@/lib/actions/enhanced-grade-actions"
@@ -183,7 +183,7 @@ export default function GradePeriodsPage() {
       <div className="space-y-6">
 
         {/* Stats Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">Tổng số kỳ</CardTitle>

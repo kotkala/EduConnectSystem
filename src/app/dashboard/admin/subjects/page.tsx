@@ -49,7 +49,7 @@ export default async function AdminSubjectsPage() {
     >
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tổng số môn học</CardTitle>
@@ -89,7 +89,7 @@ export default async function AdminSubjectsPage() {
         </div>
 
         {/* Core Subjects */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -125,7 +125,7 @@ export default async function AdminSubjectsPage() {
         </Card>
 
         {/* Specialized Subjects */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: '200ms' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />

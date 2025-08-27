@@ -7,7 +7,8 @@ import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
@@ -184,7 +185,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       <div className="space-y-6">
 
       {/* Search and Filters */}
-      <Card className="mb-6">
+      <Card className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -279,7 +280,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {filteredRequests.map((request) => {
             const isExpanded = expandedCards.has(request.id)
             return (

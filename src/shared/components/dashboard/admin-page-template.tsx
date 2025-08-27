@@ -39,9 +39,9 @@ export function AdminPageTemplate({
   const content = (
     <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-in fade-in duration-700">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">{title}</h1>
           {description && (
             <p className="text-sm sm:text-base text-muted-foreground">
               {description}

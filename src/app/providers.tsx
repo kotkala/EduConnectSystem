@@ -7,7 +7,7 @@ import { Toaster } from '@/shared/components/ui/sonner'
 
 import { AuthErrorBoundary } from '@/shared/components/ui/auth-error-boundary'
 import { LoadingProvider } from '@/shared/components/ui/loading-provider'
-import { useLoadingDebug } from '@/shared/hooks/use-loading-debug'
+
 
 export default function Providers({ children }: { readonly children: React.ReactNode }) {
   // Create QueryClient with optimized defaults for performance
@@ -31,10 +31,8 @@ export default function Providers({ children }: { readonly children: React.React
           enableSystem
         >
           <LoadingProvider>
-            <LoadingDebugWrapper>
-              {children}
-              <Toaster position="top-center" />
-            </LoadingDebugWrapper>
+            {children}
+            <Toaster position="top-center" />
           </LoadingProvider>
         </ThemeProvider>
       </QueryClientProvider>
@@ -42,10 +40,6 @@ export default function Providers({ children }: { readonly children: React.React
   )
 }
 
-// Wrapper component to use debug hook
-function LoadingDebugWrapper({ children }: { children: React.ReactNode }) {
-  useLoadingDebug()
-  return <>{children}</>
-}
+
 
 

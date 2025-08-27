@@ -13,7 +13,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbP
 import Link from 'next/link'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
-import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
+
 
 import {
   getTeacherLeaveApplicationsAction,
@@ -21,7 +21,7 @@ import {
   type LeaveApplication
 } from '@/lib/actions/leave-application-actions'
 import {
-  ArrowLeft,
+
   Check,
   X,
   Clock,
@@ -72,8 +72,7 @@ export default function TeacherLeaveRequestsPage() {
   const [paginatedApplications, setPaginatedApplications] = useState<LeaveApplication[]>([])
   const pageSize = 10
 
-  // Global loading for initial data loads
-  const { startLoading, stopLoading } = useGlobalLoading("Đang tải dữ liệu...")
+
 
   // ✅ FIXED: Memoize filtered applications to prevent infinite loop
   const filteredApplications = useMemo(() => {
@@ -93,7 +92,7 @@ export default function TeacherLeaveRequestsPage() {
   const fetchLeaveApplications = useCallback(async () => {
     try {
       // ðŸŽ¯ UX IMPROVEMENT: Use global loading with meaningful message
-      startLoading()
+      // Loading state removed
       setError(null)
 
       const result = await getTeacherLeaveApplicationsAction()
@@ -107,9 +106,9 @@ export default function TeacherLeaveRequestsPage() {
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Đã xảy ra lỗi')
     } finally {
-      stopLoading()
+      // Loading state removed
     }
-  }, [startLoading, stopLoading]) // âœ… Add all dependencies
+  }, []) // âœ… Add all dependencies
 
   // ✅ FIXED: Handle filter changes and page reset (without currentPage dependency)
   useEffect(() => {

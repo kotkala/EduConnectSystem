@@ -33,7 +33,7 @@ import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 
 
 import { Skeleton } from "@/shared/components/ui/skeleton"
-import { useGlobalLoading, useSectionLoading, useComponentLoading } from "@/shared/hooks/use-loading-coordinator"
+
 
 export default function ReportPeriodsPage() {
   const [reportPeriods, setReportPeriods] = useState<ReportPeriod[]>([])
@@ -45,21 +45,21 @@ export default function ReportPeriodsPage() {
   const [selectedCompletionStatus, setSelectedCompletionStatus] = useState<string>("all")
   // Loading States
   const [isLoadingInitial, setIsLoadingInitial] = useState(false)
-  const { startLoading: startGlobalLoading, stopLoading: stopGlobalLoading } = useGlobalLoading("Đang tải thông tin kỳ báo cáo...")
+
   
   const [error, setError] = useState<string | null>(null)
   // ðŸ“Š Section loading for non-blocking components
-  const { isLoading: isProgressLoading, startLoading: startProgressLoading, stopLoading: stopProgressLoading } = useSectionLoading("Đang tải tiến độ lớp...")
-  const { isLoading: isSendingNotifications, startLoading: startSendingNotifications, stopLoading: stopSendingNotifications } = useComponentLoading()
-  const { isLoading: isBulkSending, startLoading: startBulkSending, stopLoading: stopBulkSending } = useComponentLoading()
-  const { isLoading: isGeneratingReports, startLoading: startGeneratingReports, stopLoading: stopGeneratingReports } = useComponentLoading()
+  const [isProgressLoading, setIsProgressLoading] = useState(false)
+  const [isSendingNotifications, setIsSendingNotifications] = useState(false)
+  const [isBulkSending, setIsBulkSending] = useState(false)
+  const [isGeneratingReports, setIsGeneratingReports] = useState(false)
 
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [testModeEnabled, setTestModeEnabled] = useState(true) // Toggle for testing
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadInitialData = useCallback(async () => {
-    startGlobalLoading()
+    // Global loading removed
     setIsLoadingInitial(true)
     try {
       setError(null)
@@ -91,16 +91,16 @@ export default function ReportPeriodsPage() {
       setError('Failed to load data')
     } finally {
       setIsLoadingInitial(false)
-      stopGlobalLoading()
+      // Global loading removed
     }
-  }, [startGlobalLoading, stopGlobalLoading])
+  }, [])
 
   const loadClassProgress = useCallback(async () => {
     if (!selectedPeriod) return
 
     try {
       // ðŸ“Š Use section loading for non-blocking progress loading
-      startProgressLoading()
+      setIsProgressLoading(true)
       const classBlockFilter = selectedClassBlock === "all-blocks" ? undefined : selectedClassBlock
       const result = await getClassProgressAction(
         selectedPeriod,
@@ -116,9 +116,9 @@ export default function ReportPeriodsPage() {
       console.error('Error loading class progress:', error)
       toast.error('Failed to load class progress')
     } finally {
-      stopProgressLoading()
+      setIsProgressLoading(false)
     }
-  }, [selectedPeriod, selectedClassBlock, startProgressLoading, stopProgressLoading])
+  }, [selectedPeriod, selectedClassBlock])
 
   const handleCreateSuccess = useCallback(async () => {
     setShowCreateForm(false)
@@ -172,7 +172,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    startSendingNotifications()
+    setIsSendingNotifications(true)
     try {
       const result = await sendTeacherRemindersAction(selectedPeriod, incompleteClasses)
 
@@ -185,9 +185,9 @@ export default function ReportPeriodsPage() {
       console.error('Error sending notifications:', error)
       toast.error('Có lỗi xảy ra khi gửi thông báo')
     } finally {
-      stopSendingNotifications()
+      setIsSendingNotifications(false)
     }
-  }, [incompleteClasses, selectedPeriod, startSendingNotifications, stopSendingNotifications])
+  }, [incompleteClasses, selectedPeriod])
 
   const handleBulkSendReports = useCallback(async () => {
     if (!selectedPeriod) {
@@ -204,7 +204,7 @@ export default function ReportPeriodsPage() {
       }
     }
 
-    startBulkSending()
+    setIsBulkSending(true)
     try {
       const result = await adminBulkSendReportsAction(selectedPeriod)
 
@@ -218,9 +218,9 @@ export default function ReportPeriodsPage() {
       console.error('Error bulk sending reports:', error)
       toast.error('Có lỗi xảy ra khi gửi báo cáo')
     } finally {
-      stopBulkSending()
+      setIsBulkSending(false)
     }
-  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress, startBulkSending, stopBulkSending])
+  }, [selectedPeriod, stats, testModeEnabled, loadClassProgress])
 
   // Generate student reports handler
   const handleGenerateReports = useCallback(async () => {
@@ -229,7 +229,7 @@ export default function ReportPeriodsPage() {
       return
     }
 
-    startGeneratingReports()
+    setIsGeneratingReports(true)
     try {
       const result = await generateStudentReportsAction(selectedPeriod)
 
@@ -243,9 +243,9 @@ export default function ReportPeriodsPage() {
       console.error('Error generating reports:', error)
       toast.error('Có lỗi xảy ra khi tạo báo cáo học sinh')
     } finally {
-      stopGeneratingReports()
+      setIsGeneratingReports(false)
     }
-  }, [selectedPeriod, loadClassProgress, startGeneratingReports, stopGeneratingReports])
+  }, [selectedPeriod, loadClassProgress])
 
 
 
@@ -327,7 +327,7 @@ export default function ReportPeriodsPage() {
         )}
 
         {/* Report Period Selection */}
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />

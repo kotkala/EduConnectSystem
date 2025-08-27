@@ -5,13 +5,19 @@ import { useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
-import { SandyLoading } from "@/shared/components/ui/sandy-loading";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 // Lazy load heavy calendar components to improve initial page load
 const EventCalendar = dynamic(() => import("@/features/timetable/components/calendar").then(mod => ({ default: mod.EventCalendar })), {
   ssr: false,
   loading: () => (
-          <SandyLoading message="Đang tải lịch học..." />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-8 w-[150px]" />
+        <Skeleton className="h-10 w-[100px]" />
+      </div>
+      <Skeleton className="h-[600px] w-full rounded-lg" />
+    </div>
   )
 });
 

@@ -16,7 +16,8 @@ import { SemesterForm } from "@/features/admin-management/components/admin/semes
 import { useAuth } from "@/features/authentication/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
   type AcademicYear,

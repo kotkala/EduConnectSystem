@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
@@ -322,27 +323,24 @@ export default function ReportPeriodsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Kỳ báo cáo</h1>
-            <p className="text-muted-foreground">
-              Quản lý kỳ báo cáo hàng tháng và theo dõi tiến độ hoàn thành theo lớp
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Làm mới
-            </Button>
-            <Button onClick={() => setShowCreateForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo kỳ báo cáo
-            </Button>
-          </div>
+    <AdminPageTemplate
+      title="Quản lý kỳ báo cáo"
+      description="Quản lý các kỳ báo cáo học tập"
+      actions={
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Làm mới
+          </Button>
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo kỳ báo cáo
+          </Button>
         </div>
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
 
         {/* Error Alert */}
         {error && (
@@ -623,6 +621,6 @@ export default function ReportPeriodsPage() {
           academicYears={academicYears}
         />
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

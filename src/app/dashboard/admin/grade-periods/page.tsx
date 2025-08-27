@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -163,27 +164,23 @@ export default function GradePeriodsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý kỳ nhập điểm</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Quản lý 7 kỳ nhập điểm trong năm học và theo dõi trạng thái
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
-            <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
-              <Skeleton className="h-32 w-full rounded-lg" />
-              Làm mới
-            </Button>
-            <Button onClick={handleCreatePeriod} className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" />
-              Tạo kỳ nhập điểm
-            </Button>
-          </div>
+    <AdminPageTemplate
+      title="Quản lý kỳ điểm"
+      description="Quản lý các kỳ kiểm tra và đánh giá"
+      actions={
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={loading} className="w-full sm:w-auto">
+            Làm mới
+          </Button>
+          <Button onClick={handleCreatePeriod} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Tạo kỳ nhập điểm
+          </Button>
         </div>
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
 
         {/* Stats Cards */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -291,6 +288,6 @@ export default function GradePeriodsPage() {
           onStatusUpdate={handleStatusUpdate}
         />
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

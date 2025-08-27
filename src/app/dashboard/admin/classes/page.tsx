@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -200,21 +201,18 @@ export default function ClassManagementPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-      <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý lớp học</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Quản lý lớp chính và lớp tổ hợp môn
-          </p>
-        </div>
+    <AdminPageTemplate
+      title="Quản lý lớp học"
+      description="Quản lý lớp chính và lớp tổ hợp môn"
+      actions={
         <Button onClick={() => setShowCreateClassDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Thêm lớp
         </Button>
-      </div>
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -318,8 +316,7 @@ export default function ClassManagementPage() {
         </DialogContent>
       </Dialog>
 
-
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

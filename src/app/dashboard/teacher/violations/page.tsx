@@ -1,6 +1,7 @@
 ﻿import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { TeacherPageWithSuspense } from '@/shared/components/dashboard/teacher-page-template'
 
 import TeacherViolationsPageClient from './teacher-violations-page-client'
 
@@ -36,27 +37,23 @@ export default async function TeacherViolationsPage() {
     if (!profile.homeroom_enabled) {
       // Teacher exists but homeroom is not enabled
       return (
-        <div className="p-6">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Vi phạm học sinh</h1>
-                <p className="text-muted-foreground">Bảng điều khiển giáo viên</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">Yêu cầu quyền GVCN</h2>
-                <p className="text-muted-foreground mb-4">
-                  Chỉ giáo viên chủ nhiệm mới có thể xem và quản lý vi phạm học sinh.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Nếu bạn tin đây là nhầm lẫn, vui lòng liên hệ quản trị viên.
-                </p>
-              </div>
+        <TeacherPageWithSuspense
+          title="Vi phạm học sinh"
+          description="Bảng điều khiển giáo viên"
+          showCard={false}
+        >
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold mb-2">Yêu cầu quyền GVCN</h2>
+              <p className="text-muted-foreground mb-4">
+                Chỉ giáo viên chủ nhiệm mới có thể xem và quản lý vi phạm học sinh.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Nếu bạn tin đây là nhầm lẫn, vui lòng liên hệ quản trị viên.
+              </p>
             </div>
           </div>
-        </div>
+        </TeacherPageWithSuspense>
       )
     }
 
@@ -76,21 +73,28 @@ export default async function TeacherViolationsPage() {
     const isHomeroomTeacher = profile.homeroom_enabled
 
     return (
-      <div className="p-6">
-        <Suspense fallback={<div>Đang tải...</div>}>
-          <TeacherViolationsPageClient
-            homeroomClass={homeroomClass}
-            isHomeroomTeacher={isHomeroomTeacher}
-            user={user}
-          />
-        </Suspense>
-      </div>
+      <TeacherPageWithSuspense
+        title="Vi phạm học sinh"
+        description="Quản lý vi phạm học sinh lớp chủ nhiệm"
+        showCard={false}
+        fallback={<div>Đang tải...</div>}
+      >
+        <TeacherViolationsPageClient
+          homeroomClass={homeroomClass}
+          isHomeroomTeacher={isHomeroomTeacher}
+          user={user}
+        />
+      </TeacherPageWithSuspense>
     )
   } catch (error) {
     console.error('Page error:', error)
     // Context7 pattern: Graceful error handling
     return (
-      <div className="p-6">
+      <TeacherPageWithSuspense
+        title="Vi phạm học sinh"
+        description="Lỗi kết nối"
+        showCard={false}
+      >
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <h2 className="text-lg font-semibold mb-2">Lỗi kết nối</h2>
@@ -102,7 +106,7 @@ export default async function TeacherViolationsPage() {
             </p>
           </div>
         </div>
-      </div>
+      </TeacherPageWithSuspense>
     )
   }
 }

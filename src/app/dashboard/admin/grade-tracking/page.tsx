@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Button } from "@/shared/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Badge } from "@/shared/components/ui/badge"
@@ -194,14 +195,10 @@ export default function AdminGradeTrackingPage() {
   }, [gradeData])
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Theo dõi điểm số toàn trường</h1>
-          <p className="text-muted-foreground">
-            Quản lý và theo dõi tiến độ nhập điểm của tất cả các lớp và môn học
-          </p>
-        </div>
+    <AdminPageTemplate
+      title="Theo dõi điểm số"
+      description="Theo dõi và quản lý điểm số học sinh"
+      actions={
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadGradeData} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -218,7 +215,10 @@ export default function AdminGradeTrackingPage() {
             Gửi bảng điểm ({selectedItems.size})
           </Button>
         </div>
-      </div>
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
 
       {/* Period Selection */}
       <Card>
@@ -621,6 +621,7 @@ export default function AdminGradeTrackingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AdminPageTemplate>
   )
 }

@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import AdminScheduleChangeManagement from "@/features/schedule-change/components/admin-schedule-change-management"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 
 export const metadata: Metadata = {
   title: "Quản Lý Đơn Thay Đổi Lịch Dạy | EduConnect",
@@ -7,5 +8,13 @@ export const metadata: Metadata = {
 }
 
 export default function AdminScheduleChangePage() {
-  return <AdminScheduleChangeManagement />
+  return (
+    <AdminPageTemplate
+      title="Thay đổi lịch học"
+      description="Quản lý các yêu cầu thay đổi lịch học"
+      showCard={false}
+    >
+      <AdminScheduleChangeManagement />
+    </AdminPageTemplate>
+  )
 }

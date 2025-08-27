@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -163,45 +164,40 @@ export default function AcademicYearsManagementPage() {
   const currentSemester = semesters.find(semester => semester.is_current)
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Quản lý năm học & học kỳ</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Quản lý toàn bộ năm học và học kỳ trong hệ thống
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => setShowCreateAcademicYearDialog(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Thêm năm học
-            </Button>
-            <Button
-              onClick={() => setShowCreateSemesterDialog(true)}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Thêm học kỳ
-            </Button>
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              disabled={academicYearsLoading || semestersLoading}
-              className="flex items-center gap-2"
-            >
-              <Skeleton className="h-32 w-full rounded-lg" />
+    <AdminPageTemplate
+      title="Quản lý năm học"
+      description="Quản lý năm học và học kỳ"
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setShowCreateAcademicYearDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Thêm năm học
+          </Button>
+          <Button
+            onClick={() => setShowCreateSemesterDialog(true)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Thêm học kỳ
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={academicYearsLoading || semestersLoading}
+            className="flex items-center gap-2"
+          >
               Làm mới
             </Button>
-          </div>
         </div>
-
+      }
+      showCard={false}
+    >
+      <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -463,6 +459,6 @@ export default function AcademicYearsManagementPage() {
           />
         )}
       </div>
-    </div>
+    </AdminPageTemplate>
   )
 }

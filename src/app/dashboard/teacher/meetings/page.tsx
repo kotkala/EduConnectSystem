@@ -1,5 +1,6 @@
 ﻿import { Metadata } from "next";
 import TeacherMeetingsPage from "@/features/meetings/components/teacher-meetings/teacher-meetings-page";
+import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template";
 
 export const metadata: Metadata = {
   title: "Họp Phụ Huynh",
@@ -8,10 +9,14 @@ export const metadata: Metadata = {
 
 export default function TeacherMeetingsPageRoute() {
   return (
-    <div className="p-6">
+    <TeacherPageTemplate
+      title="Họp phụ huynh"
+      description="Quản lý lịch họp phụ huynh cho lớp chủ nhiệm"
+      showCard={false}
+    >
       <div className="flex flex-1 flex-col gap-4">
         <TeacherMeetingsPage />
       </div>
-    </div>
+    </TeacherPageTemplate>
   );
 }

@@ -46,26 +46,30 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
     try {
       setLoading(true)
       const result = await getAcademicYearsLightAction()
-      
+
       if (result.success && result.data) {
         const years = result.data.map(year => ({
           id: year.id,
           name: year.name,
           is_current: year.is_current
         }))
-        
+
         setAcademicYears(years)
-        
+
         // Auto-select current academic year if none selected
-        if (!selectedAcademicYear) {
-          const currentYear = years.find(year => year.is_current)
-          if (currentYear) {
-            setSelectedAcademicYear(currentYear)
-          } else if (years.length > 0) {
-            // If no current year, select the first one
-            setSelectedAcademicYear(years[0])
+        // Use functional update to avoid dependency on selectedAcademicYear
+        setSelectedAcademicYear(prev => {
+          if (!prev) {
+            const currentYear = years.find(year => year.is_current)
+            if (currentYear) {
+              return currentYear
+            } else if (years.length > 0) {
+              // If no current year, select the first one
+              return years[0]
+            }
           }
-        }
+          return prev
+        })
       } else {
         toast.error('Không thể tải danh sách năm học')
       }
@@ -75,7 +79,7 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
     } finally {
       setLoading(false)
     }
-  }, [selectedAcademicYear])
+  }, []) // Remove selectedAcademicYear dependency
 
   // Refresh academic years
   const refreshAcademicYears = useCallback(async () => {
@@ -109,7 +113,7 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
     isCurrentYear
   }), [
     selectedAcademicYear,
-    setSelectedAcademicYear,
+    // setSelectedAcademicYear is omitted - setState functions are always stable
     academicYears,
     loading,
     refreshAcademicYears,

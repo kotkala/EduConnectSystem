@@ -1,6 +1,7 @@
 ﻿import { Suspense } from 'react'
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from 'next/navigation'
+import { TeacherPageWithSuspense } from '@/shared/components/dashboard/teacher-page-template'
 
 import TeacherGradeReportsClient from './teacher-grade-reports-client'
 
@@ -23,10 +24,13 @@ export default async function TeacherGradeReportsPage() {
   }
 
   return (
-    <div className="p-6">
-      <Suspense fallback={<div>Đang tải...</div>}>
-        <TeacherGradeReportsClient />
-      </Suspense>
-    </div>
+    <TeacherPageWithSuspense
+      title="Báo cáo điểm số"
+      description="Xem và quản lý báo cáo điểm số học sinh"
+      showCard={false}
+      fallback={<div>Đang tải...</div>}
+    >
+      <TeacherGradeReportsClient />
+    </TeacherPageWithSuspense>
   )
 }

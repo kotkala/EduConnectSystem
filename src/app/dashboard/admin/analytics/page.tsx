@@ -1,9 +1,9 @@
 ﻿import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 import AnalyticsClient from './analytics-client'
 import { CardSkeleton, GridSkeleton } from '@/shared/components/ui/skeleton-utils'
+import { AdminPageWithSuspense } from '@/shared/components/dashboard/admin-page-template'
 
 function AnalyticsSkeleton() {
   return (
@@ -45,10 +45,13 @@ export default async function AnalyticsPage() {
   }
 
   return (
-    <SidebarLayout role="admin" title="Phân Tích Điểm Số">
-      <Suspense fallback={<AnalyticsSkeleton />}>
-        <AnalyticsClient />
-      </Suspense>
-    </SidebarLayout>
+    <AdminPageWithSuspense
+      title="Phân tích & Báo cáo"
+      description="Thống kê và phân tích dữ liệu hệ thống"
+      showCard={false}
+      fallback={<AnalyticsSkeleton />}
+    >
+      <AnalyticsClient />
+    </AdminPageWithSuspense>
   )
 }

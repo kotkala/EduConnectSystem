@@ -1,6 +1,7 @@
 ﻿import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { TeacherPageWithSuspense } from '@/shared/components/dashboard/teacher-page-template'
 import TeacherReportsClient from './teacher-reports-client'
 
 export default async function TeacherReportsPage() {

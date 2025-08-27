@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
@@ -175,13 +176,12 @@ export default function AdminGradeOverwriteApprovalsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Phê duyệt ghi đè điểm số</h1>
-        <p className="text-muted-foreground">
-          Xem xét và phê duyệt các yêu cầu ghi đè điểm giữa kỳ và cuối kỳ từ giáo viên
-        </p>
-      </div>
+    <AdminPageTemplate
+      title="Duyệt ghi đè điểm"
+      description="Duyệt các yêu cầu ghi đè điểm số"
+      showCard={false}
+    >
+      <div className="space-y-6">
 
       {/* Search and Filters */}
       <Card className="mb-6">
@@ -465,6 +465,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AdminPageTemplate>
   )
 }

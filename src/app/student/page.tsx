@@ -9,6 +9,8 @@ import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Suspense } from 'react'
 import { CardSkeleton, ListSkeleton } from '@/shared/components/ui/skeleton-utils'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from '@/shared/components/ui/breadcrumb'
 
 function StudentHomeSkeleton() {
   return (
@@ -60,13 +62,16 @@ async function StudentHomeContent() {
   const unreadCount = notifications.filter(n => !n.is_read).length
 
   return (
-    <div className="py-6 sm:py-8 md:py-10">
-      <div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-2 sm:space-y-3">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Chào {profile.full_name || 'bạn'} ðŸ‘‹
         </h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Cổng thông tin tinh gọn cho học sinh: thông báo, bài tập và điểm số.
+        </p>
       </div>
-      <p className="text-muted-foreground -mt-4 mb-6">Cổng thông tin tinh gọn cho học sinh: thông báo, bài tập và điểm số.</p>
 
       {/* Quick links - compact, no fake numbers */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
@@ -190,8 +195,22 @@ async function StudentHomeContent() {
 
 export default function StudentHome() {
   return (
-    <Suspense fallback={<StudentHomeSkeleton />}>
-      <StudentHomeContent />
-    </Suspense>
+    <ContentLayout title="Tổng quan" role="student">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Tổng quan</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
+          <Suspense fallback={<StudentHomeSkeleton />}>
+            <StudentHomeContent />
+          </Suspense>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

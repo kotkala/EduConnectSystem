@@ -207,7 +207,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
           Làm mới
         </Button>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

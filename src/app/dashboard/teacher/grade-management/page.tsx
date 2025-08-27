@@ -324,7 +324,7 @@ export default function TeacherGradeManagementPage() {
           Làm mới
         </Button>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

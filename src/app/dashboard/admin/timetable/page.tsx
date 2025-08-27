@@ -13,7 +13,7 @@ export default function TimetablePage() {
     <AdminPageTemplate
       title="Quản lý thời khóa biểu"
       description="Quản lý lịch học và thời khóa biểu"
-      showCard={false}
+      showCard={true}
     >
       <CalendarProvider>
         <div className="flex flex-1 flex-col gap-4">

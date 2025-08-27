@@ -178,7 +178,7 @@ export default function GradePeriodsPage() {
           </Button>
         </div>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

@@ -8,6 +8,9 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
+import { ContentLayout } from '@/shared/components/dashboard/content-layout'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
+import Link from 'next/link'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
@@ -15,7 +18,7 @@ import { useGlobalLoading } from '@/shared/hooks/use-loading-coordinator'
 import {
   getTeacherLeaveApplicationsAction,
   updateLeaveApplicationStatusAction,
-  type LeaveApplication 
+  type LeaveApplication
 } from '@/lib/actions/leave-application-actions'
 import {
   ArrowLeft,
@@ -217,7 +220,7 @@ export default function TeacherLeaveRequestsPage() {
   // Show access denied if no permission
   if (!user || profile?.role !== 'teacher') {
     return (
-      <div className="p-6">
+      <ContentLayout title="Đơn xin nghỉ" role="teacher">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 text-red-500" />
           <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
@@ -226,31 +229,36 @@ export default function TeacherLeaveRequestsPage() {
             Quay lại bảng điều khiển
           </Button>
         </div>
-      </div>
+      </ContentLayout>
     )
   }
 
   return (
-    <div className="p-6">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/dashboard/teacher')}
-            className="w-fit"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Quay lại bảng điều khiển
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Đơn xin nghỉ</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Xem xét và quản lý đơn xin nghỉ của học sinh lớp chủ nhiệm
-            </p>
-          </div>
-        </div>
+    <ContentLayout title="Đơn xin nghỉ" role="teacher">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard/teacher">Bảng điều khiển</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Đơn xin nghỉ</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <Card className="rounded-lg border-none mt-6">
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="space-y-2 sm:space-y-3">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Đơn xin nghỉ</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Xem xét và quản lý đơn xin nghỉ của học sinh lớp chủ nhiệm
+              </p>
+            </div>
 
         {error && (
           <Alert variant="destructive">
@@ -584,7 +592,9 @@ export default function TeacherLeaveRequestsPage() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
+          </div>
+        </CardContent>
+      </Card>
+    </ContentLayout>
   )
 }

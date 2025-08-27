@@ -12,7 +12,7 @@ export default function TeacherMeetingsPageRoute() {
     <TeacherPageTemplate
       title="Họp phụ huynh"
       description="Quản lý lịch họp phụ huynh cho lớp chủ nhiệm"
-      showCard={false}
+      showCard={true}
     >
       <div className="flex flex-1 flex-col gap-4">
         <TeacherMeetingsPage />

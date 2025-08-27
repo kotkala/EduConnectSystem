@@ -40,7 +40,7 @@ export default async function TeacherViolationsPage() {
         <TeacherPageWithSuspense
           title="Vi phạm học sinh"
           description="Bảng điều khiển giáo viên"
-          showCard={false}
+          showCard={true}
         >
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -76,7 +76,7 @@ export default async function TeacherViolationsPage() {
       <TeacherPageWithSuspense
         title="Vi phạm học sinh"
         description="Quản lý vi phạm học sinh lớp chủ nhiệm"
-        showCard={false}
+        showCard={true}
         fallback={<div>Đang tải...</div>}
       >
         <TeacherViolationsPageClient
@@ -93,7 +93,7 @@ export default async function TeacherViolationsPage() {
       <TeacherPageWithSuspense
         title="Vi phạm học sinh"
         description="Lỗi kết nối"
-        showCard={false}
+        showCard={true}
       >
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">

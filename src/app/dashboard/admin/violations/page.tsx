@@ -26,7 +26,7 @@ export default async function ViolationsPage() {
     <AdminPageWithSuspense
       title="Quản lý vi phạm"
       description="Theo dõi và xử lý vi phạm học sinh"
-      showCard={false}
+      showCard={true}
       fallback={<div>Đang tải...</div>}
     >
       <ViolationsPageClient />

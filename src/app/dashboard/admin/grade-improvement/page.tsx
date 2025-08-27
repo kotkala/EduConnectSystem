@@ -12,7 +12,7 @@ export default function AdminGradeImprovementPage() {
     <AdminPageTemplate
       title="Cải thiện điểm số"
       description="Quản lý yêu cầu cải thiện điểm số"
-      showCard={false}
+      showCard={true}
     >
       <AdminGradeImprovementClient />
     </AdminPageTemplate>

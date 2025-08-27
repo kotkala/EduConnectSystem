@@ -48,7 +48,7 @@ export default async function AnalyticsPage() {
     <AdminPageWithSuspense
       title="Phân tích & Báo cáo"
       description="Thống kê và phân tích dữ liệu hệ thống"
-      showCard={false}
+      showCard={true}
       fallback={<AnalyticsSkeleton />}
     >
       <AnalyticsClient />

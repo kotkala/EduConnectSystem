@@ -12,7 +12,7 @@ export default function HomeroomFeedbackPage() {
     <TeacherPageTemplate
       title="Phản hồi học sinh"
       description="Xem phản hồi học tập của học sinh trong lớp chủ nhiệm"
-      showCard={false}
+      showCard={true}
     >
       <div className="flex flex-1 flex-col gap-4">
         <HomeroomFeedbackDashboard />

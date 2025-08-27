@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { ContentLayout } from '@/shared/components/dashboard/content-layout'
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from '@/shared/components/ui/breadcrumb'
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
+import Link from 'next/link'
 
 import {
   UserCheck, GraduationCap, BookOpen, Heart, TrendingUp, TrendingDown,
@@ -235,14 +236,21 @@ export default async function AdminDashboard() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>Bảng điều khiển</BreadcrumbPage>
+            <BreadcrumbLink asChild>
+              <Link href="/dashboard/admin">Quản trị</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Tổng quan</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <Card className="rounded-lg border-none mt-6">
         <CardContent className="p-6">
-          <div className="space-y-6 lg:space-y-8">
+          <div className="min-h-[calc(100vh-56px-64px-20px-24px-56px-48px)]">
+            <div className="space-y-6 lg:space-y-8">
             {/* Enhanced Header */}
             <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
@@ -511,6 +519,7 @@ export default async function AdminDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </CardContent>

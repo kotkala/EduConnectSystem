@@ -27,7 +27,7 @@ export default async function TeacherGradeReportsPage() {
     <TeacherPageWithSuspense
       title="Báo cáo điểm số"
       description="Xem và quản lý báo cáo điểm số học sinh"
-      showCard={false}
+      showCard={true}
       fallback={<div>Đang tải...</div>}
     >
       <TeacherGradeReportsClient />

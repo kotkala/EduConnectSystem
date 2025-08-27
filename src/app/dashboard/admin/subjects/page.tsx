@@ -45,7 +45,7 @@ export default async function AdminSubjectsPage() {
       title="Quản lý môn học"
       description="Quản lý môn học và chương trình THPT"
       actions={<SubjectCreateDialog />}
-      showCard={false}
+      showCard={true}
     >
 
         {/* Summary Cards */}

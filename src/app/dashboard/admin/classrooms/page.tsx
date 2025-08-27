@@ -104,7 +104,7 @@ export default function ClassroomsPage() {
           </Button>
         </div>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

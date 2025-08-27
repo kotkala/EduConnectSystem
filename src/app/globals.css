@@ -1,5 +1,6 @@
 /* stylelint-disable-next-line at-rule-no-unknown */
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /* stylelint-disable-next-line at-rule-no-unknown */
 @custom-variant dark (&:is(.dark *));
@@ -97,6 +98,20 @@
   /* Custom Breakpoints for Ultra-wide support */
   --breakpoint-3xl: 120rem;
   --breakpoint-4xl: 160rem;
+
+  /* Container System - Centered with max-width for ultrawide screens */
+  --container-center: true;
+  --container-padding: 2rem;
+  --container-max-width-2xl: 87.5rem; /* 1400px like shadcn-ui-sidebar-master */
+
+  /* Smooth Animation Easing - optimized for mobile sidebar */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.175);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Mobile-optimized durations for smooth sidebar */
+  --animate-duration-in: 0.7s;
+  --animate-duration-out: 0.5s;
+  --animate-timing-function: var(--ease-spring);
 }
 
 :root {
@@ -224,6 +239,13 @@
     /* stylelint-disable-next-line at-rule-no-unknown */
     @apply mx-auto px-4 sm:px-6 lg:px-8;
     max-width: var(--container-max);
+  }
+
+  /* Tailwind v4 Container - Centered with max-width like shadcn-ui-sidebar-master */
+  .container {
+    /* stylelint-disable-next-line at-rule-no-unknown */
+    @apply mx-auto px-4 sm:px-8;
+    max-width: var(--container-max-width-2xl);
   }
 
   /* Progressive Spacing System */
@@ -417,30 +439,5 @@
     margin-top: 1.5rem;
   }
 
-  /* Collapsible animations */
-  @keyframes collapsible-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-collapsible-content-height);
-    }
-  }
-
-  @keyframes collapsible-up {
-    from {
-      height: var(--radix-collapsible-content-height);
-    }
-    to {
-      height: 0;
-    }
-  }
-
-  .animate-collapsible-down {
-    animation: collapsible-down 0.2s ease-out;
-  }
-
-  .animate-collapsible-up {
-    animation: collapsible-up 0.2s ease-out;
-  }
+  /* Collapsible animations now handled by tw-animate-css for Tailwind v4 */
 }

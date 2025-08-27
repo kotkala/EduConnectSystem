@@ -12,7 +12,7 @@ export default function AdminScheduleChangePage() {
     <AdminPageTemplate
       title="Thay đổi lịch học"
       description="Quản lý các yêu cầu thay đổi lịch học"
-      showCard={false}
+      showCard={true}
     >
       <AdminScheduleChangeManagement />
     </AdminPageTemplate>

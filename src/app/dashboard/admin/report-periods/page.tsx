@@ -338,7 +338,7 @@ export default function ReportPeriodsPage() {
           </Button>
         </div>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

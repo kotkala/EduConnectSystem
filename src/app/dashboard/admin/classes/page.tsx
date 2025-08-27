@@ -210,7 +210,7 @@ export default function ClassManagementPage() {
           Thêm lớp
         </Button>
       }
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

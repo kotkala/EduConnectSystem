@@ -13,7 +13,7 @@ export default function TeacherSchedulePage() {
     <TeacherPageTemplate
       title="Lịch giảng dạy"
       description="Xem lịch giảng dạy và phân công lớp học của bạn"
-      showCard={false}
+      showCard={true}
     >
       <CalendarProvider>
         <div className="flex flex-1 flex-col gap-4">

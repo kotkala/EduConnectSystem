@@ -179,7 +179,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
     <AdminPageTemplate
       title="Duyệt ghi đè điểm"
       description="Duyệt các yêu cầu ghi đè điểm số"
-      showCard={false}
+      showCard={true}
     >
       <div className="space-y-6">
 

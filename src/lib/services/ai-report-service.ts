@@ -245,15 +245,16 @@ ${subjectBreakdown}
 
 YÊU CẦU PHÂN TÍCH CHI TIẾT:
 1. Viết bằng tiếng Việt, ${getStyleInstructions(style)}
-2. ${getLengthInstructions(length)}
-3. Bắt đầu bằng việc nêu rõ kỳ báo cáo và thời gian cụ thể
-4. Tóm tắt TẤT CẢ feedback từ giáo viên trong kỳ báo cáo này
-5. Phân tích cụ thể từng môn học với điểm mạnh và điểm yếu
-6. So sánh kết quả giữa các môn học, xác định môn mạnh và môn cần cải thiện
-7. Đưa ra nhận xét về xu hướng học tập và thái độ học tập trong kỳ này
-8. Đề xuất ngắn gọn các biện pháp cải thiện chính
-9. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
-10. Tập trung vào những điểm chính, không cần chi tiết quá mức
+2. KHÔNG sử dụng ký tự đặc biệt như **, *, ##, emoji
+3. ${getLengthInstructions(length)}
+4. Bắt đầu bằng việc nêu rõ kỳ báo cáo và thời gian cụ thể
+5. Tóm tắt TẤT CẢ feedback từ giáo viên trong kỳ báo cáo này
+6. Phân tích cụ thể từng môn học với điểm mạnh và điểm yếu
+7. So sánh kết quả giữa các môn học, xác định môn mạnh và môn cần cải thiện
+8. Đưa ra nhận xét về xu hướng học tập và thái độ học tập trong kỳ này
+9. Đề xuất ngắn gọn các biện pháp cải thiện chính
+10. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
+11. Tập trung vào những điểm chính, không cần chi tiết quá mức
 
 Tóm tắt chi tiết tình hình học tập:
 `
@@ -437,13 +438,14 @@ ${violationSummary.map(v => `- ${v.date}: ${v.type} - ${v.description} (${v.poin
 
 YÊU CẦU BẮT BUỘC:
 1. CHỈ viết bằng tiếng Việt, TUYỆT ĐỐI KHÔNG dùng từ tiếng Anh
-2. ${getStyleInstructions(style)}
-3. ${getLengthInstructions(length)}
-4. Liệt kê cụ thể từng loại vi phạm và số lần vi phạm
-5. Phân tích xu hướng và mức độ nghiêm trọng
-6. Đưa ra nhận định về ý thức kỷ luật của học sinh
-7. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
-8. Không sử dụng các từ như: "performance", "behavior", "discipline" - thay bằng "thành tích", "hành vi", "kỷ luật"
+2. KHÔNG sử dụng ký tự đặc biệt như **, *, ##, emoji
+3. ${getStyleInstructions(style)}
+4. ${getLengthInstructions(length)}
+5. Liệt kê cụ thể từng loại vi phạm và số lần vi phạm
+6. Phân tích xu hướng và mức độ nghiêm trọng
+7. Đưa ra nhận định về ý thức kỷ luật của học sinh
+8. Đảm bảo chính xác 100% dựa trên dữ liệu thống kê đã cung cấp
+9. Không sử dụng các từ như: "performance", "behavior", "discipline" - thay bằng "thành tích", "hành vi", "kỷ luật"
 
 Ví dụ mẫu: "Trong kỳ báo cáo này, học sinh có 3 vi phạm gồm: đi muộn (2 lần, 4 điểm), không làm bài tập (1 lần, 2 điểm). Tổng cộng 6 điểm trừ. Học sinh cần cải thiện ý thức thời gian và trách nhiệm học tập."
 

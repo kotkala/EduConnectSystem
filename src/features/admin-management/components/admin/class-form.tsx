@@ -1,5 +1,7 @@
 "use client"
 
+
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, memo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -36,7 +38,7 @@ import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 import { useSelectedAcademicYearId } from "@/providers/academic-year-context"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassFormProps {
+interface ClassFormProps {
   class?: Class
   onSuccess: () => void
   onCancel: () => void
@@ -326,7 +328,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
   if (loadingData) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     )
   }
@@ -545,7 +547,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
           >
             {isSubmitting ? (
               <>
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (

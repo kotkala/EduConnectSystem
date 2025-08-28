@@ -14,6 +14,9 @@ import { type StudentWithParent, type UserFilters, type TeacherProfile } from "@
 import { Skeleton } from "@/shared/components/ui/skeleton"
 
 
+const STAT_SKELETON_KEYS = ["stat-1", "stat-2", "stat-3", "stat-4"] as const
+const ROW_SKELETON_KEYS = ["row-1", "row-2", "row-3", "row-4", "row-5"] as const
+
 export default function StudentsPageClient() {
   const [students, setStudents] = useState<StudentWithParent[]>([])
   const [loading, setLoading] = useState(false)
@@ -105,8 +108,8 @@ export default function StudentsPageClient() {
 
         {/* Stats Cards Skeleton */}
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+          {STAT_SKELETON_KEYS.map((key) => (
+            <Card key={key}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-28" />
                 <Skeleton className="h-4 w-4" />
@@ -126,8 +129,8 @@ export default function StudentsPageClient() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
+              {ROW_SKELETON_KEYS.map((key) => (
+                <div key={key} className="flex items-center space-x-4">
                   <Skeleton className="h-4 w-4" />
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-4 w-24" />
@@ -243,13 +246,13 @@ export default function StudentsPageClient() {
          onEdit={handleEdit}
        />
 
-      {/* Create Student & Parent Dialog */}
+      {/* Create Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
+        <DialogContent className="w-[98vw] sm:!max-w-none xl:!max-w-[1800px] max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
           </DialogHeader>
-          <div className="min-w-[800px]">
+          <div className="w-full">
             <StudentParentForm
               onSuccess={handleCreateSuccess}
               onCancel={() => setShowCreateDialog(false)}
@@ -258,17 +261,17 @@ export default function StudentsPageClient() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Student & Parent Dialog */}
+      {/* Edit Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-              <Edit className="h-6 w-6" />
+        <DialogContent className="w-[98vw] max-w-[1800px] max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3">
+              <Edit className="h-5 w-5 sm:h-6 sm:w-6" />
               Chỉnh sửa thông tin Học sinh & Phụ huynh
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (
-            <div className="min-w-[800px]">
+            <div className="w-full">
               <StudentParentForm
                 editMode={true}
                 initialData={editingStudent}

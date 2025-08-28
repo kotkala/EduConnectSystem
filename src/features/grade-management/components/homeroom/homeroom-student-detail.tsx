@@ -30,12 +30,17 @@ interface HomeroomStudentDetailProps {
   readonly onOpenChange: (open: boolean) => void
 }
 
-export function HomeroomStudentDetail({ 
-  student, 
-  classInfo, 
-  open, 
-  onOpenChange 
+export function HomeroomStudentDetail({
+  student,
+  classInfo,
+  open,
+  onOpenChange
 }: HomeroomStudentDetailProps) {
+  const getRelationshipLabel = (type?: string) => {
+    if (type === 'father') return 'Cha'
+    if (type === 'mother') return 'Mẹ'
+    return 'Người giám hộ'
+  }
   const primaryParent = student.parents.find(p => p.is_primary_contact)
   const otherParents = student.parents.filter(p => !p.is_primary_contact)
 
@@ -54,32 +59,32 @@ export function HomeroomStudentDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto">
-        <div className="min-w-[800px]">
-          <DialogHeader className="pb-6">
-          <DialogTitle className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+      <DialogContent className="w-[98vw] sm:!max-w-none xl:!max-w-[1800px] max-h-[95vh] overflow-y-auto">
+        <div className="w-full">
+          <DialogHeader className="pb-4 sm:pb-6">
+          <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+            <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
               <AvatarImage src={student.avatar_url} alt={student.full_name} />
-              <AvatarFallback className="text-lg font-bold">
+              <AvatarFallback className="text-sm sm:text-lg font-bold">
                 {student.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h2 className="text-2xl font-bold">{student.full_name}</h2>
-              <p className="text-base text-muted-foreground">Student ID: {student.student_id}</p>
-              <div className="flex items-center gap-2 mt-2">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold break-words">{student.full_name}</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">Mã học sinh: {student.student_id}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
                 {student.gender && (
-                  <Badge variant="outline" className="text-sm">
+                  <Badge variant="outline" className="text-xs sm:text-sm">
                     {student.gender === 'male' ? 'Nam' : 'Nữ'}
                   </Badge>
                 )}
                 {student.parents.length > 0 ? (
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary" className="text-xs sm:text-sm">
                     <UserCheck className="h-3 w-3 mr-1" />
                     {student.parents.length} Phụ huynh
                   </Badge>
                 ) : (
-                  <Badge variant="destructive" className="text-sm">
+                  <Badge variant="destructive" className="text-xs sm:text-sm">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Chưa có phụ huynh
                   </Badge>
@@ -102,18 +107,18 @@ export function HomeroomStudentDetail({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                  <div className="space-y-3">
                     <p className="text-sm font-medium text-blue-600">Lớp</p>
-                    <p className="text-lg font-bold text-blue-800">{classInfo.name}</p>
+                    <p className="text-lg font-bold text-blue-800 break-words">{classInfo.name}</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <p className="text-sm font-medium text-blue-600">Năm học</p>
-                    <p className="text-lg font-bold text-blue-800">{classInfo.academic_year_name}</p>
+                    <p className="text-lg font-bold text-blue-800 break-words">{classInfo.academic_year_name}</p>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <p className="text-sm font-medium text-blue-600">Học kỳ</p>
-                    <p className="text-lg font-bold text-blue-800">{classInfo.semester_name}</p>
+                    <p className="text-lg font-bold text-blue-800 break-words">{classInfo.semester_name}</p>
                   </div>
                 </div>
               </CardContent>
@@ -131,26 +136,20 @@ export function HomeroomStudentDetail({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-600">Họ và tên</p>
-                    <p className="text-lg font-bold text-gray-800">{student.full_name}</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-600">Họ và tên</p>
+                  <p className="text-lg font-bold text-gray-800">{student.full_name}</p>
                 </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-600">Mã học sinh</p>
-                    <p className="text-lg font-bold text-gray-800">{student.student_id}</p>
-                  </div>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-600">Mã học sinh</p>
+                  <p className="text-lg font-bold text-gray-800">{student.student_id}</p>
                 </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-600">Email</p>
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-gray-500" />
-                      <p className="text-base font-semibold text-gray-800 break-all">{student.email}</p>
-                    </div>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-600">Email</p>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                    <p className="text-base font-semibold text-gray-800 break-all">{student.email}</p>
                   </div>
                 </div>
                   {student.phone_number && (
@@ -235,16 +234,15 @@ export function HomeroomStudentDetail({
                         </div>
                         <h4 className="text-lg font-bold text-green-800">Liên hệ chính</h4>
                         <Badge variant="default" className="bg-green-600 text-white">
-                          {primaryParent.relationship_type === 'father' ? 'Cha' :
-                           primaryParent.relationship_type === 'mother' ? 'Mẹ' : 'Người giám hộ'}
+                          {getRelationshipLabel(primaryParent.relationship_type)}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                        <div className="space-y-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                        <div className="space-y-3">
                           <p className="text-sm font-medium text-green-600">Họ và tên</p>
                           <p className="text-lg font-bold text-green-800">{primaryParent.full_name}</p>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <p className="text-sm font-medium text-green-600">Email</p>
                           <div className="flex items-start gap-3">
                             <Mail className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
@@ -252,7 +250,7 @@ export function HomeroomStudentDetail({
                           </div>
                         </div>
                         {primaryParent.phone_number && (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <p className="text-sm font-medium text-green-600">Số điện thoại</p>
                             <div className="flex items-center gap-2">
                               <Phone className="h-4 w-4 text-green-500 flex-shrink-0" />
@@ -280,7 +278,7 @@ export function HomeroomStudentDetail({
                                   {parent.relationship_type}
                                 </Badge>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                                 <div>
                                   <p className="text-sm font-medium text-muted-foreground">Full Name</p>
                                   <p className="font-semibold">{parent.full_name}</p>

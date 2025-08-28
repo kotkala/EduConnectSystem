@@ -15,6 +15,7 @@ import { vi } from 'date-fns/locale'
 import Image from 'next/image'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
+import { ImageViewer } from '@/shared/components/ui/image-viewer'
 import {
   getNotificationForViewAction,
   markNotificationAsReadAction,
@@ -265,13 +266,19 @@ export default function TeacherNotificationDetailPage() {
             {/* Image Attachment */}
             {notification.image_url && (
               <div className="rounded-2xl overflow-hidden border border-gray-200">
-                <Image
+                <ImageViewer
                   src={notification.image_url}
                   alt="Hình ảnh đính kèm"
-                  width={800}
-                  height={500}
-                  className="w-full h-auto object-cover"
-                />
+                  className="w-full"
+                >
+                  <Image
+                    src={notification.image_url}
+                    alt="Hình ảnh đính kèm"
+                    width={800}
+                    height={500}
+                    className="w-full h-auto object-cover"
+                  />
+                </ImageViewer>
               </div>
             )}
 
@@ -295,14 +302,26 @@ export default function TeacherNotificationDetailPage() {
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(attachment.public_url, '_blank')}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Xem
-                      </Button>
+                      {attachment.mime_type.startsWith('image/') ? (
+                        <ImageViewer
+                          src={attachment.public_url}
+                          alt={attachment.file_name}
+                        >
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Xem
+                          </Button>
+                        </ImageViewer>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(attachment.public_url, '_blank')}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Xem
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>

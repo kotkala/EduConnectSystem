@@ -1,12 +1,13 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -128,7 +129,7 @@ function StudentSelectionSection({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-4">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
         Đang tải danh sách học sinh...
       </div>
     );
@@ -398,7 +399,7 @@ export function TeacherFeedbackDialog({
             onClick={handleSubmitFeedback}
             disabled={isSubmitting || !feedbackText.trim()}
           >
-            {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {editingFeedback ? 'Cập Nhật Phản Hồi' : 'Tạo Phản Hồi'}
           </Button>
         </DialogFooter>

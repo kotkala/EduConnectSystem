@@ -51,10 +51,10 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
         return
       }
 
-      // Lấy các case được gửi đến GVCN cho lớp chủ nhiệm của giáo viên
+      // Lấy các case cần xử lý cho GVCN (bao gồm tất cả trạng thái liên quan)
       const result = await getDisciplinaryCasesAction({
-        status: 'sent_to_homeroom',
-        class_id: homeroomClass.id
+        class_id: homeroomClass.id,
+        // Không filter theo status để lấy tất cả case của lớp
       })
 
       if (result.success && result.data) {
@@ -101,6 +101,8 @@ export default function TeacherDisciplinaryCases({ homeroomClass }: Readonly<Tea
         toast.success('Đã lên lịch họp với phụ huynh')
         loadCases()
         setShowDetailDialog(false)
+        // Navigate to meetings page as requested
+        window.location.href = '/dashboard/teacher/meetings'
       } else {
         toast.error(result.error || 'Cập nhật trạng thái thất bại')
       }

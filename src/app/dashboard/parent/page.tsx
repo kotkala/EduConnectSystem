@@ -1,5 +1,4 @@
-﻿'use client'
-
+'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
@@ -21,7 +20,7 @@ import { ParentMeetingSchedules } from '@/features/parent-dashboard/components/p
 
 
 export default function ParentDashboard() {
-  // ðŸš€ MIGRATION: Replace scattered loading with global system
+  // 🚀 MIGRATION: Replace scattered loading with global system
 
   
   const router = useRouter()
@@ -91,7 +90,7 @@ export default function ParentDashboard() {
     }
   }, [selectedYear, loadAllStudents, loadStudentsByYear])
 
-  // ðŸŽ¯ FIXED: Removed individual auth loading UI - handled by CoordinatedLoadingOverlay
+  // 🎯 FIXED: Removed individual auth loading UI - handled by CoordinatedLoadingOverlay
   // Context7 principle: Prevents triple loading conflict (auth + global + custom spinner)
 
   // Show access denied if no permission
@@ -193,7 +192,7 @@ export default function ParentDashboard() {
 
           {/* Modern Summary Cards */}
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-6 border border-blue-200/50 shadow-lg shadow-blue-500/10">
+            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-blue-200/50 shadow-lg shadow-blue-500/10">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
@@ -208,7 +207,7 @@ export default function ParentDashboard() {
               <h3 className="font-semibold text-gray-800">Con em của tôi</h3>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl p-6 border border-emerald-200/50 shadow-lg shadow-emerald-500/10">
+            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-emerald-200/50 shadow-lg shadow-emerald-500/10">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
@@ -225,7 +224,7 @@ export default function ParentDashboard() {
               <h3 className="font-semibold text-gray-800">Lớp học hiện tại</h3>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl p-6 border border-purple-200/50 shadow-lg shadow-purple-500/10">
+            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-purple-200/50 shadow-lg shadow-purple-500/10">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <Calendar className="w-6 h-6 text-white" />

@@ -1,4 +1,6 @@
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -6,7 +8,7 @@ import { Input } from "@/shared/components/ui/input"
 
 import { Badge } from "@/shared/components/ui/badge"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Search,
   History,
   MessageCircle,
@@ -169,7 +171,7 @@ export function ChatHistorySidebar({
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         </div>
       )
     }

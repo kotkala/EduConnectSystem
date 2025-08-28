@@ -949,18 +949,7 @@ export async function sendAccountCreationEmail(data: AccountCreationEmailData) {
                 ` : ''}
             </div>
 
-            ${data.tempPassword ? `
-            <div class="password-box">
-                <h3 style="margin: 0 0 15px 0; color: #856404;">🔐 Mật khẩu tạm thời</h3>
-                <p style="margin: 0 0 10px 0;">
-                    Mật khẩu tạm thời của bạn là:
-                </p>
-                <div class="password">${data.tempPassword}</div>
-                <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">
-                    ⚠️ Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên
-                </p>
-            </div>
-            ` : ''}
+           
 
             <div style="text-align: center; margin: 30px 0;">
                 <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}" class="button">
@@ -1013,8 +1002,6 @@ ${data.className ? `- Lớp: ${data.className}` : ''}
 ${data.phoneNumber ? `- Số điện thoại: ${data.phoneNumber}` : ''}
 ${data.address ? `- Địa chỉ: ${data.address}` : ''}
 
-${data.tempPassword ? `🔐 MẬT KHẨU TẠM THỜI: ${data.tempPassword}
-⚠️ Vui lòng đổi mật khẩu ngay sau lần đăng nhập đầu tiên` : ''}
 
 🚀 Đăng nhập tại: ${process.env.NEXT_PUBLIC_SITE_URL || 'https://edu-connect-system.vercel.app'}
 

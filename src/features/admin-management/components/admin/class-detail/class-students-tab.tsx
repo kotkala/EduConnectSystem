@@ -1,4 +1,6 @@
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
@@ -31,7 +33,7 @@ import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import StudentAssignmentForm from "@/features/admin-management/components/admin/student-assignment-form"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassStudentsTabProps {
+interface ClassStudentsTabProps {
   readonly classId: string
   readonly classData: ClassWithDetails
 }
@@ -120,7 +122,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <span>Loading students...</span>
           </div>
         </CardContent>
@@ -227,7 +229,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
                               className="text-red-600 hover:text-red-700"
                             >
                               {removingStudentId === student.id ? (
-                                <Skeleton className="h-32 w-full rounded-lg" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
                               )}

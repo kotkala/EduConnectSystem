@@ -95,19 +95,24 @@ export default function Home() {
 
   return (
     <LazyMotion features={loadFeatures}>
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 scroll-smooth" style={{ willChange: 'transform' }}>
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-sm border-b">
+      <div className="min-h-screen bg-orange-gradient-soft scroll-smooth" style={{ willChange: 'transform' }}>
+      <header className="sticky top-0 z-50 bg-orange-gradient-soft/90 backdrop-blur-sm border-b border-orange-200">
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative">
           <nav className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Image
-                src="/Edu icon.svg"
-                alt="EduConnect Logo"
-                width={32}
-                height={32}
-                className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
-              />
-              <span className="text-lg sm:text-xl font-bold text-foreground">EduConnect</span>
+            <div className="flex items-center space-x-3 group">
+              <div className="relative">
+                <Image
+                  src="/Edu icon.svg"
+                  alt="EduConnect Logo"
+                  width={36}
+                  height={36}
+                  className="w-8 h-8 sm:w-9 sm:h-9 object-contain transition-transform group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-orange-gradient-vibrant rounded-full opacity-0 group-hover:opacity-30 transition-opacity"></div>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-orange-gradient bg-orange-gradient bg-clip-text text-transparent">
+                EduConnect
+              </span>
             </div>
 
             {/* Desktop Navigation */}
@@ -133,7 +138,7 @@ export default function Home() {
             <div className="hidden xl:flex items-center space-x-2">
               <Button
                 onClick={() => setAuthModalOpen(true)}
-                className="min-h-[44px] px-4 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap"
+                className="min-h-[44px] px-6 py-2 text-sm bg-orange-gradient hover:bg-orange-gradient-vibrant text-white font-medium whitespace-nowrap shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 Đăng nhập
               </Button>
@@ -207,7 +212,7 @@ export default function Home() {
                       setAuthModalOpen(true)
                       setMobileMenuOpen(false)
                     }}
-                    className="w-full h-10 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
+                    className="w-full h-10 text-sm bg-orange-gradient hover:bg-orange-gradient-vibrant text-white font-medium rounded-md shadow-lg transition-all duration-300"
                   >
                     Đăng nhập
                   </Button>
@@ -232,7 +237,7 @@ export default function Home() {
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
                 Kết Nối Giáo Dục{' '}
-                <span className="bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
+                <span className="text-orange-gradient bg-orange-gradient bg-clip-text text-transparent">
                   Thông Minh Với AI
                 </span>
               </h1>
@@ -257,7 +262,7 @@ export default function Home() {
                 <Button
                   onClick={() => setAuthModalOpen(true)}
                   size="lg"
-                  className="h-12 px-8 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
+                  className="h-12 px-8 text-base font-semibold bg-orange-gradient hover:bg-orange-gradient-vibrant text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 >
                   Đăng nhập
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -266,7 +271,7 @@ export default function Home() {
                   variant="outline"
                   size="lg"
                   asChild
-                  className="h-12 px-8 text-base font-semibold border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="h-12 px-8 text-base font-semibold border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400 transition-all duration-300"
                 >
                   <Link href="#docs">
                     <Play className="w-4 h-4 mr-2" />
@@ -288,7 +293,7 @@ export default function Home() {
             <div className="flex items-center gap-3 text-sm text-gray-600">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((num) => (
-                  <div key={`trust-indicator-${num}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-orange-600 border-2 border-white flex items-center justify-center">
+                  <div key={`trust-indicator-${num}`} className="w-8 h-8 rounded-full bg-orange-gradient border-2 border-white flex items-center justify-center shadow-sm">
                     <GraduationCap className="w-4 h-4 text-white" />
                   </div>
                 ))}

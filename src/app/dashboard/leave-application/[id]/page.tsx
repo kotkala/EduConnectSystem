@@ -37,12 +37,13 @@ export default function LeaveApplicationDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { user, profile } = useAuth()
-  
+
   const [application, setApplication] = useState<LeaveApplication | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [teacherResponse, setTeacherResponse] = useState('')
+  const [imageLoadError, setImageLoadError] = useState(false)
 
   const applicationId = params.id as string
 
@@ -56,6 +57,7 @@ export default function LeaveApplicationDetailPage() {
       if (result.success && result.data) {
         setApplication(result.data)
         setTeacherResponse(result.data.teacher_response || '')
+        setImageLoadError(false) // Reset image error state
       } else {
         setError(result.error || 'Không thể tải thông tin đơn xin nghỉ')
       }
@@ -101,7 +103,7 @@ export default function LeaveApplicationDetailPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-20 md:w-24 lg:w-280">
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
           <Clock className="w-3 h-3 mr-1" />
           Đang chờ
         </Badge>
@@ -272,39 +274,31 @@ export default function LeaveApplicationDetailPage() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Đơn xin nghỉ học</Label>
                   <div className="border rounded-lg p-2 bg-gray-50">
-                    <div className="relative">
-                      <Image
-                        src={application.attachment_url}
-                        alt="Đơn xin nghỉ học"
-                        width={800}
-                        height={600}
-                        className="max-w-full h-auto rounded-md shadow-sm"
-                        style={{ maxHeight: '600px' }}
-                        onError={() => {
-                          // Fallback to download button if image fails to load
-                          const imgElement = document.querySelector(`[data-attachment-url="${application.attachment_url}"]`) as HTMLElement
-                          if (imgElement) {
-                            imgElement.style.display = 'none'
-                            const fallbackDiv = imgElement.nextElementSibling as HTMLDivElement
-                            if (fallbackDiv) {
-                              fallbackDiv.style.display = 'block'
-                            }
-                          }
-                        }}
-                        data-attachment-url={application.attachment_url}
-                      />
-                    </div>
-                    <div style={{ display: 'none' }} className="text-center py-4">
-                      <p className="text-sm text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(application.attachment_url, '_blank')}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Tải xuống
-                      </Button>
-                    </div>
+                    {!imageLoadError ? (
+                      <div className="relative">
+                        <Image
+                          src={application.attachment_url}
+                          alt="Đơn xin nghỉ học"
+                          width={800}
+                          height={600}
+                          className="max-w-full h-auto rounded-md shadow-sm"
+                          style={{ maxHeight: '600px' }}
+                          onError={() => setImageLoadError(true)}
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(application.attachment_url, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Tải xuống
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

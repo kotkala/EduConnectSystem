@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
@@ -12,7 +13,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Textarea } from "@/shared/components/ui/textarea"
 import { Label } from "@/shared/components/ui/label"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import {
   RefreshCw,
   Users,
@@ -296,7 +297,7 @@ export default function HomeroomGradesPage() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-lg">Đang tải dữ liệu điểm số...</p>
           </div>
         </div>

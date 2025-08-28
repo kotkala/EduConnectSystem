@@ -41,10 +41,17 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
   const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Load academic years from server
+  // Load academic years from server with caching
   const loadAcademicYears = useCallback(async () => {
     try {
       setLoading(true)
+
+      // Check if we already have data to avoid unnecessary requests
+      if (academicYears.length > 0) {
+        setLoading(false)
+        return
+      }
+
       const result = await getAcademicYearsLightAction()
 
       if (result.success && result.data) {
@@ -79,7 +86,7 @@ export function AcademicYearProvider({ children }: Readonly<AcademicYearProvider
     } finally {
       setLoading(false)
     }
-  }, []) // Remove selectedAcademicYear dependency
+  }, [academicYears.length]) // Add dependency to prevent unnecessary loads
 
   // Refresh academic years
   const refreshAcademicYears = useCallback(async () => {

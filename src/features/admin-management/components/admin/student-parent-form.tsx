@@ -1,5 +1,6 @@
 "use client"
 
+
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,12 +13,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Separator } from "@/shared/components/ui/separator"
 import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Save, X, User, Users, RefreshCw } from "lucide-react";import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Save, X, User, Users, RefreshCw } from "lucide-react"
+import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
 import { createStudentWithParentAction, updateStudentParentAction, generateNextStudentIdAction } from "@/features/admin-management/actions/user-actions"
 import { EmailSuggestionInput } from "@/features/admin-management/components/admin/email-suggestion-input"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentParentFormProps {
+interface StudentParentFormProps {
   editMode?: boolean
   initialData?: StudentWithParent
   onSuccess?: () => void
@@ -101,20 +104,20 @@ function StudentInfoSection({
   generateStudentId: () => void
 }>) {
   return (
-    <div className="space-y-10 bg-gradient-to-r from-blue-50/30 to-blue-50/10 p-8 rounded-2xl border border-blue-100">
-      <div className="flex items-center gap-4 pb-6 border-b-2 border-blue-200">
-        <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
-          <User className="h-8 w-8 text-white" />
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10 bg-gradient-to-r from-blue-50/30 to-blue-50/10 p-4 sm:p-6 lg:p-8 rounded-2xl border border-blue-100">
+      <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b-2 border-blue-200">
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+          <User className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-blue-800">Thông tin học sinh</h3>
-          <p className="text-base text-blue-600 mt-1">Nhập thông tin cá nhân của học sinh</p>
+          <h3 className="text-xl sm:text-2xl font-bold text-blue-800">Thông tin học sinh</h3>
+          <p className="text-sm sm:text-base text-blue-600 mt-1">Nhập thông tin cá nhân của học sinh</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {/* Student ID */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Label htmlFor="student_id" className="text-base font-semibold text-gray-800">
             Mã học sinh *
           </Label>
@@ -124,7 +127,7 @@ function StudentInfoSection({
               {...form.register("student.student_id")}
               placeholder="VD: SU001"
               readOnly={editMode}
-              className={`h-14 flex-1 text-base ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
+              className={`h-12 flex-1 text-base ${form.formState.errors.student?.student_id ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} ${editMode ? "bg-gray-50" : ""}`}
             />
             {!editMode && (
               <Button
@@ -133,10 +136,10 @@ function StudentInfoSection({
                 size="lg"
                 onClick={generateStudentId}
                 disabled={generatingId}
-                className="h-14 px-4 text-base"
+                className="h-12 px-4 text-base"
               >
                 {generatingId ? (
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Skeleton className="h-4 w-4 rounded" />
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
@@ -157,13 +160,13 @@ function StudentInfoSection({
         </div>
 
         {/* Student Full Name */}
-        <div className="space-y-2">
-          <Label htmlFor="student_name">Họ và tên *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="student_name" className="text-base font-semibold text-gray-800">Họ và tên *</Label>
           <Input
             id="student_name"
             {...form.register("student.full_name")}
             placeholder="Nhập họ và tên học sinh"
-            className={form.formState.errors.student?.full_name ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.student?.full_name ? "border-red-500" : ""}`}
           />
           {form.formState.errors.student?.full_name && (
             <p className="text-sm text-red-500">{form.formState.errors.student.full_name.message}</p>
@@ -171,14 +174,14 @@ function StudentInfoSection({
         </div>
 
         {/* Student Email */}
-        <div className="space-y-2">
-          <Label htmlFor="student_email">Email *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="student_email" className="text-base font-semibold text-gray-800">Email *</Label>
           <Input
             id="student_email"
             type="email"
             {...form.register("student.email")}
             placeholder="student@school.com"
-            className={form.formState.errors.student?.email ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.student?.email ? "border-red-500" : ""}`}
           />
           {form.formState.errors.student?.email && (
             <p className="text-sm text-red-500">{form.formState.errors.student.email.message}</p>
@@ -186,13 +189,13 @@ function StudentInfoSection({
         </div>
 
         {/* Student Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="student_phone">Số điện thoại *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="student_phone" className="text-base font-semibold text-gray-800">Số điện thoại *</Label>
           <Input
             id="student_phone"
             {...form.register("student.phone_number")}
             placeholder="Nhập số điện thoại"
-            className={form.formState.errors.student?.phone_number ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.student?.phone_number ? "border-red-500" : ""}`}
           />
           {form.formState.errors.student?.phone_number && (
             <p className="text-sm text-red-500">{form.formState.errors.student.phone_number.message}</p>
@@ -200,13 +203,13 @@ function StudentInfoSection({
         </div>
 
         {/* Student Gender */}
-        <div className="space-y-2">
-          <Label htmlFor="student_gender">Giới tính *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="student_gender" className="text-base font-semibold text-gray-800">Giới tính *</Label>
           <Select
             value={form.watch("student.gender")}
             onValueChange={(value) => form.setValue("student.gender", value as "male" | "female")}
           >
-            <SelectTrigger className={form.formState.errors.student?.gender ? "border-red-500" : ""}>
+            <SelectTrigger className={`h-12 text-base ${form.formState.errors.student?.gender ? "border-red-500" : ""}`}>
               <SelectValue placeholder="Chọn giới tính" />
             </SelectTrigger>
             <SelectContent>
@@ -220,13 +223,13 @@ function StudentInfoSection({
         </div>
 
         {/* Student Date of Birth */}
-        <div className="space-y-2">
-          <Label htmlFor="student_dob">Ngày sinh *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="student_dob" className="text-base font-semibold text-gray-800">Ngày sinh *</Label>
           <Input
             id="student_dob"
             type="date"
             {...form.register("student.date_of_birth")}
-            className={form.formState.errors.student?.date_of_birth ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.student?.date_of_birth ? "border-red-500" : ""}`}
           />
           {form.formState.errors.student?.date_of_birth && (
             <p className="text-sm text-red-500">{form.formState.errors.student.date_of_birth.message}</p>
@@ -261,26 +264,26 @@ function ParentInfoSection({
   handleParentEmailSelect: (user: { full_name?: string; phone_number?: string; address?: string; gender?: string; date_of_birth?: string }) => void
 }>) {
   return (
-    <div className="space-y-10 bg-gradient-to-r from-green-50/30 to-green-50/10 p-8 rounded-2xl border border-green-100">
-      <div className="flex items-center gap-4 pb-6 border-b-2 border-green-200">
-        <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg">
-          <Users className="h-8 w-8 text-white" />
+    <div className="space-y-6 sm:space-y-8 lg:space-y-10 bg-gradient-to-r from-green-50/30 to-green-50/10 p-4 sm:p-6 lg:p-8 rounded-2xl border border-green-100">
+      <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b-2 border-green-200">
+        <div className="p-3 sm:p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg">
+          <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-green-800">Thông tin phụ huynh</h3>
-          <p className="text-base text-green-600 mt-1">Nhập thông tin liên hệ và mối quan hệ của phụ huynh</p>
+          <h3 className="text-xl sm:text-2xl font-bold text-green-800">Thông tin phụ huynh</h3>
+          <p className="text-sm sm:text-base text-green-600 mt-1">Nhập thông tin liên hệ và mối quan hệ của phụ huynh</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {/* Parent Full Name */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Label htmlFor="parent_name" className="text-base font-semibold text-gray-800">Họ và tên *</Label>
           <Input
             id="parent_name"
             {...form.register("parent.full_name")}
             placeholder="Nhập họ và tên phụ huynh"
-            className={`h-14 text-base ${form.formState.errors.parent?.full_name ? "border-red-500" : ""}`}
+            className={`h-12 text-base ${form.formState.errors.parent?.full_name ? "border-red-500" : ""}`}
           />
           {form.formState.errors.parent?.full_name && (
             <p className="text-sm text-red-500">{form.formState.errors.parent.full_name.message}</p>
@@ -300,13 +303,13 @@ function ParentInfoSection({
         />
 
         {/* Parent Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="parent_phone">Số điện thoại *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="parent_phone" className="text-base font-semibold text-gray-800">Số điện thoại *</Label>
           <Input
             id="parent_phone"
             {...form.register("parent.phone_number")}
             placeholder="Nhập số điện thoại"
-            className={form.formState.errors.parent?.phone_number ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.parent?.phone_number ? "border-red-500" : ""}`}
           />
           {form.formState.errors.parent?.phone_number && (
             <p className="text-sm text-red-500">{form.formState.errors.parent.phone_number.message}</p>
@@ -314,13 +317,13 @@ function ParentInfoSection({
         </div>
 
         {/* Parent Gender */}
-        <div className="space-y-2">
-          <Label htmlFor="parent_gender">Giới tính *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="parent_gender" className="text-base font-semibold text-gray-800">Giới tính *</Label>
           <Select
             value={form.watch("parent.gender")}
             onValueChange={(value) => form.setValue("parent.gender", value as "male" | "female")}
           >
-            <SelectTrigger className={form.formState.errors.parent?.gender ? "border-red-500" : ""}>
+            <SelectTrigger className={`h-12 text-base ${form.formState.errors.parent?.gender ? "border-red-500" : ""}`}>
               <SelectValue placeholder="Chọn giới tính" />
             </SelectTrigger>
             <SelectContent>
@@ -334,13 +337,13 @@ function ParentInfoSection({
         </div>
 
         {/* Parent Date of Birth */}
-        <div className="space-y-2">
-          <Label htmlFor="parent_dob">Ngày sinh</Label>
+        <div className="space-y-3">
+          <Label htmlFor="parent_dob" className="text-base font-semibold text-gray-800">Ngày sinh</Label>
           <Input
             id="parent_dob"
             type="date"
             {...form.register("parent.date_of_birth")}
-            className={form.formState.errors.parent?.date_of_birth ? "border-red-500" : ""}
+            className={`h-12 text-base ${form.formState.errors.parent?.date_of_birth ? "border-red-500" : ""}`}
           />
           {form.formState.errors.parent?.date_of_birth && (
             <p className="text-sm text-red-500">{form.formState.errors.parent.date_of_birth.message}</p>
@@ -348,13 +351,13 @@ function ParentInfoSection({
         </div>
 
         {/* Relationship Type */}
-        <div className="space-y-2">
-          <Label htmlFor="relationship_type">Mối quan hệ *</Label>
+        <div className="space-y-3">
+          <Label htmlFor="relationship_type" className="text-base font-semibold text-gray-800">Mối quan hệ *</Label>
           <Select
             value={form.watch("parent.relationship_type")}
             onValueChange={(value) => form.setValue("parent.relationship_type", value as "father" | "mother" | "guardian")}
           >
-            <SelectTrigger className={form.formState.errors.parent?.relationship_type ? "border-red-500" : ""}>
+            <SelectTrigger className={`h-12 text-base ${form.formState.errors.parent?.relationship_type ? "border-red-500" : ""}`}>
               <SelectValue placeholder="Chọn mối quan hệ" />
             </SelectTrigger>
             <SelectContent>
@@ -483,23 +486,25 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   }
 
   return (
-    <Card className="w-full max-w-7xl mx-auto shadow-xl border-0">
-      <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-green-50 border-b-2 border-gradient-to-r from-blue-200 to-green-200 p-8">
-        <CardTitle className="flex items-center gap-4 text-3xl font-bold">
-          <div className="p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl">
-            <Users className="h-8 w-8 text-white" />
+    <Card className="w-full max-w-none mx-auto shadow-xl border-0">
+      <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-green-50 border-b-2 border-gradient-to-r from-blue-200 to-green-200 p-4 sm:p-6 lg:p-8">
+        <CardTitle className="flex items-center gap-3 sm:gap-4 text-xl sm:text-2xl lg:text-3xl font-bold">
+          <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl">
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
           </div>
-          {editMode ? "Chỉnh sửa thông tin Học sinh & Phụ huynh" : "Thêm Học sinh & Phụ huynh mới"}
+          <span className="break-words">
+            {editMode ? "Chỉnh sửa thông tin Học sinh & Phụ huynh" : "Thêm Học sinh & Phụ huynh mới"}
+          </span>
         </CardTitle>
-        <CardDescription className="text-lg mt-4 leading-relaxed text-gray-700">
+        <CardDescription className="text-sm sm:text-base lg:text-lg mt-2 sm:mt-4 leading-relaxed text-gray-700">
           {editMode
             ? "Cập nhật thông tin học sinh và phụ huynh. Thay đổi sẽ được lưu cho cả hai tài khoản."
             : "Tạo tài khoản học sinh mới với thông tin phụ huynh bắt buộc. Cả hai tài khoản sẽ được tạo cùng nhau với xác thực an toàn."
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-10">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+      <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 sm:space-y-10 lg:space-y-12">
           {/* Student Information Section */}
           <StudentInfoSection
             form={form}
@@ -535,22 +540,26 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
             </Alert>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t border-gray-200">
+          {/* Action Buttons - RESPONSIVE LAYOUT */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-gray-200">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 h-12 md:h-14 lg:h-16 text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-200"
+              className="flex-1 h-11 sm:h-12 lg:h-14 xl:h-16 text-sm sm:text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-200"
             >
               {isSubmitting ? (
                 <>
-                  <Skeleton className="h-32 w-full rounded-lg" />
-                  {editMode ? "Đang cập nhật Học sinh & Phụ huynh..." : "Đang tạo Học sinh & Phụ huynh..."}
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></div>
+                  <span className="truncate">
+                    {editMode ? "Đang cập nhật..." : "Đang tạo..."}
+                  </span>
                 </>
               ) : (
                 <>
-                  <Save className="mr-3 h-5 w-5" />
-                  {editMode ? "Cập nhật Học sinh & Phụ huynh" : "Tạo Học sinh & Phụ huynh"}
+                  <Save className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="truncate">
+                    {editMode ? "Cập nhật Học sinh & Phụ huynh" : "Tạo Học sinh & Phụ huynh"}
+                  </span>
                 </>
               )}
             </Button>
@@ -561,9 +570,9 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
                 variant="outline"
                 onClick={onCancel}
                 disabled={isSubmitting}
-                className="h-12 md:h-14 lg:h-16 px-8 text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
+                className="h-11 sm:h-12 lg:h-14 xl:h-16 px-6 sm:px-8 text-sm sm:text-base font-medium border-2 hover:bg-gray-50 transition-colors duration-200"
               >
-                <X className="mr-2 h-5 w-5" />
+                <X className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Hủy
               </Button>
             )}

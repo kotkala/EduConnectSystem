@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
@@ -12,7 +13,7 @@ import { createEnhancedGradeReportingPeriodAction } from "@/features/grade-manag
 import { createClient } from "@/lib/supabase/client"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface AcademicYear {
+interface AcademicYear {
   id: string
   name: string
   is_current: boolean
@@ -149,7 +150,7 @@ export function GradePeriodForm({ period, onSuccess, onCancel }: Readonly<GradeP
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <p>Đang tải dữ liệu...</p>
         </div>
       </div>

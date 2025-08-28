@@ -1,4 +1,6 @@
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
@@ -16,7 +18,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { Users, UserPlus } from "lucide-react";import {
+import { Users, UserPlus } from "lucide-react";import {
   bulkStudentAssignmentSchema,
   type BulkStudentAssignmentFormData,
   type AvailableStudent
@@ -211,7 +213,7 @@ export default function StudentAssignmentForm({
 
             {loadingStudents ? (
               <div className="flex items-center justify-center py-8">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="ml-2">Loading available students...</span>
               </div>
             ) : (() => {
@@ -282,7 +284,7 @@ export default function StudentAssignmentForm({
             >
               {submitting ? (
                 <>
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Assigning...
                 </>
               ) : (

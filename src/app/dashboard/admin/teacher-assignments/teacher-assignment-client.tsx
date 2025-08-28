@@ -1,5 +1,6 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
@@ -9,7 +10,7 @@ import { UserPlus, Users, Calendar } from 'lucide-react'
 import TeacherAssignmentForm from '@/features/admin-management/components/admin/teacher-assignment-form'
 import TeacherAssignmentTable from '@/features/admin-management/components/admin/teacher-assignment-table'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import { 
   getAllTeacherAssignmentsAction,
   type TeacherAssignment
 } from '@/features/teacher-management/actions/teacher-assignment-actions'
@@ -174,7 +175,7 @@ export default function TeacherAssignmentClient({ currentUserId }: TeacherAssign
             <Card>
               <CardContent className="py-8">
                 <div className="text-center">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <p className="text-muted-foreground">Loading teacher assignments...</p>
                 </div>
               </CardContent>

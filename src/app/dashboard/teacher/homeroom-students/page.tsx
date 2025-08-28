@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
@@ -23,7 +24,15 @@ import {
   User
 } from "lucide-react"
 import { toast } from "sonner"
-import { SharedPaginationControls } from "@/shared/components/shared/shared-pagination-controls"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/shared/components/ui/pagination"
 
 import {
   getHomeroomClassInfoAction,
@@ -38,7 +47,7 @@ import { HomeroomStudentCard } from "@/features/grade-management/components/home
 import { HomeroomStudentDetail } from "@/features/grade-management/components/homeroom/homeroom-student-detail"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";export default function HomeroomStudentsPage() {
+export default function HomeroomStudentsPage() {
   const [classInfo, setClassInfo] = useState<HomeroomClass | null>(null)
   const [students, setStudents] = useState<HomeroomStudent[]>([])
   const [filteredStudents, setFilteredStudents] = useState<HomeroomStudent[]>([])
@@ -181,7 +190,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         </div>
       </div>
     )
@@ -342,13 +351,55 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
       </div>
 
       {/* Pagination Controls */}
-      <SharedPaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onPageChange={setCurrentPage}
-        itemName="học sinh"
-      />
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.max(1, currentPage - 1))
+                  }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                if (pageNum > totalPages) return null
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(pageNum)
+                      }}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {/* No Students Message */}
       {filteredStudents.length === 0 && !loading && (

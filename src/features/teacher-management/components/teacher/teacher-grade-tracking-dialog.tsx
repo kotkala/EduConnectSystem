@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Button } from "@/shared/components/ui/button"
@@ -22,7 +23,7 @@ import {
 import { getGradeHistoryAction } from "@/lib/actions/grade-override-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeTrackingData {
+interface GradeTrackingData {
   id: string
   studentId: string
   studentName: string
@@ -327,7 +328,7 @@ export function TeacherGradeTrackingDialog({
           {/* Action Buttons */}
           <div className="flex justify-between items-center">
             <Button variant="outline" onClick={loadGradeData} disabled={loading}>
-              <Skeleton className="h-32 w-full rounded-lg" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Làm mới
             </Button>
             <Button variant="outline" onClick={exportGradeData}>
@@ -348,7 +349,7 @@ export function TeacherGradeTrackingDialog({
           {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p>Đang tải dữ liệu điểm số...</p>
               </div>
             </div>
@@ -567,7 +568,7 @@ export function TeacherGradeTrackingDialog({
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Lịch sử thay đổi điểm</h3>
                   <Button variant="outline" onClick={loadGradeHistory} disabled={historyLoading}>
-                    <Skeleton className="h-32 w-full rounded-lg" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Làm mới
                   </Button>
                 </div>
@@ -575,7 +576,7 @@ export function TeacherGradeTrackingDialog({
                 {historyLoading && (
                   <div className="flex items-center justify-center py-8">
                     <div className="text-center">
-                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <p>Đang tải lịch sử thay đổi...</p>
                     </div>
                   </div>

@@ -1,4 +1,6 @@
 'use client'
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
@@ -12,7 +14,7 @@ import { Camera, Upload, Trash2, ZoomIn, ZoomOut } from 'lucide-react'
 import { Slider } from '@/shared/components/ui/slider'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface AvatarEditorProps {
+interface AvatarEditorProps {
   readonly uid: string
   readonly url: string | null
   readonly size?: number
@@ -322,7 +324,7 @@ export default function AvatarEditor({
               <Button onClick={handleSaveAvatar} disabled={uploading} className="bg-blue-600 hover:bg-blue-700">
                 {uploading ? (
                   <>
-                    <Skeleton className="h-32 w-full rounded-lg" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (

@@ -1,5 +1,5 @@
 "use client"
-
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -7,7 +7,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Label } from '@/shared/components/ui/label'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -313,7 +313,7 @@ export function HomeroomMeetingDialog({
               
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="ml-2">Đang tải danh sách học sinh...</span>
                 </div>
               ) : (
@@ -363,7 +363,7 @@ export function HomeroomMeetingDialog({
             onClick={handleSubmit} 
             disabled={isSubmitting || !selectedClassId || !meetingData.title || !meetingData.meeting_date || selectedStudents.size === 0}
           >
-            {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             <Send className="mr-2 h-4 w-4" />
             Gửi Lịch Họp
           </Button>

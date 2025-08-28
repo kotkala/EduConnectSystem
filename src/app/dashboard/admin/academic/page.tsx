@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
@@ -16,7 +17,7 @@ import { SemesterForm } from "@/features/admin-management/components/admin/semes
 import { useAuth } from "@/features/authentication/hooks/use-auth"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
@@ -169,7 +170,7 @@ export default function AcademicManagementPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         </div>
       </div>
     )
@@ -195,7 +196,7 @@ export default function AcademicManagementPage() {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         </div>
       </div>
     )

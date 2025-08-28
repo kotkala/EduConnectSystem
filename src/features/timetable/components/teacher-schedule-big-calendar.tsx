@@ -199,7 +199,7 @@ export default function TeacherScheduleBigCalendar() {
     return events.filter((event) => isColorVisible(event.color));
   }, [events, isColorVisible]);
 
-  // Load timetable events
+  // Load timetable events - OPTIMIZED
   const loadTimetableEvents = useCallback(async () => {
     if (!hasValidFilters(filters) || !user) {
       setEvents([]);
@@ -230,19 +230,11 @@ export default function TeacherScheduleBigCalendar() {
         });
         setTimetableEventsMap(eventsMap);
 
-        // Load feedback information for all events
+        // OPTIMIZATION: Load feedback info in background, don't block UI
         const eventIds = timetableEvents.map(event => event.id);
         const classIds = timetableEvents.map(event => event.class_id);
 
-        try {
-          const feedbackMap = await getBatchFeedbackInfo(eventIds, classIds);
-          setFeedbackInfoMap(feedbackMap);
-        } catch (error) {
-          console.error("Error loading feedback info:", error);
-          setFeedbackInfoMap(new Map());
-        }
-
-        // Convert to calendar events for display with additional safety checks
+        // Convert to calendar events immediately without waiting for feedback
         const calendarEvents = timetableEvents
           .filter(event => event?.id && event?.subject_name && event?.class_name)
           .map(event => {
@@ -256,6 +248,30 @@ export default function TeacherScheduleBigCalendar() {
           .filter(event => event !== null);
 
         setEvents(calendarEvents);
+
+        // Load feedback info in background
+        getBatchFeedbackInfo(eventIds, classIds)
+          .then(feedbackMap => {
+            setFeedbackInfoMap(feedbackMap);
+            // Re-render events with feedback info
+            const updatedEvents = timetableEvents
+              .filter(event => event?.id && event?.subject_name && event?.class_name)
+              .map(event => {
+                try {
+                  return timetableEventToCalendarEvent(event);
+                } catch (error) {
+                  console.error("Error converting event to calendar event:", error, event);
+                  return null;
+                }
+              })
+              .filter(event => event !== null);
+            setEvents(updatedEvents);
+          })
+          .catch(error => {
+            console.error("Error loading feedback info:", error);
+            setFeedbackInfoMap(new Map());
+          });
+
       } else {
         toast.error("Không thể tải lịch giảng dạy");
         setEvents([]);

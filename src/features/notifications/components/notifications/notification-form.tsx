@@ -10,7 +10,8 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { Upload, X, Send, FileText, Image as ImageIcon } from 'lucide-react'
+
+import { Upload, X, Send, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
 import {
   createNotificationAction,
   getNotificationTargetOptions,
@@ -28,9 +29,10 @@ interface NotificationFormProps {
   readonly onCancel?: () => void
   readonly editNotificationId?: string
   readonly isEditMode?: boolean
+  readonly showCard?: boolean // New prop to control card wrapper
 }
 
-export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEditMode }: NotificationFormProps) {
+export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEditMode, showCard = true }: NotificationFormProps) {
   const [formData, setFormData] = useState<NotificationFormData>({
     title: '',
     content: '',
@@ -261,23 +263,22 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
   }
 
   if (initialLoading) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardContent className="flex items-center justify-center p-8">
-          <Skeleton className="h-32 w-full rounded-lg" />
-          <span className="ml-2">Đang tải thông báo...</span>
-        </CardContent>
-      </Card>
+    const loadingContent = (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="ml-2">Đang tải thông báo...</span>
+      </div>
     )
+
+    return showCard ? (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent>{loadingContent}</CardContent>
+      </Card>
+    ) : loadingContent
   }
 
-  return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>{isEditMode ? 'Chỉnh sửa thông báo' : 'Gửi thông báo'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -495,7 +496,7 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
             >
               {loading || uploading ? (
                 <>
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {uploading ? 'Đang tải lên...' : 'Đang gửi...'}
                 </>
               ) : (
@@ -512,7 +513,16 @@ export function NotificationForm({ onSuccess, onCancel, editNotificationId, isEd
             )}
           </div>
         </form>
+  )
+
+  return showCard ? (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>{isEditMode ? 'Chỉnh sửa thông báo' : 'Gửi thông báo'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {formContent}
       </CardContent>
     </Card>
-  )
+  ) : formContent
 }

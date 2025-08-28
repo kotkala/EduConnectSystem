@@ -1,5 +1,6 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
@@ -21,7 +22,7 @@ import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSe
 import { getClassesAction } from '@/lib/actions/grade-management-actions'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Simple types matching database structure
+// Simple types matching database structure
 interface ViolationRecord {
   id: string
   student_id: string
@@ -69,7 +70,7 @@ function renderViolationsContent(
   if (loading) {
     return (
       <div className="text-center py-8">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
         <p className="text-muted-foreground">Đang tải vi phạm...</p>
       </div>
     )

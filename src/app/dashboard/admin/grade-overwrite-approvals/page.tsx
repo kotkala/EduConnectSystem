@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
@@ -7,7 +8,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import {
   Dialog, 
   DialogContent, 
@@ -168,7 +169,7 @@ export default function AdminGradeOverwriteApprovalsPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-muted-foreground">Đang tải danh sách yêu cầu...</p>
           </div>
         </div>

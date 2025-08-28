@@ -79,7 +79,6 @@ export async function createTeacherAction(formData: TeacherFormData) {
     // Create auth user first
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: validatedData.email,
-      password: "TempPassword123!", // Temporary password
       email_confirm: true,
       user_metadata: {
         full_name: validatedData.full_name,
@@ -130,7 +129,6 @@ export async function createTeacherAction(formData: TeacherFormData) {
         gender: validatedData.gender,
         dateOfBirth: validatedData.date_of_birth,
         address: validatedData.address,
-        tempPassword: "TempPassword123!"
       })
       console.log('✅ Account creation email sent to teacher:', validatedData.email)
     } catch (emailError) {
@@ -439,7 +437,6 @@ async function createAuthUsers(supabase: ReturnType<typeof createAdminClient>, v
   // Always create student user
   const { data: studentAuthData, error: studentAuthError } = await supabase.auth.admin.createUser({
     email: validatedData.student.email,
-    password: "TempPassword123!",
     email_confirm: true,
     user_metadata: {
       full_name: validatedData.student.full_name,
@@ -613,7 +610,6 @@ export async function createStudentWithParentAction(formData: StudentParentFormD
           dateOfBirth: validatedData.student.date_of_birth,
           address: validatedData.student.address,
           parentName: validatedData.parent.full_name,
-          tempPassword: "TempPassword123!"
         })
         console.log('✅ Account creation email sent to student:', validatedData.student.email)
 
@@ -1008,19 +1004,21 @@ export async function searchUsersByEmailAction(emailQuery: string) {
   }
 }
 
-// Generate next employee ID (TC + auto-increment number)
+// Generate next employee ID (TC + auto-increment number) - Optimized
 export async function generateNextEmployeeIdAction() {
   try {
     await checkAdminPermissions()
     const supabase = await createClient()
 
-    // Get all teacher employee IDs that start with TC and have numeric suffix
+    // Optimized: Get only the highest employee ID to reduce data transfer
     const { data: teachers, error } = await supabase
       .from('profiles')
       .select('employee_id')
       .eq('role', 'teacher')
       .not('employee_id', 'is', null)
       .like('employee_id', 'TC%')
+      .order('employee_id', { ascending: false })
+      .limit(50) // Limit to reduce query time
 
     if (error) {
       return {
@@ -1031,13 +1029,13 @@ export async function generateNextEmployeeIdAction() {
 
     let nextNumber = 28 // Start from 28 as requested
     if (teachers && teachers.length > 0) {
-      // Extract all numeric parts from TC employee IDs
+      // Extract all numeric parts from TC employee IDs - optimized processing
       const numbers = teachers
         .map(teacher => {
           const employeeId = teacher.employee_id
           if (employeeId?.startsWith('TC')) {
             const numericPart = employeeId.substring(2)
-            const number = parseInt(numericPart)
+            const number = parseInt(numericPart, 10)
             return !isNaN(number) ? number : 0
           }
           return 0

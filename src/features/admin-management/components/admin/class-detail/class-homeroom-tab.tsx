@@ -1,4 +1,7 @@
 "use client"
+import { Loader2 } from 'lucide-react'
+
+
 
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -26,7 +29,7 @@ import {
 import { UserCheck, UserPlus, Mail, Phone, MapPin } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   getHomeroomEnabledTeachersAction,
   updateHomeroomTeacherAction
 } from "@/features/admin-management/actions/class-actions"
@@ -236,7 +239,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               </Select>
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Loading teachers...
                 </div>
               )}
@@ -255,7 +258,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                   const loadingText = currentHomeroomTeacher ? "Changing..." : "Assigning..."
                   return (
                     <>
-                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       {loadingText}
                     </>
                   )

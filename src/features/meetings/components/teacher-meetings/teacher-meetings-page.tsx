@@ -1,5 +1,5 @@
 "use client"
-
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -18,7 +18,7 @@ import { HomeroomMeetingDialog } from '@/features/timetable/components/teacher-t
 import { getTeacherMeetingSchedulesAction } from '@/features/meetings'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherMeetingSchedule {
+interface TeacherMeetingSchedule {
   id: string
   title: string
   description?: string
@@ -105,7 +105,7 @@ export default function TeacherMeetingsPage() {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -270,11 +270,11 @@ export default function TeacherMeetingsPage() {
             <div className="space-y-2">
               <h4 className="font-medium">Tạo Lịch Họp Phụ Huynh:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>â€¢ Nhấn nút &quot;Tạo Lịch Họp&quot; ở góc trên bên phải</li>
-                <li>â€¢ Chọn lớp chủ nhiệm của bạn</li>
-                <li>â€¢ Điền thông tin cuộc họp (tiêu đề, thời gian, địa điểm)</li>
-                <li>â€¢ Chọn học sinh cần gửi thông báo cho phụ huynh</li>
-                <li>â€¢ Nhấn &quot;Gửi Lịch Họp&quot; để hoàn tất</li>
+                <li>• Nhấn nút &quot;Tạo Lịch Họp&quot; ở góc trên bên phải</li>
+                <li>• Chọn lớp chủ nhiệm của bạn</li>
+                <li>• Điền thông tin cuộc họp (tiêu đề, thời gian, địa điểm)</li>
+                <li>• Chọn học sinh cần gửi thông báo cho phụ huynh</li>
+                <li>• Nhấn &quot;Gửi Lịch Họp&quot; để hoàn tất</li>
               </ul>
             </div>
             <div className="space-y-2">
@@ -295,7 +295,7 @@ export default function TeacherMeetingsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Lịch Họp Đã Tạo</CardTitle>
           <Button variant="outline" onClick={loadMeetingSchedules} disabled={isLoading}>
-            {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             Làm mới
           </Button>
         </CardHeader>

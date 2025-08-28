@@ -10,7 +10,16 @@ import { getParentViolationsAction } from '@/features/violations/actions'
 import { getParentStudentsAction, type StudentInfo } from '@/features/parent-dashboard/actions/parent-actions'
 import { getSeverityLabel, getSeverityColor, type StudentViolationWithDetails, violationSeverityLevels } from '@/lib/validations/violation-validations'
 import { getWeekNumberFromDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
-import { SharedPaginationControls } from '@/shared/components/shared/shared-pagination-controls'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/shared/components/ui/pagination'
+
 import { toast } from 'sonner'
 
 // Helper function to render violations content
@@ -358,13 +367,55 @@ export default function ParentViolationsPageClient() {
       {renderViolationsContent(loading, violations, selectedStudent)}
 
       {/* Pagination Controls */}
-      <SharedPaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onPageChange={setCurrentPage}
-        itemName="vi phạm"
-      />
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.max(1, currentPage - 1))
+                  }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                if (pageNum > totalPages) return null
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(pageNum)
+                      }}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   )
 }

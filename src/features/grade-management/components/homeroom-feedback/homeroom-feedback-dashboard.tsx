@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   CalendarDays,
   Users,
   BookOpen,
@@ -134,7 +135,7 @@ export function HomeroomFeedbackDashboard() {
           </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" className="w-full sm:w-auto" disabled={loading || !hasValidFilters(filters)}>
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           Làm mới
         </Button>
       </div>

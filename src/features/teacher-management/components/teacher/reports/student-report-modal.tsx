@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Textarea } from "@/shared/components/ui/textarea"
@@ -31,7 +32,7 @@ import {
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Save,
   Send,
   Eye,
@@ -365,7 +366,7 @@ export function StudentReportModal({
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         ) : (
           <div className="space-y-6">
@@ -463,7 +464,7 @@ export function StudentReportModal({
                           className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {generatingStrengths ? (
-                            <Skeleton className="h-32 w-full rounded-lg" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
@@ -522,7 +523,7 @@ export function StudentReportModal({
                           className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {generatingWeaknesses ? (
-                            <Skeleton className="h-32 w-full rounded-lg" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <Sparkles className="h-3 w-3 mr-1" />
                           )}
@@ -581,7 +582,7 @@ export function StudentReportModal({
                           className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {regeneratingAcademic ? (
-                            <Skeleton className="h-32 w-full rounded-lg" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
@@ -640,7 +641,7 @@ export function StudentReportModal({
                           className="h-8 md:h-9 lg:h-10 px-3"
                         >
                           {regeneratingDiscipline ? (
-                            <Skeleton className="h-32 w-full rounded-lg" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <RefreshCw className="h-3 w-3 mr-1" />
                           )}
@@ -722,7 +723,7 @@ export function StudentReportModal({
                     disabled={saving || !strengths.trim() || !weaknesses.trim()}
                   >
                     {saving ? (
-                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
                     )}
@@ -736,7 +737,7 @@ export function StudentReportModal({
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       {sending ? (
-                        <Skeleton className="h-32 w-full rounded-lg" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Send className="h-4 w-4 mr-2" />
                       )}
@@ -815,7 +816,7 @@ export function StudentReportModal({
               className="bg-orange-600 hover:bg-orange-700"
             >
               {sending ? (
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4 mr-2" />
               )}
@@ -841,7 +842,7 @@ export function StudentReportModal({
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleSave} disabled={saving}>
               {saving ? (
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

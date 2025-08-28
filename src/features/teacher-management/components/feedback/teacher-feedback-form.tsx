@@ -1,5 +1,6 @@
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
@@ -8,7 +9,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Badge } from '@/shared/components/ui/badge'
 import { Input } from '@/shared/components/ui/input'
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Select,
@@ -328,7 +329,7 @@ export function TeacherFeedbackForm({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-orange-gradient-soft">
       {/* Modern Header with Context */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
@@ -827,7 +828,7 @@ export function TeacherFeedbackForm({
                     disabled={isSubmitting || !canSubmit}
                     className="px-6 bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
+                    {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                     <Save className="h-4 w-4 mr-2" />
                     {hasExistingFeedback ? 'Cập nhật phản hồi' : 'Gửi phản hồi'}
                   </Button>

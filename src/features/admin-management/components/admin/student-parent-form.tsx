@@ -525,7 +525,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
           {submitError && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
               <AlertDescription className="text-red-800 font-medium">
-                <span className="text-red-500 mr-2">âš </span>
+                <span className="text-red-500 mr-2"> </span>
                 {submitError}
               </AlertDescription>
             </Alert>

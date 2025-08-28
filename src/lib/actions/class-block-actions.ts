@@ -201,17 +201,19 @@ export async function getClassBlocksWithStatsAction() {
   }
 }
 
-// Get active class blocks for dropdowns
+// Get active class blocks for dropdowns - Optimized for performance
 export async function getActiveClassBlocksAction() {
   try {
     const supabase = await createClient()
 
+    // Optimized query with minimal fields and caching-friendly structure
     const { data, error } = await supabase
       .from("class_blocks")
       .select("id, name, display_name")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
+      .limit(50) // Reasonable limit for dropdown performance
 
     if (error) {
       console.error("Error fetching active class blocks:", error)

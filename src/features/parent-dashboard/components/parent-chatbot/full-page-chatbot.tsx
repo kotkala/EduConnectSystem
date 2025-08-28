@@ -198,7 +198,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                 <h2 className="text-lg font-semibold text-gray-900">Trợ Lý AI EduConnect</h2>
               </div>
               <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
-                â— Đang hoạt động
+                Đang hoạt động
               </Badge>
             </div>
 
@@ -215,7 +215,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
           {/* Suggested Prompts */}
           {messages.length === 1 && (
             <div className="p-6 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">ðŸ’¡ Gợi ý câu hỏi:</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3"> Gợi ý câu hỏi:</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {suggestedPrompts.map((prompt, index) => (
                   <Button
@@ -352,7 +352,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
         <div className="w-80 bg-gray-50 border-l border-gray-200 p-6">
           <div className="space-y-6">
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">âš™ï¸ CÀI ĐẶT HIỂN THỊ</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">CÀI ĐẶT HIỂN THỊ</h3>
 
               <div className="space-y-4">
                 <div>
@@ -379,7 +379,7 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ“‹ THÔNG TIN</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">‹ THÔNG TIN</h3>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
                 <div className="space-y-2 text-xs text-gray-600">
                   <div className="flex justify-between">
@@ -392,26 +392,26 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                   </div>
                   <div className="flex justify-between">
                     <span>Trạng thái:</span>
-                    <span className="font-medium text-green-600">â— Hoạt động</span>
+                    <span className="font-medium text-green-600">Hoạt động</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">ðŸ’¡ HƯỚNG DẪN</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4"> HƯỚNG DẪN</h3>
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <div className="space-y-2 text-xs text-blue-700">
-                  <p>â€¢ Hỏi về điểm số và thành tích học tập</p>
-                  <p>â€¢ Xem phản hồi từ giáo viên</p>
-                  <p>â€¢ Theo dõi tiến bộ của con em</p>
-                  <p>â€¢ Nhận tư vấn hỗ trợ học tập</p>
+                  <p> Hỏi về điểm số và thành tích học tập</p>
+                  <p> Xem phản hồi từ giáo viên</p>
+                  <p> Theo dõi tiến bộ của con em</p>
+                  <p> Nhận tư vấn hỗ trợ học tập</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-4">âš ï¸ LƯU Ý QUAN TRỌNG</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-4">LƯU Ý QUAN TRỌNG</h3>
               <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                 <div className="space-y-2 text-xs text-yellow-800">
                   <div className="flex items-start space-x-2">
@@ -422,9 +422,9 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-yellow-200">
-                    <p className="text-xs">â€¢ Dữ liệu được cập nhật định kỳ</p>
-                    <p className="text-xs">â€¢ Phản hồi của bạn giúp cải thiện AI</p>
-                    <p className="text-xs">â€¢ Bảo mật thông tin được đảm bảo</p>
+                    <p className="text-xs"> Dữ liệu được cập nhật định kỳ</p>
+                    <p className="text-xs"> Phản hồi của bạn giúp cải thiện AI</p>
+                    <p className="text-xs"> Bảo mật thông tin được đảm bảo</p>
                   </div>
                 </div>
               </div>

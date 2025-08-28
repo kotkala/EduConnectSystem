@@ -77,7 +77,7 @@ const StudentItem = memo(function StudentItem({
       <div className="flex-1">
         <h4 className="font-medium">{student.full_name}</h4>
         <p className="text-sm text-gray-500">
-          Mã HS: {student.student_id} â€¢ Lớp: {student.class_name}
+          Mã HS: {student.student_id}  Lớp: {student.class_name}
         </p>
         {/* Parent Feedback Display */}
         {student.parent_feedback?.responded_at && (

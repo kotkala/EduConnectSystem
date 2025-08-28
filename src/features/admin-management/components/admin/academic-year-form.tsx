@@ -244,8 +244,8 @@ export function AcademicYearForm({ academicYear, onSuccess, onCancel }: Readonly
             Khi bạn tạo năm học mới, hai học kỳ mặc định sẽ được tự động tạo:
           </p>
           <ul className="text-xs sm:text-sm text-blue-700 mt-2 space-y-1">
-            <li>â€¢ <strong>Học kỳ 1:</strong> 18 tuần (khoảng 4 tháng đầu)</li>
-            <li>â€¢ <strong>Học kỳ 2:</strong> 17 tuần (thời gian còn lại)</li>
+            <li> <strong>Học kỳ 1:</strong> 18 tuần (khoảng 4 tháng đầu)</li>
+            <li> <strong>Học kỳ 2:</strong> 17 tuần (thời gian còn lại)</li>
           </ul>
           <p className="text-xs sm:text-sm text-blue-700 mt-2">
             Bạn có thể chỉnh sửa các học kỳ này sau khi tạo nếu cần.

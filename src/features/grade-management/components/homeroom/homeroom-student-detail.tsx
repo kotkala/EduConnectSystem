@@ -30,12 +30,17 @@ interface HomeroomStudentDetailProps {
   readonly onOpenChange: (open: boolean) => void
 }
 
-export function HomeroomStudentDetail({ 
-  student, 
-  classInfo, 
-  open, 
-  onOpenChange 
+export function HomeroomStudentDetail({
+  student,
+  classInfo,
+  open,
+  onOpenChange
 }: HomeroomStudentDetailProps) {
+  const getRelationshipLabel = (type?: string) => {
+    if (type === 'father') return 'Cha'
+    if (type === 'mother') return 'Mẹ'
+    return 'Người giám hộ'
+  }
   const primaryParent = student.parents.find(p => p.is_primary_contact)
   const otherParents = student.parents.filter(p => !p.is_primary_contact)
 
@@ -54,7 +59,7 @@ export function HomeroomStudentDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1400px] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-[98vw] sm:!max-w-none xl:!max-w-[1800px] max-h-[95vh] overflow-y-auto">
         <div className="w-full">
           <DialogHeader className="pb-4 sm:pb-6">
           <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
@@ -229,8 +234,7 @@ export function HomeroomStudentDetail({
                         </div>
                         <h4 className="text-lg font-bold text-green-800">Liên hệ chính</h4>
                         <Badge variant="default" className="bg-green-600 text-white">
-                          {primaryParent.relationship_type === 'father' ? 'Cha' :
-                           primaryParent.relationship_type === 'mother' ? 'Mẹ' : 'Người giám hộ'}
+                          {getRelationshipLabel(primaryParent.relationship_type)}
                         </Badge>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">

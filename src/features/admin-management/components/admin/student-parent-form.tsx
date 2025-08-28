@@ -112,7 +112,7 @@ function StudentInfoSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {/* Student ID */}
         <div className="space-y-3">
           <Label htmlFor="student_id" className="text-base font-semibold text-gray-800">
@@ -272,7 +272,7 @@ function ParentInfoSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
         {/* Parent Full Name */}
         <div className="space-y-3">
           <Label htmlFor="parent_name" className="text-base font-semibold text-gray-800">Họ và tên *</Label>
@@ -483,7 +483,7 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
   }
 
   return (
-    <Card className="w-full mx-auto shadow-xl border-0">
+    <Card className="w-full max-w-none mx-auto shadow-xl border-0">
       <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-green-50 border-b-2 border-gradient-to-r from-blue-200 to-green-200 p-4 sm:p-6 lg:p-8">
         <CardTitle className="flex items-center gap-3 sm:gap-4 text-xl sm:text-2xl lg:text-3xl font-bold">
           <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-green-500 rounded-xl">

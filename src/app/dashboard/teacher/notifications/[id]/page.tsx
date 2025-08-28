@@ -302,7 +302,7 @@ export default function TeacherNotificationDetailPage() {
                           </p>
                         </div>
                       </div>
-                      {isImage ? (
+                      {attachment.mime_type.startsWith('image/') ? (
                         <ImageViewer
                           src={attachment.public_url}
                           alt={attachment.file_name}

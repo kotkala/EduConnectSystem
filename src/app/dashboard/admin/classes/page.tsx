@@ -263,7 +263,7 @@ export default function ClassManagementPage() {
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>• Tổng số lớp: <strong>{classesTotal}</strong></p>
                   <p>• Lớp chính: <strong>{classStats.mainClasses.length}</strong></p>
-                  <p>• Lớp tổ hợp: <strong>{classStats.subjectClasses.length}</strong></p>
+                  <p>• Lớp tổ hợp: <strong>{classStats.combinedClasses.length}</strong></p>
                   <p>• Trạng thái: <strong className="text-green-600">Hoạt động tốt</strong></p>
                 </div>
               </div>
@@ -447,8 +447,8 @@ export default function ClassManagementPage() {
         </DialogContent>
       </Dialog>
 
-        </TooltipProvider>
-      </div>
+        </div>
+      </TooltipProvider>
     </AdminPageTemplate>
   )
 }

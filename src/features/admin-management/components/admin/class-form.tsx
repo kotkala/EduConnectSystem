@@ -1,7 +1,7 @@
 "use client"
+
+
 import { Loader2 } from 'lucide-react'
-
-
 import { useState, useEffect, memo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -38,7 +38,7 @@ import { getActiveClassBlocksAction } from "@/lib/actions/class-block-actions"
 import { useSelectedAcademicYearId } from "@/providers/academic-year-context"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassFormProps {
+interface ClassFormProps {
   class?: Class
   onSuccess: () => void
   onCancel: () => void

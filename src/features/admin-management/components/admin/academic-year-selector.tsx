@@ -26,7 +26,7 @@ import { AcademicYearManagementDialog } from '@/features/admin-management/compon
 import { cn } from '@/lib/utils'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface AcademicYearSelectorProps {
+interface AcademicYearSelectorProps {
   className?: string
 }
 

@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
 'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/shared/components/ui/button'
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { UserPlus } from "lucide-react";import {
+import { UserPlus } from "lucide-react";import {
   getAvailableSubjectsForClassAction,
   getAvailableTeachersForSubjectAction,
   assignTeacherToClassSubjectAction,

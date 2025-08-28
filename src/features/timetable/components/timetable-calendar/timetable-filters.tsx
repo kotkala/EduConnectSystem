@@ -19,7 +19,7 @@ import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-man
 import { getClassesAction } from "@/features/admin-management/actions/class-actions";
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Types for filter data
+// Types for filter data
 interface AcademicYear {
   id: string;
   name: string;

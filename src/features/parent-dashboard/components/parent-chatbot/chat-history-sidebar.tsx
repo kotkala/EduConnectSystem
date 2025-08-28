@@ -8,7 +8,7 @@ import { Input } from "@/shared/components/ui/input"
 
 import { Badge } from "@/shared/components/ui/badge"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Search,
   History,
   MessageCircle,

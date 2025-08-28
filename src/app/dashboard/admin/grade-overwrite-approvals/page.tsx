@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Textarea } from "@/shared/components/ui/textarea"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import {
   Dialog, 
   DialogContent, 

@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { TeacherPageTemplate } from "@/shared/components/dashboard/teacher-page-template"
@@ -39,7 +39,7 @@ import { HomeroomStudentCard } from "@/features/grade-management/components/home
 import { HomeroomStudentDetail } from "@/features/grade-management/components/homeroom/homeroom-student-detail"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";export default function HomeroomStudentsPage() {
+export default function HomeroomStudentsPage() {
   const [classInfo, setClassInfo] = useState<HomeroomClass | null>(null)
   const [students, setStudents] = useState<HomeroomStudent[]>([])
   const [filteredStudents, setFilteredStudents] = useState<HomeroomStudent[]>([])

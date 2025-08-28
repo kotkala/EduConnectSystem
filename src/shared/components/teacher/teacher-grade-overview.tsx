@@ -14,7 +14,7 @@ import {
 import { getGradeOverviewAction } from "@/lib/actions/teacher-grade-import-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";
+
 
 interface PendingGradeStatus {
   componentType: string

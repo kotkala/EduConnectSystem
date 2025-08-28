@@ -33,7 +33,7 @@ import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import StudentAssignmentForm from "@/features/admin-management/components/admin/student-assignment-form"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassStudentsTabProps {
+interface ClassStudentsTabProps {
   readonly classId: string
   readonly classData: ClassWithDetails
 }

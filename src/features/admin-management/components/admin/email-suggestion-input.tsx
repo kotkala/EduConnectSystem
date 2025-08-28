@@ -10,7 +10,7 @@ import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/features/admin-management/actions/user-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface EmailSuggestionInputProps {
+interface EmailSuggestionInputProps {
   readonly id: string
   readonly label: string
   readonly placeholder?: string

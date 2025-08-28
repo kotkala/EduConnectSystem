@@ -1,13 +1,13 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,

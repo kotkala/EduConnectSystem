@@ -2,6 +2,7 @@
 import { Loader2 } from 'lucide-react'
 
 
+import { Loader2 } from 'lucide-react'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/shared/utils/supabase/client'
@@ -14,7 +15,7 @@ import { Camera, Upload, Trash2, ZoomIn, ZoomOut } from 'lucide-react'
 import { Slider } from '@/shared/components/ui/slider'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface AvatarEditorProps {
+interface AvatarEditorProps {
   readonly uid: string
   readonly url: string | null
   readonly size?: number

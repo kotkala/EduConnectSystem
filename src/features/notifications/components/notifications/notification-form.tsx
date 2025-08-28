@@ -9,8 +9,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
-import { Separator } from '@/shared/components/ui/separator'
-import { Badge } from '@/shared/components/ui/badge'
+
 
 import { Upload, X, Send, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
 import {

@@ -22,7 +22,7 @@ import { TeacherGradeTrackingDialog } from "@/shared/components/teacher/teacher-
 import { TeacherGradeOverview } from "@/shared/components/teacher/teacher-grade-overview"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Import StudentGrade type from the overview component
+// Import StudentGrade type from the overview component
 interface StudentGrade {
   id: string
   studentId: string

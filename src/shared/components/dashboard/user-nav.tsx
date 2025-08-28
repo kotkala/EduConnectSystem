@@ -44,7 +44,7 @@ interface UserNavProps {
   role?: UserRole
 }
 
-export function UserNav({ role }: UserNavProps = {}) {
+export function UserNav({ }: UserNavProps = {}) {
   const { user, profile, signOut } = useAuth()
   const router = useRouter()
 

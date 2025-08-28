@@ -7,7 +7,7 @@ const adminConfig: NotificationPageConfig = {
   emptyStateMessage: 'Gửi thông báo đầu tiên để bắt đầu',
   dashboardPath: '/dashboard/admin',
   canSendNotifications: true,
-  useSidebarLayout: false
+  useSidebarLayout: true // Use SidebarLayout to have consistent navbar
 }
 
 export default function AdminNotificationsPage() {

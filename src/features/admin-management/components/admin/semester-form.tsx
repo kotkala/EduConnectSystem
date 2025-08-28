@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { createSemesterAction, updateSemesterAction, getAcademicYearsAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { 
+import { 
   semesterSchema, 
   updateSemesterSchema,
   type SemesterFormData,

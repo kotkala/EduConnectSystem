@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { AdminPageTemplate } from "@/shared/components/dashboard/admin-page-template"
@@ -9,17 +9,17 @@ import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { Progress } from "@/shared/components/ui/progress"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/shared/components/ui/hover-card"
 import { Plus, Calendar, Clock, BookOpen, AlertCircle, Edit, Trash2 } from "lucide-react"
 import { Badge } from "@/shared/components/ui/badge"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 import { AcademicYearForm } from "@/features/admin-management/components/admin/academic-year-form"
 import { SemesterForm } from "@/features/admin-management/components/admin/semester-form"
 import { AcademicDeleteDialog } from "@/features/admin-management/components/admin/academic-delete-dialog"
 import { useAcademicYear } from "@/providers/academic-year-context"
 import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-management/actions/academic-actions"
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import {
   type AcademicYearWithSemesters,
   type SemesterWithAcademicYear,
@@ -27,6 +27,7 @@ import {
   type Semester,
   type AcademicFilters
 } from "@/lib/validations/academic-validations"
+import { Provider } from '@radix-ui/react-tooltip'
 
 export default function AcademicYearsManagementPage() {
   // Global academic year context
@@ -264,7 +265,7 @@ export default function AcademicYearsManagementPage() {
     >
       <div className="space-y-6">
         {/* Enhanced Stats Cards */}
-        <TooltipProvider>
+        <Provider>
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <HoverCard>
               <HoverCardTrigger asChild>
@@ -641,7 +642,7 @@ export default function AcademicYearsManagementPage() {
             onSuccess={handleDeleteSuccess}
           />
         )}
-        </TooltipProvider>
+        </Provider>
       </div>
     </AdminPageTemplate>
   )

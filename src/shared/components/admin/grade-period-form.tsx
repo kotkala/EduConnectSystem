@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
@@ -13,7 +13,7 @@ import { createEnhancedGradeReportingPeriodAction } from "@/features/grade-manag
 import { createClient } from "@/lib/supabase/client"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface AcademicYear {
+interface AcademicYear {
   id: string
   name: string
   is_current: boolean

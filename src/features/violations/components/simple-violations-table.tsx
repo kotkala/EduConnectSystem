@@ -2,6 +2,7 @@
 import { Loader2 } from 'lucide-react'
 
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
@@ -23,7 +24,7 @@ import { getSeverityLabel, getSeverityColor, type ViolationSeverity, violationSe
 import { getClassesAction } from '@/lib/actions/grade-management-actions'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Simple types matching database structure
+// Simple types matching database structure
 interface ViolationRecord {
   id: string
   student_id: string

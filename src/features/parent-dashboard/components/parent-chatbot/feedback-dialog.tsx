@@ -1,7 +1,7 @@
 "use client"
+
+
 import { Loader2 } from 'lucide-react'
-
-
 import { useState } from "react"
 import { Button } from "@/shared/components/ui/button"
 import {
@@ -29,7 +29,7 @@ import { toast } from "sonner"
 import { submitFeedback } from "@/lib/actions/chat-history-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface FeedbackDialogProps {
+interface FeedbackDialogProps {
   messageId: string
   parentId: string
   userQuestion: string

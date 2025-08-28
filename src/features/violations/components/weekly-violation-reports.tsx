@@ -2,6 +2,7 @@
 import { Loader2 } from 'lucide-react'
 
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { startOfWeek, endOfWeek, addWeeks, format } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -21,7 +22,7 @@ import {
 import { getSemestersAction } from '@/features/admin-management/actions/academic-actions'
 import { getClassesAction } from '@/features/admin-management/actions/class-actions'
 
-import { Skeleton } from "@/shared/components/ui/skeleton"
+
 import OutdatedReportsAlert from './outdated-reports-alert'
 
 interface WeeklyViolationReport {

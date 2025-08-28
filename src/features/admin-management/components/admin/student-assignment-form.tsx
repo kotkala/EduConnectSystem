@@ -18,7 +18,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { Users, UserPlus } from "lucide-react";import {
+import { Users, UserPlus } from "lucide-react";import {
   bulkStudentAssignmentSchema,
   type BulkStudentAssignmentFormData,
   type AvailableStudent

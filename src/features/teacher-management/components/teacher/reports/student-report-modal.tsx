@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Textarea } from "@/shared/components/ui/textarea"
@@ -32,7 +32,7 @@ import {
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Badge } from "@/shared/components/ui/badge"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Save,
   Send,
   Eye,

@@ -45,7 +45,7 @@ import { Input } from "@/shared/components/ui/input"
 import { UserPlus, Trash2, GraduationCap, BookOpen } from "lucide-react"
 import { type ClassWithDetails } from "@/lib/validations/class-validations"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   getClassTeacherAssignmentsAction,
   removeTeacherAssignmentAction,
   assignTeacherToClassSubjectAction,

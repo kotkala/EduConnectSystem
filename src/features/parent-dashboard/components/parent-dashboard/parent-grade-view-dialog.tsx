@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import {
   Dialog,
@@ -16,7 +16,7 @@ import { BookOpen, TrendingUp, Award, BarChart3 } from "lucide-react";import { t
 import { getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface GradeSubmission {
+interface GradeSubmission {
   id: string
   submission_name: string
   student_id: string

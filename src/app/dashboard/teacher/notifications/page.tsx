@@ -7,7 +7,7 @@ const teacherConfig: NotificationPageConfig = {
   emptyStateMessage: 'Gửi thông báo đầu tiên để bắt đầu',
   dashboardPath: '/dashboard/teacher',
   canSendNotifications: true,
-  useSidebarLayout: false
+  useSidebarLayout: true
 }
 
 export default function TeacherNotificationsPage() {

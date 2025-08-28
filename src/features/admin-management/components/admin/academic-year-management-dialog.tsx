@@ -28,7 +28,7 @@ import { AcademicYearForm } from '@/features/admin-management/components/admin/a
 import { SemesterForm } from '@/features/admin-management/components/admin/semester-form'
 import { AcademicDeleteDialog } from '@/features/admin-management/components/admin/academic-delete-dialog'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   getAcademicYearsAction,
   getSemestersAction
 } from '@/features/admin-management/actions/academic-actions'

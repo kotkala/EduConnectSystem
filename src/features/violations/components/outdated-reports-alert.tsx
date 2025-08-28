@@ -1,12 +1,12 @@
-import { Loader2 } from 'lucide-react'
 'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/components/ui/alert'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { AlertTriangle, RefreshCw, Send } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface OutdatedReportsAlertProps {

@@ -475,7 +475,7 @@ Hãy tạo tóm tắt chi tiết và hữu ích dựa trên dữ liệu phản h
 
     // Call Google Gemini AI to generate the actual summary
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://edu-connect-system.vercel.app'
+      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://edu-connect-system.vercel.app'
       const response = await fetch(`${baseUrl}/api/ai/generate-daily-summary`, {
         method: 'POST',
         headers: {

@@ -135,41 +135,65 @@ export default function TimetableBigCalendar() {
     updateCurrentDateForWeek();
   }, [filters.studyWeek, filters.semesterId, setCurrentDate, supabase]);
 
-  // Memoized semester start date to avoid repeated database calls
-  const semesterStartDate = useMemo(async () => {
-    if (!filters.semesterId) return undefined;
+  // OPTIMIZED: Cache semester start dates to avoid repeated database calls
+  const [semesterStartDates, setSemesterStartDates] = useState<Map<string, Date>>(new Map());
 
-    const { data: semesterData } = await supabase
-      .from('semesters')
-      .select('start_date')
-      .eq('id', filters.semesterId)
-      .single();
+  const getSemesterStartDate = useCallback(async (semesterId: string): Promise<Date | undefined> => {
+    // Check cache first
+    if (semesterStartDates.has(semesterId)) {
+      return semesterStartDates.get(semesterId);
+    }
 
-    return semesterData ? new Date(semesterData.start_date) : undefined;
-  }, [supabase, filters.semesterId]);
+    try {
+      const { data: semesterData } = await supabase
+        .from('semesters')
+        .select('start_date')
+        .eq('id', semesterId)
+        .single();
 
-  // Helper function to convert slots to calendar events with correct dates and feedback info
+      if (semesterData) {
+        const startDate = new Date(semesterData.start_date);
+        setSemesterStartDates(prev => new Map(prev).set(semesterId, startDate));
+        return startDate;
+      }
+    } catch (error) {
+      console.error('Error fetching semester start date:', error);
+    }
+
+    return undefined;
+  }, [supabase, semesterStartDates]);
+
+  // Helper function to convert slots to calendar events with correct dates and feedback info - OPTIMIZED
   const convertSlotsToEvents = useCallback(async (slots: StudySlot[]): Promise<CalendarEvent[]> => {
-    const startDate = await semesterStartDate;
+    const startDate = filters.semesterId ? await getSemesterStartDate(filters.semesterId) : undefined;
 
-    // Only load feedback info if we have valid slots with IDs
+    // OPTIMIZATION: Load feedback info in background, don't block calendar rendering
     const eventIds = slots.map(slot => slot.id).filter((id): id is string => Boolean(id));
     const classIds = slots.map(slot => slot.class_id).filter((id): id is string => Boolean(id));
 
-    let feedbackMap = new Map<string, FeedbackInfo>();
+    // Render calendar events immediately without feedback
+    const initialEvents = slots.map(slot => {
+      return studySlotToCalendarEvent(slot, startDate, filters.studyWeek, undefined);
+    });
+
+    // Load feedback info in background if we have valid slots
     if (eventIds.length > 0) {
-      try {
-        feedbackMap = await getBatchFeedbackInfo(eventIds, classIds);
-      } catch (error) {
-        console.error("Error loading feedback info:", error);
-      }
+      getBatchFeedbackInfo(eventIds, classIds)
+        .then(feedbackMap => {
+          // Update events with feedback info
+          const updatedEvents = slots.map(slot => {
+            const feedbackInfo = slot.id ? feedbackMap.get(slot.id) : undefined;
+            return studySlotToCalendarEvent(slot, startDate, filters.studyWeek, feedbackInfo);
+          });
+          setEvents(updatedEvents);
+        })
+        .catch(error => {
+          console.error("Error loading feedback info:", error);
+        });
     }
 
-    return slots.map(slot => {
-      const feedbackInfo = slot.id ? feedbackMap.get(slot.id) : undefined;
-      return studySlotToCalendarEvent(slot, startDate, filters.studyWeek, feedbackInfo);
-    });
-  }, [semesterStartDate, filters.studyWeek]);
+    return initialEvents;
+  }, [getSemesterStartDate, filters.semesterId, filters.studyWeek]);
 
   // Filter events based on visible colors
   const visibleEvents = useMemo(() => {

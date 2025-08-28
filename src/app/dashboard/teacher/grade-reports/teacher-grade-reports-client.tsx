@@ -86,11 +86,17 @@ export default function TeacherGradeReportsClient() {
   // Simple loading state
   const [isLoading, setIsLoading] = useState(false)
 
-  // Load periods
+  // Load periods - OPTIMIZED with parallel loading
   const loadPeriods = useCallback(async () => {
     try {
-      // Load academic years first
-      const academicYearsResult = await getAllAcademicYearsForTeachersAction()
+      // OPTIMIZATION: Load all data in parallel instead of sequential
+      const [academicYearsResult, periodsResult, submissionsResult] = await Promise.all([
+        getAllAcademicYearsForTeachersAction(),
+        getGradeReportingPeriodsForTeachersAction({ limit: 100 }),
+        getPeriodsWithSubmissionsAction()
+      ]);
+
+      // Process academic years
       if (academicYearsResult.success && academicYearsResult.data) {
         setAllAcademicYears(academicYearsResult.data as Array<{
           id: string,
@@ -99,12 +105,7 @@ export default function TeacherGradeReportsClient() {
         }>)
       }
 
-      // Load all periods
-      const periodsResult = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
-
-      // Load periods with submissions
-      const submissionsResult = await getPeriodsWithSubmissionsAction()
-
+      // Process periods
       if (periodsResult.success && periodsResult.data) {
         const periodsData = periodsResult.data as unknown as GradeReportingPeriod[]
         setPeriods(periodsData)

@@ -75,7 +75,7 @@ export default async function TeachersPage() {
             Quản lý tài khoản, mã nhân viên và quyền GVCN
           </p>
         </div>
-        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay về Quản lý người dùng</a>
+        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">← Quay về Quản lý người dùng</a>
       </div>
 
       <Suspense fallback={<TeachersPageSkeleton />}>

@@ -88,33 +88,32 @@ export default function ParentGradesClient() {
     is_current: boolean
   }>>([])
 
-  // Load grade reports
+  // Load grade reports - OPTIMIZED with parallel loading
   const loadGradeReports = useCallback(async () => {
     try {
       setLoading(true)
 
-      // Fetch all academic years for dropdown
-      console.log('🔍 [PARENT GRADES CLIENT] Fetching all academic years...')
-      const academicYearsResult = await getAllAcademicYearsAction()
-      console.log('🔍 [PARENT GRADES CLIENT] Academic years result:', academicYearsResult)
+      // OPTIMIZATION: Load all data in parallel instead of sequential
+      const [academicYearsResult, periodsResult, gradesResult] = await Promise.all([
+        getAllAcademicYearsAction(),
+        getAllGradeReportingPeriodsAction(),
+        getChildrenGradeReportsAction()
+      ]);
+
+      // Process academic years
       if (academicYearsResult.success) {
-        console.log('✅ [PARENT GRADES CLIENT] Setting academic years:', academicYearsResult.data)
         setAllAcademicYears(academicYearsResult.data as Array<{
           id: string,
           name: string,
           is_current: boolean
         }>)
       } else {
-        console.error('❌ [PARENT GRADES CLIENT] Failed to fetch academic years:', academicYearsResult.error)
+        console.error('Failed to fetch academic years:', academicYearsResult.error)
         toast.error(`Không thể tải danh sách năm học: ${academicYearsResult.error}`)
       }
 
-      // Fetch all grade reporting periods for dropdown
-      console.log('🔍 [PARENT GRADES CLIENT] Fetching all periods...')
-      const periodsResult = await getAllGradeReportingPeriodsAction()
-      console.log('🔍 [PARENT GRADES CLIENT] Periods result:', periodsResult)
+      // Process periods
       if (periodsResult.success) {
-        console.log('✅ [PARENT GRADES CLIENT] Setting periods:', periodsResult.data)
         setAllPeriods(periodsResult.data as Array<{
           id: string,
           name: string,
@@ -122,17 +121,16 @@ export default function ParentGradesClient() {
           semester?: {name: string}
         }>)
       } else {
-        console.error('❌ [PARENT GRADES CLIENT] Failed to fetch periods:', periodsResult.error)
+        console.error('Failed to fetch periods:', periodsResult.error)
         toast.error(`Không thể tải danh sách kỳ báo cáo: ${periodsResult.error}`)
       }
 
-      // Fetch grade submissions
-      const result = await getChildrenGradeReportsAction()
-      if (result.success) {
-        const submissionsData = result.data as GradeSubmission[]
+      // Process grade submissions
+      if (gradesResult.success) {
+        const submissionsData = gradesResult.data as GradeSubmission[]
         setSubmissions(submissionsData)
       } else {
-        toast.error(result.error || "Không thể tải bảng điểm")
+        toast.error(gradesResult.error || "Không thể tải bảng điểm")
         setSubmissions([])
       }
     } catch {

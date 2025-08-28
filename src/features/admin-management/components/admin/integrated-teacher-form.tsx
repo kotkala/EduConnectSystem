@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card"
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
-import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
+import { createTeacherAction, updateTeacherAction, generateNextEmployeeIdAction } from "@/features/admin-management/actions/user-actions"
 import TeacherSpecializationInlineForm from "@/features/teacher-management/components/teacher-specialization-inline-form"
 
 interface IntegratedTeacherFormProps {
@@ -25,6 +25,7 @@ export function IntegratedTeacherForm({ teacher, onSuccess, onCancel }: Integrat
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null)
   const [createdTeacherId, setCreatedTeacherId] = useState<string | null>(null)
+  const [generatingId, setGeneratingId] = useState(false)
 
 
   const isEditing = !!teacher?.id
@@ -42,6 +43,27 @@ export function IntegratedTeacherForm({ teacher, onSuccess, onCancel }: Integrat
       homeroom_enabled: teacher?.homeroom_enabled || false
     }
   })
+
+  const generateEmployeeId = useCallback(async () => {
+    setGeneratingId(true)
+    try {
+      const result = await generateNextEmployeeIdAction()
+      if (result.success && result.data) {
+        form.setValue("employee_id", result.data)
+      }
+    } catch (error) {
+      console.error("Failed to generate employee ID:", error)
+    } finally {
+      setGeneratingId(false)
+    }
+  }, [form])
+
+  // Auto-generate employee ID for new teachers
+  useEffect(() => {
+    if (!isEditing && !form.getValues("employee_id")) {
+      generateEmployeeId()
+    }
+  }, [isEditing, form, generateEmployeeId])
 
   const onSubmit = async (data: TeacherFormData) => {
     setIsSubmitting(true)
@@ -94,12 +116,25 @@ export function IntegratedTeacherForm({ teacher, onSuccess, onCancel }: Integrat
           {/* Employee ID */}
           <div className="space-y-2 sm:space-y-3">
             <Label htmlFor="employee_id" className="text-sm sm:text-base">Mã nhân viên *</Label>
-            <Input
-              id="employee_id"
-              {...form.register("employee_id")}
-              placeholder="Nhập mã nhân viên"
-              className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base ${form.formState.errors.employee_id ? "border-red-500" : ""}`}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="employee_id"
+                {...form.register("employee_id")}
+                placeholder={generatingId ? "Đang tạo mã tự động..." : "VD: TC00028"}
+                readOnly={isEditing || generatingId}
+                className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base flex-1 ${form.formState.errors.employee_id ? "border-red-500" : ""} ${isEditing || generatingId ? "bg-gray-50" : ""}`}
+              />
+              {!isEditing && generatingId && (
+                <div className="h-10 sm:h-11 md:h-12 px-3 flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+            </div>
+            {!isEditing && (
+              <p className="text-xs text-muted-foreground">
+                Mã nhân viên sẽ được tạo tự động khi mở form
+              </p>
+            )}
             {form.formState.errors.employee_id && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
             )}

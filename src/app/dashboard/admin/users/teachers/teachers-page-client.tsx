@@ -33,29 +33,46 @@ export default function TeachersPageClient() {
   console.log('🔍 TeachersPage - Loading state:', loading)
 
   const fetchTeachers = useCallback(async () => {
-    // Chỉ start loading nếu chưa có data
-    if (teachers.length === 0) {
+    // Only show loading for initial load or when no data exists
+    const shouldShowLoading = teachers.length === 0
+    if (shouldShowLoading) {
       setLoading(true)
     }
     setError(null)
 
     try {
-      const [listRes, statsRes] = await Promise.all([
-        getTeachersAction(filters),
-        getTeacherStatsAction()
-      ])
+      // Optimize: Only fetch stats on initial load to reduce database queries
+      const shouldFetchStats = teachers.length === 0
 
-      if (listRes.success) {
-        setTeachers(listRes.data)
-        setTotal(listRes.total)
-        setCurrentPage(listRes.page || 1)
+      if (shouldFetchStats) {
+        const [listRes, statsRes] = await Promise.all([
+          getTeachersAction(filters),
+          getTeacherStatsAction()
+        ])
+
+        if (listRes.success) {
+          setTeachers(listRes.data)
+          setTotal(listRes.total)
+          setCurrentPage(listRes.page || 1)
+        } else {
+          setError(listRes.error || "Không thể tải danh sách giáo viên")
+        }
+
+        if (statsRes.success) {
+          setHomeroomCount(statsRes.homeroom ?? 0)
+          setNewThisMonth(statsRes.newThisMonth ?? 0)
+        }
       } else {
-        setError(listRes.error || "Không thể tải danh sách giáo viên")
-      }
+        // Only fetch list data for pagination/filtering
+        const listRes = await getTeachersAction(filters)
 
-      if (statsRes.success) {
-        setHomeroomCount(statsRes.homeroom ?? 0)
-        setNewThisMonth(statsRes.newThisMonth ?? 0)
+        if (listRes.success) {
+          setTeachers(listRes.data)
+          setTotal(listRes.total)
+          setCurrentPage(listRes.page || 1)
+        } else {
+          setError(listRes.error || "Không thể tải danh sách giáo viên")
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách giáo viên")
@@ -238,7 +255,7 @@ export default function TeachersPageClient() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Add New Teacher</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Thêm giáo viên mới</DialogTitle>
           </DialogHeader>
           <IntegratedTeacherForm
             onSuccess={handleCreateSuccess}

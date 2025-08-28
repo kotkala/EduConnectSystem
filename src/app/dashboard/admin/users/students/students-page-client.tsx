@@ -243,13 +243,13 @@ export default function StudentsPageClient() {
          onEdit={handleEdit}
        />
 
-      {/* Create Student & Parent Dialog */}
+      {/* Create Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
+        <DialogContent className="w-[95vw] max-w-[1400px] max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
           </DialogHeader>
-          <div className="min-w-[800px]">
+          <div className="w-full">
             <StudentParentForm
               onSuccess={handleCreateSuccess}
               onCancel={() => setShowCreateDialog(false)}
@@ -258,17 +258,17 @@ export default function StudentsPageClient() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Student & Parent Dialog */}
+      {/* Edit Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-              <Edit className="h-6 w-6" />
+        <DialogContent className="w-[95vw] max-w-[1400px] max-h-[95vh] overflow-y-auto p-0">
+          <DialogHeader className="p-4 sm:p-6 pb-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3">
+              <Edit className="h-5 w-5 sm:h-6 sm:w-6" />
               Chỉnh sửa thông tin Học sinh & Phụ huynh
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (
-            <div className="min-w-[800px]">
+            <div className="w-full">
               <StudentParentForm
                 editMode={true}
                 initialData={editingStudent}

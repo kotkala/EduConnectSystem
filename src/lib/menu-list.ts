@@ -247,6 +247,11 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
             href: "/dashboard/teacher/feedback",
             label: "Phản hồi học sinh",
             icon: MessageSquare
+          },
+          {
+            href: "/dashboard/teacher/violations",
+            label: "Vi phạm",
+            icon: AlertTriangle
           }
         ]
       }

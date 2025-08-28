@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Download, TrendingUp, TrendingDown, Award, BookOpen, BarChart3, Sparkles, User, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
-import { getStudentGradeDetailAction, getStudentGradeStatsAction } from '@/lib/actions/parent-grade-actions'
+import { getStudentGradeDetailAction, getStudentGradeStatsAction, getStudentAvailablePeriodsAction } from '@/lib/actions/parent-grade-actions'
 import { createIndividualGradeTemplate, downloadExcelFile, type IndividualGradeExportData } from '@/lib/utils/individual-excel-utils'
 
 
@@ -60,35 +61,71 @@ interface GradeStats {
   belowAverageCount: number
 }
 
+interface AvailablePeriod {
+  id: string
+  name: string
+  period_type: string
+  academic_year_name: string
+  semester_name: string
+  display_name: string
+}
+
 interface ParentGradeDetailClientProps {
   submissionId: string
 }
 
-export default function ParentGradeDetailClient({ submissionId }: ParentGradeDetailClientProps) {
+export default function ParentGradeDetailClient({ submissionId }: Readonly<ParentGradeDetailClientProps>) {
   const [submission, setSubmission] = useState<GradeSubmission | null>(null)
   const [stats, setStats] = useState<GradeStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [availablePeriods, setAvailablePeriods] = useState<AvailablePeriod[]>([])
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const [studentId, setStudentId] = useState<string>('')
   const [downloading, setDownloading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
+  // Load submission details - restore original working logic
   useEffect(() => {
     const loadSubmissionDetail = async () => {
       try {
         setLoading(true)
 
-        // Load submission details
+        // Load submission details using original submissionId
+        console.log('🔍 [CLIENT DEBUG] Loading submission with ID:', submissionId)
         const detailResult = await getStudentGradeDetailAction(submissionId)
+        console.log('🔍 [CLIENT DEBUG] Detail result:', detailResult)
+
         if (detailResult.success) {
+          console.log('🔍 [CLIENT DEBUG] Received submission data:', {
+            academic_year: detailResult.data?.academic_year,
+            semester: detailResult.data?.semester,
+            period: detailResult.data?.period,
+            grades_count: detailResult.data?.grades?.length,
+            full_data: detailResult.data
+          })
           setSubmission(detailResult.data as GradeSubmission)
 
+          // Extract student ID for loading periods
+          if (submissionId.length === 73) {
+            const extractedStudentId = submissionId.substring(37, 73)
+            setStudentId(extractedStudentId)
+          }
+
           // Load statistics
+          console.log('🔍 [CLIENT DEBUG] Loading stats for submission:', submissionId)
           const statsResult = await getStudentGradeStatsAction(submissionId)
+          console.log('🔍 [CLIENT DEBUG] Stats result:', statsResult)
           if (statsResult.success) {
             setStats(statsResult.data as GradeStats)
           }
         } else {
+          console.error('❌ [CLIENT DEBUG] Failed to load submission:', detailResult.error)
+          setError(detailResult.error || "Không thể tải chi tiết bảng điểm")
           toast.error(detailResult.error || "Không thể tải chi tiết bảng điểm")
         }
-      } catch {
+      } catch (error) {
+        console.error('❌ [CLIENT DEBUG] Exception during loading:', error)
+        setError("Có lỗi xảy ra khi tải chi tiết bảng điểm")
         toast.error("Có lỗi xảy ra khi tải chi tiết bảng điểm")
       } finally {
         setLoading(false)
@@ -97,6 +134,24 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
 
     loadSubmissionDetail()
   }, [submissionId])
+
+  // Load available periods when student ID is available
+  useEffect(() => {
+    const loadAvailablePeriods = async () => {
+      if (!studentId) return
+
+      try {
+        const periodsResult = await getStudentAvailablePeriodsAction(studentId)
+        if (periodsResult.success && periodsResult.data) {
+          setAvailablePeriods(periodsResult.data)
+        }
+      } catch (error) {
+        console.error('Error loading periods:', error)
+      }
+    }
+
+    loadAvailablePeriods()
+  }, [studentId])
 
   const handleDownloadExcel = async () => {
     if (!submission) return
@@ -127,7 +182,7 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
 
       // Create and download Excel file
       const excelBuffer = await createIndividualGradeTemplate(exportData)
-      await downloadExcelFile(excelBuffer, `BangDiem_${submission.student.student_id}_${submission.semester.name}`)
+      downloadExcelFile(excelBuffer, `BangDiem_${submission.student.student_id}_${submission.semester.name}`)
 
       toast.success("Đã tải xuống file Excel thành công!")
     } catch {
@@ -159,6 +214,15 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <span className="text-red-600">❌ Lỗi: {error}</span>
+        <Button onClick={() => window.location.reload()}>Thử lại</Button>
+      </div>
+    )
+  }
+
   if (!submission) {
     return (
       <div className="text-center py-12">
@@ -169,6 +233,32 @@ export default function ParentGradeDetailClient({ submissionId }: ParentGradeDet
 
   return (
     <div className="space-y-6">
+      {/* Period Selection */}
+      {availablePeriods.length > 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Chọn kỳ báo cáo</CardTitle>
+            <CardDescription>
+              Chọn kỳ báo cáo để xem bảng điểm tương ứng
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn kỳ báo cáo..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availablePeriods.map((period) => (
+                  <SelectItem key={period.id} value={period.id}>
+                    {period.display_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Student Info Header */}
       <Card>
         <CardHeader>

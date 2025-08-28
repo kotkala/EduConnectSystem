@@ -549,29 +549,14 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Get period information from the grade submission ID
+    // Get basic submission information
     const { data: submissionInfo } = await supabase
       .from('grade_period_submissions')
       .select(`
         period_id,
         class_id,
         submission_name,
-        submitted_at,
-        period:grade_reporting_periods!period_id(
-          id,
-          name,
-          period_type,
-          academic_year:academic_years(name),
-          semester:semesters(name)
-        ),
-        class:classes!class_id(
-          id,
-          name,
-          homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
-            id,
-            full_name
-          )
-        )
+        submitted_at
       `)
       .eq('id', gradeSubmissionId)
       .single()
@@ -582,6 +567,63 @@ export async function getStudentGradeDetailAction(submissionId: string) {
         error: 'Grade submission not found'
       }
     }
+
+    // Get detailed period information using admin client to bypass RLS
+    console.log('🔍 [PARENT GRADE DETAIL] Fetching period info for:', submissionInfo.period_id)
+    const adminSupabase = createAdminClient()
+    const { data: periodInfo, error: periodError } = await adminSupabase
+      .from('grade_reporting_periods')
+      .select(`
+        id,
+        name,
+        period_type,
+        academic_year_id,
+        semester_id
+      `)
+      .eq('id', submissionInfo.period_id)
+      .single()
+
+    console.log('🔍 [PARENT GRADE DETAIL] Period info result:', { periodInfo, periodError })
+
+    // Get academic year and semester information separately to ensure proper data retrieval
+    let academicYearInfo = null
+    let semesterInfo = null
+
+    if (periodInfo?.academic_year_id) {
+      console.log('🔍 [PARENT GRADE DETAIL] Fetching academic year:', periodInfo.academic_year_id)
+      const { data: academicYear, error: ayError } = await adminSupabase
+        .from('academic_years')
+        .select('id, name')
+        .eq('id', periodInfo.academic_year_id)
+        .single()
+      console.log('🔍 [PARENT GRADE DETAIL] Academic year result:', { academicYear, ayError })
+      academicYearInfo = academicYear
+    }
+
+    if (periodInfo?.semester_id) {
+      console.log('🔍 [PARENT GRADE DETAIL] Fetching semester:', periodInfo.semester_id)
+      const { data: semester, error: semesterError } = await adminSupabase
+        .from('semesters')
+        .select('id, name')
+        .eq('id', periodInfo.semester_id)
+        .single()
+      console.log('🔍 [PARENT GRADE DETAIL] Semester result:', { semester, semesterError })
+      semesterInfo = semester
+    }
+
+    // Get class information
+    const { data: classInfo } = await supabase
+      .from('classes')
+      .select(`
+        id,
+        name,
+        homeroom_teacher:profiles!classes_homeroom_teacher_id_fkey(
+          id,
+          full_name
+        )
+      `)
+      .eq('id', submissionInfo.class_id)
+      .single()
 
     // Get student profile information
     const { data: studentProfileData } = await supabase
@@ -724,17 +766,13 @@ export async function getStudentGradeDetailAction(submissionId: string) {
       }
     }
 
-    // Fix data structure (handle Supabase join arrays)
-    const classInfo = Array.isArray(submissionInfo.class) ? submissionInfo.class[0] : submissionInfo.class
-    const period = Array.isArray(submissionInfo.period) ? submissionInfo.period[0] : submissionInfo.period
+    // Handle homeroom teacher data (might be array from Supabase join)
     const teacher = Array.isArray(classInfo?.homeroom_teacher) ? classInfo.homeroom_teacher[0] : classInfo?.homeroom_teacher
-    const academicYear = Array.isArray(period?.academic_year) ? period.academic_year[0] : period?.academic_year
-    const semester = Array.isArray(period?.semester) ? period.semester[0] : period?.semester
 
-    // Build result using unified data structure
+    // Build result using unified data structure with separate query results
     const unifiedResult = {
       id: submissionId,
-      submission_name: submissionInfo.submission_name || `${period?.name || 'Kỳ báo cáo'} - ${academicYear?.name || 'Năm học'}`,
+      submission_name: submissionInfo.submission_name || `${periodInfo?.name || 'Kỳ báo cáo'} - ${academicYearInfo?.name || 'Năm học'}`,
       student_id: studentId,
       created_at: submissionInfo.submitted_at,
       student: {
@@ -749,10 +787,15 @@ export async function getStudentGradeDetailAction(submissionId: string) {
         }
       },
       academic_year: {
-        name: academicYear?.name || ''
+        name: academicYearInfo?.name || ''
       },
       semester: {
-        name: semester?.name || ''
+        name: semesterInfo?.name || ''
+      },
+      period: {
+        id: periodInfo?.id || '',
+        name: periodInfo?.name || '',
+        period_type: periodInfo?.period_type || ''
       },
       grades: consolidatedGrades, // **UNIFIED**: All subjects from student_detailed_grades
       ai_feedback: aiFeedbackData, // **UNIFIED**: AI feedback from ai_grade_feedback table
@@ -760,6 +803,14 @@ export async function getStudentGradeDetailAction(submissionId: string) {
     }
 
     console.log('✅ [PARENT GRADE DETAIL UNIFIED] Successfully created unified grade detail')
+    console.log('🔍 [DEBUG] Final result data:', {
+      academic_year: unifiedResult.academic_year,
+      semester: unifiedResult.semester,
+      period: unifiedResult.period,
+      academicYearInfo,
+      semesterInfo,
+      periodInfo
+    })
     return {
       success: true,
       data: unifiedResult
@@ -868,6 +919,117 @@ export async function getStudentGradeStatsAction(submissionId: string) {
 
   } catch (error) {
     console.error('❌ [PARENT GRADE STATS] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
+// Get all available periods for a specific student (for dropdown)
+export async function getStudentAvailablePeriodsAction(studentId: string) {
+  try {
+    console.log('🔍 [PARENT PERIODS] Getting available periods for student:', studentId)
+    const { userId } = await checkParentPermissions()
+    const supabase = await createClient()
+
+    // Verify parent has access to this student
+    const { data: parentAccess } = await supabase
+      .from('parent_student_relationships')
+      .select('id')
+      .eq('parent_id', userId)
+      .eq('student_id', studentId)
+      .single()
+
+    if (!parentAccess) {
+      return {
+        success: false,
+        error: 'Access denied'
+      }
+    }
+
+    // Get all periods where this student has grades
+    const { data: periods, error } = await supabase
+      .from('student_detailed_grades')
+      .select(`
+        period_id,
+        period:grade_reporting_periods(
+          id,
+          name,
+          period_type,
+          academic_year_id,
+          semester_id
+        )
+      `)
+      .eq('student_id', studentId)
+
+    if (error) {
+      console.error('❌ [PARENT PERIODS] Error:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Get unique periods and fetch academic year/semester info
+    const periodMap = new Map()
+    periods?.forEach(p => {
+      if (p.period && Array.isArray(p.period) && p.period.length > 0) {
+        periodMap.set(p.period_id, p.period[0])
+      } else if (p.period && !Array.isArray(p.period)) {
+        periodMap.set(p.period_id, p.period)
+      }
+    })
+
+    const uniquePeriods = Array.from(periodMap.values()).filter(Boolean)
+
+    const periodsWithDetails = await Promise.all(
+      uniquePeriods.map(async (period: {
+        id: string
+        name: string
+        period_type: string
+        academic_year_id: string
+        semester_id: string
+      }) => {
+        let academicYearName = ''
+        let semesterName = ''
+
+        if (period?.academic_year_id) {
+          const { data: academicYear } = await supabase
+            .from('academic_years')
+            .select('name')
+            .eq('id', period.academic_year_id)
+            .single()
+          academicYearName = academicYear?.name || ''
+        }
+
+        if (period?.semester_id) {
+          const { data: semester } = await supabase
+            .from('semesters')
+            .select('name')
+            .eq('id', period.semester_id)
+            .single()
+          semesterName = semester?.name || ''
+        }
+
+        return {
+          id: period.id,
+          name: period.name,
+          period_type: period.period_type,
+          academic_year_name: academicYearName,
+          semester_name: semesterName,
+          display_name: `${period.name} - ${academicYearName} - ${semesterName}`
+        }
+      })
+    )
+
+    return {
+      success: true,
+      data: periodsWithDetails
+    }
+
+  } catch (error) {
+    console.error('❌ [PARENT PERIODS] Error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

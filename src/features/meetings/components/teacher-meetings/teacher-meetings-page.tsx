@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
@@ -105,7 +106,7 @@ export default function TeacherMeetingsPage() {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -295,7 +296,7 @@ export default function TeacherMeetingsPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Lịch Họp Đã Tạo</CardTitle>
           <Button variant="outline" onClick={loadMeetingSchedules} disabled={isLoading}>
-            {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             Làm mới
           </Button>
         </CardHeader>

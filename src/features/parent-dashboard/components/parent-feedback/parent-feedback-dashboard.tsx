@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
@@ -407,7 +408,7 @@ export default function ParentFeedbackDashboard() {
       {loading && (
         <Card>
           <CardContent className="py-8 text-center">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <p className="mt-2 text-sm text-muted-foreground">Đang tải phản hồi...</p>
           </CardContent>
         </Card>
@@ -568,7 +569,7 @@ export default function ParentFeedbackDashboard() {
       {/* No Feedback - Improved */}
       {!loading && !error && studentFeedback.length === 0 && filters.academic_year_id && (
         <div className="text-center py-16">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-12 max-w-md mx-auto">
+          <div className="bg-orange-gradient-soft dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl p-12 max-w-md mx-auto">
             <div className="bg-blue-100 dark:bg-blue-900/50 rounded-full p-6 w-fit mx-auto mb-6">
               <MessageSquare className="h-12 md:h-14 lg:h-16 w-12 text-blue-600 dark:text-blue-400" />
             </div>

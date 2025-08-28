@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -145,7 +146,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
     if (isLoading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <span className="ml-2">Đang tải lịch họp...</span>
         </div>
       )
@@ -247,7 +248,7 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
           </p>
         </div>
         <Button onClick={loadMeetingSchedules} disabled={isLoading}>
-          {isLoading && <Skeleton className="h-32 w-full rounded-lg" />}
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           Làm mới
         </Button>
       </div>

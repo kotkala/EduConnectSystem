@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -80,7 +81,7 @@ export default function OutdatedReportsAlert({
   if (isLoading) {
     return (
       <Alert className="border-blue-200 bg-blue-50">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
         <AlertTitle className="text-blue-800">Đang kiểm tra báo cáo cần cập nhật...</AlertTitle>
         <AlertDescription className="text-blue-700">
           Vui lòng đợi trong giây lát
@@ -126,7 +127,7 @@ export default function OutdatedReportsAlert({
               className="flex items-center gap-2"
             >
               {isResending ? (
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}

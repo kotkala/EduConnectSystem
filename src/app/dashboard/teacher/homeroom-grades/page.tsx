@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -296,7 +297,7 @@ export default function HomeroomGradesPage() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-lg">Đang tải dữ liệu điểm số...</p>
           </div>
         </div>

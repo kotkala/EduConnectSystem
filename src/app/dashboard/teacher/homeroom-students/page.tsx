@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -181,7 +182,7 @@ import { Skeleton } from "@/shared/components/ui/skeleton";export default functi
     return (
       <div className="container mx-auto py-6">
         <div className="flex items-center justify-center h-64">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         </div>
       </div>
     )

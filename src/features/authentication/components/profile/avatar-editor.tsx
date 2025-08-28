@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
@@ -322,7 +323,7 @@ export default function AvatarEditor({
               <Button onClick={handleSaveAvatar} disabled={uploading} className="bg-blue-600 hover:bg-blue-700">
                 {uploading ? (
                   <>
-                    <Skeleton className="h-32 w-full rounded-lg" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (

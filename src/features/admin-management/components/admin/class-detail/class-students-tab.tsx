@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect } from "react"
@@ -120,7 +121,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             <span>Loading students...</span>
           </div>
         </CardContent>
@@ -227,7 +228,7 @@ export default function ClassStudentsTab({ classId, classData }: ClassStudentsTa
                               className="text-red-600 hover:text-red-700"
                             >
                               {removingStudentId === student.id ? (
-                                <Skeleton className="h-32 w-full rounded-lg" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
                               )}

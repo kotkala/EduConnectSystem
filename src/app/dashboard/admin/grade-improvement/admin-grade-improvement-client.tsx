@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -387,7 +388,7 @@ export function AdminGradeImprovementClient() {
           {isLoading && periods.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p className="text-muted-foreground">Đang tải...</p>
               </div>
             </div>
@@ -506,7 +507,7 @@ export function AdminGradeImprovementClient() {
           {isLoading && requests.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
               </div>
             </div>

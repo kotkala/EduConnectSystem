@@ -1,5 +1,7 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
+
 import React, { useState, memo, useCallback } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -57,7 +59,7 @@ function AcademicYearSelectorComponent({ className }: Readonly<AcademicYearSelec
   if (loading) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
         <span className="text-sm text-muted-foreground">Đang tải...</span>
       </div>
     )

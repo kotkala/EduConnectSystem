@@ -1,5 +1,7 @@
 'use client'
 
+import { Loader2 } from 'lucide-react'
+
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   Dialog,
@@ -244,7 +246,7 @@ export function AcademicYearManagementDialog({
               disabled={loading}
               className="flex items-center gap-2"
             >
-              <Skeleton className="h-32 w-full rounded-lg" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Làm mới
             </Button>
           </div>

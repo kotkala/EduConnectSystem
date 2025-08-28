@@ -128,21 +128,28 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  /* Orange Brand System - Enhanced for Modern Minimalist */
-  --primary: oklch(0.68 0.22 48); /* Main orange #FF6B2C equivalent */
-  --primary-foreground: oklch(0.99 0.02 48); /* Near white with orange tint */
+  /* Orange Gradient Brand System - Enhanced for Modern Design */
+  --primary: oklch(0.70 0.24 45); /* Vibrant orange #FF6B35 */
+  --primary-foreground: oklch(0.99 0.01 45); /* Pure white with subtle orange tint */
 
-  /* Secondary - Warm grays for minimalist aesthetic */
-  --secondary: oklch(0.98 0.005 48); /* Very light warm gray */
-  --secondary-foreground: oklch(0.25 0.01 48); /* Dark warm gray */
+  /* Custom Orange Gradient Colors */
+  --color-orange-gradient-start: oklch(0.75 0.26 42); /* Bright orange start */
+  --color-orange-gradient-middle: oklch(0.68 0.24 48); /* Main orange middle */
+  --color-orange-gradient-end: oklch(0.62 0.22 52); /* Deeper orange end */
+  --color-orange-light: oklch(0.85 0.15 45); /* Light orange accent */
+  --color-orange-dark: oklch(0.55 0.20 50); /* Dark orange accent */
 
-  /* Muted - Spacious and clean */
-  --muted: oklch(0.97 0.01 48); /* Light warm background */
-  --muted-foreground: oklch(0.55 0.02 48); /* Medium warm gray */
+  /* Secondary - Orange gradient-inspired neutrals */
+  --secondary: oklch(0.97 0.02 45); /* Very light warm background with orange hint */
+  --secondary-foreground: oklch(0.25 0.02 45); /* Dark warm text */
 
-  /* Accent - Subtle orange tint */
-  --accent: oklch(0.96 0.03 48); /* Very light orange */
-  --accent-foreground: oklch(0.25 0.01 48); /* Dark warm text */
+  /* Muted - Orange-tinted warm grays */
+  --muted: oklch(0.95 0.03 45); /* Light warm muted with orange undertone */
+  --muted-foreground: oklch(0.50 0.04 45); /* Medium warm muted text */
+
+  /* Accent - Orange gradient accent */
+  --accent: oklch(0.92 0.05 45); /* Light orange accent background */
+  --accent-foreground: oklch(0.30 0.02 45); /* Dark warm accent text */
 
   /* System Colors */
   --destructive: oklch(0.67 0.22 30); /* Red for errors */
@@ -166,59 +173,55 @@
   --sidebar-accent: oklch(0.96 0.03 48); /* Light orange accent */
   --sidebar-accent-foreground: oklch(0.25 0.01 48);
   --sidebar-border: oklch(0.94 0.01 48); /* Subtle warm border */
-  --sidebar-ring: oklch(0.68 0.22 48); /* Orange focus ring */
+  --sidebar-ring: oklch(0.68 0.22 48); /* Orange focus ring */ --sidebar: hsl(0 0% 98%);
 }
 
-.dark {
-  /* Dark Mode - Modern Minimalist with Orange Accent */
-  --background: oklch(0.12 0.005 48); /* Very dark warm background */
-  --foreground: oklch(0.98 0.01 48); /* Near white with warm tint */
+/* Dark mode removed - Light theme only with beautiful orange gradients */
 
-  /* Cards - Elevated dark surfaces */
-  --card: oklch(0.16 0.01 48); /* Dark warm card background */
-  --card-foreground: oklch(0.98 0.01 48);
-  --popover: oklch(0.16 0.01 48);
-  --popover-foreground: oklch(0.98 0.01 48);
+/* Custom Orange Gradient Utilities */
+.bg-orange-gradient {
+  background: linear-gradient(135deg,
+    var(--color-orange-gradient-start) 0%,
+    var(--color-orange-gradient-middle) 50%,
+    var(--color-orange-gradient-end) 100%);
+}
 
-  /* Orange Brand - Adjusted for dark mode */
-  --primary: oklch(0.72 0.20 48); /* Slightly lighter orange for contrast */
-  --primary-foreground: oklch(0.12 0.005 48); /* Dark background for text */
+.bg-orange-gradient-soft {
+  background: linear-gradient(135deg,
+    oklch(0.98 0.02 45) 0%,
+    oklch(0.95 0.05 45) 50%,
+    oklch(0.92 0.08 45) 100%);
+}
 
-  /* Secondary - Dark warm grays */
-  --secondary: oklch(0.20 0.01 48); /* Dark warm surface */
-  --secondary-foreground: oklch(0.98 0.01 48); /* Light warm text */
+.bg-orange-gradient-vibrant {
+  background: linear-gradient(135deg,
+    oklch(0.78 0.28 40) 0%,
+    oklch(0.70 0.24 45) 50%,
+    oklch(0.62 0.22 50) 100%);
+}
 
-  /* Muted - Dark minimalist */
-  --muted: oklch(0.18 0.01 48); /* Muted dark surface */
-  --muted-foreground: oklch(0.70 0.02 48); /* Medium light warm text */
+.bg-orange-gradient-radial {
+  background: radial-gradient(circle at center,
+    var(--color-orange-gradient-start) 0%,
+    var(--color-orange-gradient-middle) 50%,
+    var(--color-orange-gradient-end) 100%);
+}
 
-  /* Accent - Dark orange accent */
-  --accent: oklch(0.22 0.02 48); /* Dark orange accent */
-  --accent-foreground: oklch(0.98 0.01 48); /* Light text */
+.text-orange-gradient {
+  background: linear-gradient(135deg,
+    var(--color-orange-gradient-start) 0%,
+    var(--color-orange-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  /* System Colors */
-  --destructive: oklch(0.70 0.22 30); /* Slightly lighter red for dark mode */
-  --destructive-foreground: oklch(0.99 0.02 30); /* Light text on red */
-  --border: oklch(0.98 0.01 48 / 12%); /* Subtle warm border */
-  --input: oklch(0.98 0.01 48 / 8%); /* Input background */
-  --ring: oklch(0.72 0.20 48); /* Orange focus ring */
-
-  /* Chart Colors - Dark mode orange palette */
-  --chart-1: oklch(0.72 0.20 48); /* Primary orange */
-  --chart-2: oklch(0.78 0.18 48); /* Lighter orange */
-  --chart-3: oklch(0.65 0.22 48); /* Darker orange */
-  --chart-4: oklch(0.60 0.03 48); /* Warm gray */
-  --chart-5: oklch(0.85 0.15 48); /* Very light orange */
-
-  /* Sidebar - Dark minimalist (v4 format) */
-  --sidebar-background: oklch(0.14 0.005 48); /* Dark warm sidebar */
-  --sidebar-foreground: oklch(0.98 0.01 48);
-  --sidebar-primary: oklch(0.72 0.20 48); /* Orange primary */
-  --sidebar-primary-foreground: oklch(0.12 0.005 48);
-  --sidebar-accent: oklch(0.22 0.02 48); /* Dark orange accent */
-  --sidebar-accent-foreground: oklch(0.98 0.01 48);
-  --sidebar-border: oklch(0.98 0.01 48 / 10%); /* Subtle border */
-  --sidebar-ring: oklch(0.72 0.20 48); /* Orange focus ring */
+.border-orange-gradient {
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg,
+                var(--color-orange-gradient-start) 0%,
+                var(--color-orange-gradient-end) 100%) border-box;
 }
 
 @layer base {
@@ -440,4 +443,24 @@
   }
 
   /* Collapsible animations now handled by tw-animate-css for Tailwind v4 */
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

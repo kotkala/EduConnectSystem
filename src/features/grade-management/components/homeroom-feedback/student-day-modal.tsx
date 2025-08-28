@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -329,7 +330,7 @@ export function StudentDayModal({
           {loading && (
             <Card>
               <CardContent className="py-8 text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p className="mt-2 text-sm text-muted-foreground">Đang tải lịch học...</p>
               </CardContent>
             </Card>
@@ -481,7 +482,7 @@ export function StudentDayModal({
                     >
                       {generatingAiSummary ? (
                         <>
-                          <Skeleton className="h-32 w-full rounded-lg" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           Đang tạo...
                         </>
                       ) : (
@@ -573,7 +574,7 @@ export function StudentDayModal({
                 >
                   {sendingDailyFeedback ? (
                     <>
-                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Đang gửi...
                     </>
                   ) : (

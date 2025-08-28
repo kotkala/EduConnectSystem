@@ -1,16 +1,19 @@
 import React from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent } from '@/shared/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
+import { Progress } from '@/shared/components/ui/progress'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/components/ui/tooltip'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/components/ui/hover-card'
+
 import { ContentLayout } from '@/shared/components/dashboard/content-layout'
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/shared/components/ui/breadcrumb'
 import Link from 'next/link'
 
 import {
   UserCheck, GraduationCap, BookOpen, Heart, TrendingUp, TrendingDown,
-  Plus, Bell, FileText, Settings, Activity, Database,
-  Users, Calendar, BarChart3, CheckCircle
+  Activity, Database, Users, Calendar, BarChart3, CheckCircle, Bell
 } from 'lucide-react'
 
 // Animated Counter Component (Simple version without motion)
@@ -18,51 +21,33 @@ function AnimatedCounter({ end }: { readonly end: number }) {
   return <span className="transition-all duration-500">{end}</span>
 }
 
-// Trend Indicator Component
+// Enhanced Trend Indicator with Shadcn Badge
 function TrendIndicator({ value, isPositive }: { readonly value: number; readonly isPositive: boolean }) {
   const Icon = isPositive ? TrendingUp : TrendingDown
-  const colorClass = isPositive ? 'text-emerald-600' : 'text-red-600'
 
   return (
-    <div className={`flex items-center gap-1 ${colorClass}`}>
-      <Icon className="w-3 h-3" />
-      <span className="text-xs font-medium">{value}%</span>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant={isPositive ? "default" : "destructive"}
+          className={`flex items-center gap-1 ${
+            isPositive
+              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+              : 'bg-red-100 text-red-700 hover:bg-red-200'
+          }`}
+        >
+          <Icon className="w-3 h-3" />
+          <span className="text-xs font-medium">{value}%</span>
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{isPositive ? 'Tăng trưởng' : 'Giảm'} {value}% so với tháng trước</p>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
-// Quick Action Card Component
-function QuickActionCard({
-  icon: Icon,
-  title,
-  description,
-  onClick
-}: {
-  readonly icon: React.ComponentType<{ className?: string }>;
-  readonly title: string;
-  readonly description: string;
-  readonly onClick?: () => void
-}) {
-  return (
-    <button
-      type="button"
-      className="cursor-pointer hover:scale-[1.02] transition-transform duration-200 w-full text-left"
-      onClick={onClick}
-    >
-      <Card className="p-4 hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Icon className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm">{title}</h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
-        </div>
-      </Card>
-    </button>
-  )
-}
+
 
 // Helper functions
 function getTimeAgo(dateString: string): string {
@@ -214,13 +199,7 @@ export default async function AdminDashboard() {
     },
   ]
 
-  // Quick actions configuration
-  const quickActions = [
-    { icon: Plus, title: 'Thêm người dùng', description: 'Tạo tài khoản mới' },
-    { icon: Bell, title: 'Gửi thông báo', description: 'Gửi thông điệp đến mọi người' },
-    { icon: FileText, title: 'Tạo báo cáo', description: 'Xuất dữ liệu phân tích' },
-    { icon: Settings, title: 'Cài đặt hệ thống', description: 'Cấu hình nền tảng' },
-  ]
+
 
   // Get current time for greeting
   const currentHour = new Date().getHours()
@@ -232,8 +211,9 @@ export default async function AdminDashboard() {
   }
 
   return (
-    <ContentLayout title="Bảng điều khiển" role="admin">
-      <Breadcrumb>
+    <TooltipProvider>
+      <ContentLayout title="Bảng điều khiển" role="admin">
+        <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -261,67 +241,84 @@ export default async function AdminDashboard() {
               </p>
             </div>
 
-            {/* Enhanced Stats Cards */}
+            {/* Enhanced Stats Cards with HoverCard */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {roleConfig.map(({ role, label, icon: Icon, gradient, trend }) => (
-                <div
-                  key={role}
-                  className="cursor-pointer hover:scale-[1.02] transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
-                >
-                  <div className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg border bg-card text-card-foreground p-6">
-                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5`} />
-                    <div className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
-                      <h3 className="text-xs sm:text-sm font-medium text-gray-600">{label}</h3>
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              {roleConfig.map(({ role, label, icon: Icon, gradient, trend }) => {
+                const currentValue = stats[role] || 0
+                const maxValue = Math.max(...Object.values(stats))
+                const progressPercentage = maxValue > 0 ? (currentValue / maxValue) * 100 : 0
+
+                return (
+                  <HoverCard key={role}>
+                    <HoverCardTrigger asChild>
+                      <div className="cursor-pointer hover:scale-[1.02] transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+                        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+                          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5`} />
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">{label}</CardTitle>
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+                              <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            </div>
+                          </CardHeader>
+                          <CardContent className="pt-0 space-y-3">
+                            <div className="flex items-end justify-between">
+                              <div>
+                                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                                  <AnimatedCounter end={currentValue} />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Tổng số {label.toLowerCase()}
+                                </p>
+                              </div>
+                              <TrendIndicator value={trend.value} isPositive={trend.isPositive} />
+                            </div>
+                            {/* Progress Bar */}
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>Tỷ lệ</span>
+                                <span>{progressPercentage.toFixed(1)}%</span>
+                              </div>
+                              <Progress value={progressPercentage} className="h-2" />
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
-                    </div>
-                    <div className="pt-0">
-                      <div className="flex items-end justify-between">
-                        <div>
-                          <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                            <AnimatedCounter end={stats[role] || 0} />
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Tổng số {label.toLowerCase()}
-                          </p>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <Icon className="w-4 h-4" />
+                          Chi tiết {label}
+                        </h4>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>• Tổng số hiện tại: <strong>{currentValue}</strong></p>
+                          <p>• Thay đổi: <strong className={trend.isPositive ? 'text-emerald-600' : 'text-red-600'}>
+                            {trend.isPositive ? '+' : ''}{trend.value}%
+                          </strong> so với tháng trước</p>
+                          <p>• Tỷ lệ so với tổng: <strong>{progressPercentage.toFixed(1)}%</strong></p>
                         </div>
-                        <TrendIndicator value={trend.value} isPositive={trend.isPositive} />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    </HoverCardContent>
+                  </HoverCard>
+                )
+              })}
             </div>
 
-            {/* Quick Actions */}
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <h3 className="text-lg font-semibold text-gray-900">Thao tác nhanh</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {quickActions.map((action) => (
-                  <QuickActionCard
-                    key={action.title}
-                    icon={action.icon}
-                    title={action.title}
-                    description={action.description}
-                  />
-                ))}
-              </div>
-            </div>
+
 
             {/* Analytics Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="lg:col-span-2 rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-blue-600" />
                     Phân tích nền tảng
-                  </h3>
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Tương tác người dùng và thống kê sử dụng nền tảng
                   </p>
-                </div>
-                <div className="p-6 pt-0">
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Tỷ lệ lấp đầy lớp học</span>
@@ -360,20 +357,20 @@ export default async function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5 text-emerald-600" />
                     Tình trạng hệ thống
-                  </h3>
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Trạng thái hệ thống thời gian thực
                   </p>
-                </div>
-                <div className="p-6 pt-0">
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -423,23 +420,23 @@ export default async function AdminDashboard() {
                       </Badge>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Enhanced Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="border-0 shadow-lg rounded-lg border bg-card text-card-foreground">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-blue-600" />
                     Hoạt động gần đây
-                  </h3>
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Đăng ký người dùng mới nhất và hoạt động nền tảng
                   </p>
-                </div>
-                <div className="p-6 pt-0">
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     {recentActivity && recentActivity.length > 0 ? recentActivity.slice(0, 4).map((activity, index) => {
                       const isNewUser = new Date(activity.created_at).getTime() === new Date(activity.updated_at).getTime()
@@ -469,20 +466,20 @@ export default async function AdminDashboard() {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              <div className="border-0 shadow-lg rounded-lg border bg-card text-card-foreground">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-purple-600" />
                     Sự kiện sắp tới
-                  </h3>
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     Ngày quan trọng và hoạt động đã lên lịch
                   </p>
-                </div>
-                <div className="p-6 pt-0">
+                </CardHeader>
+                <CardContent>
                   <div className="space-y-4">
                     {upcomingMeetings && upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting, index) => {
                       const meetingDate = new Date(meeting.meeting_date)
@@ -517,13 +514,14 @@ export default async function AdminDashboard() {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
             </div>
           </div>
         </CardContent>
       </Card>
-    </ContentLayout>
+      </ContentLayout>
+    </TooltipProvider>
   )
 }

@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -69,7 +70,7 @@ function renderViolationsContent(
   if (loading) {
     return (
       <div className="text-center py-8">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
         <p className="text-muted-foreground">Đang tải vi phạm...</p>
       </div>
     )

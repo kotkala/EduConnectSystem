@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client";
 
 import React, { useState, useEffect, useCallback, useId } from "react";
@@ -306,7 +307,7 @@ export function TimetableFilters({
             <span>Timetable Filters</span>
           </CardTitle>
           <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading} className="w-full sm:w-auto">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             Refresh
           </Button>
         </div>

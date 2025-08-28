@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -163,7 +164,7 @@ export function EmailSuggestionInput({
         />
         {loading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           </div>
         )}
       </div>

@@ -11,7 +11,7 @@ import { Users, Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { SandyLoading } from '@/shared/components/ui/sandy-loading'
 import { EmptyState } from '@/shared/components/ui/empty-state'
-import { getChildrenGradeReportsAction, getAllGradeReportingPeriodsAction } from '@/lib/actions/parent-grade-actions'
+import { getChildrenGradeReportsAction, getAllGradeReportingPeriodsAction, getAllAcademicYearsAction } from '@/lib/actions/parent-grade-actions'
 
 
 
@@ -75,17 +75,39 @@ export default function ParentGradesClient() {
   const [loading, setLoading] = useState(true)
   const [submissions, setSubmissions] = useState<GradeSubmission[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('all')
   const [allPeriods, setAllPeriods] = useState<Array<{
     id: string,
     name: string,
     academic_year?: {name: string},
     semester?: {name: string}
   }>>([])
+  const [allAcademicYears, setAllAcademicYears] = useState<Array<{
+    id: string,
+    name: string,
+    is_current: boolean
+  }>>([])
 
   // Load grade reports
   const loadGradeReports = useCallback(async () => {
     try {
       setLoading(true)
+
+      // Fetch all academic years for dropdown
+      console.log('🔍 [PARENT GRADES CLIENT] Fetching all academic years...')
+      const academicYearsResult = await getAllAcademicYearsAction()
+      console.log('🔍 [PARENT GRADES CLIENT] Academic years result:', academicYearsResult)
+      if (academicYearsResult.success) {
+        console.log('✅ [PARENT GRADES CLIENT] Setting academic years:', academicYearsResult.data)
+        setAllAcademicYears(academicYearsResult.data as Array<{
+          id: string,
+          name: string,
+          is_current: boolean
+        }>)
+      } else {
+        console.error('❌ [PARENT GRADES CLIENT] Failed to fetch academic years:', academicYearsResult.error)
+        toast.error(`Không thể tải danh sách năm học: ${academicYearsResult.error}`)
+      }
 
       // Fetch all grade reporting periods for dropdown
       console.log('🔍 [PARENT GRADES CLIENT] Fetching all periods...')
@@ -127,10 +149,22 @@ export default function ParentGradesClient() {
 
   // Process submissions into student records with memoization
   const students = useMemo(() => {
-    // Filter submissions by selected period
-    const filteredSubmissions = selectedPeriod === 'all'
-      ? submissions
-      : submissions.filter(submission => submission.period.id === selectedPeriod)
+    // Filter submissions by selected academic year and period
+    let filteredSubmissions = submissions
+
+    // Filter by academic year first
+    if (selectedAcademicYear !== 'all') {
+      filteredSubmissions = filteredSubmissions.filter(submission =>
+        submission.academic_year?.name === allAcademicYears.find(ay => ay.id === selectedAcademicYear)?.name
+      )
+    }
+
+    // Then filter by period
+    if (selectedPeriod !== 'all') {
+      filteredSubmissions = filteredSubmissions.filter(submission =>
+        submission.period.id === selectedPeriod
+      )
+    }
 
     // Process filtered submissions into student records
     const studentMap = new Map<string, StudentRecord>()
@@ -167,7 +201,7 @@ export default function ParentGradesClient() {
     })
 
     return Array.from(studentMap.values())
-  }, [submissions, selectedPeriod])
+  }, [submissions, selectedPeriod, selectedAcademicYear, allAcademicYears])
 
   // Handle view submission
   const handleViewSubmission = useCallback((submission: GradeSubmission) => {
@@ -268,8 +302,27 @@ export default function ParentGradesClient() {
         </div>
       </div>
 
-      {/* Period Filter */}
-      <div className="flex items-center gap-4">
+      {/* Filters */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <label htmlFor="academic-year-select" className="text-sm font-medium">
+            Năm học:
+          </label>
+          <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Chọn năm học" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả năm</SelectItem>
+              {allAcademicYears.map((academicYear) => (
+                <SelectItem key={academicYear.id} value={academicYear.id}>
+                  {academicYear.name} {academicYear.is_current ? '(Hiện tại)' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex items-center gap-2">
           <label htmlFor="period-select" className="text-sm font-medium">
             Kỳ báo cáo:

@@ -187,6 +187,45 @@ export interface GradeSubmissionData {
   updated_at: string
 }
 
+// Get all academic years for admin (for dropdown display)
+export async function getAllAcademicYearsForAdminAction(): Promise<{
+  success: boolean
+  data?: Array<{
+    id: string
+    name: string
+    start_date: string
+    end_date: string
+    is_current: boolean
+  }>
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+    await checkAdminPermissions()
+
+    const { data: academicYears, error } = await supabase
+      .from('academic_years')
+      .select('id, name, start_date, end_date, is_current')
+      .order('start_date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching academic years:', error)
+      throw error
+    }
+
+    return {
+      success: true,
+      data: academicYears || []
+    }
+  } catch (error) {
+    console.error('Error in getAllAcademicYearsForAdminAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 // Get all grade periods for dropdown
 export async function getGradePeriodsAction(): Promise<{
   success: boolean
@@ -433,12 +472,18 @@ export async function getStudentGradeTrackingDataAction(periodId: string): Promi
             subjectAverages.push(subjectAverage)
           }
 
+          // Check if subject has any meaningful grades (not just summary)
+          const meaningfulGrades = grades.filter(g =>
+            ['summary', 'final', 'midterm', 'semester_2', 'semester_1', 'yearly'].includes(g.component_type) &&
+            g.grade_value !== null
+          )
+
           student.subjects.push({
             subject_id: subjectId,
             subject_name: subjectData?.name_vietnamese || 'Unknown',
             teacher_name: teacherInfo?.teacher_name || 'Unknown',
             average_grade: subjectAverage ? Math.round(subjectAverage * 10) / 10 : null,
-            has_grades: summaryGrades.length > 0
+            has_grades: meaningfulGrades.length > 0
           })
         }
 

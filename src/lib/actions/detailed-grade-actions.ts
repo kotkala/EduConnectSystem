@@ -1552,25 +1552,28 @@ export async function getSubmittedStudentGradeDetailsAction(
       // If no submission found, check if this student is in teacher's homeroom class
       // and fall back to showing their grades directly
       const { data: studentClass } = await supabase
-        .from('student_class_assignments')
+        .from('student_class_assignments_view')
         .select(`
           class_id,
-          classes!student_class_assignments_class_id_fkey(
-            id,
-            name,
-            homeroom_teacher_id
-          )
+          class_name
         `)
         .eq('student_id', studentId)
         .single()
 
-      if (!studentClass?.classes) {
+      if (!studentClass) {
         throw new Error('Bạn không có quyền xem điểm của học sinh này. Chỉ giáo viên chủ nhiệm mới có thể xem điểm học sinh.')
       }
 
-      // Handle both single object and array cases
-      const classData = Array.isArray(studentClass.classes) ? studentClass.classes[0] : studentClass.classes
-      const classInfo = classData as { id: string; name: string; homeroom_teacher_id: string }
+      // Get the class information with homeroom teacher
+      const { data: classInfo } = await supabase
+        .from('classes')
+        .select('id, name, homeroom_teacher_id')
+        .eq('id', studentClass.class_id)
+        .single()
+
+      if (!classInfo) {
+        throw new Error('Bạn không có quyền xem điểm của học sinh này. Chỉ giáo viên chủ nhiệm mới có thể xem điểm học sinh.')
+      }
 
       if (classInfo.homeroom_teacher_id !== user.id) {
         throw new Error('Bạn không có quyền xem điểm của học sinh này. Chỉ giáo viên chủ nhiệm mới có thể xem điểm học sinh.')

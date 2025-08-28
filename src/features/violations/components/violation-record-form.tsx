@@ -397,7 +397,7 @@ export default function ViolationRecordForm({ onSuccess }: Readonly<ViolationRec
                       >
                         <div className="font-medium">{student.full_name}</div>
                         <div className="text-sm text-muted-foreground">
-                          ID: {student.student_id || 'N/A'} â€¢ {student.email || 'N/A'}
+                          ID: {student.student_id || 'N/A'} • {student.email || 'N/A'}
                         </div>
                       </button>
                     </div>

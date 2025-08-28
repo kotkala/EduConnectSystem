@@ -205,8 +205,8 @@ export async function getParentReportNotificationsAction(page: number = 1, limit
           .filter(Boolean)
 
         const { data: reportPeriods } = await supabase
-          .from('grade_reporting_periods')
-          .select('id, name, start_date, end_date, period_type')
+          .from('report_periods')
+          .select('id, name, start_date, end_date')
           .in('id', reportPeriodIds)
 
 

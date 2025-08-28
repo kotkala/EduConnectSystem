@@ -372,12 +372,18 @@ export async function getStudentGradeTrackingDataAction(periodId: string): Promi
             subjectAverages.push(subjectAverage)
           }
 
+          // Check if subject has any meaningful grades (not just summary)
+          const meaningfulGrades = grades.filter(g =>
+            ['summary', 'final', 'midterm', 'semester_2', 'semester_1', 'yearly'].includes(g.component_type) &&
+            g.grade_value !== null
+          )
+
           student.subjects.push({
             subject_id: subjectId,
             subject_name: subjectData?.name_vietnamese || 'Unknown',
             teacher_name: teacherInfo?.teacher_name || 'Unknown',
             average_grade: subjectAverage ? Math.round(subjectAverage * 10) / 10 : null,
-            has_grades: summaryGrades.length > 0
+            has_grades: meaningfulGrades.length > 0
           })
         }
 

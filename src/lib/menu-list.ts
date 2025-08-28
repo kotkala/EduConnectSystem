@@ -13,6 +13,8 @@ import {
   CalendarClock,
   BookCheck,
   Heart,
+  MessageSquare,
+  TrendingUp,
   LucideIcon
 } from "lucide-react"
 
@@ -240,6 +242,16 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
             href: "/dashboard/teacher/schedule-change",
             label: "Đơn thay đổi lịch",
             icon: CalendarClock
+          },
+          {
+            href: "/dashboard/teacher/feedback",
+            label: "Phản hồi học sinh",
+            icon: MessageSquare
+          },
+          {
+            href: "/dashboard/teacher/violations",
+            label: "Vi phạm",
+            icon: AlertTriangle
           }
         ]
       }
@@ -265,16 +277,6 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
             icon: Bell
           },
           {
-            href: "/student/courses",
-            label: "Khóa học",
-            icon: BookOpen
-          },
-          {
-            href: "/student/assignments",
-            label: "Bài tập",
-            icon: FileText
-          },
-          {
             href: "/student/grades",
             label: "Điểm số",
             icon: Award
@@ -283,6 +285,11 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
             href: "/student/timetable",
             label: "Thời khóa biểu",
             icon: Calendar
+          },
+          {
+            href: "/student/grade-improvement",
+            label: "Cải thiện điểm",
+            icon: TrendingUp
           }
         ]
       }

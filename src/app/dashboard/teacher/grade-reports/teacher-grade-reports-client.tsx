@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getHomeroomSubmittedGradesAction, sendGradeReportsToParentsAction, getPeriodsWithSubmissionsAction } from '@/lib/actions/detailed-grade-actions'
-import { getGradeReportingPeriodsForTeachersAction } from '@/lib/actions/grade-management-actions'
+import { getGradeReportingPeriodsForTeachersAction, getAllAcademicYearsForTeachersAction } from '@/lib/actions/grade-management-actions'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 
 interface SubmissionRecord {
@@ -69,6 +69,12 @@ export default function TeacherGradeReportsClient() {
   const [students, setStudents] = useState<StudentRecord[]>([])
   const [periods, setPeriods] = useState<GradeReportingPeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('all')
+  const [allAcademicYears, setAllAcademicYears] = useState<Array<{
+    id: string,
+    name: string,
+    is_current: boolean
+  }>>([])
   const [periodsWithSubmissions, setPeriodsWithSubmissions] = useState<string[]>([])
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
 
@@ -83,6 +89,16 @@ export default function TeacherGradeReportsClient() {
   // Load periods
   const loadPeriods = useCallback(async () => {
     try {
+      // Load academic years first
+      const academicYearsResult = await getAllAcademicYearsForTeachersAction()
+      if (academicYearsResult.success && academicYearsResult.data) {
+        setAllAcademicYears(academicYearsResult.data as Array<{
+          id: string,
+          name: string,
+          is_current: boolean
+        }>)
+      }
+
       // Load all periods
       const periodsResult = await getGradeReportingPeriodsForTeachersAction({ limit: 100 })
 
@@ -452,34 +468,65 @@ export default function TeacherGradeReportsClient() {
         </Card>
       </div>
 
-      {/* Period Selection */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Chọn kỳ báo cáo</CardTitle>
+          <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Chọn kỳ báo cáo" />
-            </SelectTrigger>
-            <SelectContent>
-              {periods.map((period) => {
-                const hasSubmissions = periodsWithSubmissions.includes(period.id)
-                return (
-                  <SelectItem key={period.id} value={period.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{period.name} - {period.academic_year.name} - {period.semester.name}</span>
-                      {hasSubmissions && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          Có bảng điểm
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                )
-              })}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label htmlFor="academic-year-select" className="text-sm font-medium">
+                Năm học:
+              </label>
+              <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Chọn năm học" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả năm</SelectItem>
+                  {allAcademicYears.map((academicYear) => (
+                    <SelectItem key={academicYear.id} value={academicYear.id}>
+                      {academicYear.name} {academicYear.is_current ? '(Hiện tại)' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="period-select" className="text-sm font-medium">
+                Kỳ báo cáo:
+              </label>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Chọn kỳ báo cáo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periods
+                    .filter(period =>
+                      selectedAcademicYear === 'all' ||
+                      period.academic_year.name === allAcademicYears.find(ay => ay.id === selectedAcademicYear)?.name
+                    )
+                    .map((period) => {
+                      const hasSubmissions = periodsWithSubmissions.includes(period.id)
+                      return (
+                        <SelectItem key={period.id} value={period.id}>
+                          <div className="flex items-center justify-between w-full">
+                            <span>{period.name} - {period.academic_year.name} - {period.semester.name}</span>
+                            {hasSubmissions && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                Có bảng điểm
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      )
+                    })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

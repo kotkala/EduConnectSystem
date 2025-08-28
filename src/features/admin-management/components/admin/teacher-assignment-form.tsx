@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -316,7 +317,7 @@ export default function TeacherAssignmentForm({ onSuccess, currentUserId }: Teac
           >
             {submitting ? (
               <>
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm sm:text-base">Assigning Teacher...</span>
               </>
             ) : (

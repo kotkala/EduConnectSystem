@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -201,7 +202,7 @@ export function AcademicFilters<T extends BaseAcademicFilters>({
           </CardTitle>
           {showRefreshButton && onRefresh && (
             <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading || isLoadingData}>
-              <Skeleton className="h-32 w-full rounded-lg" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Làm mới
             </Button>
           )}

@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -211,7 +212,7 @@ export default function StudentAssignmentForm({
 
             {loadingStudents ? (
               <div className="flex items-center justify-center py-8">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="ml-2">Loading available students...</span>
               </div>
             ) : (() => {
@@ -282,7 +283,7 @@ export default function StudentAssignmentForm({
             >
               {submitting ? (
                 <>
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Assigning...
                 </>
               ) : (

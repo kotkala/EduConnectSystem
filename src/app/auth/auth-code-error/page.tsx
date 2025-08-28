@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
 export default function AuthCodeErrorPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-orange-gradient-soft p-4">
       <div className="w-full max-w-md">
         <Card>
           <CardHeader className="space-y-1">
@@ -25,7 +25,7 @@ export default function AuthCodeErrorPage() {
             </Alert>
             
             <div className="space-y-2">
-              <Button asChild className="w-full">
+              <Button asChild className="w-full bg-orange-gradient hover:bg-orange-gradient-vibrant text-white shadow-lg">
                 <Link href="/">
                   Thử lại
                 </Link>

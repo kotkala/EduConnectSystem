@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -74,7 +75,7 @@ export function StudentWeeklyGrid({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Skeleton className="h-32 w-full rounded-lg" />
+          <Loader2 className="h-4 w-4 animate-spin" />
           <p className="mt-4 text-muted-foreground">Đang tải dữ liệu...</p>
         </CardContent>
       </Card>

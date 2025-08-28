@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -108,7 +109,7 @@ export default function AvatarUpload({
       >
         <label htmlFor="avatar-upload" className="cursor-pointer">
           {uploading ? (
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Camera className="w-4 h-4" />
           )}

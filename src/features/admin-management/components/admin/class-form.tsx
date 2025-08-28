@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, memo } from "react"
@@ -326,7 +327,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
   if (loadingData) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Skeleton className="h-32 w-full rounded-lg" />
+        <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     )
   }
@@ -545,7 +546,7 @@ function ClassFormComponent({ class: classData, onSuccess, onCancel, defaultAcad
           >
             {isSubmitting ? (
               <>
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (

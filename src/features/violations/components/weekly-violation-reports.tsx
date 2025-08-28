@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -421,7 +422,7 @@ export default function WeeklyViolationReports() {
           <CardContent>
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p className="text-muted-foreground">Đang khởi tạo báo cáo tuần...</p>
               </div>
             </div>
@@ -625,7 +626,7 @@ export default function WeeklyViolationReports() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Trạng thái</CardTitle>
-            <Skeleton className="h-32 w-full rounded-lg" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold">

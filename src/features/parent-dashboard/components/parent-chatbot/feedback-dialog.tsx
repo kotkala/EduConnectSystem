@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState } from "react"
@@ -209,7 +210,7 @@ export function FeedbackDialog({
           >
             {isSubmitting ? (
               <>
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Đang gửi...
               </>
             ) : (

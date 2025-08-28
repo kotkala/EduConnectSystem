@@ -1,12 +1,29 @@
 'use client'
-
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Alert, AlertDescription } from '@/shared/components/ui/alert'
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
+import { Input } from '@/shared/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/shared/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover'
+
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
+import { AdminPageTemplate } from '@/shared/components/dashboard/admin-page-template'
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import { useNotificationCount } from '@/features/notifications/hooks/use-notification-count'
 import {
@@ -14,6 +31,7 @@ import {
   markNotificationAsReadAction,
   type Notification
 } from '@/features/notifications/actions/notification-actions'
+import { NotificationForm } from '@/features/notifications/components/notifications/notification-form'
 import { Bell, Clock, User, AlertCircle, Eye, Plus, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -223,6 +241,10 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationsLoading, setNotificationsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
 
 
@@ -296,14 +318,36 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
     }
   }
 
+  const handleCreateSuccess = () => {
+    setIsCreateDialogOpen(false)
+    loadNotifications()
+    toast.success('Thông báo đã được tạo thành công!')
+  }
 
+  const filteredNotifications = useMemo(() => {
+    let filtered = notifications
+    if (selectedFilter === 'unread') filtered = filtered.filter(n => !n.is_read)
+    if (selectedFilter === 'read') filtered = filtered.filter(n => n.is_read)
+    if (searchQuery) {
+      filtered = filtered.filter(n =>
+        n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        n.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (n.sender?.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+    return filtered
+  }, [notifications, selectedFilter, searchQuery])
 
-
+  const filters = [
+    { value: 'all', label: 'Tất cả', count: notifications.length },
+    { value: 'unread', label: 'Chưa đọc', count: unreadCount },
+    { value: 'read', label: 'Đã đọc', count: notifications.length - unreadCount }
+  ]
 
   // Loading content
   const loadingContent = (
     <div className="flex items-center justify-center h-64">
-      <Skeleton className="h-32 w-full rounded-lg" />
+      <Loader2 className="h-4 w-4 animate-spin" />
     </div>
   )
 
@@ -343,55 +387,66 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
     return <div className="p-6">{accessDeniedContent}</div>
   }
 
-  // Main content
+  // Clean main content inspired by Gmail/Google Workspace
   const mainContent = (
-    <div className="container-modern spacing-desktop">
-      {/* Modern Header */}
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between mb-8">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="h-12 md:h-14 lg:h-16 w-12 rounded-2xl bg-orange-100 flex items-center justify-center">
-              <Bell className="h-6 w-6 text-orange-600" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{config.title}</h1>
-              <p className="text-base text-muted-foreground mt-1">
-                {config.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-orange-500"></div>
-              <span className="text-muted-foreground">
-                Tổng: <span className="font-medium text-foreground">{totalCount}</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-              <span className="text-muted-foreground">
-                Chưa đọc: <span className="font-medium text-foreground">
-                  {unreadCount}
-                </span>
-              </span>
-            </div>
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          {/* Filter tabs */}
+          <div className="flex items-center border rounded-lg p-1">
+            {filters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant={selectedFilter === filter.value ? "default" : "ghost"}
+                size="sm"
+                className="h-8 px-3 text-sm"
+                onClick={() => setSelectedFilter(filter.value)}
+              >
+                {filter.label}
+                {filter.count > 0 && (
+                  <span className="ml-1 text-xs opacity-60">({filter.count})</span>
+                )}
+              </Button>
+            ))}
           </div>
         </div>
 
-        {config.canSendNotifications && (
-          <Button
-            onClick={() => {
-              const basePath = getBasePath(config.role)
-              router.push(`${basePath}/notifications/create`)
-            }}
-            className="btn-modern bg-orange-brand hover:bg-orange-600 text-white shadow-soft w-full sm:w-auto"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Tạo thông báo
-          </Button>
-        )}
+        {/* Search */}
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Tìm kiếm thông báo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-80"
+          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Bell className="h-4 w-4" />
+                Lọc
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48" align="end">
+              <div className="space-y-2">
+                {filters.map((filter) => (
+                  <Button
+                    key={filter.value}
+                    variant={selectedFilter === filter.value ? "default" : "ghost"}
+                    size="sm"
+                    className="w-full justify-between"
+                    onClick={() => setSelectedFilter(filter.value)}
+                  >
+                    {filter.label}
+                    <Badge variant="secondary" className="ml-2">
+                      {filter.count}
+                    </Badge>
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {error && (
@@ -400,19 +455,119 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
         </Alert>
       )}
 
-      {/* Notifications List */}
-      <div className="space-y-4">
-        {renderNotificationsContent(notificationsLoading, notifications, config, router, handleMarkAsRead)}
+      {/* Notifications List - Gmail style */}
+      <div className="border rounded-lg">
+        {notificationsLoading ? (
+          <div className="divide-y">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+                </div>
+                <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        ) : filteredNotifications.length === 0 ? (
+          <div className="p-12 text-center">
+            <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Không có thông báo</h3>
+            <p className="text-gray-500">
+              {searchQuery ? 'Không tìm thấy thông báo phù hợp.' : config.emptyStateMessage}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y">
+            {filteredNotifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  !notification.is_read ? 'bg-blue-50/50' : ''
+                }`}
+                onClick={() => setExpandedId(expandedId === notification.id ? null : notification.id)}
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
+                    <AvatarImage src={`https://avatar.vercel.sh/${notification.sender?.full_name || 'system'}`} />
+                    <AvatarFallback className="text-sm">
+                      {notification.sender?.full_name?.charAt(0) || 'S'}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {notification.sender?.full_name || 'Hệ thống'}
+                        </span>
+                        {!notification.is_read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: vi })}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">
+                      {notification.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {notification.content}
+                    </p>
+
+                    {expandedId === notification.id && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">
+                          {notification.content}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            {notification.target_roles?.map(role => (
+                              <Badge key={role} variant="outline" className="text-xs">
+                                {getRoleDisplayName(role)}
+                              </Badge>
+                            ))}
+                          </div>
+
+                          {!notification.is_read && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleMarkAsRead(notification.id)
+                              }}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Đánh dấu đã đọc
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Pagination Controls */}
-      <SharedPaginationControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onPageChange={setCurrentPage}
-        itemName="thông báo"
-      />
+      {/* Pagination */}
+      {filteredNotifications.length > 0 && (
+        <SharedPaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={filteredNotifications.length}
+          onPageChange={setCurrentPage}
+          itemName="thông báo"
+        />
+      )}
 
 
 
@@ -421,6 +576,47 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
     </div>
   )
+
+  // Use AdminPageTemplate for admin role
+  if (config.role === 'admin') {
+    return (
+      <>
+        <AdminPageTemplate
+          title={config.title}
+          description={config.description}
+          actions={
+            config.canSendNotifications ? (
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    <Plus className="h-4 w-4" />
+                    Tạo thông báo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Tạo thông báo mới</DialogTitle>
+                    <DialogDescription>
+                      Tạo và gửi thông báo đến các đối tượng mục tiêu trong hệ thống
+                    </DialogDescription>
+                  </DialogHeader>
+                  <NotificationForm
+                    isEditMode={false}
+                    onSuccess={handleCreateSuccess}
+                    onCancel={() => setIsCreateDialogOpen(false)}
+                    showCard={false}
+                  />
+                </DialogContent>
+              </Dialog>
+            ) : undefined
+          }
+          showCard={true}
+        >
+          {mainContent}
+        </AdminPageTemplate>
+      </>
+    )
+  }
 
   if (config.useSidebarLayout) {
     return (

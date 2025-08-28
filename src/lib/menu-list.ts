@@ -130,15 +130,9 @@ export function getMenuList(pathname: string, role: UserRole): Group[] {
           },
 
           {
-            href: "",
-            label: "Báo cáo",
-            icon: FileText,
-            submenus: [
-              {
-                href: "/dashboard/admin/report-periods",
-                label: "Báo cáo học tập"
-              }
-            ]
+            href: "/dashboard/admin/report-periods",
+            label: "Báo cáo học tập",
+            icon: FileText
           }
         ]
       },

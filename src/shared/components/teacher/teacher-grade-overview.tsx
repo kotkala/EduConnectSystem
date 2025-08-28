@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -153,7 +154,7 @@ export function TeacherGradeOverview({
                 onClick={loadGradeData}
                 disabled={loading}
               >
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Làm mới
               </Button>
               <Button variant="outline" size="sm" onClick={onImportClick}>
@@ -176,7 +177,7 @@ export function TeacherGradeOverview({
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <p>Đang tải dữ liệu điểm số...</p>
               </div>
             </div>

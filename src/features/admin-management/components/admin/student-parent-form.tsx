@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -136,7 +137,7 @@ function StudentInfoSection({
                 className="h-12 px-4 text-base"
               >
                 {generatingId ? (
-                  <Skeleton className="h-4 w-4 rounded" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
@@ -546,10 +547,8 @@ export function StudentParentForm({ editMode = false, initialData, onSuccess, on
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2 sm:mr-3"></div>
-                  <span className="truncate">
-                    {editMode ? "Đang cập nhật..." : "Đang tạo..."}
-                  </span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {editMode ? "Đang cập nhật Học sinh & Phụ huynh..." : "Đang tạo Học sinh & Phụ huynh..."}
                 </>
               ) : (
                 <>

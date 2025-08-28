@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -7,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { Progress } from "@/shared/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/ui/tooltip"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/shared/components/ui/hover-card"
 import { Plus, Calendar, Clock, BookOpen, AlertCircle, Edit, Trash2 } from "lucide-react"
 import { Badge } from "@/shared/components/ui/badge"
 import { AcademicYearForm } from "@/features/admin-management/components/admin/academic-year-form"
@@ -173,30 +177,41 @@ export default function AcademicYearsManagementPage() {
         showCard={true}
       >
         <div className="space-y-6">
-          {/* Stats Cards Skeleton */}
+          {/* Enhanced Stats Cards Skeleton */}
           <div className="grid gap-4 md:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+              <Card key={i} className="hover:shadow-lg transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-4" />
-                </div>
-                <div className="p-6 pt-0">
-                  <Skeleton className="h-8 w-16 mb-2" />
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-8 w-16" />
                   <Skeleton className="h-3 w-32" />
-                </div>
-              </div>
+                  <div className="space-y-1">
+                    <Skeleton className="h-2 w-full" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-2 w-8" />
+                      <Skeleton className="h-2 w-8" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
-          {/* Tables Skeleton */}
+          {/* Enhanced Tables Skeleton */}
           <div className="grid gap-6 lg:grid-cols-2">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="p-6">
-                  <Skeleton className="h-6 w-32 mb-4" />
-                  <div className="space-y-3">
-                    {[...Array(4)].map((_, j) => (
+              <Card key={i} className="hover:shadow-lg transition-all duration-300">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5 rounded-full" />
+                    <Skeleton className="h-6 w-32" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[...Array(4)].map((_, j) => (
                       <div key={j} className="flex items-center space-x-4">
                         <Skeleton className="h-4 w-4" />
                         <Skeleton className="h-4 w-32" />
@@ -204,9 +219,8 @@ export default function AcademicYearsManagementPage() {
                         <Skeleton className="h-4 w-16" />
                       </div>
                     ))}
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -249,64 +263,182 @@ export default function AcademicYearsManagementPage() {
       showCard={true}
     >
       <div className="space-y-6">
-        {/* Stats Cards */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Năm học hiện tại</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">
-                {currentYear?.name || 'Không có'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {currentYear ? `${new Date(currentYear.start_date).getFullYear()} - ${new Date(currentYear.end_date).getFullYear()}` : 'Chưa thiết lập'}
-              </p>
-            </CardContent>
-          </Card>
+        {/* Enhanced Stats Cards */}
+        <TooltipProvider>
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Năm học hiện tại</CardTitle>
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <Calendar className="h-4 w-4 text-orange-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-lg sm:text-2xl font-bold text-orange-600">
+                      {currentYear?.name || 'Không có'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {currentYear ? `${new Date(currentYear.start_date).getFullYear()} - ${new Date(currentYear.end_date).getFullYear()}` : 'Chưa thiết lập'}
+                    </p>
+                    {currentYear && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Tiến độ năm học</span>
+                          <span>{Math.round(((new Date().getTime() - new Date(currentYear.start_date).getTime()) / (new Date(currentYear.end_date).getTime() - new Date(currentYear.start_date).getTime())) * 100)}%</span>
+                        </div>
+                        <Progress value={Math.round(((new Date().getTime() - new Date(currentYear.start_date).getTime()) / (new Date(currentYear.end_date).getTime() - new Date(currentYear.start_date).getTime())) * 100)} className="h-2" />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Chi tiết năm học
+                  </h4>
+                  {currentYear ? (
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>• Tên: <strong>{currentYear.name}</strong></p>
+                      <p>• Bắt đầu: <strong>{new Date(currentYear.start_date).toLocaleDateString('vi-VN')}</strong></p>
+                      <p>• Kết thúc: <strong>{new Date(currentYear.end_date).toLocaleDateString('vi-VN')}</strong></p>
+                      <p>• Trạng thái: <strong className="text-green-600">Đang hoạt động</strong></p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Chưa có năm học nào được thiết lập</p>
+                  )}
+                </div>
+              </HoverCardContent>
+            </HoverCard>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Học kỳ hiện tại</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">
-                {currentSemester?.name || 'Không có'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {currentSemester ? `${currentSemester.weeks_count} tuần` : 'Chưa thiết lập'}
-              </p>
-            </CardContent>
-          </Card>
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Học kỳ hiện tại</CardTitle>
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-lg sm:text-2xl font-bold text-blue-600">
+                      {currentSemester?.name || 'Không có'}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {currentSemester ? `${currentSemester.weeks_count} tuần` : 'Chưa thiết lập'}
+                    </p>
+                    {currentSemester && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Tiến độ học kỳ</span>
+                          <span>75%</span>
+                        </div>
+                        <Progress value={75} className="h-2" />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Chi tiết học kỳ
+                  </h4>
+                  {currentSemester ? (
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>• Tên: <strong>{currentSemester.name}</strong></p>
+                      <p>• Số tuần: <strong>{currentSemester.weeks_count} tuần</strong></p>
+                      <p>• Trạng thái: <strong className="text-blue-600">Đang diễn ra</strong></p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Chưa có học kỳ nào được thiết lập</p>
+                  )}
+                </div>
+              </HoverCardContent>
+            </HoverCard>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tổng năm học</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{academicYearsTotal}</div>
-              <p className="text-xs text-muted-foreground">
-                Trong hệ thống
-              </p>
-            </CardContent>
-          </Card>
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Tổng năm học</CardTitle>
+                    <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                      <BookOpen className="h-4 w-4 text-green-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-lg sm:text-2xl font-bold text-green-600">{academicYearsTotal}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Trong hệ thống
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Hoạt động</span>
+                        <span>100%</span>
+                      </div>
+                      <Progress value={100} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Thống kê năm học
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>• Tổng số: <strong>{academicYearsTotal}</strong></p>
+                    <p>• Đang hoạt động: <strong>1</strong></p>
+                    <p>• Đã hoàn thành: <strong>{academicYearsTotal - 1}</strong></p>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Tổng học kỳ</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{semestersTotal}</div>
-              <p className="text-xs text-muted-foreground">
-                Trong hệ thống
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Tổng học kỳ</CardTitle>
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-purple-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="text-lg sm:text-2xl font-bold text-purple-600">{semestersTotal}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Trong hệ thống
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Đã tạo</span>
+                        <span>100%</span>
+                      </div>
+                      <Progress value={100} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Thống kê học kỳ
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>• Tổng số: <strong>{semestersTotal}</strong></p>
+                    <p>• Đang diễn ra: <strong>1</strong></p>
+                    <p>• Đã hoàn thành: <strong>{semestersTotal - 1}</strong></p>
+                  </div>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          </div>
 
         {/* Error Alerts */}
         {academicYearsError && (
@@ -333,7 +465,7 @@ export default function AcademicYearsManagementPage() {
           <TabsContent value="years" className="space-y-4">
             {academicYearsLoading ? (
               <div className="flex items-center justify-center h-32 md:h-40 lg:h-48">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="ml-2">Đang tải năm học...</span>
               </div>
             ) : (
@@ -385,7 +517,7 @@ export default function AcademicYearsManagementPage() {
           <TabsContent value="semesters" className="space-y-4">
             {semestersLoading ? (
               <div className="flex items-center justify-center h-32 md:h-40 lg:h-48">
-                <Skeleton className="h-32 w-full rounded-lg" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="ml-2">Đang tải học kỳ...</span>
               </div>
             ) : (
@@ -509,6 +641,7 @@ export default function AcademicYearsManagementPage() {
             onSuccess={handleDeleteSuccess}
           />
         )}
+        </TooltipProvider>
       </div>
     </AdminPageTemplate>
   )

@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
@@ -313,7 +314,7 @@ export function HomeroomMeetingDialog({
               
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span className="ml-2">Đang tải danh sách học sinh...</span>
                 </div>
               ) : (
@@ -363,7 +364,7 @@ export function HomeroomMeetingDialog({
             onClick={handleSubmit} 
             disabled={isSubmitting || !selectedClassId || !meetingData.title || !meetingData.meeting_date || selectedStudents.size === 0}
           >
-            {isSubmitting && <Skeleton className="h-32 w-full rounded-lg" />}
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             <Send className="mr-2 h-4 w-4" />
             Gửi Lịch Họp
           </Button>

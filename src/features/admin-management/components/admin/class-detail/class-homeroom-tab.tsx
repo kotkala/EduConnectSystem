@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 "use client"
 
 import { useState, useEffect } from "react"
@@ -236,7 +237,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
               </Select>
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Skeleton className="h-32 w-full rounded-lg" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Loading teachers...
                 </div>
               )}
@@ -255,7 +256,7 @@ export default function ClassHomeroomTab({ classId, classData }: ClassHomeroomTa
                   const loadingText = currentHomeroomTeacher ? "Changing..." : "Assigning..."
                   return (
                     <>
-                      <Skeleton className="h-32 w-full rounded-lg" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       {loadingText}
                     </>
                   )

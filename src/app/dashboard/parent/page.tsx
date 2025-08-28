@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/button'
@@ -67,7 +66,7 @@ export default function ParentDashboard() {
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
-      setError(result.error || 'Kh�ng th? t?i danh s�ch h?c sinh')
+      setError(result.error || 'Không thể tải danh sách học sinh')
     }
     setIsLoading(false)
   }, [])
@@ -78,7 +77,7 @@ export default function ParentDashboard() {
     if (result.success && result.data) {
       setStudents(result.data)
     } else {
-      setError(result.error || 'Kh�ng th? t?i danh s�ch h?c sinh')
+      setError(result.error || 'Không thể tải danh sách học sinh')
     }
     setIsLoading(false)
   }, [])
@@ -100,10 +99,10 @@ export default function ParentDashboard() {
       <div className="p-6">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <AlertCircle className="h-16 w-16 md:w-20 lg:w-24 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900">T? ch?i truy c?p</h2>
-          <p className="text-gray-600">B?n kh�ng c� quy?n truy c?p trang n�y.</p>
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-600">Bạn không có quyền truy cập trang này.</p>
           <Button onClick={() => router.push('/dashboard')}>
-            Quay l?i b?ng di?u khi?n
+            Quay lại bảng điều khiển
           </Button>
         </div>
       </div>
@@ -111,11 +110,11 @@ export default function ParentDashboard() {
   }
 
   return (
-    <ContentLayout title="T?ng quan" role="parent">
+    <ContentLayout title="Tổng quan" role="parent">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>T?ng quan</BreadcrumbPage>
+            <BreadcrumbPage>Tổng quan</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -133,15 +132,15 @@ export default function ParentDashboard() {
                 </div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                    Ch�o m?ng tr? l?i!
+                    Chào mừng trở lại!
                   </h1>
                   <p className="text-lg text-muted-foreground font-medium">
-                    {profile.full_name || 'Ph? huynh'}
+                    {profile.full_name || 'Phụ huynh'}
                   </p>
                 </div>
               </div>
               <p className="text-muted-foreground max-w-2xl leading-relaxed">
-                Qu?n l� ho?t d?ng h?c t?p c?a con em v� lu�n d?ng h�nh c�ng c�c em trong h�nh tr�nh ph�t tri?n.
+                Quản lý hoạt động học tập của con em và luôn đồng hành cùng các em trong hành trình phát triển.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -151,7 +150,7 @@ export default function ParentDashboard() {
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-6 py-3 font-medium"
               >
                 <Plus className="mr-2 h-5 w-5" />
-                T?o don xin ngh?
+                Tạo đơn xin nghỉ
               </Button>
             </div>
           </div>
@@ -172,18 +171,18 @@ export default function ParentDashboard() {
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-blue-600" />
                 <label htmlFor="academic-year" className="font-semibold text-gray-700">
-                  Ni�n kh�a h?c:
+                  Niên khóa học:
                 </label>
               </div>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger className="w-full sm:w-[240px] bg-white border-gray-200 rounded-lg shadow-sm hover:border-blue-300 transition-colors">
-                  <SelectValue placeholder="Ch?n ni�n kh�a" />
+                  <SelectValue placeholder="Chọn niên khóa" />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg border-gray-200">
-                  <SelectItem value="all" className="rounded-md">T?t c? ni�n kh�a</SelectItem>
+                  <SelectItem value="all" className="rounded-md">Tất cả niên khóa</SelectItem>
                   {academicYears.map((year) => (
                     <SelectItem key={year.id} value={year.id} className="rounded-md">
-                      {year.name} {year.is_current && '(Hi?n t?i)'}
+                      {year.name} {year.is_current && '(Hiện tại)'}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -201,11 +200,11 @@ export default function ParentDashboard() {
                 <div className="text-right">
                   <div className="text-3xl font-bold text-gray-900">{students.length}</div>
                   <p className="text-sm text-blue-600 font-medium">
-                    {selectedYear && selectedYear !== 'all' ? 'Trong ni�n kh�a' : 'T?ng s? con em'}
+                    {selectedYear && selectedYear !== 'all' ? 'Trong niên khóa' : 'Tổng số con em'}
                   </p>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-800">Con em c?a t�i</h3>
+              <h3 className="font-semibold text-gray-800">Con em của tôi</h3>
             </div>
 
             <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-emerald-200/50 shadow-lg shadow-emerald-500/10">
@@ -218,11 +217,11 @@ export default function ParentDashboard() {
                     {students.filter(s => s.current_class).length}
                   </div>
                   <p className="text-sm text-emerald-600 font-medium">
-                    �ang theo h?c
+                    Đang theo học
                   </p>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-800">L?p h?c hi?n t?i</h3>
+              <h3 className="font-semibold text-gray-800">Lớp học hiện tại</h3>
             </div>
 
             <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-purple-200/50 shadow-lg shadow-purple-500/10">
@@ -233,11 +232,11 @@ export default function ParentDashboard() {
                 <div className="text-right">
                   <div className="text-3xl font-bold text-gray-900">{academicYears.length}</div>
                   <p className="text-sm text-purple-600 font-medium">
-                    Ni�n kh�a c� s?n
+                    Niên khóa có sẵn
                   </p>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-800">Ni�n kh�a h?c</h3>
+              <h3 className="font-semibold text-gray-800">Niên khóa học</h3>
             </div>
           </div>
 
@@ -248,12 +247,12 @@ export default function ParentDashboard() {
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                   <School className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">Con em c?a t�i</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Con em của tôi</h2>
               </div>
               <p className="text-gray-600">
                 {selectedYear && selectedYear !== 'all'
-                  ? `H?c sinh trong ${academicYears.find(y => y.id === selectedYear)?.name || 'ni�n kh�a d� ch?n'}`
-                  : 'T?t c? con em qua c�c ni�n kh�a h?c'
+                  ? `Học sinh trong ${academicYears.find(y => y.id === selectedYear)?.name || 'niên khóa đã chọn'}`
+                  : 'Tất cả con em qua các niên khóa học'
                 }
               </p>
             </div>
@@ -269,22 +268,22 @@ export default function ParentDashboard() {
             <Skeleton className="h-4 w-[150px] mx-auto"  aria-label="Loading content" role="status" />
           </div>
         </div>
-                      <p className="text-gray-600 font-medium">�ang t?i th�ng tin h?c sinh...</p>
+                      <p className="text-gray-600 font-medium">Đang tải thông tin học sinh...</p>
                     </div>
                   )
                 }
 
                 if (students.length === 0) {
                   const noChildrenMessage = selectedYear && selectedYear !== 'all'
-                    ? 'Kh�ng c� con em n�o trong ni�n kh�a d� ch?n'
-                    : 'Chua c� con em n�o du?c dang k�'
+                    ? 'Không có con em nào trong niên khóa đã chọn'
+                    : 'Chưa có con em nào được đăng ký'
 
                   return (
                     <div className="flex flex-col items-center justify-center py-16">
                       <div className="w-16 md:w-20 lg:w-24 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <Users className="w-8 h-8 md:h-9 lg:h-10 text-gray-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Kh�ng t�m th?y h?c sinh</h3>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Không tìm thấy học sinh</h3>
                       <p className="text-gray-500 text-center">{noChildrenMessage}</p>
                     </div>
                   )
@@ -305,7 +304,7 @@ export default function ParentDashboard() {
                           <div className="flex-1 min-w-0">
                             <h4 className="text-lg font-bold text-gray-900 mb-1">{student.full_name}</h4>
                             <p className="text-sm text-gray-600 mb-3">
-                              M� h?c sinh: <span className="font-mono font-medium">{student.student_id}</span>
+                              Mã học sinh: <span className="font-mono font-medium">{student.student_id}</span>
                             </p>
 
                             {student.current_class && (
@@ -331,11 +330,11 @@ export default function ParentDashboard() {
                             <div className="mt-4 flex items-center justify-between">
                               {student.current_class ? (
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                  �ang theo h?c
+                                  Đang theo học
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  Chua ghi danh
+                                  Chưa ghi danh
                                 </span>
                               )}
                             </div>

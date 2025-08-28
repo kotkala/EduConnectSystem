@@ -60,7 +60,7 @@ export default function TeacherScheduleChangeList() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(5)
-  const [selectedRequest, setSelectedRequest] = useState<ScheduleChangeRequest | null>(null)
+
 
   // Filtered and paginated data
   const filteredRequests = useMemo(() => {

@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,7 +18,7 @@ import TeacherSpecializationForm from "@/features/teacher-management/components/
 import { toast } from "sonner"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface TeacherFormProps {
+interface TeacherFormProps {
   readonly teacher?: TeacherProfile
   readonly onSuccess?: () => void
   readonly onCancel?: () => void

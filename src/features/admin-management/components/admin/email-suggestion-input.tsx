@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef } from "react"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -9,7 +9,7 @@ import { Check, User, Mail } from "lucide-react"
 import { searchUsersByEmailAction } from "@/features/admin-management/actions/user-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface EmailSuggestionInputProps {
+interface EmailSuggestionInputProps {
   readonly id: string
   readonly label: string
   readonly placeholder?: string

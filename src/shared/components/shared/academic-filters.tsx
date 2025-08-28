@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
@@ -16,7 +16,7 @@ import { format, endOfWeek } from 'date-fns'
 import { getWeekStartDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Shared types for academic filters
+// Shared types for academic filters
 export interface AcademicYear {
   id: string
   name: string

@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -15,7 +15,7 @@ import {
 import { type StudentWeeklySchedule } from "@/features/grade-management/actions/homeroom-feedback-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentWeeklyGridProps {
+interface StudentWeeklyGridProps {
   readonly students: StudentWeeklySchedule[]
   readonly onStudentDayClick: (student: StudentWeeklySchedule, dayOfWeek: number) => void
   readonly loading?: boolean

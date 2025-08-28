@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client";
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import React, { useState, useEffect, useCallback, useId } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -18,7 +18,7 @@ import { getAcademicYearsAction, getSemestersAction } from "@/features/admin-man
 import { getClassesAction } from "@/features/admin-management/actions/class-actions";
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";// Types for filter data
+// Types for filter data
 interface AcademicYear {
   id: string;
   name: string;

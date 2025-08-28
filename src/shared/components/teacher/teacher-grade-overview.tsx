@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
@@ -13,7 +13,7 @@ import {
 import { getGradeOverviewAction } from "@/lib/actions/teacher-grade-import-actions"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";
+
 
 interface PendingGradeStatus {
   componentType: string

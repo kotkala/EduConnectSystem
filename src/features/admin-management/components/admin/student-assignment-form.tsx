@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { Users, UserPlus } from "lucide-react";import {
+import { Users, UserPlus } from "lucide-react";import {
   bulkStudentAssignmentSchema,
   type BulkStudentAssignmentFormData,
   type AvailableStudent

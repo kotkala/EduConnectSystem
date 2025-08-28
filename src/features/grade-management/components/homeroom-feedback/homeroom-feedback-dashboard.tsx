@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/shared/components/ui/button"
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   CalendarDays,
   Users,
   BookOpen,

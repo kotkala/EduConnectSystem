@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -32,7 +32,7 @@ import { type ClassWithDetails } from "@/lib/validations/class-validations"
 import StudentAssignmentForm from "@/features/admin-management/components/admin/student-assignment-form"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface ClassStudentsTabProps {
+interface ClassStudentsTabProps {
   readonly classId: string
   readonly classData: ClassWithDetails
 }

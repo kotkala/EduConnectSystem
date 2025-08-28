@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import {
   Dialog,
@@ -28,7 +28,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Label } from "@/shared/components/ui/label"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import { toast } from "sonner"
+import { toast } from "sonner"
 import {
   getStudentDayScheduleWithFeedbackAction,
   type StudentWeeklySchedule,

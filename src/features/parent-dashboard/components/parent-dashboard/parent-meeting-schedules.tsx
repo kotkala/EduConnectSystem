@@ -1,12 +1,13 @@
-import { Loader2 } from 'lucide-react'
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 
-import { Skeleton } from "@/shared/components/ui/skeleton";import {
+import {
   Dialog,
   DialogContent,
   DialogDescription,

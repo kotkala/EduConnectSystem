@@ -2,7 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Disable optimizePackageImports to avoid potential multiple React instances / hook issues
-  experimental: {},
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Increase from default 1mb to 10mb for file uploads
+    },
+  },
 
 
 

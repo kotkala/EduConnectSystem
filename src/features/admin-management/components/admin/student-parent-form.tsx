@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,7 +18,7 @@ import { createStudentWithParentAction, updateStudentParentAction, generateNextS
 import { EmailSuggestionInput } from "@/features/admin-management/components/admin/email-suggestion-input"
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface StudentParentFormProps {
+interface StudentParentFormProps {
   editMode?: boolean
   initialData?: StudentWithParent
   onSuccess?: () => void

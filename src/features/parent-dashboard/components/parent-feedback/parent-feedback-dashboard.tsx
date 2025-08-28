@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react'
-"use client"
+'use client'
 
+import { Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
@@ -36,7 +36,7 @@ import { format, endOfWeek } from 'date-fns'
 import { getWeekStartDate } from '@/features/timetable/components/timetable-calendar/data-mappers'
 
 
-import { Skeleton } from "@/shared/components/ui/skeleton";interface WeekOption {
+interface WeekOption {
   number: number
   startDate: Date
   endDate: Date

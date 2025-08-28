@@ -245,20 +245,22 @@ export default function StudentsPageClient() {
 
       {/* Create Student & Parent Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
           </DialogHeader>
-                     <StudentParentForm
-             onSuccess={handleCreateSuccess}
-             onCancel={() => setShowCreateDialog(false)}
-           />
+          <div className="min-w-[800px]">
+            <StudentParentForm
+              onSuccess={handleCreateSuccess}
+              onCancel={() => setShowCreateDialog(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Edit Student & Parent Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-y-auto p-0">
+        <DialogContent className="w-[98vw] max-w-7xl max-h-[95vh] overflow-x-auto overflow-y-auto p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-2xl font-bold flex items-center gap-3">
               <Edit className="h-6 w-6" />
@@ -266,15 +268,17 @@ export default function StudentsPageClient() {
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (
-                         <StudentParentForm
-               editMode={true}
-               initialData={editingStudent}
-               onSuccess={handleEditSuccess}
-               onCancel={() => {
-                 setShowEditDialog(false)
-                 setEditingStudent(null)
-               }}
-             />
+            <div className="min-w-[800px]">
+              <StudentParentForm
+                editMode={true}
+                initialData={editingStudent}
+                onSuccess={handleEditSuccess}
+                onCancel={() => {
+                  setShowEditDialog(false)
+                  setEditingStudent(null)
+                }}
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

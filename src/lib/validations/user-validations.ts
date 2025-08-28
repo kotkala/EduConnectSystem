@@ -55,6 +55,7 @@ export const teacherSchema = z.object({
     .regex(/^[A-Z0-9]+$/, "Employee ID must contain only uppercase letters and numbers")
     .min(3, "Employee ID must be at least 3 characters")
     .max(20, "Employee ID must be less than 20 characters"),
+  homeroom_enabled: z.boolean().default(false),
   ...baseUserFields
 }).refine((data) => {
   const birthDate = new Date(data.date_of_birth)

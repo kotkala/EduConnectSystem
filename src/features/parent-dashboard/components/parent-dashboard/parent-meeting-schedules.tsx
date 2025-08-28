@@ -169,13 +169,13 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
       <div className="space-y-4">
         {processedMeetings.map((meeting) => (
           <Card key={meeting.id} className={`cursor-pointer transition-colors hover:bg-gray-50 ${!meeting.is_read ? 'border-blue-200 bg-blue-50' : ''}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between gap-6">
-                {/* Left section - Meeting info in horizontal layout */}
-                <div className="flex items-center gap-6 flex-1">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4">
+                {/* Left section - Meeting info */}
+                <div className="flex-1 min-w-0">
                   {/* Title and badges */}
-                  <div className="flex items-center gap-2 min-w-0">
-                    <h3 className="font-semibold text-lg truncate">{meeting.title}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-medium text-base truncate">{meeting.title}</h3>
                     {!meeting.is_read && (
                       <Badge variant="default" className="text-xs shrink-0">
                         Mới
@@ -188,31 +188,33 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                     )}
                   </div>
 
-                  {/* Meeting details in horizontal layout */}
-                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      <span className="whitespace-nowrap">{meeting.formattedDate}</span>
+                  {/* Meeting details in compact layout */}
+                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span className="truncate">{new Date(meeting.meeting_date).toLocaleDateString('vi-VN')}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span className="whitespace-nowrap">{meeting.formattedDuration}</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span className="truncate">{meeting.formattedDuration}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span className="whitespace-nowrap">{meeting.teacher_name}</span>
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">{meeting.teacher_name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span className="whitespace-nowrap">{meeting.class_name}</span>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      <span className="truncate">{meeting.class_name}</span>
                     </div>
-                    {meeting.meeting_location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span className="whitespace-nowrap">{meeting.meeting_location}</span>
-                      </div>
-                    )}
                   </div>
+
+                  {/* Location if exists */}
+                  {meeting.meeting_location && (
+                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3" />
+                      <span className="truncate">{meeting.meeting_location}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right section - Action button */}
@@ -222,17 +224,16 @@ export function ParentMeetingSchedules({ showUnreadCount = false }: ParentMeetin
                   onClick={() => handleViewMeeting(meeting)}
                   className="shrink-0"
                 >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Xem chi tiết
+                  <Eye className="h-4 w-4" />
                 </Button>
               </div>
 
-              {/* Description below if exists */}
+              {/* Description below if exists - more compact */}
               {meeting.description && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">
-                    {meeting.description.length > 150
-                      ? `${meeting.description.substring(0, 150)}...`
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    {meeting.description.length > 100
+                      ? `${meeting.description.substring(0, 100)}...`
                       : meeting.description
                     }
                   </p>

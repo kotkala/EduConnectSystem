@@ -111,8 +111,8 @@ export function FeedbackDialog({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center space-x-2">
             <Star className="h-5 w-5 text-yellow-500" />
             <span>Đánh giá câu trả lời của AI</span>
@@ -122,7 +122,7 @@ export function FeedbackDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 py-4 overflow-y-auto flex-1 min-h-0">
           {/* Helpful Toggle */}
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -144,16 +144,16 @@ export function FeedbackDialog({
           {/* Rating Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Mức độ đánh giá</Label>
-            <RadioGroup value={rating} onValueChange={setRating}>
+            <RadioGroup value={rating} onValueChange={setRating} className="grid grid-cols-1 gap-2">
               {ratingOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3">
+                <div key={option.value} className="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-50">
                   <RadioGroupItem value={option.value} id={option.value} />
-                  <Label 
-                    htmlFor={option.value} 
-                    className={`flex items-center space-x-2 cursor-pointer ${option.color}`}
+                  <Label
+                    htmlFor={option.value}
+                    className={`flex items-center space-x-2 cursor-pointer flex-1 ${option.color}`}
                   >
-                    <span className="text-lg">{option.icon}</span>
-                    <span className="font-medium">{option.label}</span>
+                    <span className="text-base">{option.icon}</span>
+                    <span className="font-medium text-sm">{option.label}</span>
                   </Label>
                 </div>
               ))}
@@ -170,7 +170,7 @@ export function FeedbackDialog({
               placeholder="Chia sẻ thêm về trải nghiệm của bạn với trợ lý AI..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="min-h-[80px] resize-none"
+              className="min-h-[60px] max-h-[120px] resize-none text-sm"
               maxLength={500}
             />
             <p className="text-xs text-gray-500 text-right">
@@ -178,23 +178,23 @@ export function FeedbackDialog({
             </p>
           </div>
 
-          {/* Preview Section */}
+          {/* Preview Section - Compact */}
           <div className="bg-gray-50 rounded-lg p-3 space-y-2">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <AlertCircle className="h-4 w-4" />
               <span className="font-medium">Xem trước đánh giá</span>
             </div>
-            <div className="text-sm space-y-1">
+            <div className="text-xs space-y-1">
               <p><span className="font-medium">Hữu ích:</span> {isHelpful ? 'Có' : 'Không'}</p>
               <p><span className="font-medium">Đánh giá:</span> {ratingOptions.find(r => r.value === rating)?.label}</p>
               {comment.trim() && (
-                <p><span className="font-medium">Nhận xét:</span> {comment.trim()}</p>
+                <p className="break-words"><span className="font-medium">Nhận xét:</span> {comment.trim().length > 50 ? `${comment.trim().substring(0, 50)}...` : comment.trim()}</p>
               )}
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
+        <DialogFooter className="flex justify-between flex-shrink-0 pt-4 border-t">
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}

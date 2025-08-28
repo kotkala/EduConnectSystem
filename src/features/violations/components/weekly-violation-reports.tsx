@@ -2,7 +2,7 @@
 import { Loader2 } from 'lucide-react'
 
 
-import { Loader2 } from 'lucide-react'
+
 import { useState, useEffect, useCallback } from 'react'
 import { startOfWeek, endOfWeek, addWeeks, format } from 'date-fns'
 import { vi } from 'date-fns/locale'

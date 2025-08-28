@@ -2,7 +2,6 @@
 import { Loader2 } from 'lucide-react'
 
 
-import { Loader2 } from 'lucide-react'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/shared/utils/supabase/client'

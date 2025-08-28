@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
 import { createTeacherAction, updateTeacherAction } from "@/features/admin-management/actions/user-actions"
@@ -38,7 +38,8 @@ export function IntegratedTeacherForm({ teacher, onSuccess, onCancel }: Integrat
       phone_number: teacher?.phone_number || "",
       gender: (teacher?.gender === "male" || teacher?.gender === "female") ? teacher.gender : "male",
       date_of_birth: teacher?.date_of_birth || "",
-      address: teacher?.address || ""
+      address: teacher?.address || "",
+      homeroom_enabled: teacher?.homeroom_enabled || false
     }
   })
 
@@ -189,6 +190,26 @@ export function IntegratedTeacherForm({ teacher, onSuccess, onCancel }: Integrat
             />
             {form.formState.errors.address && (
               <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.address.message}</p>
+            )}
+          </div>
+
+          {/* Homeroom Teacher Enabled */}
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="homeroom_enabled"
+                checked={form.watch("homeroom_enabled")}
+                onCheckedChange={(checked) => form.setValue("homeroom_enabled", !!checked)}
+              />
+              <Label htmlFor="homeroom_enabled" className="text-sm sm:text-base">
+                Cho phép làm giáo viên chủ nhiệm
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Kích hoạt để giáo viên có thể được phân công làm chủ nhiệm lớp
+            </p>
+            {form.formState.errors.homeroom_enabled && (
+              <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.homeroom_enabled.message}</p>
             )}
           </div>
 

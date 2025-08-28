@@ -417,7 +417,10 @@ export function CalendarDndProvider({
                 height: eventHeight ? `${eventHeight}px` : "auto",
                 width:
                   isMultiDay && multiDayWidth ? `${multiDayWidth}%` : "100%",
-                // Remove the transform that was causing the shift
+                // Apply drag handle offset to position overlay under cursor
+                transform: dragHandlePosition
+                  ? `translate(-${dragHandlePosition.x}px, -${dragHandlePosition.y}px)`
+                  : undefined,
               }}
             >
               <EventItem

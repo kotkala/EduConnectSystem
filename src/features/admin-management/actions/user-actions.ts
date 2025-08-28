@@ -106,7 +106,8 @@ export async function createTeacherAction(formData: TeacherFormData) {
         phone_number: validatedData.phone_number,
         gender: validatedData.gender,
         date_of_birth: validatedData.date_of_birth,
-        address: validatedData.address
+        address: validatedData.address,
+        homeroom_enabled: validatedData.homeroom_enabled
       })
 
     if (profileError) {

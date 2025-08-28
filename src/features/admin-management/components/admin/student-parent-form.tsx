@@ -112,7 +112,7 @@ function StudentInfoSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
         {/* Student ID */}
         <div className="space-y-4">
           <Label htmlFor="student_id" className="text-base font-semibold text-gray-800">
@@ -272,7 +272,7 @@ function ParentInfoSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
         {/* Parent Full Name */}
         <div className="space-y-4">
           <Label htmlFor="parent_name" className="text-base font-semibold text-gray-800">Họ và tên *</Label>

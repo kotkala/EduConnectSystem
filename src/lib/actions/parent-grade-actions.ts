@@ -157,8 +157,10 @@ export async function getChildrenGradeReportsAction() {
     console.log('🔍 [PARENT GRADES] Student IDs:', studentIds)
 
     // Get grade submissions for these students from the actual grade submission system
+    // Use admin client to bypass RLS restrictions for period and class data
     console.log('🔍 [PARENT GRADES] Fetching grade submissions from grade_period_submissions')
-    const { data: gradeSubmissions, error: gradeError } = await supabase
+    const adminSupabase = createAdminClient()
+    const { data: gradeSubmissions, error: gradeError } = await adminSupabase
       .from('grade_period_submissions')
       .select(`
         id,

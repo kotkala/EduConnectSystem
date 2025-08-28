@@ -1,5 +1,6 @@
-import { Loader2 } from 'lucide-react'
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"

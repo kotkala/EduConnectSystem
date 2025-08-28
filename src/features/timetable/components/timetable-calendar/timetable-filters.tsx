@@ -1,5 +1,6 @@
+"use client"
 import { Loader2 } from 'lucide-react'
-"use client";
+
 
 import React, { useState, useEffect, useCallback, useId } from "react";
 import { Button } from "@/shared/components/ui/button";

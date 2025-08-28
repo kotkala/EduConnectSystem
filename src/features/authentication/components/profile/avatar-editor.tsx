@@ -1,5 +1,6 @@
-import { Loader2 } from 'lucide-react'
 'use client'
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'

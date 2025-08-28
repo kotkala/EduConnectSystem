@@ -1,5 +1,6 @@
-import { Loader2 } from 'lucide-react'
 "use client"
+import { Loader2 } from 'lucide-react'
+
 
 import { useState, useEffect, useRef } from "react"
 import { Input } from "@/shared/components/ui/input"

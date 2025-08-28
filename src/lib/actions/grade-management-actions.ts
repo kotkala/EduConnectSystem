@@ -471,6 +471,50 @@ export async function getSubjectsForGradeInputAction() {
   }
 }
 
+// Get all academic years for teachers (for dropdown display)
+export async function getAllAcademicYearsForTeachersAction() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('Authentication required')
+    }
+
+    // Check if user is a teacher
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'teacher') {
+      throw new Error('Teacher permissions required')
+    }
+
+    const { data: academicYears, error } = await supabase
+      .from('academic_years')
+      .select('id, name, start_date, end_date, is_current')
+      .order('start_date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching academic years:', error)
+      throw error
+    }
+
+    return {
+      success: true,
+      data: academicYears || []
+    }
+  } catch (error) {
+    console.error('Error in getAllAcademicYearsForTeachersAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 // Get grade reporting periods for teachers (no admin permission required)
 export async function getGradeReportingPeriodsForTeachersAction(filters?: Partial<GradeFiltersFormData>) {
   try {

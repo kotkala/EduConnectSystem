@@ -28,6 +28,7 @@ import {
   getGradePeriodsAction,
   getStudentGradeTrackingDataAction,
   submitStudentGradesToHomeroomAction,
+  getAllAcademicYearsForAdminAction,
   type GradePeriod as AdminGradePeriod,
   type StudentGradeData,
   type AdminGradeStats
@@ -36,6 +37,12 @@ import {
 export default function AdminGradeTrackingPage() {
   const [periods, setPeriods] = useState<AdminGradePeriod[]>([])
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<string>('all')
+  const [allAcademicYears, setAllAcademicYears] = useState<Array<{
+    id: string,
+    name: string,
+    is_current: boolean
+  }>>([])
   const [gradeData, setGradeData] = useState<StudentGradeData[]>([])
   const [stats, setStats] = useState<AdminGradeStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -53,6 +60,16 @@ export default function AdminGradeTrackingPage() {
   // Load grade periods
   const loadPeriods = useCallback(async () => {
     try {
+      // Load academic years first
+      const academicYearsResult = await getAllAcademicYearsForAdminAction()
+      if (academicYearsResult.success && academicYearsResult.data) {
+        setAllAcademicYears(academicYearsResult.data as Array<{
+          id: string,
+          name: string,
+          is_current: boolean
+        }>)
+      }
+
       const result = await getGradePeriodsAction()
       if (result.success && result.data) {
         setPeriods(result.data)
@@ -223,27 +240,57 @@ export default function AdminGradeTrackingPage() {
       {/* Period Selection */}
       <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
-          <CardTitle>Chọn kỳ báo cáo</CardTitle>
+          <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Chọn kỳ báo cáo" />
-              </SelectTrigger>
-              <SelectContent>
-                {periods.map((period) => (
-                  <SelectItem key={period.id} value={period.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>{period.name} - {period.academic_years?.[0]?.name} - {period.semesters?.[0]?.name}</span>
-                      {period.is_active && (
-                        <Badge variant="outline" className="ml-2 text-xs">Đang hoạt động</Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label htmlFor="academic-year-select" className="text-sm font-medium">
+                Năm học:
+              </label>
+              <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Chọn năm học" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả năm</SelectItem>
+                  {allAcademicYears.map((academicYear) => (
+                    <SelectItem key={academicYear.id} value={academicYear.id}>
+                      {academicYear.name} {academicYear.is_current ? '(Hiện tại)' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="period-select" className="text-sm font-medium">
+                Kỳ báo cáo:
+              </label>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Chọn kỳ báo cáo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periods
+                    .filter(period =>
+                      selectedAcademicYear === 'all' ||
+                      period.academic_years?.[0]?.name === allAcademicYears.find(ay => ay.id === selectedAcademicYear)?.name
+                    )
+                    .map((period) => (
+                      <SelectItem key={period.id} value={period.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{period.name} - {period.academic_years?.[0]?.name} - {period.semesters?.[0]?.name}</span>
+                          {period.is_active && (
+                            <Badge variant="outline" className="ml-2 text-xs">Đang hoạt động</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {selectedPeriod && (
               <div className="text-sm text-muted-foreground">
                 Kỳ: {periods.find(p => p.id === selectedPeriod)?.name}

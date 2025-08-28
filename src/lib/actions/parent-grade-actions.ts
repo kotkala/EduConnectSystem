@@ -45,6 +45,38 @@ interface GradeSubmission {
   } | null
 }
 
+// Get all academic years (for dropdown display)
+export async function getAllAcademicYearsAction() {
+  try {
+    console.log('🔍 [PARENT GRADES] Fetching all academic years')
+    await checkParentPermissions()
+
+    // Use admin client to bypass RLS restrictions
+    const adminSupabase = createAdminClient()
+    const { data: academicYears, error } = await adminSupabase
+      .from('academic_years')
+      .select('id, name, start_date, end_date, is_current')
+      .order('start_date', { ascending: false })
+
+    if (error) {
+      console.error('❌ [PARENT GRADES] Error fetching academic years:', error)
+      throw error
+    }
+
+    console.log('✅ [PARENT GRADES] Academic years fetched:', academicYears?.length)
+    return {
+      success: true,
+      data: academicYears || []
+    }
+  } catch (error) {
+    console.error('❌ [PARENT GRADES] Error in getAllAcademicYearsAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 // Get all grade reporting periods (for dropdown display)
 export async function getAllGradeReportingPeriodsAction() {
   try {

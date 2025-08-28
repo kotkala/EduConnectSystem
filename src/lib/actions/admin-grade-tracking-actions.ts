@@ -187,6 +187,45 @@ export interface GradeSubmissionData {
   updated_at: string
 }
 
+// Get all academic years for admin (for dropdown display)
+export async function getAllAcademicYearsForAdminAction(): Promise<{
+  success: boolean
+  data?: Array<{
+    id: string
+    name: string
+    start_date: string
+    end_date: string
+    is_current: boolean
+  }>
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+    await checkAdminPermissions()
+
+    const { data: academicYears, error } = await supabase
+      .from('academic_years')
+      .select('id, name, start_date, end_date, is_current')
+      .order('start_date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching academic years:', error)
+      throw error
+    }
+
+    return {
+      success: true,
+      data: academicYears || []
+    }
+  } catch (error) {
+    console.error('Error in getAllAcademicYearsForAdminAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}
+
 // Get all grade periods for dropdown
 export async function getGradePeriodsAction(): Promise<{
   success: boolean

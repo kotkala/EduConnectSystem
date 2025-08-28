@@ -445,19 +445,24 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                       <div className="h-5 w-5 bg-blue-500 rounded-sm"></div>
                       <h4 className="font-semibold text-gray-900">Hình ảnh</h4>
                     </div>
-                    <div className="border rounded-xl overflow-hidden bg-gray-50">
-                      <ImageViewer
-                        src={selectedNotification.image_url}
-                        alt="Notification image"
-                        className="w-full"
-                      >
-                        <Image
-                          src={selectedNotification.image_url}
-                          alt="Notification image"
-                          className="w-full h-auto max-h-96 object-contain"
-                        />
-                      </ImageViewer>
-                    </div>
+                                         <div className="border rounded-xl overflow-hidden bg-gray-50">
+                       <ImageViewer
+                         src={selectedNotification.image_url}
+                         alt="Notification image"
+                         className="w-full"
+                       >
+                         <Image
+                           src={selectedNotification.image_url}
+                           alt="Notification image"
+                           className="w-full h-auto max-h-96 object-contain"
+                           width={800}
+                           height={600}
+                           draggable={false}
+                           unselectable="on"
+                           onContextMenu={(e) => e.preventDefault()}
+                         />
+                       </ImageViewer>
+                     </div>
                     <p className="text-xs text-gray-500 text-center">Click để xem ảnh kích thước đầy đủ • Hover để preview</p>
                   </div>
                 )}
@@ -480,18 +485,23 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                           <div key={attachment.id || index} className="group flex items-center gap-4 p-4 border rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all">
                             {/* File Icon/Preview */}
                             <div className="flex-shrink-0">
-                              {isImage ? (
-                                <ImageViewer
-                                  src={attachment.public_url}
-                                  alt={attachment.file_name}
-                                  className="h-12 w-12 rounded-lg overflow-hidden border"
-                                >
-                                  <Image
-                                    src={attachment.public_url}
-                                    alt={attachment.file_name}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </ImageViewer>
+                                                             {isImage ? (
+                                 <ImageViewer
+                                   src={attachment.public_url}
+                                   alt={attachment.file_name}
+                                   className="h-12 w-12 rounded-lg overflow-hidden border"
+                                 >
+                                   <Image
+                                     src={attachment.public_url}
+                                     alt={attachment.file_name}
+                                     className="h-full w-full object-cover"
+                                     width={48}
+                                     height={48}
+                                     draggable={false}
+                                     unselectable="on"
+                                     onContextMenu={(e) => e.preventDefault()}
+                                   />
+                                 </ImageViewer>
                               ) : (
                                 <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
                                   <FileText className="h-6 w-6 text-blue-600" />

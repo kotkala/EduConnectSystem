@@ -166,6 +166,7 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
         onTouchStart={handleTouchStartTrigger}
         onTouchEnd={handleTouchEndTrigger}
         onTouchCancel={handleTouchEndTrigger}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {children || (
           <Image
@@ -174,11 +175,15 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
             className={`transition-all duration-500 ease-out ${
               isHovering ? 'scale-125 shadow-2xl brightness-110' : 'scale-100'
             }`}
+            width={400}
+            height={256}
+            draggable={false}
+            unselectable="on"
           />
         )}
 
         {/* Hover overlay with smooth animation */}
-        <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${
+        <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 pointer-events-none ${
           isHovering ? 'bg-black/20 opacity-100' : 'bg-transparent opacity-0'
         }`}>
           <div className={`bg-white/90 backdrop-blur-sm rounded-full p-3 transition-all duration-300 ${
@@ -189,7 +194,7 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
         </div>
 
         {/* Mobile long press indicator */}
-        <div className={`md:hidden absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded transition-opacity duration-300 ${
+        <div className={`md:hidden absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded transition-opacity duration-300 pointer-events-none ${
           isHovering ? 'opacity-100' : 'opacity-0'
         }`}>
           Giữ để phóng to
@@ -198,14 +203,13 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
 
       {/* Full Screen Modal */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        {/* Desktop Modal */}
-        <DialogContent className="hidden md:flex max-w-[80vw] max-h-[80vh] w-full h-full p-6 bg-white/98 backdrop-blur-sm border shadow-2xl rounded-lg flex-col">
+        <DialogContent className="w-full h-full flex flex-col md:max-w-[90vw] md:max-h-[90vh] md:p-6 md:bg-white/98 md:border md:rounded-lg md:shadow-2xl max-w-[100vw] max-h-[100vh] p-0 bg-black border-0 rounded-none">
           <DialogHeader className="sr-only">
             <DialogTitle>Xem ảnh: {alt}</DialogTitle>
           </DialogHeader>
 
-          {/* Desktop Controls */}
-          <div className="flex items-center justify-between mb-4">
+          {/* Desktop Controls - Hidden on Mobile */}
+          <div className="hidden md:flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={handleZoomOut} className="h-9 w-9 p-0">
                 <ZoomOut className="h-4 w-4" />
@@ -231,44 +235,8 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
             </div>
           </div>
 
-          {/* Desktop Image Container */}
-          <div
-            ref={containerRef}
-            className="flex items-center justify-center w-full bg-gray-50 rounded-lg overflow-hidden border flex-1"
-            style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default' }}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <Image
-              ref={imageRef}
-              src={src}
-              alt={alt}
-              className="select-none max-w-full max-h-full object-contain"
-              style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
-                transition: isDragging ? 'none' : 'transform 0.2s ease-out'
-              }}
-              draggable={false}
-            />
-          </div>
-
-          {/* Desktop Instructions */}
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Scroll để zoom • Kéo để di chuyển • ESC để đóng
-          </div>
-        </DialogContent>
-
-        {/* Mobile Modal */}
-        <DialogContent className="md:hidden max-w-[100vw] max-h-[100vh] w-full h-full p-0 bg-black border-0 rounded-none flex flex-col">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Xem ảnh: {alt}</DialogTitle>
-          </DialogHeader>
-
-          {/* Mobile Header */}
-          <div className="flex items-center justify-between p-4 bg-black/80 backdrop-blur-sm">
+          {/* Mobile Header - Hidden on Desktop */}
+          <div className="md:hidden flex items-center justify-between p-4 bg-black/80 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsOpen(false)}
@@ -289,9 +257,16 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
             </div>
           </div>
 
-          {/* Mobile Image Container - Full Screen */}
+          {/* Image Container */}
           <div
-            className="flex-1 flex items-center justify-center bg-black relative"
+            ref={containerRef}
+            className="flex items-center justify-center w-full flex-1 md:bg-gray-50 md:rounded-lg md:border bg-black"
+            style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default' }}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -305,19 +280,26 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
                 transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
                 transition: isDragging ? 'none' : 'transform 0.2s ease-out'
               }}
+              width={800}
+              height={600}
               draggable={false}
             />
 
             {/* Mobile Zoom Indicator */}
             {scale !== 1 && (
-              <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+              <div className="md:hidden absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-sm">
                 {Math.round(scale * 100)}%
               </div>
             )}
           </div>
 
-          {/* Mobile Bottom Controls */}
-          <div className="bg-black/80 backdrop-blur-sm p-4">
+          {/* Desktop Instructions - Hidden on Mobile */}
+          <div className="hidden md:block mt-4 text-center text-sm text-gray-600">
+            Scroll để zoom • Kéo để di chuyển • ESC để đóng
+          </div>
+
+          {/* Mobile Bottom Controls - Hidden on Desktop */}
+          <div className="md:hidden bg-black/80 backdrop-blur-sm p-4">
             <div className="flex items-center justify-center gap-6">
               <button
                 onClick={handleZoomOut}

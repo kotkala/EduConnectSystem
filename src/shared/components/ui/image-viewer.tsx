@@ -35,11 +35,61 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
     }
   }, [isOpen])
 
+  // Constrain position when scale changes
+  useEffect(() => {
+    if (scale <= 1) {
+      setPosition({ x: 0, y: 0 })
+    } else {
+      setPosition(prev => constrainPosition(prev, scale))
+    }
+  }, [scale])
+
+  // Constrain position to keep image within bounds
+  const constrainPosition = (pos: { x: number; y: number }, currentScale: number) => {
+    if (!containerRef.current || !imageRef.current) return pos
+    
+    const container = containerRef.current.getBoundingClientRect()
+    const imageElement = imageRef.current as HTMLImageElement
+    
+    // When using fill={true}, the image fills the container
+    // We need to calculate based on the natural aspect ratio
+    const containerAspect = container.width / container.height
+    const imageAspect = imageElement.naturalWidth / imageElement.naturalHeight
+    
+    let scaledWidth, scaledHeight
+    
+    if (imageAspect > containerAspect) {
+      // Image is wider than container
+      scaledWidth = container.width * currentScale
+      scaledHeight = (container.width / imageAspect) * currentScale
+    } else {
+      // Image is taller than container
+      scaledWidth = (container.height * imageAspect) * currentScale
+      scaledHeight = container.height * currentScale
+    }
+    
+    const maxX = Math.max(0, (scaledWidth - container.width) / 2)
+    const maxY = Math.max(0, (scaledHeight - container.height) / 2)
+    
+    return {
+      x: Math.max(-maxX, Math.min(maxX, pos.x)),
+      y: Math.max(-maxY, Math.min(maxY, pos.y))
+    }
+  }
+
   // Handle wheel zoom
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? -0.1 : 0.1
-    setScale(prev => Math.max(0.5, Math.min(5, prev + delta)))
+    const newScale = Math.max(0.5, Math.min(5, scale + delta))
+    setScale(newScale)
+    
+    // Constrain position after zoom
+    if (newScale <= 1) {
+      setPosition({ x: 0, y: 0 })
+    } else {
+      setPosition(prev => constrainPosition(prev, newScale))
+    }
   }
 
   // Handle mouse drag
@@ -52,10 +102,11 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (isDragging && scale > 1) {
-      setPosition({
+      const newPosition = {
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y
-      })
+      }
+      setPosition(constrainPosition(newPosition, scale))
     }
   }
 
@@ -91,7 +142,16 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
       )
       
       const scaleChange = distance / touchStart.distance
-      setScale(prev => Math.max(0.5, Math.min(5, prev * scaleChange)))
+      const newScale = Math.max(0.5, Math.min(5, scale * scaleChange))
+      setScale(newScale)
+      
+      // Constrain position after zoom
+      if (newScale <= 1) {
+        setPosition({ x: 0, y: 0 })
+      } else {
+        setPosition(prev => constrainPosition(prev, newScale))
+      }
+      
       setTouchStart(prev => prev ? { ...prev, distance } : null)
     }
   }
@@ -131,11 +191,27 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
   }
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(5, prev + 0.25))
+    const newScale = Math.min(5, scale + 0.25)
+    setScale(newScale)
+    
+    // Constrain position after zoom
+    if (newScale <= 1) {
+      setPosition({ x: 0, y: 0 })
+    } else {
+      setPosition(prev => constrainPosition(prev, newScale))
+    }
   }
 
   const handleZoomOut = () => {
-    setScale(prev => Math.max(0.5, prev - 0.25))
+    const newScale = Math.max(0.5, scale - 0.25)
+    setScale(newScale)
+    
+    // Constrain position after zoom
+    if (newScale <= 1) {
+      setPosition({ x: 0, y: 0 })
+    } else {
+      setPosition(prev => constrainPosition(prev, newScale))
+    }
   }
 
   const handleRotate = () => {
@@ -169,17 +245,19 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
         onContextMenu={(e) => e.preventDefault()}
       >
         {children || (
-          <Image
-            src={src}
-            alt={alt}
-            className={`transition-all duration-500 ease-out ${
-              isHovering ? 'scale-125 shadow-2xl brightness-110' : 'scale-100'
-            }`}
-            width={400}
-            height={256}
-            draggable={false}
-            unselectable="on"
-          />
+          <div className="relative w-full h-64 overflow-hidden rounded-lg">
+            <Image
+              src={src}
+              alt={alt}
+              className={`transition-all duration-500 ease-out object-cover ${
+                isHovering ? 'scale-125 shadow-2xl brightness-110' : 'scale-100'
+              }`}
+              fill={true}
+              sizes="(max-width: 768px) 100vw, 400px"
+              draggable={false}
+              unselectable="on"
+            />
+          </div>
         )}
 
         {/* Hover overlay with smooth animation */}
@@ -203,7 +281,7 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
 
       {/* Full Screen Modal */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="w-full h-full flex flex-col md:max-w-[90vw] md:max-h-[90vh] md:p-6 md:bg-white/98 md:border md:rounded-lg md:shadow-2xl max-w-[100vw] max-h-[100vh] p-0 bg-black border-0 rounded-none">
+        <DialogContent className="w-full h-full flex flex-col md:max-w-[90vw] md:max-h-[90vh] md:p-6 md:bg-white/98 md:border md:rounded-lg md:shadow-2xl max-w-[100vw] max-h-[100vh] p-0 bg-black border-0 rounded-none" showCloseButton={false}>
           <DialogHeader className="sr-only">
             <DialogTitle>Xem ảnh: {alt}</DialogTitle>
           </DialogHeader>
@@ -260,7 +338,7 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
           {/* Image Container */}
           <div
             ref={containerRef}
-            className="flex items-center justify-center w-full flex-1 md:bg-gray-50 md:rounded-lg md:border bg-black"
+            className="flex items-center justify-center w-full flex-1 md:bg-gray-50 md:rounded-lg md:border bg-black overflow-hidden relative"
             style={{ cursor: isDragging ? 'grabbing' : scale > 1 ? 'grab' : 'default' }}
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
@@ -275,13 +353,13 @@ export function ImageViewer({ src, alt = 'Image', className = '', children }: Im
               ref={imageRef}
               src={src}
               alt={alt}
-              className="select-none max-w-full max-h-full object-contain"
+              className="select-none object-contain"
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
                 transition: isDragging ? 'none' : 'transform 0.2s ease-out'
               }}
-              width={800}
-              height={600}
+              fill={true}
+              sizes="(max-width: 768px) 100vw, 90vw"
               draggable={false}
             />
 

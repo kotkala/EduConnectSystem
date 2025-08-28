@@ -28,7 +28,16 @@ import {
 } from '@/shared/components/ui/table'
 import { Plus, Edit, Settings } from 'lucide-react'
 import { toast } from 'sonner'
-import { SharedPaginationControls } from '@/shared/components/shared/shared-pagination-controls'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/shared/components/ui/pagination'
+
 
 // Helper function to get button text for category operations
 function getCategoryButtonText(loading: boolean, selectedCategory: unknown): string {
@@ -739,13 +748,51 @@ export default function ViolationCategoriesManager() {
           {/* Pagination */}
           {typesTotal > TYPES_PER_PAGE && (
             <div className="mt-4">
-              <SharedPaginationControls
-                currentPage={typesPage}
-                totalPages={Math.ceil(typesTotal / TYPES_PER_PAGE)}
-                totalCount={typesTotal}
-                onPageChange={setTypesPage}
-                itemName="loại vi phạm"
-              />
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setTypesPage(Math.max(1, typesPage - 1))
+                      }}
+                      className={typesPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: Math.min(5, Math.ceil(typesTotal / TYPES_PER_PAGE)) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(Math.ceil(typesTotal / TYPES_PER_PAGE) - 4, typesPage - 2)) + i
+                    if (pageNum > Math.ceil(typesTotal / TYPES_PER_PAGE)) return null
+                    
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setTypesPage(pageNum)
+                          }}
+                          isActive={typesPage === pageNum}
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setTypesPage(Math.min(Math.ceil(typesTotal / TYPES_PER_PAGE), typesPage + 1))
+                      }}
+                      className={typesPage === Math.ceil(typesTotal / TYPES_PER_PAGE) ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>

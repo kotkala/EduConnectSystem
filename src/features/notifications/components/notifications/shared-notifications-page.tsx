@@ -29,13 +29,22 @@ import {
   type Notification
 } from '@/features/notifications/actions/notification-actions'
 import { NotificationForm } from '@/features/notifications/components/notifications/notification-form'
-import { Bell, AlertCircle, Eye, Plus, FileText } from 'lucide-react'
+import { Bell, AlertCircle, Eye, Plus, FileText, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { SharedPaginationControls } from '@/shared/components/shared/shared-pagination-controls'
+
 import { ImageViewer } from '@/shared/components/ui/image-viewer'
 import Image from 'next/image'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/shared/components/ui/pagination'
 
 
 // Helper functions
@@ -311,35 +320,35 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
             {filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`p-3 sm:p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
                   !notification.is_read ? 'bg-blue-50/50' : ''
                 }`}
                 onClick={() => setSelectedNotification(notification)}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2 sm:gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-900">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-gray-900 truncate">
                           {notification.sender?.full_name || 'Hệ thống'}
                         </span>
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 text-xs shrink-0">
                           Cán bộ nhà trường
                         </Badge>
                         {!notification.is_read && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></div>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 flex-shrink-0">
+                      <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: vi })}
                       </span>
                     </div>
 
-                    <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">
+                    <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">
                       {notification.title}
                     </h3>
 
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                       {notification.content}
                     </p>
 
@@ -381,57 +390,108 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
       </div>
 
       {/* Pagination */}
-      {filteredNotifications.length > 0 && (
-        <SharedPaginationControls
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalCount={filteredNotifications.length}
-          onPageChange={setCurrentPage}
-          itemName="thông báo"
-        />
+      {filteredNotifications.length > 0 && totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.max(1, currentPage - 1))
+                  }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                if (pageNum > totalPages) return null
+                
+                return (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setCurrentPage(pageNum)
+                      }}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       {/* Notification Detail Dialog */}
       <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-6xl max-h-[95vh] overflow-y-auto p-4 sm:p-6" showCloseButton={false}>
           {selectedNotification && (
             <>
               <DialogHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <DialogTitle className="text-xl font-semibold">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-semibold line-clamp-2">
                       {selectedNotification.title}
                     </DialogTitle>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <span>{selectedNotification.sender?.full_name || 'Hệ thống'}</span>
-                      <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200">
+                    <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-600 flex-wrap">
+                      <span className="truncate">{selectedNotification.sender?.full_name || 'Hệ thống'}</span>
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200 shrink-0">
                         Cán bộ nhà trường
                       </Badge>
-                      <span>•</span>
-                      <span>{formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true, locale: vi })}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="text-xs sm:text-sm">{formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true, locale: vi })}</span>
                     </div>
                   </div>
-                  {!selectedNotification.is_read && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!selectedNotification.is_read && (
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          handleMarkAsRead(selectedNotification.id)
+                          setSelectedNotification(prev => prev ? { ...prev, is_read: true } : null)
+                          refreshCounts() // Refresh sidebar count immediately
+                        }}
+                        className="gap-1 sm:gap-2 text-xs sm:text-sm"
+                      >
+                        <Eye className="h-3 w-3" />
+                        <span className="hidden sm:inline">Đánh dấu đã đọc</span>
+                        <span className="sm:hidden">Đã đọc</span>
+                      </Button>
+                    )}
                     <Button
                       size="sm"
-                      onClick={() => {
-                        handleMarkAsRead(selectedNotification.id)
-                        setSelectedNotification(prev => prev ? { ...prev, is_read: true } : null)
-                        refreshCounts() // Refresh sidebar count immediately
-                      }}
-                      className="gap-2"
+                      variant="outline"
+                      onClick={() => setSelectedNotification(null)}
+                      className="h-8 w-8 sm:h-9 sm:w-9 p-0"
                     >
-                      <Eye className="h-3 w-3" />
-                      Đánh dấu đã đọc
+                      <X className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </DialogHeader>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Content */}
                 <div className="prose prose-sm max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm sm:text-base">
                     {selectedNotification.content}
                   </div>
                 </div>
@@ -440,83 +500,83 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
 
                 {/* Image */}
                 {selectedNotification.image_url && (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center gap-2 pb-2 border-b">
-                      <div className="h-5 w-5 bg-blue-500 rounded-sm"></div>
-                      <h4 className="font-semibold text-gray-900">Hình ảnh</h4>
+                      <div className="h-4 w-4 sm:h-5 sm:w-5 bg-blue-500 rounded-sm"></div>
+                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Hình ảnh</h4>
                     </div>
-                                         <div className="border rounded-xl overflow-hidden bg-gray-50">
-                       <ImageViewer
-                         src={selectedNotification.image_url}
-                         alt="Notification image"
-                         className="w-full"
-                       >
-                         <Image
-                           src={selectedNotification.image_url}
-                           alt="Notification image"
-                           className="w-full h-auto max-h-96 object-contain"
-                           width={800}
-                           height={600}
-                           draggable={false}
-                           unselectable="on"
-                           onContextMenu={(e) => e.preventDefault()}
-                         />
-                       </ImageViewer>
-                     </div>
+                    <div className="border rounded-lg sm:rounded-xl overflow-hidden bg-gray-50">
+                      <ImageViewer
+                        src={selectedNotification.image_url}
+                        alt="Notification image"
+                        className="w-full"
+                      >
+                        <Image
+                          src={selectedNotification.image_url}
+                          alt="Notification image"
+                          className="w-full h-auto max-h-64 sm:max-h-96 object-contain"
+                          width={800}
+                          height={600}
+                          draggable={false}
+                          unselectable="on"
+                          onContextMenu={(e) => e.preventDefault()}
+                        />
+                      </ImageViewer>
+                    </div>
                     <p className="text-xs text-gray-500 text-center">Click để xem ảnh kích thước đầy đủ • Hover để preview</p>
                   </div>
                 )}
 
                 {/* Attachments */}
                 {selectedNotification.attachments && selectedNotification.attachments.length > 0 && (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-center gap-2 pb-2 border-b">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <h4 className="font-semibold text-gray-900">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                      <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
                         Tệp đính kèm ({selectedNotification.attachments.length})
                       </h4>
                     </div>
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-2 sm:gap-3">
                       {selectedNotification.attachments.map((attachment, index) => {
                         const isImage = attachment.mime_type?.startsWith('image/')
                         const fileSize = attachment.file_size ? `${(attachment.file_size / 1024).toFixed(1)} KB` : 'Unknown size'
 
                         return (
-                          <div key={attachment.id || index} className="group flex items-center gap-4 p-4 border rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all">
+                          <div key={attachment.id || index} className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg sm:rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all">
                             {/* File Icon/Preview */}
                             <div className="flex-shrink-0">
-                                                             {isImage ? (
-                                 <ImageViewer
-                                   src={attachment.public_url}
-                                   alt={attachment.file_name}
-                                   className="h-12 w-12 rounded-lg overflow-hidden border"
-                                 >
-                                   <Image
-                                     src={attachment.public_url}
-                                     alt={attachment.file_name}
-                                     className="h-full w-full object-cover"
-                                     width={48}
-                                     height={48}
-                                     draggable={false}
-                                     unselectable="on"
-                                     onContextMenu={(e) => e.preventDefault()}
-                                   />
-                                 </ImageViewer>
+                              {isImage ? (
+                                <ImageViewer
+                                  src={attachment.public_url}
+                                  alt={attachment.file_name}
+                                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg overflow-hidden border"
+                                >
+                                  <Image
+                                    src={attachment.public_url}
+                                    alt={attachment.file_name}
+                                    className="h-full w-full object-cover"
+                                    width={48}
+                                    height={48}
+                                    draggable={false}
+                                    unselectable="on"
+                                    onContextMenu={(e) => e.preventDefault()}
+                                  />
+                                </ImageViewer>
                               ) : (
-                                <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                                  <FileText className="h-6 w-6 text-blue-600" />
+                                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                                 </div>
                               )}
                             </div>
 
                             {/* File Info */}
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate">
+                              <p className="font-medium text-gray-900 truncate text-sm sm:text-base">
                                 {attachment.file_name || `Attachment ${index + 1}`}
                               </p>
-                              <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                              <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-gray-500">
                                 <span>{fileSize}</span>
-                                <span>•</span>
+                                <span className="hidden sm:inline">•</span>
                                 <span className="truncate">
                                   {attachment.mime_type?.split('/')[1]?.toUpperCase() || 'Unknown'}
                                 </span>
@@ -527,7 +587,7 @@ export function SharedNotificationsPage({ config }: SharedNotificationsPageProps
                             <Button
                               size="sm"
                               variant="outline"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-xs sm:text-sm"
                               onClick={() => window.open(attachment.public_url, '_blank')}
                             >
                               {isImage ? 'Xem' : 'Tải xuống'}

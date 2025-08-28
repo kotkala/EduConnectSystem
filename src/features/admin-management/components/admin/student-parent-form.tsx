@@ -1,6 +1,6 @@
 "use client"
 
-import { Loader2 } from 'lucide-react'
+
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,7 +13,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Separator } from "@/shared/components/ui/separator"
 import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Save, X, User, Users, RefreshCw } from "lucide-react";import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
+import { Skeleton } from "@/shared/components/ui/skeleton"
+import { Save, X, User, Users, RefreshCw } from "lucide-react"
+import { studentParentSchema, type StudentParentFormData, type StudentWithParent, type UpdateStudentParentFormData } from "@/lib/validations/user-validations"
 import { createStudentWithParentAction, updateStudentParentAction, generateNextStudentIdAction } from "@/features/admin-management/actions/user-actions"
 import { EmailSuggestionInput } from "@/features/admin-management/components/admin/email-suggestion-input"
 

@@ -29,7 +29,6 @@ import {
   User,
   FileText,
   AlertCircle,
-  Download,
   ChevronLeft,
   ChevronRight,
   Search,
@@ -39,6 +38,7 @@ import {
 } from 'lucide-react'
 import { Input } from '@/shared/components/ui/input'
 import Image from "next/image"
+import { ImageViewer } from '@/shared/components/ui/image-viewer'
 import {
   Select,
   SelectContent,
@@ -216,8 +216,20 @@ export default function TeacherLeaveRequestsPage() {
   // Show initial state during loading when no data loaded yet
   // const isInitialLoading = coordinatedLoading.isLoading && applications.length === 0
 
+  // Show loading while checking permissions
+  if (!user || !profile) {
+    return (
+      <ContentLayout title="Đơn xin nghỉ" role="teacher">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Đang kiểm tra quyền truy cập...</p>
+        </div>
+      </ContentLayout>
+    )
+  }
+
   // Show access denied if no permission
-  if (!user || profile?.role !== 'teacher') {
+  if (profile?.role !== 'teacher') {
     return (
       <ContentLayout title="Đơn xin nghỉ" role="teacher">
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
@@ -452,37 +464,23 @@ export default function TeacherLeaveRequestsPage() {
                     <div>
                       <Label className="text-sm font-medium">Đơn xin nghỉ học</Label>
                       <div className="mt-1 border rounded-lg p-2 bg-gray-50">
-                        <div className="relative">
+                        <ImageViewer
+                          src={application.attachment_url}
+                          alt="Đơn xin nghỉ học"
+                          className="rounded-lg overflow-hidden"
+                        >
                           <Image
                             src={application.attachment_url}
                             alt="Đơn xin nghỉ học"
                             width={800}
                             height={400}
-                            className="max-w-full h-auto rounded-md shadow-sm"
+                            className="max-w-full h-auto rounded-md shadow-sm cursor-pointer hover:scale-105 transition-transform duration-200"
                             style={{ maxHeight: '400px' }}
-                            onError={() => {
-                              // Fallback to download button if image fails to load
-                              const imgElement = document.querySelector(`[data-attachment-url="${application.attachment_url}"]`) as HTMLElement
-                              if (imgElement) {
-                                imgElement.style.display = 'none'
-                                const fallbackDiv = imgElement.nextElementSibling as HTMLDivElement
-                                if (fallbackDiv) {
-                                  fallbackDiv.style.display = 'block'
-                                }
-                              }
-                            }}
-                            data-attachment-url={application.attachment_url}
+                            draggable={false}
+                            unselectable="on"
+                            onContextMenu={(e) => e.preventDefault()}
                           />
-                        </div>
-                        <div style={{ display: 'none' }} className="text-center py-2">
-                          <p className="text-xs text-gray-600 mb-2">Không thể hiển thị ảnh. Vui lòng tải xuống để xem.</p>
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={application.attachment_url} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-3 w-3 mr-1" />
-                              Tải xuống
-                            </a>
-                          </Button>
-                        </div>
+                        </ImageViewer>
                       </div>
                     </div>
                   )}

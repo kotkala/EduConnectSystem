@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Users, Eye, Award } from 'lucide-react'
 import { toast } from 'sonner'
-import { SandyLoading } from '@/shared/components/ui/sandy-loading'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/ui/empty-state'
 import { getChildrenGradeReportsAction, getAllGradeReportingPeriodsAction, getAllAcademicYearsAction } from '@/lib/actions/parent-grade-actions'
 
@@ -210,8 +210,15 @@ export default function ParentGradesClient() {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center py-8">
-          <SandyLoading message="Đang tải danh sách học sinh..." />
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="space-y-4 mb-4">
+            <Skeleton className="h-12 md:h-14 lg:h-16 w-12 rounded-full mx-auto" aria-label="Loading content" role="status" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[200px] mx-auto" aria-label="Loading content" role="status" />
+              <Skeleton className="h-4 w-[150px] mx-auto" aria-label="Loading content" role="status" />
+            </div>
+          </div>
+          <p className="text-muted-foreground font-medium">Đang tải danh sách học sinh...</p>
         </div>
       )
     }

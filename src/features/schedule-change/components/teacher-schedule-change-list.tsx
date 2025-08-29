@@ -6,7 +6,7 @@ import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog"
 import {
   Calendar,
   Clock,
@@ -21,9 +21,9 @@ import {
   ChevronRight
 } from "lucide-react"
 import { toast } from "sonner"
-import Link from "next/link"
 import { getTeacherScheduleChangeRequestsAction } from "../actions/schedule-change-actions"
 import { type ScheduleChangeRequest } from "../types/schedule-change-types"
+import TeacherScheduleChangeForm from "./teacher-schedule-change-form"
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -55,6 +55,7 @@ export default function TeacherScheduleChangeList() {
   const [requests, setRequests] = useState<ScheduleChangeRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [, setSelectedRequest] = useState<ScheduleChangeRequest | null>(null)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   // Filter and pagination state
   const [searchTerm, setSearchTerm] = useState("")
@@ -123,11 +124,9 @@ export default function TeacherScheduleChangeList() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Đơn Thay Đổi Lịch Dạy</h1>
-          <Button asChild>
-            <Link href="/dashboard/teacher/schedule-change/create">
-              <Plus className="h-4 w-4 mr-2" />
-              Tạo Đơn Mới
-            </Link>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Tạo Đơn Mới
           </Button>
         </div>
         <Card>
@@ -143,12 +142,26 @@ export default function TeacherScheduleChangeList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Đơn Thay Đổi Lịch Dạy</h1>
-        <Button asChild>
-          <Link href="/dashboard/teacher/schedule-change/create">
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo Đơn Mới
-          </Link>
-        </Button>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Tạo Đơn Mới
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Tạo Đơn Thay Đổi Lịch Dạy</DialogTitle>
+              <DialogDescription>
+                Điền thông tin để tạo đơn yêu cầu thay đổi lịch dạy
+              </DialogDescription>
+            </DialogHeader>
+            <TeacherScheduleChangeForm onSuccess={() => {
+              setShowCreateDialog(false)
+              loadRequests()
+            }} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Filters and Search */}
@@ -208,11 +221,9 @@ export default function TeacherScheduleChangeList() {
                 }
               </p>
               {!searchTerm && statusFilter === "all" && (
-                <Button asChild>
-                  <Link href="/dashboard/teacher/schedule-change/create">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tạo Đơn Đầu Tiên
-                  </Link>
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo Đơn Đầu Tiên
                 </Button>
               )}
             </div>

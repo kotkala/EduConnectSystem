@@ -15,6 +15,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbL
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,6 +38,7 @@ import { Plus, FileText, Calendar, Clock, AlertCircle, Eye, CheckCircle, XCircle
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { ImageViewer } from '@/shared/components/ui/image-viewer'
 
 export default function LeaveApplicationPage() {
   const router = useRouter()
@@ -59,6 +61,10 @@ export default function LeaveApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Detail dialog states
+  const [selectedApplication, setSelectedApplication] = useState<LeaveApplication | null>(null)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
 
   // Redirect if user doesn't have permission
   useEffect(() => {
@@ -690,7 +696,8 @@ export default function LeaveApplicationPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          toast.info(`Xem chi tiết đơn xin nghỉ của ${application.student_name}`)
+                          setSelectedApplication(application)
+                          setShowDetailDialog(true)
                         }}
                       >
                         <Eye className="h-4 w-4" />
@@ -705,6 +712,107 @@ export default function LeaveApplicationPage() {
       </div>
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chi tiết đơn xin nghỉ</DialogTitle>
+            <DialogDescription>
+              Thông tin chi tiết về đơn xin nghỉ của {selectedApplication?.student_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Học sinh</Label>
+                  <p className="text-base font-medium">{selectedApplication.student_name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Lớp</Label>
+                  <p className="text-base">{selectedApplication.class?.name || 'Chưa có thông tin'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Loại nghỉ</Label>
+                  <p className="text-base">{getLeaveTypeLabel(selectedApplication.leave_type)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Trạng thái</Label>
+                  <div className="mt-1">{getStatusBadge(selectedApplication.status)}</div>
+                </div>
+              </div>
+
+              {/* Date Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ngày bắt đầu</Label>
+                  <p className="text-base">{format(new Date(selectedApplication.start_date), 'dd/MM/yyyy', { locale: vi })}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ngày kết thúc</Label>
+                  <p className="text-base">{format(new Date(selectedApplication.end_date), 'dd/MM/yyyy', { locale: vi })}</p>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Lý do</Label>
+                <p className="text-base mt-1 p-3 bg-gray-50 rounded-lg">{selectedApplication.reason}</p>
+              </div>
+
+              {/* Attachment */}
+              {selectedApplication.attachment_url && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Tệp đính kèm</Label>
+                  <div className="mt-2">
+                    <ImageViewer
+                      src={selectedApplication.attachment_url}
+                      alt="Đính kèm đơn xin nghỉ"
+                      className="rounded-lg border overflow-hidden bg-gray-50"
+                    >
+                      <Image
+                        src={selectedApplication.attachment_url}
+                        alt="Đính kèm đơn xin nghỉ"
+                        width={400}
+                        height={300}
+                        className="w-full h-auto max-h-64 object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
+                        draggable={false}
+                        unselectable="on"
+                        onContextMenu={(e) => e.preventDefault()}
+                      />
+                    </ImageViewer>
+                  </div>
+                </div>
+              )}
+
+              {/* Teacher Response */}
+              {selectedApplication.teacher_response && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Phản hồi từ giáo viên</Label>
+                  <p className="text-base mt-1 p-3 bg-blue-50 rounded-lg">{selectedApplication.teacher_response}</p>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                <div>
+                  <Label className="text-xs font-medium text-gray-500">Ngày tạo</Label>
+                  <p>{format(new Date(selectedApplication.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}</p>
+                </div>
+                {selectedApplication.responded_at && (
+                  <div>
+                    <Label className="text-xs font-medium text-gray-500">Ngày phản hồi</Label>
+                    <p>{format(new Date(selectedApplication.responded_at), 'dd/MM/yyyy HH:mm', { locale: vi })}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ContentLayout>
   )
 }

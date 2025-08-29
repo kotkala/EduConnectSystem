@@ -42,7 +42,11 @@ interface Class {
   name: string
 }
 
-export default function TeacherScheduleChangeForm() {
+interface TeacherScheduleChangeFormProps {
+  onSuccess?: () => void
+}
+
+export default function TeacherScheduleChangeForm({ onSuccess }: TeacherScheduleChangeFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([])
@@ -196,7 +200,11 @@ export default function TeacherScheduleChangeForm() {
       
       if (result.success) {
         toast.success('Đã gửi đơn thay đổi lịch dạy thành công')
-        router.push('/dashboard/teacher/schedule-change')
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/dashboard/teacher/schedule-change')
+        }
       } else {
         toast.error(result.error || 'Có lỗi xảy ra')
       }

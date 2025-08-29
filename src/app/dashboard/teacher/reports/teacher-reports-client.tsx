@@ -535,10 +535,9 @@ function TeacherReportsClient() {
                     className="flex items-center gap-2"
                   >
                     <Send className="h-4 w-4" />
-                    {bulkSending ? 'Đang nộp...' : `Nộp tất cả cho Admin (${stats.draftReports})`}
+                    {bulkSending ? 'Đang nộp...' : `Tổng số báo cáo (${stats.draftReports})`}
                   </Button>
                   <span className="text-sm text-gray-600">
-                    Nộp tất cả báo cáo bản nháp cho Admin để duyệt
                   </span>
                 </div>
 

@@ -248,40 +248,38 @@ export default function StudentsPageClient() {
 
       {/* Create Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[98vw] sm:!max-w-none xl:!max-w-[1800px] max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-4 sm:p-6 pb-0">
-            <DialogTitle className="text-xl sm:text-2xl font-bold">Thêm Học sinh & Phụ huynh mới</DialogTitle>
+        <DialogContent className="w-[95vw] sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] max-w-5xl max-h-[90vh] overflow-y-auto p-6">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              Thêm Học sinh & Phụ huynh mới
+            </DialogTitle>
           </DialogHeader>
-          <div className="w-full">
-            <StudentParentForm
-              onSuccess={handleCreateSuccess}
-              onCancel={() => setShowCreateDialog(false)}
-            />
-          </div>
+          <StudentParentForm
+            onSuccess={handleCreateSuccess}
+            onCancel={() => setShowCreateDialog(false)}
+          />
         </DialogContent>
       </Dialog>
 
       {/* Edit Student & Parent Dialog - OPTIMIZED RESPONSIVE LAYOUT */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="w-[98vw] max-w-[1800px] max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-4 sm:p-6 pb-0">
-            <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-3">
-              <Edit className="h-5 w-5 sm:h-6 sm:w-6" />
+        <DialogContent className="w-[95vw] sm:w-[90vw] lg:w-[80vw] xl:w-[70vw] max-w-5xl max-h-[90vh] overflow-y-auto p-6">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent flex items-center justify-center gap-3">
+              <Edit className="h-6 w-6 text-blue-600" />
               Chỉnh sửa thông tin Học sinh & Phụ huynh
             </DialogTitle>
           </DialogHeader>
           {editingStudent && (
-            <div className="w-full">
-              <StudentParentForm
-                editMode={true}
-                initialData={editingStudent}
-                onSuccess={handleEditSuccess}
-                onCancel={() => {
-                  setShowEditDialog(false)
-                  setEditingStudent(null)
-                }}
-              />
-            </div>
+            <StudentParentForm
+              editMode={true}
+              initialData={editingStudent}
+              onSuccess={handleEditSuccess}
+              onCancel={() => {
+                setShowEditDialog(false)
+                setEditingStudent(null)
+              }}
+            />
           )}
         </DialogContent>
       </Dialog>

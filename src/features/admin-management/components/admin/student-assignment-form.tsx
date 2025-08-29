@@ -1,12 +1,9 @@
 "use client"
-import { Loader2 } from 'lucide-react'
-
 
 import { useState, useEffect, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/shared/components/ui/button"
-import { Label } from "@/shared/components/ui/label"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Dialog,
@@ -17,8 +14,17 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-
-import { Users, UserPlus } from "lucide-react";import {
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/components/ui/form"
+import { Loader2, Users, UserPlus } from "lucide-react"
+import {
   bulkStudentAssignmentSchema,
   type BulkStudentAssignmentFormData,
   type AvailableStudent
@@ -157,24 +163,29 @@ export default function StudentAssignmentForm({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Assignment Type Display */}
-          <div className="space-y-2">
-            <Label>Assignment Type</Label>
-            <div className="p-3 bg-muted rounded-md border">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">
-                  {isSubjectCombination ? "Subject Combination Class" : "Regular Class"}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  - Students will be assigned to this class
-                </span>
-              </div>
-            </div>
-            {form.formState.errors.assignment_type && (
-              <p className="text-sm text-red-500">{form.formState.errors.assignment_type.message}</p>
-            )}
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Assignment Type Display */}
+            <FormField
+              control={form.control}
+              name="assignment_type"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Assignment Type</FormLabel>
+                  <div className="p-3 bg-muted rounded-md border">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {isSubjectCombination ? "Subject Combination Class" : "Regular Class"}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        - Students will be assigned to this class
+                      </span>
+                    </div>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           {/* Error Alert - Only show for actual errors, not empty results */}
           {error && (
@@ -183,91 +194,99 @@ export default function StudentAssignmentForm({
             </Alert>
           )}
 
-          {/* Student Selection */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-base font-medium">
-                Available Students ({availableStudents.length})
-              </Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  disabled={loadingStudents || availableStudents.length === 0}
-                >
-                  Select All
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDeselectAll}
-                  disabled={loadingStudents || watchSelectedStudents.length === 0}
-                >
-                  Deselect All
-                </Button>
-              </div>
-            </div>
-
-            {loadingStudents ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="ml-2">Loading available students...</span>
-              </div>
-            ) : (() => {
-              if (availableStudents.length === 0) {
-                return (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 md:h-14 lg:h-16 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No available students for {watchAssignmentType} class assignment</p>
-                    <p className="text-sm">All students may already be assigned to a {watchAssignmentType} class this academic year</p>
+            {/* Student Selection */}
+            <FormField
+              control={form.control}
+              name="student_ids"
+              render={() => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-base font-medium">
+                      Available Students ({availableStudents.length})
+                    </FormLabel>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAll}
+                        disabled={loadingStudents || availableStudents.length === 0}
+                      >
+                        Select All
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeselectAll}
+                        disabled={loadingStudents || watchSelectedStudents.length === 0}
+                      >
+                        Deselect All
+                      </Button>
+                    </div>
                   </div>
-                )
-              }
 
-              return (
-                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <div className="space-y-3">
-                    {availableStudents.map((student) => (
-                      <div key={student.id} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={student.id}
-                          checked={watchSelectedStudents.includes(student.id)}
-                          onCheckedChange={(checked) =>
-                            handleStudentSelection(student.id, !!checked)
-                          }
-                        />
-                        <Label
-                          htmlFor={student.id}
-                          className="flex-1 cursor-pointer"
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium">{student.full_name}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {student.student_id} â€¢ {student.email}
-                            </span>
+                  <FormControl>
+                    <div>
+                      {loadingStudents ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="ml-2">Loading available students...</span>
+                        </div>
+                      ) : (() => {
+                        if (availableStudents.length === 0) {
+                          return (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Users className="h-12 md:h-14 lg:h-16 w-12 mx-auto mb-4 opacity-50" />
+                              <p>No available students for {watchAssignmentType} class assignment</p>
+                              <p className="text-sm">All students may already be assigned to a {watchAssignmentType} class this academic year</p>
+                            </div>
+                          )
+                        }
+
+                        return (
+                          <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                            <div className="space-y-3">
+                              {availableStudents.map((student) => (
+                                <div key={student.id} className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id={student.id}
+                                    checked={watchSelectedStudents.includes(student.id)}
+                                    onCheckedChange={(checked) =>
+                                      handleStudentSelection(student.id, !!checked)
+                                    }
+                                  />
+                                  <FormLabel
+                                    htmlFor={student.id}
+                                    className="flex-1 cursor-pointer"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{student.full_name}</span>
+                                      <span className="text-sm text-muted-foreground">
+                                        {student.student_id} • {student.email}
+                                      </span>
+                                    </div>
+                                  </FormLabel>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
+                        )
+                      })()}
+                    </div>
+                  </FormControl>
 
-            {/* Selected Count */}
-            {watchSelectedStudents.length > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {watchSelectedStudents.length} student{watchSelectedStudents.length !== 1 ? 's' : ''} selected
-              </p>
-            )}
+                  {/* Selected Count */}
+                  {watchSelectedStudents.length > 0 && (
+                    <FormDescription className="text-sm text-muted-foreground">
+                      {watchSelectedStudents.length} student{watchSelectedStudents.length !== 1 ? 's' : ''} selected
+                    </FormDescription>
+                  )}
 
-            {form.formState.errors.student_ids && (
-              <p className="text-sm text-red-500">{form.formState.errors.student_ids.message}</p>
-            )}
-          </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <DialogFooter>
             <Button
@@ -296,7 +315,8 @@ export default function StudentAssignmentForm({
               )}
             </Button>
           </DialogFooter>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

@@ -6,13 +6,20 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
-import { Label } from "@/shared/components/ui/label"
 import { Textarea } from "@/shared/components/ui/textarea"
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import { Save, X } from "lucide-react";import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/shared/components/ui/form"
+import { Save, X } from "lucide-react"
+import { teacherSchema, type TeacherFormData, type TeacherProfile } from "@/lib/validations/user-validations"
 import { createTeacherAction, updateTeacherAction, generateNextEmployeeIdAction } from "@/features/admin-management/actions/user-actions"
 import TeacherSpecializationForm from "@/features/teacher-management/components/teacher-specialization-form"
 import { toast } from "sonner"
@@ -114,127 +121,161 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
-          {/* Employee ID */}
-          <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="employee_id" className="text-sm sm:text-base">Mã nhân viên *</Label>
-            <div className="flex gap-2">
-              <Input
-                id="employee_id"
-                {...form.register("employee_id")}
-                placeholder="VD: TC001"
-                readOnly={isEditing}
-                className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base flex-1 ${form.formState.errors.employee_id ? "border-red-500" : ""} ${isEditing ? "bg-gray-50" : ""}`}
-              />
-              {!isEditing && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generateEmployeeId}
-                  disabled={generatingId}
-                  className="h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 px-3"
-                >
-                  {generatingId ? "..." : "Tạo"}
-                </Button>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+            {/* Employee ID */}
+            <FormField
+              control={form.control}
+              name="employee_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm sm:text-base">Mã nhân viên *</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="VD: TC001"
+                        readOnly={isEditing}
+                        className={`h-10 sm:h-11 md:h-12 text-sm sm:text-base flex-1 ${isEditing ? "bg-gray-50" : ""}`}
+                      />
+                    </FormControl>
+                    {!isEditing && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={generateEmployeeId}
+                        disabled={generatingId}
+                        className="h-10 sm:h-11 md:h-12 px-3"
+                      >
+                        {generatingId ? "..." : "Tạo"}
+                      </Button>
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            {form.formState.errors.employee_id && (
-              <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.employee_id.message}</p>
-            )}
-          </div>
-
-          {/* Full Name */}
-          <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="full_name" className="text-sm sm:text-base">Họ và tên *</Label>
-            <Input
-              id="full_name"
-              {...form.register("full_name")}
-              placeholder="Nhập họ và tên"
-              className={`h-10 sm:h-11 md:h-12 md:h-14 lg:h-16 text-sm sm:text-base ${form.formState.errors.full_name ? "border-red-500" : ""}`}
             />
-            {form.formState.errors.full_name && (
-              <p className="text-xs sm:text-sm text-red-500">{form.formState.errors.full_name.message}</p>
-            )}
-          </div>
 
-          {/* Email */}
-          <div className="space-y-2 sm:space-y-3">
-            <Label htmlFor="email" className="text-sm sm:text-base">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              {...form.register("email")}
-              placeholder="teacher@school.com"
-              className={form.formState.errors.email ? "border-red-500" : ""}
+            {/* Full Name */}
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm sm:text-base">Họ và tên *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Nhập họ và tên"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.email && (
-              <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
-            )}
-          </div>
 
-          {/* Phone Number */}
-          <div className="space-y-2">
-            <Label htmlFor="phone_number">Số điện thoại *</Label>
-            <Input
-              id="phone_number"
-              {...form.register("phone_number")}
-              placeholder="0123456789"
-              className={form.formState.errors.phone_number ? "border-red-500" : ""}
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm sm:text-base">Email *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="teacher@school.com"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.phone_number && (
-              <p className="text-sm text-red-500">{form.formState.errors.phone_number.message}</p>
-            )}
-          </div>
 
-          {/* Gender */}
-          <div className="space-y-2">
-            <Label htmlFor="gender">Giới tính *</Label>
-            <Select
-              value={form.watch("gender")}
-              onValueChange={(value) => form.setValue("gender", value as "male" | "female")}
-            >
-              <SelectTrigger className={form.formState.errors.gender ? "border-red-500" : ""}>
-                <SelectValue placeholder="Chọn giới tính" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Nam</SelectItem>
-                <SelectItem value="female">Nữ</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.gender && (
-              <p className="text-sm text-red-500">{form.formState.errors.gender.message}</p>
-            )}
-          </div>
-
-          {/* Date of Birth */}
-          <div className="space-y-2">
-            <Label htmlFor="date_of_birth">Ngày sinh *</Label>
-            <Input
-              id="date_of_birth"
-              type="date"
-              {...form.register("date_of_birth")}
-              className={form.formState.errors.date_of_birth ? "border-red-500" : ""}
+            {/* Phone Number */}
+            <FormField
+              control={form.control}
+              name="phone_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số điện thoại *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="0123456789"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.date_of_birth && (
-              <p className="text-sm text-red-500">{form.formState.errors.date_of_birth.message}</p>
-            )}
-          </div>
 
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Địa chỉ *</Label>
-            <Textarea
-              id="address"
-              {...form.register("address")}
-              placeholder="Nhập địa chỉ đầy đủ"
-              rows={3}
-              className={form.formState.errors.address ? "border-red-500" : ""}
+            {/* Gender */}
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Giới tính *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-10 sm:h-11 md:h-12 text-sm sm:text-base">
+                        <SelectValue placeholder="Chọn giới tính" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="male">Nam</SelectItem>
+                      <SelectItem value="female">Nữ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {form.formState.errors.address && (
-              <p className="text-sm text-red-500">{form.formState.errors.address.message}</p>
-            )}
-          </div>
+
+            {/* Date of Birth */}
+            <FormField
+              control={form.control}
+              name="date_of_birth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngày sinh *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="date"
+                      className="h-10 sm:h-11 md:h-12 text-sm sm:text-base"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Address */}
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Địa chỉ *</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Nhập địa chỉ đầy đủ"
+                      rows={3}
+                      className="text-sm sm:text-base"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
 
 
@@ -319,7 +360,8 @@ export function TeacherForm({ teacher, onSuccess, onCancel }: TeacherFormProps) 
               </Button>
             )}
           </div>
-        </form>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   )

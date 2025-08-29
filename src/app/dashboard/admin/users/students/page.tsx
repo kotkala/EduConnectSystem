@@ -30,7 +30,7 @@ export default async function StudentsPage() {
             Quản lý tài khoản học sinh kèm mối quan hệ phụ huynh bắt buộc
           </p>
         </div>
-        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline">â† Quay về Quản lý người dùng</a>
+        <a href="/dashboard/admin/users" className="text-sm text-blue-600 hover:underline"> Quay về Quản lý người dùng</a>
       </div>
 
       <Suspense fallback={<div>Đang tải...</div>}>

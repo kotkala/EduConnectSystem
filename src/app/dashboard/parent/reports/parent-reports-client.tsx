@@ -726,7 +726,7 @@ const ReportDetailDialog = React.memo(({
             Báo cáo học tập - {reportData.student?.full_name}
           </DialogTitle>
           <DialogDescription>
-            {reportData.report_period?.name} â€¢ {reportData.class?.name} â€¢
+            {reportData.report_period?.name}  {reportData.class?.name} 
             Giáo viên: {reportData.homeroom_teacher?.full_name}
           </DialogDescription>
         </DialogHeader>

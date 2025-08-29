@@ -633,7 +633,7 @@ export function TeacherGradeTrackingDialog({
                                       <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
                                         {log.old_value}
                                       </span>
-                                      <span>â†’</span>
+                                      <span>→</span>
                                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
                                         {log.new_value}
                                       </span>

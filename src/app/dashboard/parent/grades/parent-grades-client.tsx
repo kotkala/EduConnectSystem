@@ -341,40 +341,68 @@ export default function ParentGradesClient() {
         </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-600" />
+      {/* Statistics - Standardized with Admin Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Học sinh</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Học sinh</p>
-                <p className="text-2xl font-bold">{students.length}</p>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {students.length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Tổng số học sinh
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-green-600" />
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Bảng điểm</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Bảng điểm</p>
-                <p className="text-2xl font-bold">{submissions.length}</p>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {submissions.length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Số bảng điểm
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Award className="h-5 w-5 text-purple-600" />
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Tổng điểm</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Tổng điểm</p>
-                <p className="text-2xl font-bold">
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {students.reduce((sum, student) => sum + student.total_grades, 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Điểm tích lũy
                 </p>
               </div>
             </div>

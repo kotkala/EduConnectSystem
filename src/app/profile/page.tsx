@@ -9,10 +9,17 @@ import { Label } from '@/shared/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+
 import { SidebarLayout } from '@/shared/components/dashboard/sidebar-layout'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import AvatarEditor from '@/features/authentication/components/profile/avatar-editor'
+import {
+  updateProfileAction,
+  getUserSessionsAction,
+  exportUserDataAction
+} from '@/lib/actions/profile-actions'
 import { toast } from 'sonner'
 import {
   User,
@@ -23,7 +30,11 @@ import {
   MapPin,
   Calendar,
   IdCard,
-  GraduationCap
+  GraduationCap,
+  Download,
+  Loader2,
+  Monitor,
+  Smartphone
 } from 'lucide-react'
 
 // Lazy-load framer-motion to keep initial bundle small
@@ -54,6 +65,15 @@ function ProfileContent() {
     address: profile?.address || '',
   })
 
+
+
+  // Sessions state
+  const [sessions, setSessions] = useState<any[]>([])
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+
+  // Export state
+  const [isExporting, setIsExporting] = useState(false)
+
   // Handle tab parameter from URL
   useEffect(() => {
     const tab = searchParams.get('tab')
@@ -80,18 +100,67 @@ function ProfileContent() {
   }
 
   const handleSave = async () => {
+    if (!profile) return
+
     try {
-      await updateProfile({
-        full_name: formData.full_name,
-        phone_number: formData.phone_number,
-        gender: formData.gender,
-        date_of_birth: formData.date_of_birth,
-        address: formData.address,
-      })
-      setIsEditing(false)
-      toast.success('Profile updated successfully!')
+      const result = await updateProfileAction(formData)
+      if (result.success) {
+        setIsEditing(false)
+        toast.success('Cập nhật hồ sơ thành công!')
+        // Refresh the page to get updated data
+        window.location.reload()
+      } else {
+        toast.error(result.error || 'Có lỗi xảy ra khi cập nhật hồ sơ')
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update profile')
+      toast.error('Có lỗi xảy ra khi cập nhật hồ sơ')
+    }
+  }
+
+
+
+  // Load user sessions
+  const loadSessions = async () => {
+    setIsLoadingSessions(true)
+    try {
+      const result = await getUserSessionsAction()
+      if (result.success && result.data) {
+        setSessions(result.data)
+      } else {
+        toast.error(result.error || 'Không thể tải danh sách phiên đăng nhập')
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi tải danh sách phiên đăng nhập')
+    } finally {
+      setIsLoadingSessions(false)
+    }
+  }
+
+  // Export user data
+  const handleExportData = async () => {
+    setIsExporting(true)
+    try {
+      const result = await exportUserDataAction()
+      if (result.success && result.data) {
+        // Create and download file
+        const dataStr = JSON.stringify(result.data, null, 2)
+        const dataBlob = new Blob([dataStr], { type: 'application/json' })
+        const url = URL.createObjectURL(dataBlob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `educonnect-data-${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        toast.success('Xuất dữ liệu thành công!')
+      } else {
+        toast.error(result.error || 'Có lỗi xảy ra khi xuất dữ liệu')
+      }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi xuất dữ liệu')
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -170,23 +239,65 @@ function ProfileContent() {
   return (
     <SidebarLayout role={profile.role} title="Hồ sơ cá nhân">
       <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-4 mb-6">
-              <AvatarEditor
-                uid={user.id}
-                url={profile.avatar_url}
-                size={80}
-                onUpload={handleAvatarUpload}
-                onRemove={handleAvatarRemove}
-                fallback={profile.full_name ? getInitials(profile.full_name) : 'U'}
-              />
-              <div>
-                <h2 className="text-2xl font-bold">{profile.full_name || 'Chưa cập nhật'}</h2>
-                <Badge variant="secondary" className={`${config.color} text-sm mt-2`}>
-                  {config.label}
-                </Badge>
+        {/* Modern Profile Header */}
+        <Card className="mb-6 relative overflow-hidden">
+          <div className={`absolute inset-0 bg-gradient-to-br ${config.color.replace('bg-', 'from-').replace('-500', '-500 to-').replace('500', '600')} opacity-5`} />
+          <CardContent className="pt-6 relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div className="relative">
+                <AvatarEditor
+                  uid={user.id}
+                  url={profile.avatar_url}
+                  size={100}
+                  onUpload={handleAvatarUpload}
+                  onRemove={handleAvatarRemove}
+                  fallback={profile.full_name ? getInitials(profile.full_name) : 'U'}
+                />
+                <div className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full ${config.color} flex items-center justify-center shadow-lg`}>
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-3">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900">
+                    {profile.full_name || 'Chưa cập nhật tên'}
+                  </h2>
+                  <p className="text-gray-600 mt-1">{profile.email}</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge variant="secondary" className={`${config.color} text-white px-3 py-1`}>
+                    {config.label}
+                  </Badge>
+
+                  {profile.employee_id && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <IdCard className="w-3 h-3" />
+                      {profile.employee_id}
+                    </Badge>
+                  )}
+
+                  {profile.student_id && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <GraduationCap className="w-3 h-3" />
+                      {profile.student_id}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>Tham gia {new Date(profile.created_at).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                  {profile.phone_number && (
+                    <div className="flex items-center gap-1">
+                      <Phone className="w-4 h-4" />
+                      <span>{profile.phone_number}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -281,18 +392,20 @@ function ProfileContent() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="gender">Giới tính</Label>
-                        <select
-                          id="gender"
+                        <Select
                           value={formData.gender}
-                          onChange={(e) => handleInputChange('gender', e.target.value)}
+                          onValueChange={(value) => handleInputChange('gender', value)}
                           disabled={!isEditing}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          <option value="">Chọn giới tính</option>
-                          <option value="male">Nam</option>
-                          <option value="female">Nữ</option>
-                          <option value="other">Khác</option>
-                        </select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn giới tính" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Nam</SelectItem>
+                            <SelectItem value="female">Nữ</SelectItem>
+                            <SelectItem value="other">Khác</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -421,11 +534,15 @@ function ProfileContent() {
                           Nhận cập nhật qua email về tài khoản của bạn
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toast.info('Tính năng đang được phát triển')}
+                      >
                         Cấu hình
                       </Button>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">Cài đặt quyền riêng tư</h4>
@@ -433,20 +550,35 @@ function ProfileContent() {
                           Kiểm soát ai có thể xem thông tin hồ sơ của bạn
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toast.info('Tính năng đang được phát triển')}
+                      >
                         Quản lý
                       </Button>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">Xuất dữ liệu</h4>
                         <p className="text-sm text-muted-foreground">
-                          Tải xuống bản sao dữ liệu của bạn
+                          Tải xuống bản sao dữ liệu của bạn (JSON)
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Xuất
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportData}
+                        disabled={isExporting}
+                        className="flex items-center gap-2"
+                      >
+                        {isExporting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                        {isExporting ? 'Đang xuất...' : 'Xuất'}
                       </Button>
                     </div>
                   </div>
@@ -463,37 +595,28 @@ function ProfileContent() {
             >
               <Card>
                 <CardHeader>
-                  <CardTitle>Cài đặt bảo mật</CardTitle>
+                  <CardTitle>Bảo mật tài khoản</CardTitle>
                   <CardDescription>
-                    Quản lý bảo mật tài khoản và phương thức xác thực
+                    Quản lý phiên đăng nhập và theo dõi hoạt động tài khoản
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  {/* Security Info */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-blue-900">Thông tin bảo mật</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Tài khoản của bạn được bảo vệ bởi hệ thống xác thực an toàn.
+                          Vui lòng liên hệ quản trị viên nếu bạn gặp sự cố.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Đổi mật khẩu</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Cập nhật mật khẩu tài khoản của bạn
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Đổi
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Xác thực hai lớp</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Thêm một lớp bảo mật cho tài khoản của bạn
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Bật
-                      </Button>
-                    </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">Phiên đăng nhập hiện tại</h4>
@@ -501,10 +624,55 @@ function ProfileContent() {
                           Quản lý các thiết bị đang đăng nhập vào tài khoản của bạn
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Xem
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          loadSessions()
+                          toast.info('Hiển thị phiên đăng nhập hiện tại')
+                        }}
+                        disabled={isLoadingSessions}
+                        className="flex items-center gap-2"
+                      >
+                        {isLoadingSessions ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Monitor className="h-4 w-4" />
+                        )}
+                        {isLoadingSessions ? 'Đang tải...' : 'Xem'}
                       </Button>
                     </div>
+
+                    {/* Sessions List */}
+                    {sessions.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <h5 className="font-medium text-sm">Phiên đăng nhập:</h5>
+                        {sessions.map((session) => (
+                          <div key={session.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                {session.device?.includes('Mobile') ? (
+                                  <Smartphone className="h-4 w-4 text-blue-600" />
+                                ) : (
+                                  <Monitor className="h-4 w-4 text-blue-600" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{session.device}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {session.location} • {new Date(session.last_active).toLocaleString('vi-VN')}
+                                </p>
+                              </div>
+                            </div>
+                            {session.is_current && (
+                              <Badge variant="secondary" className="bg-green-100 text-green-700">
+                                Hiện tại
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

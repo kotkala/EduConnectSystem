@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ContentLayout } from '@/shared/components/dashboard/content-layout'
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage } from '@/shared/components/ui/breadcrumb'
-import { Card, CardContent } from '@/shared/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 
 import { useAuth } from '@/features/authentication/hooks/use-auth'
 import {
@@ -190,54 +190,73 @@ export default function ParentDashboard() {
             </div>
           </div>
 
-          {/* Modern Summary Cards */}
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-blue-200/50 shadow-lg shadow-blue-500/10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
+          {/* Modern Summary Cards - Standardized with Admin Layout */}
+          <div className="grid gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 opacity-5" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Con em của tôi</CardTitle>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{students.length}</div>
-                  <p className="text-sm text-blue-600 font-medium">
-                    {selectedYear && selectedYear !== 'all' ? 'Trong niên khóa' : 'Tổng số con em'}
-                  </p>
-                </div>
-              </div>
-              <h3 className="font-semibold text-gray-800">Con em của tôi</h3>
-            </div>
-
-            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-emerald-200/50 shadow-lg shadow-emerald-500/10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                  <GraduationCap className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">
-                    {students.filter(s => s.current_class).length}
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      {students.length}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedYear && selectedYear !== 'all' ? 'Trong niên khóa' : 'Tổng số con em'}
+                    </p>
                   </div>
-                  <p className="text-sm text-emerald-600 font-medium">
-                    Đang theo học
-                  </p>
                 </div>
-              </div>
-              <h3 className="font-semibold text-gray-800">Lớp học hiện tại</h3>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="bg-orange-gradient-soft rounded-2xl p-6 border border-purple-200/50 shadow-lg shadow-purple-500/10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 md:h-14 lg:h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-white" />
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '100ms' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-5" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Lớp học hiện tại</CardTitle>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                  <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-gray-900">{academicYears.length}</div>
-                  <p className="text-sm text-purple-600 font-medium">
-                    Niên khóa có sẵn
-                  </p>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      {students.filter(s => s.current_class).length}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Đang theo học
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <h3 className="font-semibold text-gray-800">Niên khóa học</h3>
-            </div>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: '200ms' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600 opacity-5" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Niên khóa học</CardTitle>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      {academicYears.length}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Niên khóa có sẵn
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Modern Students List */}

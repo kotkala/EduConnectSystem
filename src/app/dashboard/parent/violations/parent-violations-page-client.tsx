@@ -337,29 +337,71 @@ export default function ParentViolationsPageClient() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+      {/* Statistics Cards - Standardized with Admin Layout */}
+      <div className="grid gap-4 lg:gap-6 md:grid-cols-3">
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Tổng vi phạm</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{violations.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {selectedStudent ? `For ${selectedStudent.full_name}` : 'All children'}
-            </p>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {violations.length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {selectedStudent ? `Của ${selectedStudent.full_name}` : 'Tất cả con em'}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
+
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Vi phạm nghiêm trọng</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{violations.length}</div>
-            <p className="text-xs text-muted-foreground">
-              All recorded violations
-            </p>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {violations.filter(v => v.severity === 'high').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mức độ cao
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-600 opacity-5" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Vi phạm nhẹ</CardTitle>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0 space-y-3">
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {violations.filter(v => v.severity === 'low' || v.severity === 'medium').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mức độ thấp/trung bình
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

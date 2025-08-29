@@ -393,7 +393,6 @@ export default function ReportPeriodsPage() {
               <div className="mt-4 pt-4 border-t">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm text-muted-foreground">
-                    Test Mode: Cho phép gửi báo cáo khi chưa hoàn thành 100%
                   </div>
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -410,7 +409,7 @@ export default function ReportPeriodsPage() {
                       }`} />
                     </div>
                     <span className="ml-2 text-sm font-medium">
-                      {testModeEnabled ? 'Bật' : 'Tắt'}
+                      {testModeEnabled ? '' : ''}
                     </span>
                   </label>
                 </div>

@@ -313,7 +313,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">EduConnect AI</h3>
-                    <p className="text-sm text-emerald-600">â— Đang hoạt động</p>
+                    <p className="text-sm text-emerald-600"> Đang hoạt động</p>
                   </div>
                 </div>
 

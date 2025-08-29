@@ -121,17 +121,29 @@ export default function TeacherScheduleChangeList() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-in fade-in duration-700">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Đơn Thay Đổi Lịch Dạy</h1>
-          <Button onClick={() => setShowCreateDialog(true)}>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+              Đơn Thay Đổi Lịch Dạy
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+              Quản lý và theo dõi các đơn yêu cầu thay đổi lịch dạy
+            </p>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)} className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700">
             <Plus className="h-4 w-4 mr-2" />
             Tạo Đơn Mới
           </Button>
         </div>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">Đang tải...</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="space-y-4 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-muted-foreground">Đang tải danh sách đơn...</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -140,18 +152,27 @@ export default function TeacherScheduleChangeList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Đơn Thay Đổi Lịch Dạy</h1>
+      <div className="flex items-center justify-between animate-in fade-in duration-700">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+            Đơn Thay Đổi Lịch Dạy
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Quản lý và theo dõi các đơn yêu cầu thay đổi lịch dạy
+          </p>
+        </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300">
               <Plus className="h-4 w-4 mr-2" />
               Tạo Đơn Mới
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Tạo Đơn Thay Đổi Lịch Dạy</DialogTitle>
+              <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                Tạo Đơn Thay Đổi Lịch Dạy
+              </DialogTitle>
               <DialogDescription>
                 Điền thông tin để tạo đơn yêu cầu thay đổi lịch dạy
               </DialogDescription>
@@ -165,10 +186,10 @@ export default function TeacherScheduleChangeList() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
+      <Card className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            <Filter className="h-5 w-5 text-blue-600" />
             Bộ lọc và tìm kiếm
           </CardTitle>
         </CardHeader>
@@ -181,7 +202,7 @@ export default function TeacherScheduleChangeList() {
                   placeholder="Tìm kiếm theo môn học, lớp, lý do hoặc mã đơn..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
                 />
               </div>
             </div>
@@ -210,18 +231,29 @@ export default function TeacherScheduleChangeList() {
       </Card>
 
       {filteredRequests.length === 0 ? (
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
           <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="h-10 w-10 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm || statusFilter !== "all"
-                  ? "Không tìm thấy đơn nào phù hợp với bộ lọc"
-                  : "Chưa có đơn thay đổi lịch dạy nào"
+                  ? "Không tìm thấy đơn nào"
+                  : "Chưa có đơn thay đổi lịch"
+                }
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {searchTerm || statusFilter !== "all"
+                  ? "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
+                  : "Tạo đơn đầu tiên để bắt đầu quản lý lịch dạy"
                 }
               </p>
               {!searchTerm && statusFilter === "all" && (
-                <Button onClick={() => setShowCreateDialog(true)}>
+                <Button
+                  onClick={() => setShowCreateDialog(true)}
+                  className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Tạo Đơn Đầu Tiên
                 </Button>
@@ -232,10 +264,14 @@ export default function TeacherScheduleChangeList() {
       ) : (
         <>
           {/* Compact Request Cards */}
-          <div className="space-y-3">
-            {currentRequests.map((request) => (
-              <Card key={request.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            {currentRequests.map((request, index) => (
+              <Card
+                key={request.id}
+                className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500 hover:border-l-emerald-500"
+                style={{ animationDelay: `${300 + index * 100}ms` }}
+              >
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-3">

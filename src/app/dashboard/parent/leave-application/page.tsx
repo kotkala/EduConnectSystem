@@ -677,6 +677,12 @@ export default function LeaveApplicationPage() {
                           <span className="text-sm text-gray-600">
                             {getLeaveTypeLabel(application.leave_type)}
                           </span>
+                          {application.attachment_url && (
+                            <Badge variant="outline" className="text-xs">
+                              <FileText className="h-3 w-3 mr-1" />
+                              Có đính kèm
+                            </Badge>
+                          )}
                           {getStatusBadge(application.status)}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -725,6 +731,8 @@ export default function LeaveApplicationPage() {
 
           {selectedApplication && (
             <div className="space-y-6">
+
+
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -763,30 +771,72 @@ export default function LeaveApplicationPage() {
                 <p className="text-base mt-1 p-3 bg-gray-50 rounded-lg">{selectedApplication.reason}</p>
               </div>
 
-              {/* Attachment */}
-              {selectedApplication.attachment_url && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Tệp đính kèm</Label>
-                  <div className="mt-2">
+              {/* Attachment - Always show section for debugging */}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Tệp đính kèm</Label>
+                {selectedApplication.attachment_url ? (
+                  <div className="mt-2 space-y-2">
                     <ImageViewer
                       src={selectedApplication.attachment_url}
                       alt="Đính kèm đơn xin nghỉ"
                       className="rounded-lg border overflow-hidden bg-gray-50"
                     >
-                      <Image
-                        src={selectedApplication.attachment_url}
-                        alt="Đính kèm đơn xin nghỉ"
-                        width={400}
-                        height={300}
-                        className="w-full h-auto max-h-64 object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
-                        draggable={false}
-                        unselectable="on"
-                        onContextMenu={(e) => e.preventDefault()}
-                      />
+                      <div className="relative group">
+                        <Image
+                          src={selectedApplication.attachment_url}
+                          alt="Đính kèm đơn xin nghỉ"
+                          width={400}
+                          height={300}
+                          className="w-full h-auto max-h-64 object-contain cursor-pointer hover:scale-105 transition-transform duration-200"
+                          draggable={false}
+                          unselectable="on"
+                          onContextMenu={(e) => e.preventDefault()}
+                          onError={(e) => {
+                            console.error('Image load error:', selectedApplication.attachment_url)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white bg-opacity-90 rounded-full p-2">
+                            <Eye className="h-5 w-5 text-gray-700" />
+                          </div>
+                        </div>
+                      </div>
                     </ImageViewer>
+
+                    {/* Fallback download button */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => selectedApplication.attachment_url && window.open(selectedApplication.attachment_url, '_blank')}
+                        className="text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Xem trong tab mới
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (selectedApplication.attachment_url) {
+                            const link = document.createElement('a')
+                            link.href = selectedApplication.attachment_url
+                            link.download = `don-xin-nghi-${selectedApplication.student_name}.jpg`
+                            link.click()
+                          }
+                        }}
+                        className="text-xs"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Tải xuống
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="text-sm text-gray-500 mt-2">Không có tệp đính kèm</p>
+                )}
+              </div>
 
               {/* Teacher Response */}
               {selectedApplication.teacher_response && (

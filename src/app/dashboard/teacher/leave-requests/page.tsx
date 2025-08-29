@@ -21,7 +21,6 @@ import {
   type LeaveApplication
 } from '@/lib/actions/leave-application-actions'
 import {
-
   Check,
   X,
   Clock,
@@ -34,7 +33,8 @@ import {
   Search,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Eye
 } from 'lucide-react'
 import { Input } from '@/shared/components/ui/input'
 import Image from "next/image"
@@ -46,6 +46,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { toast } from 'sonner'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
 
 export default function TeacherLeaveRequestsPage() {
   const router = useRouter()
@@ -58,6 +69,10 @@ export default function TeacherLeaveRequestsPage() {
   const [error, setError] = useState<string | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [responseText, setResponseText] = useState<{ [key: string]: string }>({})
+
+  // Dialog states
+  const [selectedApplication, setSelectedApplication] = useState<LeaveApplication | null>(null)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
 
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -184,6 +199,21 @@ export default function TeacherLeaveRequestsPage() {
     }
   }
 
+  const getLeaveTypeLabel = (type: string) => {
+    switch (type) {
+      case 'sick':
+        return 'Nghỉ ốm'
+      case 'personal':
+        return 'Nghỉ cá nhân'
+      case 'family':
+        return 'Nghỉ gia đình'
+      case 'emergency':
+        return 'Nghỉ khẩn cấp'
+      default:
+        return type
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
@@ -262,10 +292,13 @@ export default function TeacherLeaveRequestsPage() {
 
       <Card className="rounded-lg border-none mt-6">
         <CardContent className="p-6">
-          <div className="space-y-6">
+          <div className="min-h-[calc(100vh-56px-64px-20px-24px-56px-48px)]">
+            <div className="space-y-6">
             {/* Header */}
-            <div className="space-y-2 sm:space-y-3">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Đơn xin nghỉ</h1>
+            <div className="space-y-2 sm:space-y-3 animate-in fade-in duration-700">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                Đơn xin nghỉ
+              </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Xem xét và quản lý đơn xin nghỉ của học sinh lớp chủ nhiệm
               </p>
@@ -278,7 +311,7 @@ export default function TeacherLeaveRequestsPage() {
         )}
 
         {/* Stats */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-xs sm:text-sm font-medium">Tổng số đơn</CardTitle>
@@ -313,10 +346,10 @@ export default function TeacherLeaveRequestsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <Filter className="h-5 w-5 text-blue-600" />
               Tìm kiếm và lọc
             </CardTitle>
           </CardHeader>
@@ -393,10 +426,14 @@ export default function TeacherLeaveRequestsPage() {
               </CardContent>
             </Card>
           ) : (
-            paginatedApplications.map((application) => {
+            paginatedApplications.map((application, index) => {
               const isExpanded = expandedCards.has(application.id)
               return (
-              <Card key={application.id} className="overflow-hidden">
+              <Card
+                key={application.id}
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500 hover:border-l-emerald-500 animate-in fade-in slide-in-from-bottom-4 duration-700"
+                style={{ animationDelay: `${450 + index * 100}ms` }}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -438,9 +475,12 @@ export default function TeacherLeaveRequestsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/dashboard/leave-application/${application.id}`)}
+                          onClick={() => {
+                            setSelectedApplication(application)
+                            setShowDetailDialog(true)
+                          }}
                         >
-                          <FileText className="h-4 w-4 mr-2" />
+                          <Eye className="h-4 w-4 mr-2" />
                           Xem chi tiết
                         </Button>
                       </div>
@@ -590,8 +630,175 @@ export default function TeacherLeaveRequestsPage() {
           </Card>
         )}
           </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+              Chi tiết đơn xin nghỉ
+            </DialogTitle>
+            <DialogDescription>
+              Thông tin chi tiết về đơn xin nghỉ của {selectedApplication?.student?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Học sinh</Label>
+                  <p className="text-base font-medium">{selectedApplication.student?.full_name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Lớp</Label>
+                  <p className="text-base">{selectedApplication.class?.name || 'Chưa có thông tin'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Loại nghỉ</Label>
+                  <p className="text-base">{getLeaveTypeLabel(selectedApplication.leave_type)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Trạng thái</Label>
+                  <div className="mt-1">{getStatusBadge(selectedApplication.status)}</div>
+                </div>
+              </div>
+
+              {/* Date Range */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ngày bắt đầu</Label>
+                  <p className="text-base">{format(new Date(selectedApplication.start_date), 'dd/MM/yyyy', { locale: vi })}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Ngày kết thúc</Label>
+                  <p className="text-base">{format(new Date(selectedApplication.end_date), 'dd/MM/yyyy', { locale: vi })}</p>
+                </div>
+              </div>
+
+              {/* Reason */}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Lý do</Label>
+                <p className="text-base mt-1 p-3 bg-gray-50 rounded-lg">{selectedApplication.reason}</p>
+              </div>
+
+              {/* Attachment */}
+              {selectedApplication.attachment_url && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Tệp đính kèm</Label>
+                  <div className="mt-2 space-y-2">
+                    {/* Debug info
+                    <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded space-y-2">
+                      <div>URL: {selectedApplication.attachment_url}</div>
+                      <div>
+                        <strong>Test với img tag:</strong>
+                        <img
+                          src={selectedApplication.attachment_url}
+                          alt="Test"
+                          className="w-20 h-20 object-contain border mt-1"
+                          onError={() => console.log('IMG tag failed to load')}
+                          onLoad={() => console.log('IMG tag loaded successfully')}
+                        />
+                      </div>
+                    </div> */}
+
+                    {/* Direct Image Display - Test without ImageViewer first */}
+                    <div className="rounded-lg border overflow-hidden bg-white p-2">
+                      <Image
+                        src={selectedApplication.attachment_url}
+                        alt="Đính kèm đơn xin nghỉ"
+                        width={400}
+                        height={300}
+                        className="w-full h-auto max-h-64 object-contain rounded"
+                        onError={(e) => {
+                          console.error('Image load error:', selectedApplication.attachment_url)
+                          e.currentTarget.style.display = 'none'
+                          // Show error message
+                          const errorDiv = document.createElement('div')
+                          errorDiv.className = 'text-red-500 text-center p-4'
+                          errorDiv.textContent = 'Không thể tải hình ảnh'
+                          e.currentTarget.parentNode?.appendChild(errorDiv)
+                        }}
+                        onLoad={() => {
+                          console.log('Image loaded successfully:', selectedApplication.attachment_url)
+                        }}
+                      />
+                    </div>
+
+                    {/* ImageViewer for zoom functionality */}
+                    <div className="mt-2">
+                      <ImageViewer
+                        src={selectedApplication.attachment_url}
+                        alt="Đính kèm đơn xin nghỉ"
+                      >
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Click để phóng to
+                        </Button>
+                      </ImageViewer>
+                    </div>
+
+                    {/* Fallback buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => selectedApplication.attachment_url && window.open(selectedApplication.attachment_url, '_blank')}
+                        className="text-xs"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Xem trong tab mới
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (selectedApplication.attachment_url) {
+                            const link = document.createElement('a')
+                            link.href = selectedApplication.attachment_url
+                            link.download = `don-xin-nghi-${selectedApplication.student?.full_name}.jpg`
+                            link.click()
+                          }
+                        }}
+                        className="text-xs"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Tải xuống
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Teacher Response */}
+              {selectedApplication.teacher_response && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Phản hồi từ giáo viên</Label>
+                  <p className="text-base mt-1 p-3 bg-blue-50 rounded-lg">{selectedApplication.teacher_response}</p>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                <div>
+                  <Label className="text-xs font-medium text-gray-500">Ngày tạo</Label>
+                  <p>{format(new Date(selectedApplication.created_at), 'dd/MM/yyyy HH:mm', { locale: vi })}</p>
+                </div>
+                {selectedApplication.responded_at && (
+                  <div>
+                    <Label className="text-xs font-medium text-gray-500">Ngày phản hồi</Label>
+                    <p>{format(new Date(selectedApplication.responded_at), 'dd/MM/yyyy HH:mm', { locale: vi })}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </ContentLayout>
   )
 }

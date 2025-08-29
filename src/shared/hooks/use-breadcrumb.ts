@@ -56,6 +56,7 @@ const ROUTE_LABELS: Record<string, string> = {
   'timetable': 'Thời khóa biểu',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useBreadcrumb(role: UserRole): BreadcrumbItem[] {
   const pathname = usePathname()
   

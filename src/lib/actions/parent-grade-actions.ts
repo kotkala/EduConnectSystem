@@ -486,6 +486,7 @@ export async function getChildrenGradeReportsAction() {
 }
 
 // Helper function to process detailed grades into aggregated format
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function processDetailedGradesToAggregated(detailedGrades: unknown[]) {
   console.log('🔍 [GRADE PROCESSING] Starting with', detailedGrades.length, 'detailed grades')
 

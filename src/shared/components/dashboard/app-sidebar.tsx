@@ -32,6 +32,7 @@ export function AppSidebar({ role }: AppSidebarProps) {
   
   const { isOpen, toggleOpen, getOpenState, setIsHover, settings } = sidebar
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChatbotOpen = () => {
     setIsChatbotOpen(true)
   }

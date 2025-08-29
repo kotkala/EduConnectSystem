@@ -39,7 +39,7 @@ import Image from 'next/image'
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
+
   PaginationItem,
   PaginationLink,
   PaginationNext,

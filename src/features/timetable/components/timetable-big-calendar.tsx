@@ -48,7 +48,7 @@ import { getTimetableEventsAction } from "@/features/timetable/actions/timetable
 
 import { studySlotToCalendarEvent } from "@/features/timetable/components/calendar/mappers";
 import { StatusLegend } from "@/features/timetable/components/status-legend";
-import { getBatchFeedbackInfo, type FeedbackInfo } from "@/features/timetable/utils/feedback-status";
+import { getBatchFeedbackInfo } from "@/features/timetable/utils/feedback-status";
 
 // UUID validation function using regex
 const isValidUUID = (value: string): boolean => {

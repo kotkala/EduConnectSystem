@@ -27,7 +27,7 @@ import { toast } from "sonner"
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
+
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -65,7 +65,7 @@ export default function HomeroomStudentsPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
+  const [, setTotalCount] = useState(0)
   const [paginatedStudents, setPaginatedStudents] = useState<HomeroomStudent[]>([])
   const pageSize = 10
 

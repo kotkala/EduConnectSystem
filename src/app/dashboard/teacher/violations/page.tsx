@@ -1,4 +1,4 @@
-﻿import { Suspense } from 'react'
+﻿
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TeacherPageWithSuspense } from '@/shared/components/dashboard/teacher-page-template'

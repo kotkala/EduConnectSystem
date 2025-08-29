@@ -31,7 +31,7 @@ import { toast } from 'sonner'
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
+
   PaginationItem,
   PaginationLink,
   PaginationNext,

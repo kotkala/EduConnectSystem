@@ -275,7 +275,7 @@ export function EventItem({
             )}
             {event.location && event.location !== 'Chưa xác định' && (
               <div className="truncate font-medium opacity-80 text-xs mt-0.5">
-                ðŸ“ Phòng {event.location}
+                 Phòng {event.location}
               </div>
             )}
             {showTime && (

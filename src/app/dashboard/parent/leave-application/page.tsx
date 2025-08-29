@@ -211,7 +211,7 @@ export default function LeaveApplicationPage() {
         const uploadResult = await uploadLeaveAttachmentAction(selectedFile)
         if (uploadResult.success && uploadResult.data) {
           // Update the leave application with attachment URL
-          const updateData = { ...formData, attachment_url: uploadResult.data.url }
+          // Note: Attachment URL would be handled by the upload action
           // Note: You might need to create an update action if needed
         } else {
           toast.warning('Đơn xin nghỉ đã được tạo nhưng không thể tải lên file đính kèm')
@@ -377,7 +377,7 @@ export default function LeaveApplicationPage() {
                   <Label htmlFor="leave_type">Loại đơn <span className="text-red-500">*</span></Label>
                   <Select
                     value={formData.leave_type}
-                    onValueChange={(value: any) => setFormData(prev => ({ ...prev, leave_type: value }))}
+                    onValueChange={(value: "sick" | "family" | "emergency" | "vacation" | "other") => setFormData(prev => ({ ...prev, leave_type: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn loại đơn" />
@@ -636,7 +636,7 @@ export default function LeaveApplicationPage() {
               <div className="text-center py-12">
                 <FileText className="h-12 md:h-14 lg:h-16 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đơn xin nghỉ nào</h3>
-                <p className="text-gray-500">Bạn chưa tạo đơn xin nghỉ nào cho con em mình. Sử dụng nút "Tạo đơn mới" ở trên để bắt đầu.</p>
+                <p className="text-gray-500">Bạn chưa tạo đơn xin nghỉ nào cho con em mình. Sử dụng nút &quot;Tạo đơn mới&quot; ở trên để bắt đầu.</p>
               </div>
             ) : (
               <div className="divide-y">

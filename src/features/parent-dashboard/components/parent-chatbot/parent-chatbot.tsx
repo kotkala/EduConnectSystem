@@ -17,6 +17,7 @@ import {
   MessageCircle,
   ExternalLink,
   AlertCircle,
+  CheckCircle,
 
 } from "lucide-react"
 import { toast } from "sonner"
@@ -470,7 +471,10 @@ export default function ParentChatbot({
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
                   <h3 className="font-semibold text-gray-900 text-sm">EduConnect AI</h3>
-                  <span className="text-xs text-green-600 font-medium"> Đang hoạt động</span>
+                  <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Đang hoạt động</span>
+                  </div>
                 </div>
 
                 <p className="text-sm text-gray-700 mb-2">

@@ -89,7 +89,7 @@ export async function changePasswordAction(data: ChangePasswordData): Promise<{ 
 }
 
 // Get user sessions
-export async function getUserSessionsAction(): Promise<{ success: boolean; data?: any[]; error?: string }> {
+export async function getUserSessionsAction(): Promise<{ success: boolean; data?: unknown[]; error?: string }> {
   try {
     const supabase = await createClient()
     
@@ -119,7 +119,7 @@ export async function getUserSessionsAction(): Promise<{ success: boolean; data?
 }
 
 // Export user data
-export async function exportUserDataAction(): Promise<{ success: boolean; data?: any; error?: string }> {
+export async function exportUserDataAction(): Promise<{ success: boolean; data?: unknown; error?: string }> {
   try {
     const supabase = await createClient()
     

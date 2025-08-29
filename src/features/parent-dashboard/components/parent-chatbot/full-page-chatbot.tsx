@@ -11,7 +11,8 @@ import {
   Send,
   Copy,
   Share,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react"
 // Import shared components and utilities to eliminate duplication
 import { ChatAvatar, formatTime, copyMessage, handleKeyPress, stripMarkdown } from "./parent-chatbot"
@@ -197,7 +198,8 @@ function FullPageChatbot({ className }: FullPageChatbotProps) {
                 <Bot className="h-6 w-6 text-blue-500" />
                 <h2 className="text-lg font-semibold text-gray-900">Trợ Lý AI EduConnect</h2>
               </div>
-              <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50">
+              <Badge variant="outline" className="text-xs border-green-200 text-green-700 bg-green-50 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
                 Đang hoạt động
               </Badge>
             </div>

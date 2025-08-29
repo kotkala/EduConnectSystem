@@ -13,7 +13,6 @@ import { getWeekNumberFromDate } from '@/features/timetable/components/timetable
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -373,7 +372,7 @@ export default function ParentViolationsPageClient() {
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {violations.filter(v => v.severity === 'high').length}
+                  {violations.filter(v => v.severity === 'severe' || v.severity === 'serious').length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Mức độ cao
@@ -395,7 +394,7 @@ export default function ParentViolationsPageClient() {
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {violations.filter(v => v.severity === 'low' || v.severity === 'medium').length}
+                  {violations.filter(v => v.severity === 'minor' || v.severity === 'moderate').length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Mức độ thấp/trung bình

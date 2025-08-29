@@ -54,7 +54,7 @@ const getStatusLabel = (status: string) => {
 export default function TeacherScheduleChangeList() {
   const [requests, setRequests] = useState<ScheduleChangeRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedRequest, setSelectedRequest] = useState<ScheduleChangeRequest | null>(null)
+  const [, setSelectedRequest] = useState<ScheduleChangeRequest | null>(null)
 
   // Filter and pagination state
   const [searchTerm, setSearchTerm] = useState("")

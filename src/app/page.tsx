@@ -313,7 +313,10 @@ export default function Home() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">EduConnect AI</h3>
-                    <p className="text-sm text-emerald-600"> Đang hoạt động</p>
+                    <div className="flex items-center gap-1 text-sm text-emerald-600">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>Đang hoạt động</span>
+                    </div>
                   </div>
                 </div>
 

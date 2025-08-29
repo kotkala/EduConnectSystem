@@ -21,6 +21,15 @@ import {
   exportUserDataAction
 } from '@/lib/actions/profile-actions'
 import { toast } from 'sonner'
+
+interface Session {
+  id: string
+  device?: string
+  location?: string
+  last_active: string
+  is_current?: boolean
+}
+
 import {
   User,
   Settings,
@@ -68,7 +77,7 @@ function ProfileContent() {
 
 
   // Sessions state
-  const [sessions, setSessions] = useState<any[]>([])
+  const [sessions, setSessions] = useState<Session[]>([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
 
   // Export state
@@ -112,7 +121,7 @@ function ProfileContent() {
       } else {
         toast.error(result.error || 'Có lỗi xảy ra khi cập nhật hồ sơ')
       }
-    } catch (error) {
+    } catch {
       toast.error('Có lỗi xảy ra khi cập nhật hồ sơ')
     }
   }
@@ -125,11 +134,11 @@ function ProfileContent() {
     try {
       const result = await getUserSessionsAction()
       if (result.success && result.data) {
-        setSessions(result.data)
+        setSessions(result.data as Session[])
       } else {
         toast.error(result.error || 'Không thể tải danh sách phiên đăng nhập')
       }
-    } catch (error) {
+    } catch {
       toast.error('Có lỗi xảy ra khi tải danh sách phiên đăng nhập')
     } finally {
       setIsLoadingSessions(false)
@@ -157,7 +166,7 @@ function ProfileContent() {
       } else {
         toast.error(result.error || 'Có lỗi xảy ra khi xuất dữ liệu')
       }
-    } catch (error) {
+    } catch {
       toast.error('Có lỗi xảy ra khi xuất dữ liệu')
     } finally {
       setIsExporting(false)

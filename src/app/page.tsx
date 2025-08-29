@@ -3,15 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-// ðŸš€ OPTIMIZATION: Use LazyMotion for smaller bundle size
 import { LazyMotion, motion, AnimatePresence } from 'framer-motion'
-// ðŸ§¹ CLEANUP: Removed unused dynamic import
 
 // Lazy load motion features
 const loadFeatures = () => import('@/lib/motion-features').then(res => res.default)
 
-// ðŸ§¹ CLEANUP: Removed unused MotionDiv import
-// ðŸ§¹ CLEANUP: Removed unused Spinner import
+
 import { Button } from '@/shared/components/ui/button'
 import {
   Users, GraduationCap, Heart, Brain, Phone,
@@ -80,13 +77,11 @@ function AnimatedCounter({ end, duration = 2000 }: { readonly end: string; reado
 }
 
 export default function Home() {
-  const { user, profile } = useAuth() // ðŸ§¹ CLEANUP: Removed unused loading destructure
+  const { user, profile } = useAuth() 
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // ðŸŽ¯ FIXED: Removed individual loading UI - now handled by CoordinatedLoadingOverlay
-  // Context7 principle: Single loading indicator prevents cognitive overload
 
   // Conditional rendering based on auth state
   if (user && profile) {
@@ -485,10 +480,10 @@ export default function Home() {
                     <p className="text-gray-700">Xin chào! Tôi có thể giúp bạn:</p>
                     <div className="space-y-2">
                       {[
-                        "ðŸ“Š Kiểm tra điểm số học sinh",
-                        "ðŸ“… Xem lịch học và lịch thi",
-                        "ðŸ“¢ Nhận thông báo từ nhà trường",
-                        "ðŸ’¬ Liên lạc với giáo viên"
+                        " Kiểm tra điểm số học sinh",
+                        " Xem lịch học và lịch thi",
+                        " Nhận thông báo từ nhà trường",
+                        " Liên lạc với giáo viên"
                       ].map((item) => (
                         <div key={item} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                           <span>{item}</span>
@@ -771,10 +766,10 @@ export default function Home() {
 
                 <div className="space-y-3 text-left">
                   {[
-                    "ðŸ“š Lớp 10A1 - 35 học sinh",
-                    "ðŸ“ 5 bài tập chưa chấm",
-                    "ðŸ’¬ 12 tin nhắn từ phụ huynh",
-                    "ðŸ“… Họp phụ huynh 15/12"
+                    " Lớp 10A1 - 35 học sinh",
+                    " 5 bài tập chưa chấm",
+                    " 12 tin nhắn từ phụ huynh",
+                    " Họp phụ huynh 15/12"
                   ].map((item) => (
                     <div key={item} className="p-3 bg-white rounded-lg text-sm text-gray-700">
                       {item}
@@ -837,9 +832,9 @@ export default function Home() {
 
                 <div className="space-y-3 text-left">
                   {[
-                    { icon: "ðŸ“Š", title: "Điểm số mới nhất", desc: "Toán: 8.5, Văn: 9.0" },
-                    { icon: "ðŸ“…", title: "Lịch học hôm nay", desc: "7 tiết, nghỉ tiết 4" },
-                    { icon: "ðŸ“¢", title: "Thông báo", desc: "Họp phụ huynh 20/12" }
+                    { icon: "", title: "Điểm số mới nhất", desc: "Toán: 8.5, Văn: 9.0" },
+                    { icon: "", title: "Lịch học hôm nay", desc: "7 tiết, nghỉ tiết 4" },
+                    { icon: "", title: "Thông báo", desc: "Họp phụ huynh 20/12" }
                   ].map((item) => (
                     <div key={item.title} className="flex items-start gap-3 p-3 bg-white rounded-lg">
                       <span className="text-lg">{item.icon}</span>
@@ -910,21 +905,21 @@ export default function Home() {
               quote: "EduConnect đã thay đổi hoàn toàn cách chúng tôi giao tiếp với phụ huynh. Hiệu quả vượt mong đợi!",
               name: "Thầy Nguyễn Văn A",
               position: "Hiệu trưởng THPT Lê Quý Đôn",
-              avatar: "ðŸ‘¨â€ðŸ’¼",
+              avatar: "",
               rating: 5
             },
             {
               quote: "Tôi có thể theo dõi học tập của con bất cứ lúc nào. Rất tiện lợi và nhanh chóng!",
               name: "Cô Trần Thị B",
               position: "Phụ huynh học sinh lớp 11A",
-              avatar: "ðŸ‘©â€ðŸ’¼",
+              avatar: "",
               rating: 5
             },
             {
               quote: "Chatbot trả lời chính xác và nhanh chóng. Tôi tiết kiệm được rất nhiều thời gian.",
               name: "Cô Lê Thị C",
               position: "Giáo viên chủ nhiệm",
-              avatar: "ðŸ‘©â€ðŸ«",
+              avatar: "",
               rating: 5
             }
           ].map((testimonial, index) => (

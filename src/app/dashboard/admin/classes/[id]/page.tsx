@@ -109,13 +109,13 @@ export default function ClassDetailPage() {
     if (classData.is_subject_combination) {
       return (
         <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-          Combined Class
+          Lớp bộ môn
         </Badge>
       )
     }
     return (
       <Badge variant="outline" className="bg-blue-100 text-blue-800">
-        Main Class
+        Lớp chính quy
       </Badge>
     )
   }
@@ -126,7 +126,7 @@ export default function ClassDetailPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center gap-2">
             <Skeleton className="h-32 w-full rounded-lg" />
-            <span>Loading class details...</span>
+            <span>Đang tải thông tin lớp học...</span>
           </div>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function ClassDetailPage() {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={handleBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Classes
+            Quay lại lớp học
           </Button>
         </div>
         <Alert variant="destructive">
@@ -157,31 +157,31 @@ export default function ClassDetailPage() {
       <div className="flex items-center justify-between">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Classes
+          Quay lại lớp học
         </Button>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleEdit}>
             <Edit className="mr-2 h-4 w-4" />
-            Edit Class
+            Chỉnh sửa lớp học
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" className="text-red-600 hover:text-red-700">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Class
+                Xóa lớp học
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                <AlertDialogTitle>Xóa lớp học</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete <strong>{classData?.name}</strong>?
-                  This action cannot be undone and will remove all student assignments and teacher assignments.
+                  Bạn có chắc muốn xóa lớp học <strong>{classData?.name}</strong>?
+                  Lớp học đã có giáo viên hoặc học sinh.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Đóng</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
                   className="bg-red-600 hover:bg-red-700"
@@ -190,7 +190,7 @@ export default function ClassDetailPage() {
                   {deleting ? (
                     <>
                       <Skeleton className="h-32 w-full rounded-lg" />
-                      Deleting...
+                      Đang xóa...
                     </>
                   ) : (
                     "Delete Class"
@@ -231,7 +231,7 @@ export default function ClassDetailPage() {
               {classData.homeroom_teacher && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                   <UserCheck className="h-4 w-4" />
-                  <span>Homeroom: {classData.homeroom_teacher.full_name}</span>
+                  <span>Giáo viên chủ nhiệm: {classData.homeroom_teacher.full_name}</span>
                 </div>
               )}
             </div>
@@ -249,15 +249,15 @@ export default function ClassDetailPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="students" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Students
+            Học sinh
           </TabsTrigger>
           <TabsTrigger value="teachers" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4" />
-            Subject Teachers
+            Giáo viên bộ môn
           </TabsTrigger>
           <TabsTrigger value="homeroom" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
-            Homeroom Teacher
+            Giáo viên chủ nhiệm
           </TabsTrigger>
         </TabsList>
 
@@ -278,7 +278,7 @@ export default function ClassDetailPage() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Class</DialogTitle>
+            <DialogTitle>Chỉnh sửa lớp học</DialogTitle>
           </DialogHeader>
           <ClassForm
             class={classData}

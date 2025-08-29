@@ -375,7 +375,6 @@ export function StudySlotDialog({
               <PopoverContent
                 className="w-auto p-2"
                 align="start"
-                style={{ zIndex: 1400 }}
               >
                 <Calendar
                   mode="single"

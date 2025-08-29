@@ -308,7 +308,7 @@ export function AcademicYearManagementDialog({
                           <div>
                             <div className="font-medium">{semester.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {semester.academic_year?.name} â€¢ {semester.weeks_count} tuần
+                              {semester.academic_year?.name}  {semester.weeks_count} tuần
                             </div>
                           </div>
                           {semester.is_current && (

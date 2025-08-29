@@ -304,7 +304,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         // Create summary message for all violations of this student
         const student = studentViolations[0].student
         const violationSummary = studentViolations.map(v =>
-          `â€¢ ${v.violation_type?.name} (${getSeverityLabel(v.severity)})`
+          `• ${v.violation_type?.name} (${getSeverityLabel(v.severity)})`
         ).join('\n')
 
         const weekInfo = selectedWeek ? ` trong tuần ${selectedWeek}` : ''
@@ -380,12 +380,12 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         <Card>
           <CardContent className="text-center py-12">
             <AlertTriangle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Homeroom Teacher Access Required</h3>
+            <h3 className="text-xl font-semibold mb-2">Yêu cầu quyền GVCN</h3>
             <p className="text-muted-foreground mb-4">
-              Only homeroom teachers can view and manage student violations.
+              Chỉ giáo viên chủ nhiệm mới có thể xem và quản lý vi phạm học sinh.
             </p>
             <p className="text-sm text-muted-foreground">
-              If you believe this is an error, please contact your administrator.
+              Nếu bạn tin đây là nhầm lẫn, vui lòng liên hệ quản trị viên.
             </p>
           </CardContent>
         </Card>
@@ -419,10 +419,10 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
             <div>
               <h2 className="text-xl font-semibold">Vi phạm học sinh</h2>
               <p className="text-muted-foreground">
-                Lớp: {homeroomClass?.name} â€¢ {violations.length} vi phạm
+                Lớp: {homeroomClass?.name} • {violations.length} vi phạm
                 {selectedWeek && (
                   <span className="text-primary ml-2">
-                    â€¢ Tuần {selectedWeek}
+                    • Tuần {selectedWeek}
                   </span>
                 )}
               </p>
@@ -560,7 +560,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
             Hiển thị {filteredViolations.length} trong tổng số {violations.length} vi phạm
             {selectedWeek && (
               <span className="text-primary">
-                â€¢ Tuần {selectedWeek}
+                • Tuần {selectedWeek}
               </span>
             )}
           </div>
@@ -570,25 +570,25 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng vi phạm</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{violations.length}</div>
             <p className="text-xs text-muted-foreground">
-              All time
+              Tất cả thời gian
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">Tháng này</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{violations.filter(v => new Date(v.recorded_at).getMonth() === new Date().getMonth()).length}</div>
             <p className="text-xs text-muted-foreground">
-              Current month
+              Tháng hiện tại
             </p>
           </CardContent>
         </Card>
@@ -598,9 +598,9 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
         <Card>
           <CardContent className="text-center py-8">
             <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No violations recorded</h3>
+            <h3 className="text-lg font-semibold mb-2">Chưa có vi phạm nào</h3>
             <p className="text-muted-foreground">
-              Your homeroom class has no recorded violations yet.
+              Lớp chủ nhiệm của bạn chưa có vi phạm nào được ghi nhận.
             </p>
           </CardContent>
         </Card>
@@ -611,10 +611,10 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  Class Violations ({filteredViolations.length})
+                  Vi phạm lớp học ({filteredViolations.length})
                 </CardTitle>
                 <CardDescription>
-                  Violations for your homeroom class students
+                  Vi phạm của học sinh lớp chủ nhiệm
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -630,7 +630,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {violation.violation_type.category.name} â€¢ {violation.violation_type.name}
+                          {violation.violation_type.category.name} • {violation.violation_type.name}
                         </p>
                         {violation.description && (
                           <p className="text-sm">{violation.description}</p>
@@ -640,7 +640,7 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
                             <Clock className="h-3 w-3" />
                             {new Date(violation.recorded_at).toLocaleDateString('vi-VN')}
                           </span>
-                          <span>Recorded by: {violation.recorded_by.full_name}</span>
+                          <span>Ghi nhận bởi: {violation.recorded_by.full_name}</span>
                         </div>
                       </div>
 
@@ -653,11 +653,11 @@ export default function TeacherViolationsPageClient({ homeroomClass, isHomeroomT
             <Card>
               <CardContent className="text-center py-8">
                 <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No violations found</h3>
+                <h3 className="text-lg font-semibold mb-2">Không tìm thấy vi phạm</h3>
                 <p className="text-muted-foreground">
                   {violations.length === 0
-                    ? "No violations recorded for your class yet."
-                    : "No violations match your current filters."}
+                    ? "Chưa có vi phạm nào được ghi nhận cho lớp của bạn."
+                    : "Không có vi phạm nào phù hợp với bộ lọc hiện tại."}
                 </p>
               </CardContent>
             </Card>

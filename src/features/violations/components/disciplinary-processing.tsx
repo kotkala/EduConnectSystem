@@ -215,7 +215,6 @@ export default function DisciplinaryProcessing() {
   // Duplicate handlers removed below. Use single definitions above.
 
   const handleSendToHomeroom = async (caseId: string) => {
-    // Avoid duplicate implementation â€“ delegate to a single internal function
     return sendCaseToHomeroom(caseId)
   }
 

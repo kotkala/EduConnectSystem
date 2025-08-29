@@ -656,12 +656,14 @@ export async function getHomeroomEnabledTeachersAction() {
     await checkAdminPermissions()
     const supabase = await createClient()
 
+    // Optimized query with limit for better performance
     const { data, error } = await supabase
       .from("profiles")
       .select("id, full_name, employee_id")
       .eq("role", "teacher")
       .eq("homeroom_enabled", true)
       .order("full_name")
+      .limit(100) // Reasonable limit for dropdown performance
 
     if (error) {
       return {

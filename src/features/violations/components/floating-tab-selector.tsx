@@ -59,7 +59,7 @@ export function FloatingTabSelector({ activeTab, onTabChange }: FloatingTabSelec
       </AnimatePresence>
 
       {/* Floating Menu - Always Visible, Sticky */}
-      <div className="fixed bottom-6 right-6 z-[9999] pointer-events-auto">
+      <div className="fixed bottom-6 right-6 pointer-events-auto" style={{ zIndex: 9999 }}>
         <AnimatePresence>
           {isOpen && (
             <motion.div
